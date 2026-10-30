@@ -1,0 +1,13 @@
+{
+  "energy": {
+    "assistBonus": 0.15,
+    "trailingBonus": 0.25
+  },
+  "games": {
+    "airhockey": [
+      { "id": "freeze", "name": "Freeze", "icon": "🧊", "desc": "Freeze the other paddle for a moment.", "duration": 1.2 },
+      { "id": "giant", "name": "Giant Paddle", "icon": "🍄", "desc": "Your paddle grows huge for 5 seconds.", "duration": 5 },
+      { "id": "split", "name": "Split Puck", "icon": "✨", "desc": "The puck splits in two. Either one can score.", "duration": 6 }
+    ]
+  }
+}
