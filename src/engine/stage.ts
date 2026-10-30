@@ -25,7 +25,11 @@ export class Stage {
     const pos = (e: PointerEvent) => this.toWorld(e.clientX, e.clientY);
     canvas.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      canvas.setPointerCapture?.(e.pointerId);
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch {
+        // Synthetic pointers (tests) have no capture target.
+      }
       const p = pos(e);
       this.input.down(e.pointerId, p.x, p.y);
     });

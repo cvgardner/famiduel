@@ -13,6 +13,8 @@ export default defineConfig({
   projects: [
     { name: 'phone', use: { viewport: { width: 390, height: 844 }, hasTouch: true } },
     { name: 'desktop', use: { viewport: { width: 1280, height: 800 } } },
+    // `npm run playtest`: real-time touch play of every game, writes playtest-report/.
+    { name: 'playtest', testDir: 'playtest', timeout: 120_000, use: { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true } },
   ],
   webServer: {
     command: `npm run build && npx vite preview --port ${PORT} --strictPort`,

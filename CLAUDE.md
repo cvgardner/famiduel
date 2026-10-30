@@ -42,12 +42,15 @@ the Challenge"); the plan and market research are in the GameDev project's
 ## Checks (the merge gate)
 
 GitHub Actions does not run on this account (billing is blocked; assume it always is).
-The workflow file exists but **local checks are the merge gate**. Before every merge run:
+The workflow file exists but **`npm run verify` is the merge gate** (see docs/verification.md):
+typecheck, unit tests, build, browser e2e, and a real-time "play like a person" pass that
+writes screenshots to `playtest-report/`. In the cloud env prefix it with
+`PW_CHROMIUM=/opt/pw-browsers/chromium`.
 
-```sh
-npm run typecheck && npm test && npm run build
-PW_CHROMIUM=/opt/pw-browsers/chromium npm run test:e2e   # cloud env; locally just npm run test:e2e
-```
+Weekend improvement routine: docs/improvement-loop.md, backlog in docs/backlog.md.
+Playable artifact: https://claude.ai/artifact/L57D46DKP6QN7UvoAitWQs — republish from
+`npm run build` with dist/index.html's doctype/html/head/body tags and charset/viewport
+metas stripped.
 
 Every built game must have: logic tests (bot-vs-bot match finishes, determinism, handicap
 knob, each power), and it is covered automatically by the e2e "bot vs bot" test.
