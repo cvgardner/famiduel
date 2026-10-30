@@ -51,3 +51,12 @@ PW_CHROMIUM=/opt/pw-browsers/chromium npm run test:e2e   # cloud env; locally ju
 
 Every built game must have: logic tests (bot-vs-bot match finishes, determinism, handicap
 knob, each power), and it is covered automatically by the e2e "bot vs bot" test.
+
+## Status (30 Oct 2026)
+
+All 13 launch games plus Tic-Tac-Toe and RPS are playable, each with an honest bot, a
+handicap knob and (except Checkers, TTT, RPS) three powers. Known follow-ups:
+- Sea Battle easy-vs-easy showed a mild seat bias (116/200 for player 1) in sims; unexplained.
+- Minigolf easy bot may still be too strong for small kids (2–5 strokes a hole).
+- Not built yet: ads / remove-ads unlock, highlight clips, rivalry cards, daily course,
+  Family Wrapped, store wrapper (Capacitor), mini pool.
