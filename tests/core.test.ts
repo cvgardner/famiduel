@@ -69,3 +69,20 @@ describe('store', () => {
     expect(again.data.night.games).toHaveLength(0);
   });
 });
+
+describe('button', () => {
+  it('counts a tap that lands and lifts within one frame', async () => {
+    const { Input } = await import('../src/engine/input');
+    const { Button } = await import('../src/engine/widgets');
+    const input = new Input();
+    const b = new Button(100, 500, 30, 0);
+    input.down(1, 100, 500);
+    input.up(1);
+    b.update(input);
+    expect(b.pressed).toBe(true);
+    input.endFrame();
+    b.update(input);
+    expect(b.released).toBe(true);
+    expect(b.held).toBe(false);
+  });
+});

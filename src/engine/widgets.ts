@@ -38,8 +38,9 @@ export class Button {
     let down = false;
     if (this.finger !== null) {
       const f = input.pointers.get(this.finger);
-      if (f && f.down) down = true;
-      else this.finger = null;
+      // A tap that lands and lifts within one frame still counts as one press.
+      if (f && (f.down || f.pressed)) down = true;
+      if (!f || !f.down) this.finger = null;
     }
     if (key && input.key(key)) down = true;
     this.held = down;
