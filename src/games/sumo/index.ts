@@ -219,9 +219,10 @@ class SumoView implements GameInstance {
       const a = Math.min(1, this.banner * 4);
       const pop = 1 + Math.max(0, this.banner - (this.bannerText === 'GO!' ? 0.4 : 0.9)) * 1.5;
       for (const p of PLAYERS) {
-        const y = p === 0 ? MID + 42 : MID - 42;
+        const y = p === 0 ? MID + 56 : MID - 56;
         const fit = Math.min(26, 500 / Math.max(1, this.bannerText.length));
-        text(gx, this.bannerText, W / 2, y, { size: Math.round(fit * pop), color: this.bannerColor, stroke: 'rgba(40,20,0,0.75)', player: p, alpha: a });
+        // Capped so the two mirrored copies never overlap across the middle.
+        text(gx, this.bannerText, W / 2, y, { size: Math.round(Math.min(fit * pop, 34)), color: this.bannerColor, stroke: 'rgba(40,20,0,0.75)', player: p, alpha: a });
       }
     }
   }
