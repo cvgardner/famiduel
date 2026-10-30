@@ -1,0 +1,30 @@
+name: ci
+
+# Note: Actions is not available on this account right now; local checks are the
+# merge gate (see CLAUDE.md). This workflow runs the same checks if it ever is.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: famiduel
+          path: dist/index.html
