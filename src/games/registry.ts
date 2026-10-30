@@ -2,7 +2,9 @@
 // shows as "coming soon".
 import type { GameDef } from '../engine/game';
 import airhockey from './airhockey';
+import minigolf from './minigolf';
 
 export const GAMES: Record<string, GameDef> = {
   [airhockey.id]: airhockey,
+  [minigolf.id]: minigolf,
 };
