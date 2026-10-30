@@ -8,6 +8,21 @@
       { "id": "freeze", "name": "Freeze", "icon": "🧊", "desc": "Freeze the other paddle for a moment.", "duration": 1.2 },
       { "id": "giant", "name": "Giant Paddle", "icon": "🍄", "desc": "Your paddle grows huge for 5 seconds.", "duration": 5 },
       { "id": "split", "name": "Split Puck", "icon": "✨", "desc": "The puck splits in two. Either one can score.", "duration": 6 }
+    ],
+    "snake": [
+      { "id": "boost", "name": "Speed Boost", "icon": "⚡", "desc": "Your snake zooms faster for 3 seconds.", "duration": 3 },
+      { "id": "phase", "name": "Phase", "icon": "👻", "desc": "Pass through one trail. Lasts 5 seconds or one crossing.", "duration": 5 },
+      { "id": "bomb", "name": "Trail Bomb", "icon": "💣", "desc": "Blow a gap in every trail around your head." }
+    ],
+    "quickdraw": [
+      { "id": "fakeout", "name": "Fake-out", "icon": "🎭", "desc": "Show a fake signal on both screens. Only you know it's fake." },
+      { "id": "slowtime", "name": "Slow Time", "icon": "⏳", "desc": "Next round, your side glows \"get ready\" just before DRAW!" },
+      { "id": "double", "name": "Double Shot", "icon": "🎯", "desc": "One early tap is forgiven." }
+    ],
+    "chopchop": [
+      { "id": "shield", "name": "Branch Shield", "icon": "🛡️", "desc": "The next branch that would bonk you breaks instead." },
+      { "id": "freeze", "name": "Freeze Tree", "icon": "🧊", "desc": "The other tree freezes: no chopping for 1 second.", "duration": 1 },
+      { "id": "double", "name": "Double Chop", "icon": "✌️", "desc": "Every chop counts twice for 4 seconds.", "duration": 4 }
     ]
   }
 }
