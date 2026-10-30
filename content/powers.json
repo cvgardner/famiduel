@@ -4,6 +4,11 @@
     "trailingBonus": 0.25
   },
   "games": {
+    "minigolf": [
+      { "id": "wind", "name": "Wind Gust", "icon": "🌬️", "desc": "A gust of wind pushes the other player's next shot sideways." },
+      { "id": "magnet", "name": "Magnet Hole", "icon": "🧲", "desc": "Your next shot: the hole pulls your ball in from much farther away." },
+      { "id": "ghost", "name": "Ghost Ball", "icon": "👻", "desc": "Your next shot floats through one wall or obstacle." }
+    ],
     "airhockey": [
       {
         "id": "freeze",

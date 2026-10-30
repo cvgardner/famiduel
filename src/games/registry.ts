@@ -4,6 +4,7 @@ import type { GameDef } from '../engine/game';
 import airhockey from './airhockey';
 import checkers from './checkers';
 import chopchop from './chopchop';
+import minigolf from './minigolf';
 import penalty from './penalty';
 import pingpong from './pingpong';
 import quickdraw from './quickdraw';
@@ -15,6 +16,7 @@ import tanks from './tanks';
 import tictactoe from './tictactoe';
 
 export const GAMES: Record<string, GameDef> = {
+  [minigolf.id]: minigolf,
   [airhockey.id]: airhockey,
   [sumo.id]: sumo,
   [pingpong.id]: pingpong,

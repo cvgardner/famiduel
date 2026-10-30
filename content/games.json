@@ -1,7 +1,7 @@
 {
   "games": [
     { "id": "minigolf", "name": "Minigolf", "icon": "⛳", "kind": "Aim · turns", "free": true, "color": "#3fbf6a",
-      "blurb": "Fewest strokes over 3 holes wins.", "howTo": "Pull back from the ball and let go. The course turns to face whoever is shooting.",
+      "blurb": "Fewest strokes over 3 holes wins.", "howTo": "Take turns. Pull back anywhere in your half (or by your ball) and let go. The course turns to face whoever is shooting.",
       "handicap": "Longer aim guide, and strokes off the score" },
     { "id": "airhockey", "name": "Air Hockey", "icon": "🏒", "kind": "Action", "free": true, "color": "#3fa9ff",
       "blurb": "First to 5 goals.", "howTo": "Drag your paddle around your half and hit the puck into the far goal.",

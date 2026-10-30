@@ -1,0 +1,139 @@
+{
+  "_comment": "Minigolf holes in course units (the 360x640 world). Course area is x 20..340, y 72..568 (symmetric about the centre, so the 180 degree view turn keeps it on screen). Tee near the bottom, cup near the top. Walls: kind 'border' (always solid) or 'inner' (Ghost Ball can pass one). Zones: sand, water, slope (accel [ax, ay] in units/s^2), bowl (pull toward the centre). Movers: windmill (rotating blades) and slider (a wall that slides back and forth). Listed from easiest to hardest; a match plays 3 of them in this order.",
+  "holes": [
+    {
+      "id": "warmup",
+      "name": "Warm-Up Lane",
+      "par": 2,
+      "tee": [180, 520],
+      "cup": [180, 130],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[110, 560], [250, 560], [250, 90], [110, 90]] },
+        { "kind": "inner", "closed": true, "pts": [[180, 300], [204, 330], [180, 360], [156, 330]] }
+      ],
+      "zones": [],
+      "movers": []
+    },
+    {
+      "id": "dogleg",
+      "name": "Dog Leg",
+      "par": 3,
+      "tee": [95, 525],
+      "cup": [275, 145],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[40, 565], [150, 565], [150, 235], [325, 235], [325, 80], [40, 80]] }
+      ],
+      "zones": [
+        { "type": "sand", "circle": [72, 112, 34] },
+        { "type": "slope", "poly": [[150, 235], [240, 235], [240, 200], [150, 200]], "accel": [0, -60] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "windmill",
+      "name": "Windmill",
+      "par": 3,
+      "tee": [180, 525],
+      "cup": [180, 125],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[60, 565], [300, 565], [300, 80], [60, 80]] },
+        { "kind": "inner", "closed": false, "pts": [[60, 320], [118, 320]] },
+        { "kind": "inner", "closed": false, "pts": [[242, 320], [300, 320]] }
+      ],
+      "zones": [],
+      "movers": [
+        { "type": "windmill", "x": 180, "y": 320, "len": 58, "blades": 4, "speed": 1.6 }
+      ]
+    },
+    {
+      "id": "pond",
+      "name": "Lily Pond",
+      "par": 3,
+      "tee": [180, 530],
+      "cup": [180, 118],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[70, 565], [290, 565], [335, 470], [335, 170], [290, 78], [70, 78], [25, 170], [25, 470]] }
+      ],
+      "zones": [
+        { "type": "water", "circle": [180, 325, 78] },
+        { "type": "slope", "poly": [[25, 260], [80, 260], [80, 390], [25, 390]], "accel": [90, 0] },
+        { "type": "slope", "poly": [[280, 260], [335, 260], [335, 390], [280, 390]], "accel": [-90, 0] },
+        { "type": "sand", "circle": [120, 150, 26] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "ramp",
+      "name": "Hill Climb",
+      "par": 3,
+      "tee": [180, 530],
+      "cup": [180, 130],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[75, 565], [285, 565], [285, 80], [75, 80]] }
+      ],
+      "zones": [
+        { "type": "slope", "poly": [[75, 280], [285, 280], [285, 420], [75, 420]], "accel": [0, 230] }
+      ],
+      "movers": [
+        { "type": "slider", "a": [140, 215], "b": [220, 215], "travel": [62, 0], "period": 3.2 }
+      ]
+    },
+    {
+      "id": "zigzag",
+      "name": "Zig Zag",
+      "par": 4,
+      "tee": [80, 525],
+      "cup": [270, 140],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[30, 565], [330, 565], [330, 80], [30, 80]] },
+        { "kind": "inner", "closed": true, "pts": [[30, 425], [235, 425], [235, 437], [30, 437]] },
+        { "kind": "inner", "closed": true, "pts": [[125, 250], [330, 250], [330, 262], [125, 262]] }
+      ],
+      "zones": [
+        { "type": "sand", "circle": [300, 515, 26] },
+        { "type": "sand", "circle": [60, 200, 26] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "bowl",
+      "name": "Bumper Bowl",
+      "par": 3,
+      "tee": [180, 535],
+      "cup": [180, 170],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[120, 568], [240, 568], [330, 470], [330, 160], [250, 74], [110, 74], [30, 160], [30, 470]] },
+        { "kind": "inner", "closed": true, "pts": [[180, 300], [215, 340], [145, 340]] },
+        { "kind": "inner", "closed": true, "pts": [[85, 380], [115, 410], [70, 420]] },
+        { "kind": "inner", "closed": true, "pts": [[275, 380], [290, 420], [245, 410]] }
+      ],
+      "zones": [
+        { "type": "bowl", "circle": [180, 170, 62], "pull": 160 },
+        { "type": "water", "poly": [[30, 210], [62, 210], [62, 300], [30, 300]] },
+        { "type": "water", "poly": [[298, 210], [330, 210], [330, 300], [298, 300]] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "gates",
+      "name": "Twin Gates",
+      "par": 4,
+      "tee": [180, 530],
+      "cup": [180, 120],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[50, 565], [310, 565], [310, 80], [50, 80]] },
+        { "kind": "inner", "closed": false, "pts": [[50, 400], [130, 400]] },
+        { "kind": "inner", "closed": false, "pts": [[230, 400], [310, 400]] },
+        { "kind": "inner", "closed": false, "pts": [[50, 240], [130, 240]] },
+        { "kind": "inner", "closed": false, "pts": [[230, 240], [310, 240]] }
+      ],
+      "zones": [
+        { "type": "sand", "circle": [180, 320, 30] }
+      ],
+      "movers": [
+        { "type": "slider", "a": [150, 400], "b": [210, 400], "travel": [40, 0], "period": 2.6 },
+        { "type": "windmill", "x": 180, "y": 240, "len": 46, "blades": 3, "speed": -1.9 }
+      ]
+    }
+  ]
+}
