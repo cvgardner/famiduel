@@ -8,6 +8,11 @@
       { "id": "freeze", "name": "Freeze", "icon": "🧊", "desc": "Freeze the other paddle for a moment.", "duration": 1.2 },
       { "id": "giant", "name": "Giant Paddle", "icon": "🍄", "desc": "Your paddle grows huge for 5 seconds.", "duration": 5 },
       { "id": "split", "name": "Split Puck", "icon": "✨", "desc": "The puck splits in two. Either one can score.", "duration": 6 }
+    ],
+    "tanks": [
+      { "id": "bouncy", "name": "Bouncing Shot", "icon": "💫", "desc": "For 8 seconds your shells glow and bounce 5 times.", "duration": 8 },
+      { "id": "shield", "name": "Shield", "icon": "🫧", "desc": "A bubble blocks every shell and blast for 3 seconds.", "duration": 3 },
+      { "id": "mine", "name": "Mine", "icon": "💣", "desc": "Drop a blinking mine behind you. It goes off when a tank rolls over it or a shell hits it." }
     ]
   }
 }
