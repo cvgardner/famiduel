@@ -8,6 +8,16 @@
       { "id": "freeze", "name": "Freeze", "icon": "🧊", "desc": "Freeze the other paddle for a moment.", "duration": 1.2 },
       { "id": "giant", "name": "Giant Paddle", "icon": "🍄", "desc": "Your paddle grows huge for 5 seconds.", "duration": 5 },
       { "id": "split", "name": "Split Puck", "icon": "✨", "desc": "The puck splits in two. Either one can score.", "duration": 6 }
+    ],
+    "sumo": [
+      { "id": "pound", "name": "Ground Pound", "icon": "💥", "desc": "Stomp! A shockwave shoves the other wrestler away from you.", "duration": 0.35 },
+      { "id": "grow", "name": "Grow", "icon": "🍙", "desc": "Grow big and heavy for 3 seconds.", "duration": 3 },
+      { "id": "slip", "name": "Slippery Floor", "icon": "🧼", "desc": "The other wrestler slides around for 3.5 seconds.", "duration": 3.5 }
+    ],
+    "snacksnatch": [
+      { "id": "magnet", "name": "Magnet Mouth", "icon": "🧲", "desc": "Snacks drift toward your critters for 3 seconds.", "duration": 3 },
+      { "id": "sticky", "name": "Sticky Snacks", "icon": "🍯", "desc": "Snacks slow right down on your side for 5 seconds.", "duration": 5 },
+      { "id": "double", "name": "Double Grab", "icon": "👅", "desc": "Your next 3 snaps reach twice as far.", "duration": 0 }
     ]
   }
 }
