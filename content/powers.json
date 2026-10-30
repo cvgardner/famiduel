@@ -158,6 +158,52 @@
         "desc": "Your next 3 snaps reach twice as far.",
         "duration": 0
       }
+    ],
+    "pingpong": [
+      {
+        "id": "smash",
+        "name": "Smash",
+        "icon": "💥",
+        "desc": "Your next return flies super fast.",
+        "duration": 0
+      },
+      {
+        "id": "slowmo",
+        "name": "Slow-mo Return",
+        "icon": "🐢",
+        "desc": "The ball slows right down as it comes to you, for 3 seconds.",
+        "duration": 3
+      },
+      {
+        "id": "curve",
+        "name": "Curve Ball",
+        "icon": "🌀",
+        "desc": "Your next return bends away from the other paddle.",
+        "duration": 0
+      }
+    ],
+    "penalty": [
+      {
+        "id": "curveshot",
+        "name": "Curve Shot",
+        "icon": "🌀",
+        "desc": "Your next shot swings out wide, then bends back on target.",
+        "duration": 0
+      },
+      {
+        "id": "widekeeper",
+        "name": "Wide Keeper",
+        "icon": "🧤",
+        "desc": "Your keeper is extra wide for your next save.",
+        "duration": 0
+      },
+      {
+        "id": "decoy",
+        "name": "Decoy Ball",
+        "icon": "👻",
+        "desc": "Your next shot sends a fake ball too. The keeper has to pick one.",
+        "duration": 0
+      }
     ]
   }
 }

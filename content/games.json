@@ -13,7 +13,7 @@
       "blurb": "First to 7.", "howTo": "Slide your paddle along your end. Where the ball hits sets the angle.",
       "handicap": "Bigger paddle, slower ball toward you" },
     { "id": "penalty", "name": "Penalty Shootout", "icon": "⚽", "kind": "Aim · turns", "free": false, "color": "#2ecc71",
-      "blurb": "Five kicks each, then sudden death.", "howTo": "Shooter swipes to kick. Keeper taps left, middle or right to dive.",
+      "blurb": "Five kicks each, then sudden death.", "howTo": "Shooter swipes toward the goal: faster is harder, a curved swipe bends the ball. Keeper taps left, middle or right to dive, but dive too early and the shooter sees it.",
       "handicap": "Bigger keeper, more aim time" },
     { "id": "snacksnatch", "name": "Snack Snatch", "icon": "🐸", "kind": "Frantic", "free": false, "color": "#b06cff",
       "blurb": "Most points in 30 seconds. Gold snacks are worth 3.", "howTo": "Tap the left or right of your side to snap that critter at the snacks. A miss makes it dizzy for a moment.",
