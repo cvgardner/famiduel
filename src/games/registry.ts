@@ -4,11 +4,13 @@ import type { GameDef } from '../engine/game';
 import airhockey from './airhockey';
 import checkers from './checkers';
 import chopchop from './chopchop';
+import fourinarow from './fourinarow';
 import minigolf from './minigolf';
 import penalty from './penalty';
 import pingpong from './pingpong';
 import quickdraw from './quickdraw';
 import rps from './rps';
+import seabattle from './seabattle';
 import snacksnatch from './snacksnatch';
 import snake from './snake';
 import sumo from './sumo';
@@ -25,6 +27,8 @@ export const GAMES: Record<string, GameDef> = {
   [snake.id]: snake,
   [quickdraw.id]: quickdraw,
   [tanks.id]: tanks,
+  [seabattle.id]: seabattle,
+  [fourinarow.id]: fourinarow,
   [checkers.id]: checkers,
   [chopchop.id]: chopchop,
   [tictactoe.id]: tictactoe,

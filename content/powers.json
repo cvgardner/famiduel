@@ -5,9 +5,24 @@
   },
   "games": {
     "minigolf": [
-      { "id": "wind", "name": "Wind Gust", "icon": "🌬️", "desc": "A gust of wind pushes the other player's next shot sideways." },
-      { "id": "magnet", "name": "Magnet Hole", "icon": "🧲", "desc": "Your next shot: the hole pulls your ball in from much farther away." },
-      { "id": "ghost", "name": "Ghost Ball", "icon": "👻", "desc": "Your next shot floats through one wall or obstacle." }
+      {
+        "id": "wind",
+        "name": "Wind Gust",
+        "icon": "🌬️",
+        "desc": "A gust of wind pushes the other player's next shot sideways."
+      },
+      {
+        "id": "magnet",
+        "name": "Magnet Hole",
+        "icon": "🧲",
+        "desc": "Your next shot: the hole pulls your ball in from much farther away."
+      },
+      {
+        "id": "ghost",
+        "name": "Ghost Ball",
+        "icon": "👻",
+        "desc": "Your next shot floats through one wall or obstacle."
+      }
     ],
     "airhockey": [
       {
@@ -208,6 +223,46 @@
         "icon": "👻",
         "desc": "Your next shot sends a fake ball too. The keeper has to pick one.",
         "duration": 0
+      }
+    ],
+    "seabattle": [
+      {
+        "id": "radar",
+        "name": "Radar",
+        "icon": "📡",
+        "desc": "Scan a 3×3 patch of sea to see if a ship hides there. You still fire after."
+      },
+      {
+        "id": "airstrike",
+        "name": "Airstrike",
+        "icon": "✈️",
+        "desc": "Instead of one shot, hit 5 cells of a row at once."
+      },
+      {
+        "id": "mine",
+        "name": "Hit-back Mine",
+        "icon": "💥",
+        "desc": "Hide a mine in your sea. Whoever fires on it gets one of their own ships hit."
+      }
+    ],
+    "fourinarow": [
+      {
+        "id": "bomb",
+        "name": "Drop a Bomb",
+        "icon": "💣",
+        "desc": "Your next disc clears the 3×3 around where it lands, then drops into place."
+      },
+      {
+        "id": "flip",
+        "name": "Flip a Piece",
+        "icon": "🔄",
+        "desc": "Use your turn to turn one of their discs into yours (it can't make four by itself)."
+      },
+      {
+        "id": "block",
+        "name": "Block a Column",
+        "icon": "🚧",
+        "desc": "Pick a column they can't play on their next turn. You still drop a disc."
       }
     ]
   }
