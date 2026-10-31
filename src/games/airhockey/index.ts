@@ -76,6 +76,12 @@ class AirHockeyView implements GameInstance {
         const pw = this.ctx.players[e.p].power!;
         fx.flash('#ffd54a', 0.12);
         fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 50 : MID - 50, COLORS.gold, e.p, 26);
+      } else if (e.type === 'nudge') {
+        // Only the player holding the puck needs to read it, upright on their side.
+        fx.pop('Your shot!', W / 2, e.p === 0 ? MID + 130 : MID - 130, '#2b2459', e.p, 26);
+      } else if (e.type === 'drift') {
+        sfx.play('whoosh');
+        fx.burst(e.x, e.y, '#bfe9ff', 10, 140, 3);
       } else if (e.type === 'win') {
         this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]}` });
       }
@@ -140,6 +146,13 @@ class AirHockeyView implements GameInstance {
     if (g.serve > 0 && g.pucks[0]) {
       const pk = g.pucks[0];
       circle(gx, pk.x, pk.y, RULES.puckR + 6 + 6 * Math.sin(this.t * 10), undefined, 'rgba(29,24,64,0.4)', 2);
+    }
+    // Stall rule: the puck has rested in one half a while; ring it in that player's colour.
+    const held = g.held;
+    if (held && held.t >= RULES.nudgeAfter && g.pucks[0] && g.serve <= 0) {
+      const pk = g.pucks[0];
+      const c = this.ctx.players[held.p].color;
+      circle(gx, pk.x, pk.y, RULES.puckR + 7 + 5 * Math.sin(this.t * 8), undefined, alpha(c, 0.8), 3);
     }
     // Paddles
     for (const p of [0, 1] as PlayerIndex[]) {

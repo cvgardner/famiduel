@@ -72,4 +72,77 @@ describe('air hockey', () => {
     g.step(DT, [{ tx: 180, ty: 560, power: false }, { tx: 100, ty: 200, power: false }]);
     expect(g.paddles[1].y).toBe(y);
   });
+
+  describe('stall rule', () => {
+    const idle = (g: AirHockey, p: 0 | 1) => ({ tx: g.paddles[p].x, ty: g.paddles[p].y, power: false });
+
+    it('a puck resting in one half is nudged, then blown just past the centre line', () => {
+      const g = new AirHockey([player(), player()], false, makeRng(5));
+      g.resetPuck(0);
+      const events: { type: string; t: number; p?: number }[] = [];
+      let crossedAt = -1;
+      let maxPast = 0;
+      for (let t = 0; t < 14; t += DT) {
+        g.step(DT, [idle(g, 0), idle(g, 1)]);
+        for (const e of g.events) if (e.type === 'nudge' || e.type === 'drift') events.push({ type: e.type, t: g.t, p: e.p });
+        const pk = g.pucks[0];
+        if (crossedAt < 0 && pk.y < 320) crossedAt = g.t;
+        if (crossedAt > 0 && g.t < crossedAt + 6) maxPast = Math.max(maxPast, 320 - pk.y);
+      }
+      const serve = RULES.serveDelay;
+      expect(events[0]).toMatchObject({ type: 'nudge', p: 0 });
+      expect(events[0].t).toBeCloseTo(serve + RULES.nudgeAfter, 1);
+      expect(events[1]).toMatchObject({ type: 'drift', p: 0 });
+      expect(events[1].t).toBeCloseTo(serve + RULES.driftAfter, 1);
+      // It crosses within a couple of seconds and stops short of the far goal.
+      expect(crossedAt - events[1].t).toBeLessThan(2);
+      expect(maxPast).toBeGreaterThan(RULES.driftPast * 0.7);
+      expect(maxPast).toBeLessThan(RULES.driftPast + 10);
+      expect(g.score).toEqual([0, 0]);
+    });
+
+    it('two players who walk away: the puck goes back and forth, nobody scores', () => {
+      const g = new AirHockey([player(), player()], false, makeRng(9));
+      const halves = new Set<number>();
+      for (let t = 0; t < 60; t += DT) {
+        g.step(DT, [idle(g, 0), idle(g, 1)]);
+        halves.add(AirHockey.halfOf(g.pucks[0].y));
+      }
+      expect(halves.size).toBe(2);
+      expect(g.score).toEqual([0, 0]);
+    });
+
+    it('a match against a bot ends even if the person never moves', () => {
+      let botWins = 0;
+      for (const seed of [1, 2, 3, 4]) {
+        for (const level of ['easy', 'normal', 'hard'] as BotLevel[]) {
+          const rng = makeRng(seed);
+          const g = new AirHockey([player(), player({ bot: level })], false, rng);
+          const bot = new AirHockeyBot(1, level, rng);
+          let t = 0;
+          while (g.winner === null && t < 300) {
+            g.step(DT, [idle(g, 0), bot.think(g, DT)]);
+            t += DT;
+          }
+          expect(g.winner, `${level} seed ${seed}`).not.toBeNull();
+          if (g.winner === 1) botWins++;
+        }
+      }
+      // A still paddle in front of its goal can deflect a shot in, but the bot mostly wins.
+      expect(botWins).toBeGreaterThanOrEqual(9);
+    });
+
+    it('a rally that keeps crossing is never touched', () => {
+      const { g } = play(['hard', 'hard'], 4);
+      expect(g.winner).not.toBeNull();
+      const g2 = new AirHockey([player(), player()], false, makeRng(1));
+      g2.serve = 0;
+      g2.pucks[0] = { x: 180, y: 400, vx: 0, vy: 0, alive: true };
+      for (let t = 0; t < RULES.nudgeAfter - 0.5; t += DT) g2.step(DT, [idle(g2, 0), idle(g2, 1)]);
+      g2.pucks[0].y = 200; // it crossed: the clock starts again for the other half
+      g2.step(DT, [idle(g2, 0), idle(g2, 1)]);
+      expect(g2.held).toMatchObject({ p: 1 });
+      expect(g2.held!.t).toBeLessThan(0.1);
+    });
+  });
 });
