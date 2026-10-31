@@ -164,8 +164,21 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
           return inner.getBoundingClientRect().height > (h as HTMLElement).getBoundingClientRect().height + 1;
         }),
       );
-      if (bad) {
-        clipped.push(`${id} at ${w}x${h}`);
+      // The ghost finger sits beside the title: both halves show it, and it must not
+      // push the title off the side of a narrow phone.
+      const demo = await page.evaluate(() =>
+        [...document.querySelectorAll('#intro .half')].map((h) => {
+          const head = h.querySelector('.intro-head') as HTMLElement;
+          const d = h.querySelector('.demo') as HTMLElement | null;
+          const hr = (h as HTMLElement).getBoundingClientRect();
+          const dr = d?.getBoundingClientRect();
+          return { shown: !!d, fits: head.scrollWidth <= head.clientWidth + 1 && (!dr || (dr.left >= hr.left && dr.right <= hr.right)) };
+        }),
+      );
+      if (demo.some((d) => !d.shown)) clipped.push(`${id} at ${w}x${h}: no ghost finger on a first match`);
+      if (demo.some((d) => !d.fits)) clipped.push(`${id} at ${w}x${h}: ghost finger pushes the title off the phone`);
+      if (bad || demo.some((d) => !d.shown || !d.fits)) {
+        if (bad) clipped.push(`${id} at ${w}x${h}`);
         await page.screenshot({ path: path.join(OUT, `${id}-intro-clipped-${w}x${h}.png`) });
       }
       await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
@@ -192,6 +205,28 @@ async function smallTargets(page: Page, screen: string): Promise<string[]> {
   }, MIN_TARGET);
   return bad.map((b) => `${screen}: ${b}`);
 }
+
+test('ghost finger: shows on a game\'s first matches, then gets out of the way', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  type H = { openGame(id: string): void; showHome(): void; store: { data: { history: { game: string }[] } } };
+  const demos = async (id: string) =>
+    page.evaluate((g) => {
+      const a = (window as unknown as { __famiduel: H }).__famiduel;
+      a.openGame(g);
+      const n = document.querySelectorAll('#intro .demo').length;
+      a.showHome();
+      return n;
+    }, id);
+  expect(await demos('sumo')).toBe(2);
+  await page.evaluate(() => {
+    const h = (window as unknown as { __famiduel: H }).__famiduel.store.data.history;
+    for (let i = 0; i < 3; i++) h.push({ game: 'sumo' });
+  });
+  expect(await demos('sumo'), 'still shown after 3 matches').toBe(0);
+  expect(await demos('minigolf'), 'other games keep theirs').toBe(2);
+  expect(errors).toEqual([]);
+});
 
 test('layout: every tap target is at least 44px on a small phone', async ({ page }) => {
   const errors: string[] = [];

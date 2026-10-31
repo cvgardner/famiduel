@@ -54,7 +54,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       400 ms. Works with sound off. New "📳 Vibration" toggle on the home screen (saved;
       older saves get it on). The playtest counts vibrations per game and checks the
       toggle turns them off.
-- [ ] Each game's first-time "how to play" overlay showing the gesture with a ghost finger.
+- [x] 2026-10-31: ghost finger. Each intro half now shows a small looping picture of the
+      game's gesture beside the title (a white fingertip that taps, holds while a ring
+      charges, pulls back from a ball, flicks, slides a paddle, pushes a stick then taps
+      FIRE...), so a kid who can't read the how-to line can copy it. 11 gestures, named per
+      game in `content/games.json` (`gesture`), drawn in CSS (`src/app/demo.ts`). It shows
+      for a game's first 3 matches on the phone, then goes away; it holds still when the
+      phone asks for reduced motion.
+      On short phones it is no taller than the title line so tight intros still fit. The
+      playtest checks every intro shows it in both halves without pushing the title off a
+      320 px phone, and that it is gone after 3 matches.
 
 ## App
 - [ ] Rivalry card after a match night (shareable image, behind a parental gate).
@@ -120,3 +129,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tap is a click with detail 0, which pauses at once. Check that on a real phone.
 - [ ] Guided Access / screen pinning tip on the home screen for parents of toddlers (the
       OS-level way to stop a kid leaving the app), behind the parental gate.
+
+## Ideas found 2026-10-31 (ghost finger run)
+- [ ] Ghost finger in play: show the same gesture once over each player's own half at the
+      first serve / first turn of a first match (needs a view hook per game for where).
+- [ ] A "?" on the intro to bring the ghost finger back after the first 3 matches.
+- [ ] Penalty's demo shows only the shooter's swipe; the keeper's tap is in text only.
+      Games with two roles could alternate both gestures.

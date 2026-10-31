@@ -9,6 +9,7 @@ import { Sfx } from '../engine/sfx';
 import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
+import { demoHtml, isGesture, showsDemo } from './demo';
 import { Runner } from './runner';
 import { PLAYER_COLORS, Store } from './store';
 
@@ -174,12 +175,14 @@ export class App {
     const ready: [boolean, boolean] = [false, false];
     const intro = $('#intro');
     this.show('intro');
+    // Ghost finger for the first few matches of this game on this phone.
+    const demo = isGesture(meta.gesture) && showsDemo(this.store.data.history, id) ? demoHtml(meta.gesture) : '';
     const half = (p: PlayerIndex) => {
       const pr = this.store.data.profiles[p];
       const assist = this.assistFor(p);
       return `<div class="half p${p}" style="--c:${pr.color}">
         <div class="half-inner">
-          <div class="intro-title">${meta.icon} ${meta.name}</div>
+          <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${demo}</div>
           <p class="howto">${meta.howTo}</p>
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>` : ''}
