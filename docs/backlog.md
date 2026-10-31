@@ -71,7 +71,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Daily minigolf course (seed from the date) with a "beat my score" link.
 - [ ] Remove-ads / unlock-all screen mock (no real purchases yet); free trio badge.
 - [ ] Settings: bot difficulty per game remembered; left-handed button mirroring.
-- [ ] Accessibility: colour-blind safe player colours, larger text option.
+- [x] 2026-10-31 (research run): colour-blind safe player colours. About 1 in 12 boys has
+      red-green colour blindness, and the player colour is how two kids tell whose paddle,
+      snake or score is whose. Ran the six old colours through the Machado 2009 simulation
+      of protan / deutan / tritan vision (OKLab distance, look-alike under 0.1): 6 of 15
+      pairs looked alike (green/teal 0.02 for tritan, blue/purple 0.05 and pink/green 0.09
+      for deutan, green/orange, blue/teal, blue/green), the old orange sat next to the gold
+      "ready" highlight, and both players could pick the same colour. No 6-colour set kept
+      every pair and the gold apart, so the palette is now 5: Blue, Pink, Mint, Orange,
+      Purple, every pair at least 0.10 apart for all four kinds of vision and from gold
+      (`src/core/colors.ts`, unit tested). The other player's colour is shown crossed out
+      and can't be picked, swatches are named for screen readers, and old saves move to the
+      nearest new colour (teal/green → Mint, and a clash moves Player 2). The playtest checks
+      the picker and saves air hockey as protan / deutan / tritan players see it
+      (`colours-airhockey-*.png`).
+- [ ] Accessibility: larger text option.
 
 ## Content
 - [ ] Mini pool (first update).
@@ -186,3 +200,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Tic-Tac-Toe never buzzes on a mark (marks play 'tap' / 'pop'); decide whether turn
       games should tick on each move like Four in a Row now does, or stay quiet.
 - [ ] Rock Paper Scissors could get a person too, so the report counts throws per seat.
+
+## Ideas found 2026-10-31 (colour-blind run)
+- [ ] COLORS.good (#4ade80) and COLORS.bad (#ff5c7a) are a red/green pair (0.09 for deutan);
+      anywhere they carry meaning alone (hit/miss, right/wrong) add a shape or word too.
+- [ ] Game cards' own colours (`content/games.json` `color`) aren't checked; fine since the
+      name and icon carry them, but a game that colours pieces by card colour would need it.
+- [ ] A shape per seat (e.g. a small ring vs dot on paddles, snakes, pieces) would make
+      seats readable even in greyscale or bright sunlight, not just for colour blindness.

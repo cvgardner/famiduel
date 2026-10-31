@@ -62,6 +62,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .swatch { flex: 1; min-width: 44px; height: 44px; background: none !important; display: flex; align-items: center; justify-content: center; }
 .swatch::before { content: ''; width: 36px; height: 36px; border-radius: 50%; background: var(--sw); border: 3px solid transparent; box-sizing: border-box; }
 .swatch.on::before { border-color: #fff; }
+/* The other player's colour: shown faded with a slash, can't be picked. */
+.swatch.taken::before { opacity: 0.3; background: linear-gradient(135deg, transparent 44%, #fff 44%, #fff 56%, transparent 56%), var(--sw); }
 .seg { display: flex; gap: 6px; flex-wrap: wrap; }
 .seg button { flex: 1; min-height: 44px; padding: 9px 6px; border-radius: 10px; background: var(--bg2); font-weight: 700; font-size: 13px; white-space: nowrap; }
 .seg button.on { background: var(--gold); color: #1d1840; }

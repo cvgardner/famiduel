@@ -1,5 +1,6 @@
 // Player profiles, settings, the current match night and the match history,
 // all kept on the device (localStorage). Nothing leaves the phone.
+import { PLAYER_COLORS, safePair } from '../core/colors';
 import type { BotLevel, GameResult, PlayerIndex } from '../core/types';
 
 export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null };
@@ -14,7 +15,7 @@ export type MatchRecord = {
 };
 export type Night = { started: number; wins: [number, number]; games: MatchRecord[] };
 
-export const PLAYER_COLORS = ['#3fa9ff', '#ff5c7a', '#4ade80', '#ffb020', '#b06cff', '#26d0ce'];
+export { PLAYER_COLORS };
 
 const KEY = 'famiduel.v1';
 const HISTORY_CAP = 2000;
@@ -24,8 +25,8 @@ type Saved = { profiles: [Profile, Profile]; settings: Settings; night: Night; h
 function defaults(): Saved {
   return {
     profiles: [
-      { name: 'Player 1', color: PLAYER_COLORS[0], headStart: 0, bot: null },
-      { name: 'Player 2', color: PLAYER_COLORS[1], headStart: 0, bot: null },
+      { name: 'Player 1', color: PLAYER_COLORS[0].hex, headStart: 0, bot: null },
+      { name: 'Player 2', color: PLAYER_COLORS[1].hex, headStart: 0, bot: null },
     ],
     settings: { powers: true, autoHandicap: true, sound: true, haptics: true },
     night: { started: Date.now(), wins: [0, 0], games: [] },
@@ -44,6 +45,9 @@ export class Store {
         const saved = JSON.parse(raw) as Partial<Saved>;
         // Settings merge key by key, so a setting added later keeps its default.
         this.data = { ...this.data, ...saved, settings: { ...this.data.settings, ...saved.settings } };
+        // Colours from an older palette (or two look-alike colours) move to safe ones.
+        const [a, b] = this.data.profiles;
+        [a.color, b.color] = safePair(a.color, b.color);
       }
     } catch {
       // A broken save falls back to defaults.
