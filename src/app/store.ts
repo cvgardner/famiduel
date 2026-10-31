@@ -18,6 +18,32 @@ export function botFor(pr: Profile, game: string): BotLevel | null {
   const lv = pr.botLevels?.[game];
   return lv && BOT_LEVELS.includes(lv) ? lv : pr.bot;
 }
+/** How many losses in a row to the same bot, in one game, before we offer an easier one. */
+export const LOSSES_BEFORE_OFFER = 2;
+
+export type EasierOffer = { bot: PlayerIndex; person: PlayerIndex; from: BotLevel; to: BotLevel };
+
+/**
+ * After a person loses LOSSES_BEFORE_OFFER matches of one game in a row to a
+ * bot at the same level, the result screen offers that game's bot one level
+ * easier. Only for a person against a bot (two bots or two people get nothing),
+ * never below Easy, and a draw or a win breaks the run. Lowering the level
+ * starts the count again, because older records carry the old level.
+ */
+export function easierOffer(history: readonly MatchRecord[], game: string, profiles: readonly [Profile, Profile]): EasierOffer | null {
+  const levels = [botFor(profiles[0], game), botFor(profiles[1], game)] as const;
+  if (!!levels[0] === !!levels[1]) return null;
+  const bot: PlayerIndex = levels[0] ? 0 : 1;
+  const person: PlayerIndex = bot === 0 ? 1 : 0;
+  const from = levels[bot]!;
+  const i = BOT_LEVELS.indexOf(from);
+  if (i <= 0) return null;
+  const mine = history.filter((r) => r.game === game).slice(-LOSSES_BEFORE_OFFER);
+  if (mine.length < LOSSES_BEFORE_OFFER) return null;
+  const lost = mine.every((r) => r.winner === bot && r.bots?.[bot] === from && r.bots?.[person] === null);
+  return lost ? { bot, person, from, to: BOT_LEVELS[i - 1] } : null;
+}
+
 export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean; haptics: boolean };
 export type MatchRecord = {
   game: string;
@@ -26,6 +52,8 @@ export type MatchRecord = {
   winner: PlayerIndex | null;
   score: [number, number];
   powers: [string | null, string | null];
+  /** Each seat's bot level in this match (null = a person). Older records lack it. */
+  bots?: [BotLevel | null, BotLevel | null];
 };
 export type Night = { started: number; wins: [number, number]; games: MatchRecord[] };
 
@@ -76,7 +104,12 @@ export class Store {
     }
   }
 
-  record(game: string, result: GameResult, powers: [string | null, string | null]): MatchRecord {
+  record(
+    game: string,
+    result: GameResult,
+    powers: [string | null, string | null],
+    bots: [BotLevel | null, BotLevel | null] = [botFor(this.data.profiles[0], game), botFor(this.data.profiles[1], game)],
+  ): MatchRecord {
     const rec: MatchRecord = {
       game,
       at: Date.now(),
@@ -84,6 +117,7 @@ export class Store {
       winner: result.winner,
       score: result.score,
       powers,
+      bots,
     };
     const night = this.data.night;
     if (result.winner !== null) night.wins[result.winner]++;

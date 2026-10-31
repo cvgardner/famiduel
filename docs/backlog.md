@@ -225,9 +225,25 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] A shape per seat (e.g. a small ring vs dot on paddles, snakes, pieces) would make
       seats readable even in greyscale or bright sunlight, not just for colour blindness.
 
+## Ideas found 2026-10-31 (easier bot run)
+- [ ] Air Hockey: a puck left still on one side (idle player, toddler, phone set down) stalls
+      the match forever. A "Your serve!" nudge after ~5 s, or the puck drifting to centre
+      after ~10 s, would keep it moving.
+- [ ] The easier offer could also suggest the head start when the bot is already Easy
+      (Sumo, Minigolf), pointing at the player sheet behind a tap.
+
 ## Ideas found 2026-10-31 (bot level run)
-- [ ] Auto-suggest a level: after a kid loses 2 matches in a row to a bot in one game, the
-      result screen could offer "Make the bot easier?" (one tap sets that game's level).
+- [x] 2026-10-31: "Make the bot easier?" After a person loses 2 matches of one game in a
+      row to the same bot level, their half of the result screen offers the bot one level
+      down (Hard → Normal → Easy, never lower). One tap sets that game's level (same as the
+      intro row), says "Bot is Normal now ✓", and Rematch uses it; other games keep theirs.
+      A win, a draw or a level change resets the count; two people or two bots never see it.
+      Match records now keep each seat's bot level (`bots`), `easierOffer()` in
+      `src/app/store.ts` is unit tested; the playtest loses twice to a hard Snake bot on a
+      320×568 phone, checks the offer fits, is 44 px+, and that the rematch and only that
+      game use Normal (`easier-offer.png`). Finding: Air Hockey with an idle person never
+      ends (the serve rests on their side and the bot can't cross), which is right by the
+      rules but means a walked-away match runs forever.
 - [ ] The home player chip shows the sheet's bot level only; a game card could show a small
       🤖 badge when that game has its own level.
 - [ ] The layout fit test only ran intros with two people; it now runs with a bot too, but

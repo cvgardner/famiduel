@@ -319,6 +319,58 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
   expect(errors).toEqual([]);
 });
 
+test('make the bot easier: offered after losing twice in a row to a bot', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type H = Hook & { runner: { fastForward(s: number): void; result: { winner: number | null } | null; players: { bot: string | null }[] } | null };
+  await setPlayers(page, [null, 'hard']);
+  // A small kid who can't steer yet: their snake runs into the wall and the bot wins.
+  const loseOne = async () => {
+    await page.locator('.game-card[data-id="snake"]').tap();
+    await introAsPeople(page, [0]);
+    const winner = await page.evaluate(() => {
+      const a = (window as unknown as { __famiduel: H }).__famiduel;
+      const r = a.runner!;
+      r.fastForward(900);
+      return r.result?.winner ?? null;
+    });
+    expect(winner, 'the hard bot beats a snake that never turns').toBe(1);
+    await expect(page.locator('#result')).toBeVisible();
+  };
+  await loseOne();
+  await expect(page.locator('#easierBtn'), 'no offer after one loss').toHaveCount(0);
+  await page.click('#homeBtn');
+  await loseOne();
+  const btn = page.locator('#result .half.p0 #easierBtn');
+  await expect(btn, 'offered on the person\'s half after two losses').toBeVisible();
+  await expect(btn).toHaveText(/easier/);
+  await expect(btn).toHaveAttribute('aria-label', /Hard to Normal/);
+  await expect(page.locator('#result .half.p1 #easierBtn')).toHaveCount(0);
+  const fit = await page.evaluate(() => {
+    const half = document.querySelector('#result .half.p0') as HTMLElement;
+    const inner = half.querySelector('.half-inner') as HTMLElement;
+    return inner.getBoundingClientRect().height <= half.getBoundingClientRect().height + 1;
+  });
+  expect(fit, 'the result half still fits a 320x568 phone').toBe(true);
+  expect(await smallTargets(page, 'result with easier offer')).toEqual([]);
+  await page.screenshot({ path: path.join(OUT, 'easier-offer.png') });
+  await btn.tap();
+  await expect(btn).toHaveText(/Normal now/);
+  await expect(btn).toBeDisabled();
+  await page.screenshot({ path: path.join(OUT, 'easier-offer-done.png') });
+  // Rematch: the intro shows the new level, and the match uses it.
+  await page.click('#rematchBtn');
+  await expect(page.locator('.botlvl[data-p="1"] button.on')).toHaveAttribute('data-v', 'normal');
+  await introAsPeople(page, [0]);
+  expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players[1].bot)).toBe('normal');
+  await leaveMatch(page);
+  // Other games keep the hard bot.
+  await page.locator('.game-card[data-id="airhockey"]').tap();
+  await expect(page.locator('.botlvl[data-p="1"] button.on')).toHaveAttribute('data-v', 'hard');
+  expect(errors).toEqual([]);
+});
+
 test('haptics: hits buzz the phone, and the Vibration toggle turns it off', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
