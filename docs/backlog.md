@@ -18,7 +18,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the handicap), shown as knots under the round pips with a "Saved by the rope!" pop.
       Pushes and Slippery Floor still put you out. Masher rounds now last ~4 s, matches
       ~13 s; bot-vs-bot balance unchanged.
-- [ ] Minigolf easy bot: make it beatable by a 6-year-old (more aim/power noise).
+- [x] 2026-10-31: Minigolf easy bot was too strong for a 6-year-old. Measured over 160
+      holes: it averaged par (2.92 strokes vs par 2.875) with 22 holes-in-one, under par
+      on most holes. Now it shakes more (aim 0.3, power 0.42), sees fewer lines (12 angles,
+      3 powers) and often goes for one of its 3 best-looking lines rather than the best:
+      +0.8 over par (3.67), 7 aces. Normal (-0.5) and hard unchanged. Unit test pins it.
 - [ ] Sea Battle easy-vs-easy seat bias (~58% for player 1 in sims): find and fix.
 - [ ] Letterbox bars on tall phones: fill them with each game's own background so the
       phone looks full, or let games use a taller world.
@@ -44,3 +48,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       toddler win sometimes.
 - [ ] Playtest: per-game "self-out" counter (player lost without the other touching them)
       would catch the same trap in other games (Snake walls, Minigolf water).
+- [ ] Minigolf: easy bot still sinks the 'bowl' hole in 1-2 often (2.35 avg on par 3); the
+      bowl funnels any decent shot. Maybe a lip so speed matters.
+- [ ] Bot pace table: a sim script printing every game's easy/normal/hard win rates and
+      match lengths, so difficulty tuning across games has numbers (like this run's).
