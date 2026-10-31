@@ -161,13 +161,28 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] The playtest monkey and the unit-test "masher" are two models of a mashing kid;
       share one masher model (tests/helpers) and reuse it for other one-button games
       (Chop Chop, Quick Draw) to measure whether a masher can ever win there.
-- [ ] Checkers: the playtest's random taps never complete a move (the "later" screenshot
-      is the opening position); like Sea Battle, teach it a legal move so real-time play
-      gets exercised.
+- [x] 2026-10-31: Checkers: the playtest's random taps never completed a move (the "later"
+      screenshot was the opening position). Done with the item below.
 
 ## Ideas found 2026-10-31 (Sea Battle person run)
-- [ ] Give Checkers, Four in a Row and Tic-Tac-Toe a playtest person too (pick a legal move,
-      tap it), so their real-time screenshots show a game being played, not random taps.
+- [x] 2026-10-31: Checkers, Four in a Row and Tic-Tac-Toe now have a playtest person too
+      (`boardPerson` in `playtest/person.ts`): it waits for the bot and the animations,
+      picks a legal move and taps it the way the game asks (Checkers: the piece, then every
+      landing square of a jump; Four in a Row: the column, in the mover's own half), and
+      counts a move only when the board changes. The playtest now fails if the person makes
+      no moves against the bot, or if either seat makes none in a two-player match (Sea
+      Battle included), and the report shows moves per seat. Before: Checkers made 0 moves
+      in 50 s of play. Now about 11+4, Four in a Row 9+5, Tic-Tac-Toe 14+6, Sea Battle 4+3.
+      Playing it showed Four in a Row never buzzed on a drop (the disc landing played
+      'bounce', which has no vibration): the landing now plays 'hit', so dropping a disc
+      gives a short tick (0 → 18 buzzes in the playtest).
 - [ ] Sea Battle vs a bot: the bot's shot and the hand-back are quick (0.45 s + 0.7 s); a
       kid may not see where it hit. Consider a short ring on the cell hit and a longer beat
       on hits.
+
+## Ideas found 2026-10-31 (board person run)
+- [ ] Checkers vs the normal bot: the person (random legal moves) is down a few pieces within
+      25 s; check the easy bot gives a kid who plays randomly a real chance (bot pace table).
+- [ ] Tic-Tac-Toe never buzzes on a mark (marks play 'tap' / 'pop'); decide whether turn
+      games should tick on each move like Four in a Row now does, or stay quiet.
+- [ ] Rock Paper Scissors could get a person too, so the report counts throws per seat.

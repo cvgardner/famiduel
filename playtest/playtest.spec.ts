@@ -9,12 +9,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import games from '../content/games.json' with { type: 'json' };
 import { installFingers, monkey } from './monkey';
-import { seaBattlePerson } from './person';
+import { checkersPerson, fourInARowPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
 
 const OUT = path.resolve('playtest-report');
 const SECONDS = Number(process.env.PLAYTEST_SECONDS ?? 8);
 
-type Row = { id: string; name: string; shots: string[]; fps: number; gestures: number; haptics: number; pauseTaps: number; warnings: string[]; errors: string[]; finished: boolean };
+type Row = { id: string; name: string; shots: string[]; fps: number; gestures: number; /** Moves the playtest person made per seat (turn-based games). */ moves: number[]; haptics: number; pauseTaps: number; warnings: string[]; errors: string[]; finished: boolean };
 const rows: Row[] = [];
 
 type Hook = {
@@ -340,21 +340,22 @@ test('sumo: a small kid with a full head start gets two rows of rope saves', asy
 
 /**
  * Turn-based games whose steps random touches can't reach (Sea Battle needs Ready,
- * then the same square tapped twice) are played by a person who reads the screen.
- * The phone is passed between seats, so one person plays every human seat.
+ * then the same square tapped twice; Checkers needs a piece, then where it lands)
+ * are played by a person who reads the screen and makes legal moves. Board games
+ * face both players, so one person plays every human seat when it is theirs.
  */
-const PEOPLE: Record<string, (page: Page, ms: number, seed: number) => Promise<number>> = { seabattle: seaBattlePerson };
-/** How many moves seat 0 has made, for games played by a person (checked to be > 0). */
-const MOVES: Record<string, (page: Page) => Promise<number>> = {
-  seabattle: (page) =>
-    page.evaluate(() => (window as unknown as { __famiduel: { runner: { game: { game: { shotsFired: number[] } } } | null } }).__famiduel.runner?.game.game.shotsFired[0] ?? 0),
+const PEOPLE: Record<string, Person> = {
+  seabattle: seaBattlePerson,
+  checkers: checkersPerson,
+  fourinarow: fourInARowPerson,
+  tictactoe: ticTacToePerson,
 };
 
 for (const g of games.games) {
   test(`play like a person: ${g.id}`, async ({ page }) => {
     test.skip(built.length > 0 && !built.includes(g.id), 'not built yet');
     const errors: string[] = [];
-    const row: Row = { id: g.id, name: g.name, shots: [], fps: 0, gestures: 0, haptics: 0, pauseTaps: 0, warnings: [], errors, finished: false };
+    const row: Row = { id: g.id, name: g.name, shots: [], fps: 0, gestures: 0, moves: [0, 0], haptics: 0, pauseTaps: 0, warnings: [], errors, finished: false };
     rows.push(row);
     await boot(page, errors);
     const ready = await page.locator(`.game-card[data-id="${g.id}"]`).getAttribute('data-ready');
@@ -378,8 +379,12 @@ for (const g of games.games) {
     expect(bars.bars, 'a tall phone letterboxes the world').toBe(true);
     expect(Math.max(bars.top, bars.bottom), 'letterbox bars carry the game edge').toBeLessThan(24);
     const person = PEOPLE[g.id];
-    row.gestures += person ? await person(page, SECONDS * 1000, 1) : await monkey(page, 0, SECONDS * 1000, 1);
-    if (MOVES[g.id]) expect(await MOVES[g.id](page), 'the person made moves against the bot in real time').toBeGreaterThan(0);
+    if (person) {
+      const r = await person(page, SECONDS * 1000, 1);
+      row.gestures += r.gestures;
+      row.moves = r.moves;
+      expect(r.moves[0], 'the person made moves against the bot in real time').toBeGreaterThan(0);
+    } else row.gestures += await monkey(page, 0, SECONDS * 1000, 1);
     if (await page.locator('#resumeBtn').isVisible()) row.warnings.push('a playing hand paused the game (one-player match)');
     row.fps = await fps(page);
     const b = await shot('vs-bot-later');
@@ -392,11 +397,16 @@ for (const g of games.games) {
     await page.locator(`.game-card[data-id="${g.id}"]`).tap();
     await introAsPeople(page, [0, 1]);
     await page.waitForTimeout(2200);
-    const counts = person
-      ? [await person(page, SECONDS * 1000, 2), 0]
-      : await Promise.all([monkey(page, 0, SECONDS * 1000, 2), monkey(page, 1, SECONDS * 1000, 3)]);
-    row.gestures += counts[0] + counts[1];
-    if (MOVES[g.id]) expect(await MOVES[g.id](page), 'two people passing the phone made moves in real time').toBeGreaterThan(0);
+    if (person) {
+      const r = await person(page, SECONDS * 1000, 2);
+      row.gestures += r.gestures;
+      row.moves = row.moves.map((m, i) => m + r.moves[i]);
+      expect(r.moves[0], 'the bottom player made moves in a two-player match').toBeGreaterThan(0);
+      expect(r.moves[1], 'the top player made moves in a two-player match').toBeGreaterThan(0);
+    } else {
+      const counts = await Promise.all([monkey(page, 0, SECONDS * 1000, 2), monkey(page, 1, SECONDS * 1000, 3)]);
+      row.gestures += counts[0] + counts[1];
+    }
     if (await page.locator('#resumeBtn').isVisible()) row.warnings.push('a playing hand paused the game (two-player match)');
     row.pauseTaps = await pauseTaps(page);
     await shot('two-people');
@@ -422,7 +432,7 @@ test.afterAll(() => {
   const esc = (s: string) => s.replace(/[&<>]/g, (c) => `&#${c.charCodeAt(0)};`);
   const cards = rows
     .map(
-      (r) => `<section><h2>${esc(r.name)} <small>${r.fps} fps · ${r.gestures} gestures · ${r.haptics} buzzes · ${r.pauseTaps} pause taps ignored · ${r.finished ? 'finished' : 'NOT finished'}</small></h2>
+      (r) => `<section><h2>${esc(r.name)} <small>${r.fps} fps · ${r.gestures} gestures · ${r.moves[0] + r.moves[1] ? `${r.moves[0]}+${r.moves[1]} moves · ` : ''}${r.haptics} buzzes · ${r.pauseTaps} pause taps ignored · ${r.finished ? 'finished' : 'NOT finished'}</small></h2>
       ${[...r.errors.map((e) => `<p class="err">${esc(e)}</p>`), ...r.warnings.map((w) => `<p class="warn">${esc(w)}</p>`)].join('')}
       <div class="shots">${r.shots.map((s) => `<figure><img src="${s}" loading="lazy"><figcaption>${s.replace(`${r.id}-`, '').replace('.png', '')}</figcaption></figure>`).join('')}</div></section>`,
     )

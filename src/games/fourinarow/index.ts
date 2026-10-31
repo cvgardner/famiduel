@@ -237,7 +237,8 @@ class FourInARowView implements GameInstance {
         }
         if (d.vy > 6) {
           if (d.vy > 10) {
-            this.ctx.sfx.play('bounce');
+            // The disc clacking into place: a hit (and a short buzz), so a drop is felt.
+            this.ctx.sfx.play('hit');
             this.ctx.fx.burst(cx(d.c), cy(d.y) + (S / 2 - 4), 'rgba(255,255,255,0.7)', 4, 70, 2);
           }
           d.vy = -d.vy * 0.28;
