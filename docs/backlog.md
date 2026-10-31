@@ -4,7 +4,15 @@ The weekend improvement routine picks the top unchecked item it can finish in on
 something better it found), ships it, and ticks it here with the date and PR number.
 Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md win.
 
+## Fixed
+- [x] 2026-10-31: main was red. The Sumo playtest timed out because the normal bot won
+      2-0 inside the 8 s real-time window, so the pause button it tried to tap was gone.
+      The playtest now leaves a finished match through the result screen and records it
+      as a warning instead of hanging.
+
 ## Feel and fairness
+- [ ] Sumo: the normal bot beats a mashing player 2-0 in under 8 s. Rounds that short
+      feel unfair to a small kid; consider a softer normal bot or a longer first round.
 - [ ] Minigolf easy bot: make it beatable by a 6-year-old (more aim/power noise).
 - [ ] Sea Battle easy-vs-easy seat bias (~58% for player 1 in sims): find and fix.
 - [ ] Letterbox bars on tall phones: fill them with each game's own background so the

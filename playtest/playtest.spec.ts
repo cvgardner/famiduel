@@ -44,6 +44,21 @@ async function setPlayers(page: Page, bots: [string | null, string | null]) {
   }, bots);
 }
 
+/**
+ * Back to the game list from a match, whether it is still running (pause, then
+ * quit) or already over (a fast bot can win inside the real-time window, which
+ * leaves the result screen up and the pause button hidden).
+ */
+async function leaveMatch(page: Page): Promise<'quit' | 'finished'> {
+  if (await page.locator('#result').isVisible()) {
+    await page.click('#homeBtn');
+    return 'finished';
+  }
+  await page.click('#pauseBtn');
+  await page.click('#quitBtn');
+  return 'quit';
+}
+
 /** Frames per second over a short real-time window. */
 async function fps(page: Page): Promise<number> {
   return page.evaluate(
@@ -133,8 +148,7 @@ for (const g of games.games) {
     if (row.fps < 40) row.warnings.push(`low frame rate: ${row.fps} fps`);
 
     // 2. Two people at once, both halves touched simultaneously.
-    await page.click('#pauseBtn');
-    await page.click('#quitBtn');
+    if ((await leaveMatch(page)) === 'finished') row.warnings.push(`bot beat a mashing player within ${SECONDS}s`);
     await setPlayers(page, [null, null]);
     await page.locator(`.game-card[data-id="${g.id}"]`).tap();
     await introAsPeople(page, [0, 1]);
@@ -144,8 +158,7 @@ for (const g of games.games) {
     await shot('two-people');
 
     // 3. The match must be finishable: hand both seats to bots and fast-forward.
-    await page.click('#pauseBtn');
-    await page.click('#quitBtn');
+    if ((await leaveMatch(page)) === 'finished') row.warnings.push(`two-player match ended within ${SECONDS}s`);
     await setPlayers(page, ['normal', 'hard']);
     await page.evaluate((id) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(id), g.id);
     await expect(page.locator('#play')).toBeVisible();
