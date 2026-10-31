@@ -13,7 +13,7 @@ import { installFingers, monkey } from './monkey';
 const OUT = path.resolve('playtest-report');
 const SECONDS = Number(process.env.PLAYTEST_SECONDS ?? 8);
 
-type Row = { id: string; name: string; shots: string[]; fps: number; gestures: number; warnings: string[]; errors: string[]; finished: boolean };
+type Row = { id: string; name: string; shots: string[]; fps: number; gestures: number; haptics: number; warnings: string[]; errors: string[]; finished: boolean };
 const rows: Row[] = [];
 
 type Hook = {
@@ -27,6 +27,12 @@ async function boot(page: Page, errors: string[]) {
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(`console: ${m.text()}`);
+  });
+  // Count vibrations instead of sending them (desktop Chromium has the API but no motor).
+  await page.addInitScript(() => {
+    const w = window as unknown as { __buzzes: (number | number[])[] };
+    w.__buzzes = [];
+    Object.defineProperty(navigator, 'vibrate', { configurable: true, value: (p: number | number[]) => (w.__buzzes.push(p), true) });
   });
   await page.goto('/?seed=playtest');
   await page.evaluate(() => localStorage.clear());
@@ -57,6 +63,11 @@ async function leaveMatch(page: Page): Promise<'quit' | 'finished'> {
   await page.click('#pauseBtn');
   await page.click('#quitBtn');
   return 'quit';
+}
+
+/** Vibrations sent since the page loaded. */
+async function buzzes(page: Page): Promise<number> {
+  return page.evaluate(() => (window as unknown as { __buzzes: unknown[] }).__buzzes.length);
 }
 
 /** Frames per second over a short real-time window. */
@@ -207,11 +218,36 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
   expect(errors).toEqual([]);
 });
 
+test('haptics: hits buzz the phone, and the Vibration toggle turns it off', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  const toggle = page.locator('.settings input[data-k="haptics"]');
+  await expect(toggle).toBeChecked();
+  const play = async () => {
+    await setPlayers(page, ['normal', 'hard']);
+    const before = await buzzes(page);
+    await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('airhockey'));
+    await expect(page.locator('#play')).toBeVisible();
+    await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
+    await expect(page.locator('#result')).toBeVisible();
+    const n = (await buzzes(page)) - before;
+    await page.click('#homeBtn');
+    return n;
+  };
+  expect(await play(), 'a bot-vs-bot air hockey match vibrates').toBeGreaterThan(0);
+  await page.locator('label.toggle', { has: page.locator('input[data-k="haptics"]') }).tap();
+  await expect(toggle).not.toBeChecked();
+  await page.reload();
+  await expect(page.locator('.settings input[data-k="haptics"]'), 'the setting is saved').not.toBeChecked();
+  expect(await play(), 'no vibration with the toggle off').toBe(0);
+  expect(errors).toEqual([]);
+});
+
 for (const g of games.games) {
   test(`play like a person: ${g.id}`, async ({ page }) => {
     test.skip(built.length > 0 && !built.includes(g.id), 'not built yet');
     const errors: string[] = [];
-    const row: Row = { id: g.id, name: g.name, shots: [], fps: 0, gestures: 0, warnings: [], errors, finished: false };
+    const row: Row = { id: g.id, name: g.name, shots: [], fps: 0, gestures: 0, haptics: 0, warnings: [], errors, finished: false };
     rows.push(row);
     await boot(page, errors);
     const ready = await page.locator(`.game-card[data-id="${g.id}"]`).getAttribute('data-ready');
@@ -249,6 +285,8 @@ for (const g of games.games) {
     const counts = await Promise.all([monkey(page, 0, SECONDS * 1000, 2), monkey(page, 1, SECONDS * 1000, 3)]);
     row.gestures += counts[0] + counts[1];
     await shot('two-people');
+    row.haptics = await buzzes(page);
+    if (row.haptics === 0) row.warnings.push('no vibration during real-time play');
 
     // 3. The match must be finishable: hand both seats to bots and fast-forward.
     if ((await leaveMatch(page)) === 'finished') row.warnings.push(`two-player match ended within ${SECONDS}s`);
@@ -269,7 +307,7 @@ test.afterAll(() => {
   const esc = (s: string) => s.replace(/[&<>]/g, (c) => `&#${c.charCodeAt(0)};`);
   const cards = rows
     .map(
-      (r) => `<section><h2>${esc(r.name)} <small>${r.fps} fps · ${r.gestures} gestures · ${r.finished ? 'finished' : 'NOT finished'}</small></h2>
+      (r) => `<section><h2>${esc(r.name)} <small>${r.fps} fps · ${r.gestures} gestures · ${r.haptics} buzzes · ${r.finished ? 'finished' : 'NOT finished'}</small></h2>
       ${[...r.errors.map((e) => `<p class="err">${esc(e)}</p>`), ...r.warnings.map((w) => `<p class="warn">${esc(w)}</p>`)].join('')}
       <div class="shots">${r.shots.map((s) => `<figure><img src="${s}" loading="lazy"><figcaption>${s.replace(`${r.id}-`, '').replace('.png', '')}</figcaption></figure>`).join('')}</div></section>`,
     )

@@ -45,7 +45,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       side bars on wide screens. Every game gets it with no per-game code: the air hockey
       goals now run off the phone in each player's colour, the grass and tables fill the
       screen. The playtest checks the bars carry each game's edge colour on a tall phone.
-- [ ] Haptics: short vibration on hits/goals where the browser supports it (Android).
+- [x] 2026-10-31: haptics. Hits, wall thuds, chops, splashes, power use, goals and the win
+      now give a short vibration where the browser can (Android Chrome; iPhone Safari has
+      no vibrate, so nothing happens there and the setting is hidden). Wrong moves get a
+      double tick. Driven from the sound names in `engine/haptics.ts`, so all 15 games got
+      it with no per-game code; small buzzes closer than 70 ms are dropped so rallies
+      don't hum, goals and the win always come through, and every pattern is under
+      400 ms. Works with sound off. New "📳 Vibration" toggle on the home screen (saved;
+      older saves get it on). The playtest counts vibrations per game and checks the
+      toggle turns them off.
 - [ ] Each game's first-time "how to play" overlay showing the gesture with a ghost finger.
 
 ## App
@@ -89,3 +97,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       from the play area on tall phones) by exposing the visible world height to views.
 - [ ] Minigolf's top and bottom HUD strips are near-black, so its bars still read as black
       bands; a lighter HUD edge (or grass running under it) would make it fill the phone too.
+
+## Ideas found 2026-10-31 (haptics run)
+- [ ] Store wrapper: plug a native haptics call (Capacitor Haptics, iOS Taptic) into
+      `new Haptics(vibrate)` so iPhones get the same feel.
+- [ ] Haptics per seat isn't possible on one phone (both players feel every buzz); keep
+      patterns for shared moments only. If kids find it distracting, default it off for
+      the turn-based games.

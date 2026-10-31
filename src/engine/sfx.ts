@@ -1,5 +1,8 @@
 // Tiny synthesized sound effects (WebAudio oscillators), so there are no audio
-// files. Silent until the first user gesture unlocks audio.
+// files. Silent until the first user gesture unlocks audio. Each sound also
+// triggers its haptic (see haptics.ts), which works even when sound is off.
+import { Haptics } from './haptics';
+
 export type SoundName =
   | 'tap' | 'hit' | 'bounce' | 'score' | 'win' | 'power' | 'count' | 'go'
   | 'whoosh' | 'chop' | 'splash' | 'buzz' | 'pop' | 'coin' | 'thud' | 'click';
@@ -27,8 +30,13 @@ const SOUNDS: Record<SoundName, Note[]> = {
 
 export class Sfx {
   muted = false;
+  readonly haptics: Haptics;
   private ac: AudioContext | null = null;
   private noiseBuf: AudioBuffer | null = null;
+
+  constructor(haptics: Haptics = new Haptics()) {
+    this.haptics = haptics;
+  }
 
   /** Call from a user gesture (first tap) so browsers allow audio. */
   unlock(): void {
@@ -45,6 +53,7 @@ export class Sfx {
   }
 
   play(name: SoundName): void {
+    this.haptics.feel(name);
     const ac = this.ac;
     if (!ac || this.muted) return;
     const now = ac.currentTime;

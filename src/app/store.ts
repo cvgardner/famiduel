@@ -3,7 +3,7 @@
 import type { BotLevel, GameResult, PlayerIndex } from '../core/types';
 
 export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null };
-export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean };
+export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean; haptics: boolean };
 export type MatchRecord = {
   game: string;
   at: number;
@@ -27,7 +27,7 @@ function defaults(): Saved {
       { name: 'Player 1', color: PLAYER_COLORS[0], headStart: 0, bot: null },
       { name: 'Player 2', color: PLAYER_COLORS[1], headStart: 0, bot: null },
     ],
-    settings: { powers: true, autoHandicap: true, sound: true },
+    settings: { powers: true, autoHandicap: true, sound: true, haptics: true },
     night: { started: Date.now(), wins: [0, 0], games: [] },
     history: [],
   };
@@ -40,7 +40,11 @@ export class Store {
     this.data = defaults();
     try {
       const raw = this.storage?.getItem(KEY);
-      if (raw) this.data = { ...this.data, ...JSON.parse(raw) };
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<Saved>;
+        // Settings merge key by key, so a setting added later keeps its default.
+        this.data = { ...this.data, ...saved, settings: { ...this.data.settings, ...saved.settings } };
+      }
     } catch {
       // A broken save falls back to defaults.
     }
