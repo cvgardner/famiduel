@@ -487,7 +487,8 @@ class SeaBattleView implements GameInstance {
     gx.fillRect(0, 0, W, H);
 
     // Header
-    const a = m.kind === 'place' ? m.p : g.turn;
+    // The bot's turn ends a beat before the view hands over, so name the seat on screen, not g.turn.
+    const a = m.kind === 'place' || m.kind === 'bot' || m.kind === 'after' ? m.p : g.turn;
     const an = this.ctx.players[a].name;
     let title = '';
     let sub = '';

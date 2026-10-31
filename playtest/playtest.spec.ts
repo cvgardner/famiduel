@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import games from '../content/games.json' with { type: 'json' };
 import { installFingers, monkey } from './monkey';
+import { seaBattlePerson } from './person';
 
 const OUT = path.resolve('playtest-report');
 const SECONDS = Number(process.env.PLAYTEST_SECONDS ?? 8);
@@ -337,6 +338,18 @@ test('sumo: a small kid with a full head start gets two rows of rope saves', asy
   expect(errors).toEqual([]);
 });
 
+/**
+ * Turn-based games whose steps random touches can't reach (Sea Battle needs Ready,
+ * then the same square tapped twice) are played by a person who reads the screen.
+ * The phone is passed between seats, so one person plays every human seat.
+ */
+const PEOPLE: Record<string, (page: Page, ms: number, seed: number) => Promise<number>> = { seabattle: seaBattlePerson };
+/** How many moves seat 0 has made, for games played by a person (checked to be > 0). */
+const MOVES: Record<string, (page: Page) => Promise<number>> = {
+  seabattle: (page) =>
+    page.evaluate(() => (window as unknown as { __famiduel: { runner: { game: { game: { shotsFired: number[] } } } | null } }).__famiduel.runner?.game.game.shotsFired[0] ?? 0),
+};
+
 for (const g of games.games) {
   test(`play like a person: ${g.id}`, async ({ page }) => {
     test.skip(built.length > 0 && !built.includes(g.id), 'not built yet');
@@ -364,7 +377,9 @@ for (const g of games.games) {
     const bars = await barMismatch(page);
     expect(bars.bars, 'a tall phone letterboxes the world').toBe(true);
     expect(Math.max(bars.top, bars.bottom), 'letterbox bars carry the game edge').toBeLessThan(24);
-    row.gestures += await monkey(page, 0, SECONDS * 1000, 1);
+    const person = PEOPLE[g.id];
+    row.gestures += person ? await person(page, SECONDS * 1000, 1) : await monkey(page, 0, SECONDS * 1000, 1);
+    if (MOVES[g.id]) expect(await MOVES[g.id](page), 'the person made moves against the bot in real time').toBeGreaterThan(0);
     if (await page.locator('#resumeBtn').isVisible()) row.warnings.push('a playing hand paused the game (one-player match)');
     row.fps = await fps(page);
     const b = await shot('vs-bot-later');
@@ -377,8 +392,11 @@ for (const g of games.games) {
     await page.locator(`.game-card[data-id="${g.id}"]`).tap();
     await introAsPeople(page, [0, 1]);
     await page.waitForTimeout(2200);
-    const counts = await Promise.all([monkey(page, 0, SECONDS * 1000, 2), monkey(page, 1, SECONDS * 1000, 3)]);
+    const counts = person
+      ? [await person(page, SECONDS * 1000, 2), 0]
+      : await Promise.all([monkey(page, 0, SECONDS * 1000, 2), monkey(page, 1, SECONDS * 1000, 3)]);
     row.gestures += counts[0] + counts[1];
+    if (MOVES[g.id]) expect(await MOVES[g.id](page), 'two people passing the phone made moves in real time').toBeGreaterThan(0);
     if (await page.locator('#resumeBtn').isVisible()) row.warnings.push('a playing hand paused the game (two-player match)');
     row.pauseTaps = await pauseTaps(page);
     await shot('two-people');
