@@ -4,7 +4,7 @@ import { effectiveAssist, lerpAssist } from '../src/core/handicap';
 import { hashSeed, makeRng } from '../src/core/rng';
 import games from '../content/games.json';
 import powers from '../content/powers.json';
-import { Store, botFor } from '../src/app/store';
+import { Store, botFor, easierOffer } from '../src/app/store';
 
 describe('rng', () => {
   it('is deterministic per seed', () => {
@@ -122,5 +122,67 @@ describe('button', () => {
     b.update(input);
     expect(b.released).toBe(true);
     expect(b.held).toBe(false);
+  });
+});
+
+describe('make the bot easier offer', () => {
+  const mem = () => {
+    const m = new Map<string, string>();
+    return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) } as Storage;
+  };
+  const lose = (s: Store, game = 'checkers', winner: 0 | 1 | null = 1) => s.record(game, { winner, score: [0, 1] }, [null, null]);
+  it('comes after two losses in a row to the same bot, one level down', () => {
+    const s = new Store(mem());
+    s.setBot(1, 'hard');
+    lose(s);
+    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).toBeNull();
+    lose(s);
+    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).toEqual({ bot: 1, person: 0, from: 'hard', to: 'normal' });
+  });
+  it('works with the bot in either seat', () => {
+    const s = new Store(mem());
+    s.setBot(0, 'normal');
+    lose(s, 'sumo', 0);
+    lose(s, 'sumo', 0);
+    expect(easierOffer(s.data.history, 'sumo', s.data.profiles)).toEqual({ bot: 0, person: 1, from: 'normal', to: 'easy' });
+  });
+  it('a win, a draw or another game in between breaks the run only for that game', () => {
+    const s = new Store(mem());
+    s.setBot(1, 'normal');
+    lose(s);
+    lose(s, 'checkers', 0);
+    lose(s);
+    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).toBeNull();
+    lose(s, 'checkers', null);
+    lose(s);
+    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).toBeNull();
+    lose(s, 'airhockey');
+    lose(s);
+    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).not.toBeNull();
+  });
+  it('never below Easy, and lowering the level starts the count again', () => {
+    const s = new Store(mem());
+    s.setBot(1, 'normal');
+    lose(s);
+    lose(s);
+    s.setBotLevel(1, 'checkers', 'easy');
+    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).toBeNull();
+    lose(s);
+    lose(s);
+    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).toBeNull();
+  });
+  it('never for two people, two bots, or old records without bot levels', () => {
+    const s = new Store(mem());
+    lose(s);
+    lose(s);
+    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).toBeNull();
+    s.setBot(0, 'hard');
+    s.setBot(1, 'hard');
+    lose(s);
+    lose(s);
+    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).toBeNull();
+    s.setBot(0, null);
+    const old = s.data.history.slice(-2).map((r) => ({ ...r, bots: undefined }));
+    expect(easierOffer(old, 'checkers', s.data.profiles)).toBeNull();
   });
 });

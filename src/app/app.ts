@@ -11,7 +11,7 @@ import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
 import { demoHtml, isGesture, showsDemo } from './demo';
 import { Runner } from './runner';
-import { BOT_LEVELS, PLAYER_COLORS, Store, botFor } from './store';
+import { BOT_LEVELS, PLAYER_COLORS, Store, botFor, easierOffer } from './store';
 
 export type GameMeta = (typeof gamesJson.games)[number];
 export const META: GameMeta[] = gamesJson.games;
@@ -375,10 +375,19 @@ export class App {
 
   private finish(r: GameResult): void {
     const meta = this.current!;
-    this.store.record(meta.id, r, [this.picks[0]?.id ?? null, this.picks[1]?.id ?? null]);
+    const seats = this.runner?.players;
+    this.store.record(
+      meta.id,
+      r,
+      [this.picks[0]?.id ?? null, this.picks[1]?.id ?? null],
+      seats ? [seats[0].bot, seats[1].bot] : undefined,
+    );
     this.stage.stop();
     this.sfx.play('win');
-    const { profiles, night } = this.store.data;
+    const { profiles, night, history } = this.store.data;
+    // Lost twice in a row to this bot: offer an easier one, on the person's half.
+    const offer = easierOffer(history, meta.id, profiles);
+    const level = (v: string) => v[0].toUpperCase() + v.slice(1);
     const half = (p: PlayerIndex) => {
       const won = r.winner === p;
       const draw = r.winner === null;
@@ -388,6 +397,7 @@ export class App {
         <div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>
         <div class="who">${esc(profiles[p].name)}${won ? ' 🏆' : ''}</div>
         <div class="res-night">Match night: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}</div>
+        ${offer?.person === p ? `<button class="btn easier" id="easierBtn" data-v="${offer.to}" aria-label="Make the bot easier: ${level(offer.from)} to ${level(offer.to)}">🤖 Make the bot easier?</button>` : ''}
       </div></div>`;
     };
     const res = $('#result');
@@ -398,5 +408,16 @@ export class App {
     this.show('result');
     $('#homeBtn', res).addEventListener('click', () => this.showHome());
     $('#rematchBtn', res).addEventListener('click', () => this.openGame(meta.id));
+    const easier = res.querySelector<HTMLButtonElement>('#easierBtn');
+    if (offer && easier) {
+      easier.addEventListener('click', () => {
+        this.store.setBotLevel(offer.bot, meta.id, offer.to);
+        easier.textContent = `🤖 Bot is ${level(offer.to)} now ✓`;
+        easier.removeAttribute('aria-label');
+        easier.disabled = true;
+        easier.classList.add('on');
+        this.sfx.play('tap');
+      });
+    }
   }
 }
