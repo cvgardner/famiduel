@@ -371,6 +371,48 @@ test('make the bot easier: offered after losing twice in a row to a bot', async 
   expect(errors).toEqual([]);
 });
 
+test('air hockey: a person who walks away gets a nudge, and the match still ends', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type H = Hook & { runner: { fastForward(s: number): void; result: { winner: number | null } | null; game: { game: { held: { p: number; t: number } | null; pucks: { y: number }[] } } } | null };
+  await setPlayers(page, [null, 'normal']);
+  await page.locator('.game-card[data-id="airhockey"]').tap();
+  await introAsPeople(page, [0]);
+  // Past the countdown, the puck comes to rest on the person's side, out of the bot's reach; nobody touches it.
+  type G = { held: unknown; serve: number; pucks: { x: number; y: number; vx: number; vy: number; alive: boolean }[] };
+  const held = await page.evaluate(() => {
+    const r = (window as unknown as { __famiduel: H }).__famiduel.runner!;
+    r.fastForward(4);
+    const g = r.game.game as unknown as G;
+    g.serve = 0;
+    g.held = null;
+    g.pucks = [{ x: 180, y: 470, vx: 0, vy: 0, alive: true }];
+    r.fastForward(4.6);
+    return r.game.game.held;
+  });
+  expect(held, 'the puck has rested on the person\'s side past the nudge').toMatchObject({ p: 0 });
+  await page.screenshot({ path: path.join(OUT, 'airhockey-nudge.png') });
+  const crossed = await page.evaluate(() => {
+    const r = (window as unknown as { __famiduel: H }).__famiduel.runner!;
+    for (let i = 0; i < 60; i++) {
+      r.fastForward(0.1);
+      const pk = r.game.game.pucks[0];
+      if (!pk || pk.y < 320) return true;
+    }
+    return false;
+  });
+  expect(crossed, 'the table blew the puck over to the bot').toBe(true);
+  const winner = await page.evaluate(() => {
+    const r = (window as unknown as { __famiduel: H }).__famiduel.runner!;
+    r.fastForward(600);
+    return r.result?.winner ?? null;
+  });
+  expect(winner, 'an idle person vs a bot still reaches a result').not.toBeNull();
+  await expect(page.locator('#result')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('haptics: hits buzz the phone, and the Vibration toggle turns it off', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);

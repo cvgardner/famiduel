@@ -226,9 +226,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seats readable even in greyscale or bright sunlight, not just for colour blindness.
 
 ## Ideas found 2026-10-31 (easier bot run)
-- [ ] Air Hockey: a puck left still on one side (idle player, toddler, phone set down) stalls
-      the match forever. A "Your serve!" nudge after ~5 s, or the puck drifting to centre
-      after ~10 s, would keep it moving.
+- [x] 2026-10-31: Air Hockey stall rule. A puck left on one side (idle player, toddler,
+      phone set down, or a puck resting where nobody reaches) stalled the match forever.
+      Like the 7-second rule on real tables: after 4 s in one half the puck gets a pulsing
+      ring in that player's colour and a "Your shot!" pop on their side (upright for them);
+      at 7 s the table's air blows it gently to a spot 90 units past the centre line (speed
+      set from the friction so it stops there and never drifts into a goal), with a whoosh.
+      If a paddle blocks it, it blows again 2.5 s later. A rally that crosses resets the
+      clock. Logic in `stallRule()` (`held` on the game); unit tests pin the timing, the stop
+      short of the goal, two idle players (no goals), and that an idle person vs any bot
+      level always reaches a result. The playtest leaves the puck on a person's side and
+      checks the nudge, the drift and the result (`airhockey-nudge.png`).
 - [ ] The easier offer could also suggest the head start when the bot is already Easy
       (Sumo, Minigolf), pointing at the player sheet behind a tap.
 
@@ -248,3 +256,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       🤖 badge when that game has its own level.
 - [ ] The layout fit test only ran intros with two people; it now runs with a bot too, but
       not on a tall phone (390×844) where the desktop-size how-to text shows for bots.
+
+## Ideas found 2026-10-31 (air hockey stall run)
+- [ ] Other real-time games may stall with an idle player too (Ping Pong serve, Penalty
+      shooter, Tanks): a playtest that idles one seat against a bot in every game and
+      checks a result arrives within ~3 minutes would find them all.
+- [ ] An idle person's still paddle sometimes deflects the bot's shots into the bot's own
+      goal (an idle person beat the easy bot in 1 of 12 sims); fine for a toddler, but the
+      easy bot could avoid shooting straight at a parked paddle.

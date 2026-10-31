@@ -22,6 +22,18 @@ export const RULES = {
   energyHit: 0.12,
   energyConcede: 0.25,
   giantScale: 1.6,
+  /**
+   * Stall rule (real tables give a player 7 s to shoot): a puck that stays in one
+   * half this long gets a "Your shot!" nudge, and after `driftAfter` the table's
+   * air blows it gently over the centre line, so a walked-away player or a puck
+   * resting out of reach never stops the match.
+   */
+  nudgeAfter: 4,
+  driftAfter: 7,
+  /** After a drift, the puck gets this long to cross before the air blows again. */
+  driftRetry: 2.5,
+  /** Where a drift stops: this far past the centre line, mid-table. */
+  driftPast: 90,
 };
 
 export type Puck = { x: number; y: number; vx: number; vy: number; alive: boolean };
@@ -32,6 +44,8 @@ export type Event =
   | { type: 'wall'; x: number; y: number }
   | { type: 'goal'; scorer: PlayerIndex; x: number }
   | { type: 'power'; p: PlayerIndex; id: string }
+  | { type: 'nudge'; p: PlayerIndex }
+  | { type: 'drift'; p: PlayerIndex; x: number; y: number }
   | { type: 'win'; p: PlayerIndex };
 
 /** What a player wants this step: where the paddle should go, and whether to fire the power. */
@@ -48,6 +62,9 @@ export class AirHockey {
   winner: PlayerIndex | null = null;
   events: Event[] = [];
   t = 0;
+  /** Whose half the puck is resting in, and for how long (the stall rule). */
+  held: { p: PlayerIndex; t: number } | null = null;
+  private nudged = false;
   private lastHit: [number, number] = [-1, -1];
 
   constructor(
@@ -78,6 +95,12 @@ export class AirHockey {
   resetPuck(toward: PlayerIndex): void {
     this.pucks = [{ x: W / 2, y: toward === 0 ? MID + 70 : MID - 70, vx: 0, vy: 0, alive: true }];
     this.serve = RULES.serveDelay;
+    this.held = null;
+  }
+
+  /** Whose half a point is in: player 0 owns the bottom. */
+  static halfOf(y: number): PlayerIndex {
+    return y > MID ? 0 : 1;
   }
 
   step(dt: number, intents: [Intent, Intent]): void {
@@ -98,6 +121,38 @@ export class AirHockey {
     }
     for (const puck of this.pucks) this.movePuck(puck, dt);
     this.pucks = this.pucks.filter((pk) => pk.alive);
+    this.stallRule(dt);
+  }
+
+  private stallRule(dt: number): void {
+    const pk = this.pucks[0];
+    if (this.pucks.length !== 1 || !pk) {
+      this.held = null;
+      return;
+    }
+    const p = AirHockey.halfOf(pk.y);
+    if (!this.held || this.held.p !== p) {
+      this.held = { p, t: 0 };
+      this.nudged = false;
+    }
+    this.held.t += dt;
+    if (!this.nudged && this.held.t >= RULES.nudgeAfter) {
+      this.nudged = true;
+      this.events.push({ type: 'nudge', p });
+    }
+    if (this.held.t >= RULES.driftAfter) {
+      // Slide to a spot just past the centre line: friction stops it there.
+      const tx = W / 2;
+      const ty = p === 0 ? MID - RULES.driftPast : MID + RULES.driftPast;
+      const dx = tx - pk.x;
+      const dy = ty - pk.y;
+      const d = Math.hypot(dx, dy) || 1;
+      const v = d * -Math.log(1 - RULES.friction);
+      pk.vx = (dx / d) * v;
+      pk.vy = (dy / d) * v;
+      this.held.t = RULES.driftAfter - RULES.driftRetry;
+      this.events.push({ type: 'drift', p, x: pk.x, y: pk.y });
+    }
   }
 
   private firePower(p: PlayerIndex): void {
