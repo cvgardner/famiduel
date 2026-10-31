@@ -42,6 +42,6 @@
     { "id": "tictactoe", "gesture": "tap", "name": "Tic-Tac-Toe", "icon": "❌", "kind": "Extra", "free": true, "color": "#90a4ae",
       "blurb": "Best of 5.", "howTo": "Take turns tapping a square.", "handicap": "Goes first more often" },
     { "id": "rps", "gesture": "tap", "name": "Rock Paper Scissors", "icon": "✊", "kind": "Extra", "free": true, "color": "#ffb74d",
-      "blurb": "First to 3.", "howTo": "Both pick in secret, then reveal.", "handicap": "None" }
+      "blurb": "First to 3.", "howTo": "Both pick in secret, then reveal. With two people the phone turns to one player at a time while the other looks away.", "handicap": "None" }
   ]
 }

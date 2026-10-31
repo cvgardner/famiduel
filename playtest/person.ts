@@ -192,3 +192,69 @@ function boardPerson(id: 'checkers' | 'fourinarow' | 'tictactoe'): Person {
 export const checkersPerson = boardPerson('checkers');
 export const fourInARowPerson = boardPerson('fourinarow');
 export const ticTacToePerson = boardPerson('tictactoe');
+
+/**
+ * Play Rock Paper Scissors as whoever is looking. Against a bot: tap one of the
+ * three buttons in the human's own half. Two people: pass-and-play, so wake the
+ * look-away cover, then tap a pick card on the screen that faces the picker.
+ */
+export const rpsPerson: Person = async (page, ms, seed) => {
+  const box = await worldBox(page);
+  let gestures = 0;
+  let n = seed * 7919;
+  const end = Date.now() + ms;
+  const tap = async (x: number, y: number) => {
+    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
+    const fid = 500 + (gestures % 50);
+    const f = (t: string) =>
+      page.evaluate(([i, tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(i, tt, cx, cy), [fid, t, c.x, c.y] as const);
+    await f('pointerdown');
+    await sleep(70);
+    await f('pointerup');
+    gestures++;
+  };
+  const read = () =>
+    page
+      .evaluate(() => {
+        type View = {
+          pass: boolean;
+          bots: unknown[];
+          secret: { step: { kind: string; p: number; t: number } | null };
+          game: { picks: (string | null)[]; revealing: boolean; done: boolean; picksMade: number[] };
+        };
+        const v = (window as unknown as { __famiduel: { runner: { game: View } | null } }).__famiduel.runner?.game;
+        if (!v) return null;
+        return { pass: v.pass, step: v.secret.step, picks: v.game.picks, revealing: v.game.revealing, done: v.game.done, human: v.bots.map((b) => !b), made: [...v.game.picksMade] };
+      })
+      .catch(() => null);
+  let made = [0, 0];
+  while (Date.now() < end) {
+    const s = await read();
+    if (!s) break;
+    made = s.made;
+    n = (n * 1103515245 + 12345) >>> 0;
+    const i = n % 3;
+    // Layout from src/games/rps/index.ts, in the picker's own frame.
+    const world = (p: number, x: number, y: number) => (p === 1 ? { x: 360 - x, y: 640 - y } : { x, y });
+    let pt: { x: number; y: number } | null = null;
+    if (!s.revealing && !s.done) {
+      if (s.pass && s.step?.kind === 'cover' && s.step.t > 0.7) pt = world(s.step.p, 180, 445);
+      else if (s.pass && s.step?.kind === 'secret' && s.step.t > 0.4) pt = world(s.step.p, 70 + i * 110, 362 + 62);
+      else if (!s.pass) {
+        const p = s.human.findIndex((h, k) => h && !s.picks[k]);
+        if (p >= 0) pt = world(p, 70 + i * 110, 640 - 74);
+      }
+    }
+    if (!pt) {
+      await sleep(120);
+      continue;
+    }
+    try {
+      await tap(pt.x, pt.y);
+    } catch {
+      break;
+    }
+    await sleep(350);
+  }
+  return { gestures, moves: made };
+};

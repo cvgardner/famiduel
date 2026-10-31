@@ -1,9 +1,15 @@
-// Rock Paper Scissors view: each player taps one of three big buttons in their
-// own half. Picks stay hidden until both are in, then a 3-2-1 shake reveals them.
+// Rock Paper Scissors view. Picks stay hidden until both are in, then a 3-2-1
+// shake reveals them face to face.
+// - Two people: pass-and-play (src/engine/secret.ts). The screen turns to one
+//   player at a time behind a look-away cover, so the other never sees the
+//   finger or the screen while a pick is made. Who picks first alternates.
+// - Against a bot (it never peeks): each player taps one of three buttons in
+//   their own half at the same time.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, noGlow, rrect, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
+import { drawCover, lookAwayBanner, SecretTurns, toWorld } from '../../engine/secret';
 import { Button } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { CHOICES, ICONS, RULES, Rps, RpsBot, type Choice } from './logic';
@@ -12,6 +18,9 @@ const BEAT = 0.36;
 const SHAKE = BEAT * 3;
 const SHOW = 1.5;
 const NAMES: Record<Choice, string> = { rock: 'Rock', paper: 'Paper', scissors: 'Scissors' };
+/** Pass-and-play pick cards, in the picker's frame (clear of the pause button on the centre line). */
+const CARD = { y: 362, w: 100, h: 124, x: (i: number) => 70 + i * 110 };
+const inCard = (i: number, x: number, y: number) => Math.abs(x - CARD.x(i)) <= CARD.w / 2 + 4 && y >= CARD.y - 6 && y <= CARD.y + CARD.h + 6;
 
 /** Map a point given in player 0's coordinates to player p's side. */
 const side = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
@@ -25,6 +34,9 @@ class RpsView implements GameInstance {
   private revealT = -1;
   private ended = false;
   private pickedAt: number[] = [-1, -1];
+  /** Two people share the phone: picks are made one at a time behind a cover. */
+  readonly pass: boolean;
+  readonly secret = new SecretTurns();
 
   constructor(private readonly ctx: GameContext) {
     this.game = new Rps(ctx.players);
@@ -35,6 +47,7 @@ class RpsView implements GameInstance {
         return new Button(pos.x, pos.y, 42, p, ICONS[c], ctx.players[p].color, 8);
       }),
     );
+    this.pass = this.bots.every((b) => !b);
     this.newRound();
   }
 
@@ -48,6 +61,7 @@ class RpsView implements GameInstance {
       if (bot) this.botWait[p] = bot.delay();
     }
     this.pickedAt = [-1, -1];
+    if (this.pass) this.secret.start((this.game.rounds % 2) as PlayerIndex);
   }
 
   update(dt: number, input: Input): void {
@@ -55,6 +69,10 @@ class RpsView implements GameInstance {
     const g = this.game;
     if (g.revealing) {
       this.stepReveal(dt);
+      return;
+    }
+    if (this.pass) {
+      this.updateSecret(dt, input);
       return;
     }
     for (const p of PLAYERS) {
@@ -77,12 +95,40 @@ class RpsView implements GameInstance {
     }
   }
 
+  /** Pass-and-play: cover, secret pick on a screen facing the picker, locked in, next. */
+  private updateSecret(dt: number, input: Input): void {
+    const s = this.secret;
+    const v = s.facing;
+    const taps = input.all().filter((f) => f.pressed);
+    const keys = v === null ? null : KEYS[v];
+    const lifted = s.update(dt, taps.length > 0 || (!!keys && input.keyPressed(keys.action)));
+    if (lifted) {
+      this.ctx.sfx.play('go');
+      return; // the tap that lifted the cover never also picks
+    }
+    const p = s.picking;
+    if (p === null) return;
+    let choice: Choice | null = null;
+    for (const f of taps) {
+      const l = toWorld(p, f.x, f.y); // world → picker frame is the same flip
+      const i = CHOICES.findIndex((_, k) => inCard(k, l.x, l.y));
+      if (i >= 0) choice = CHOICES[i];
+    }
+    const k = KEYS[p];
+    if (input.keyPressed(k.left)) choice = 'rock';
+    else if (input.keyPressed(k.up)) choice = 'paper';
+    else if (input.keyPressed(k.right)) choice = 'scissors';
+    if (!choice) return;
+    s.lock(p);
+    this.pick(p, choice);
+  }
+
   private pick(p: PlayerIndex, c: Choice): void {
     const g = this.game;
     if (!g.pick(p, c)) return;
     this.pickedAt[p] = this.t;
     this.ctx.sfx.play('click');
-    const pos = side(p, W / 2, MID + 70);
+    const pos = this.pass ? toWorld(p, W / 2, 300) : side(p, W / 2, MID + 70);
     this.ctx.fx.burst(pos.x, pos.y, this.color(p), 10, 140, 3);
     if (g.revealing) {
       this.revealT = 0;
@@ -149,6 +195,10 @@ class RpsView implements GameInstance {
 
   render(gx: G): void {
     const g = this.game;
+    if (this.pass && !g.revealing && this.secret.facing !== null) {
+      this.renderSecret(gx);
+      return;
+    }
     const [c0, c1] = [this.color(0), this.color(1)];
     gx.fillStyle = '#1d1636';
     gx.fillRect(0, 0, W, H);
@@ -166,6 +216,55 @@ class RpsView implements GameInstance {
       const picked = g.picks[p] !== null || g.revealing;
       this.btns[p].forEach((b, i) => b.render(gx, { icon: ICONS[CHOICES[i]], disabled: picked || !!this.bots[p], fill: alpha(this.color(p), 0.9) }));
     }
+  }
+
+  /** Pass-and-play screens, drawn in the frame of the player the screen faces. */
+  private renderSecret(gx: G): void {
+    const s = this.secret.step!;
+    const p = s.p;
+    const o = other(p);
+    const me = this.ctx.players[p];
+    const them = this.ctx.players[o];
+    gx.save();
+    if (p === 1) {
+      gx.translate(W, H);
+      gx.rotate(Math.PI);
+    }
+    if (s.kind === 'cover') {
+      const first = !this.secret.moved[o];
+      drawCover(gx, this.t, me, them, first ? 'Secret pick first:' : 'Your secret pick:', first ? undefined : `${them.name} has picked ✓`);
+    } else {
+      gx.fillStyle = '#1d1636';
+      gx.fillRect(0, 0, W, H);
+      const tint = gx.createLinearGradient(0, H / 2, 0, H);
+      tint.addColorStop(0, 'rgba(0,0,0,0)');
+      tint.addColorStop(1, alpha(me.color, 0.35));
+      gx.fillStyle = tint;
+      gx.fillRect(0, 0, W, H);
+      lookAwayBanner(gx, them, s.kind === 'secret' ? 'eyes closed!' : 'not yet!');
+      if (s.kind === 'secret') {
+        text(gx, `${me.name}, pick in secret`, W / 2, 230, { size: 24, color: me.color, stroke: 'rgba(0,0,0,0.35)' });
+        if (this.secret.moved[o]) text(gx, `${them.name} has picked ✓ Then you both reveal`, W / 2, 266, { size: 14, color: COLORS.good, weight: 700 });
+        else text(gx, `${them.name} picks next, then you both reveal`, W / 2, 266, { size: 14, color: COLORS.dim, weight: 700 });
+        CHOICES.forEach((c, i) => {
+          const x = CARD.x(i) - CARD.w / 2;
+          rrect(gx, x, CARD.y + 4, CARD.w, CARD.h, 22, 'rgba(0,0,0,0.35)');
+          rrect(gx, x, CARD.y, CARD.w, CARD.h, 22, alpha(me.color, 0.92), '#fff', 3);
+          text(gx, ICONS[c], CARD.x(i), CARD.y + 50, { size: 46 });
+          text(gx, NAMES[c], CARD.x(i), CARD.y + 102, { size: 16, color: '#fff', stroke: 'rgba(0,0,0,0.3)' });
+        });
+      } else {
+        const k = Math.min(1, s.t / 0.2);
+        circle(gx, W / 2, 360, 54, alpha(COLORS.good, 0.18), COLORS.good, 4);
+        text(gx, '✓', W / 2, 360, { size: 30 + 30 * k, color: COLORS.good });
+        text(gx, 'Locked in!', W / 2, 446, { size: 26, color: '#fff' });
+        text(gx, this.secret.moved[o] ? 'Get ready to reveal…' : `Now ${them.name}'s turn`, W / 2, 482, { size: 16, color: COLORS.dim, weight: 700 });
+      }
+      // Score, in the picker's frame
+      text(gx, `${me.name} ${this.game.score[p]} – ${this.game.score[o]} ${them.name}`, W / 2, 560, { size: 16, color: COLORS.dim, weight: 700 });
+      text(gx, `First to ${RULES.winRounds}`, W / 2, 586, { size: 13, color: COLORS.dim, weight: 700 });
+    }
+    gx.restore();
   }
 
   /** One player's half, in player 0's coordinates; rotated for player 1. */
