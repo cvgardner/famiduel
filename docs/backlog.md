@@ -101,8 +101,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       recheck if kids pick radar and lose.
 - [ ] Power balance sim per game (each power vs each, mirrored seats, per bot level), like
       the Sea Battle one in this run, to catch powers a bot can't use.
-- [ ] Playtest: Sea Battle's "vs-bot-later" screenshot is still the fleet-placement screen,
-      so the real-time pass never fires a shot there. Teach it to tap Ready, then fire.
+- [x] 2026-10-31: Playtest: Sea Battle never got past fleet placement in real-time play
+      (random touches almost never hit Ready, and firing needs the same square tapped twice),
+      so it reported 0 buzzes. Turn-based games can now have a "person" in the playtest
+      (`playtest/person.ts`) that reads the screen and does the obvious next thing: wake the
+      pass-the-phone cover, tap Ready, then aim and fire at an untried square. The playtest
+      fails if no shots are fired against the bot or between two people; Sea Battle now
+      buzzes 8 times and its screenshots show a match in progress. Playing it showed a real
+      bug: for 0.7 s after the bot's shot the header said "Player 1 is aiming…" (the human's
+      name, in the human's colour) because it read the logic's turn, which had already moved
+      on. The header now names the seat the screen is showing (bot, and the "Missed…/Direct
+      hit!" beat after a human shot).
 - [ ] In-game canvas buttons: Checkers squares (45 units) and Sea Battle grid cells are the
       smallest canvas targets; check their size on a 320 px phone and whether a mis-tap is
       easy to undo.
@@ -155,3 +164,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Checkers: the playtest's random taps never complete a move (the "later" screenshot
       is the opening position); like Sea Battle, teach it a legal move so real-time play
       gets exercised.
+
+## Ideas found 2026-10-31 (Sea Battle person run)
+- [ ] Give Checkers, Four in a Row and Tic-Tac-Toe a playtest person too (pick a legal move,
+      tap it), so their real-time screenshots show a game being played, not random taps.
+- [ ] Sea Battle vs a bot: the bot's shot and the hand-back are quick (0.45 s + 0.7 s); a
+      kid may not see where it hit. Consider a short ring on the cell hit and a longer beat
+      on hits.
