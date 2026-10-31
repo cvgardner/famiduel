@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel, PlayerIndex } from '../src/core/types';
-import { cellsOf, MARK, N, SeaBattle, SeaBattleBot, SHIPS, strikeCells } from '../src/games/seabattle/logic';
+import { cellsOf, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIPS, strikeCells } from '../src/games/seabattle/logic';
 import { player, power } from './helpers';
 
 function setup(opts: { powers?: [string, string]; assist?: [number, number]; seed?: number } = {}) {
@@ -208,6 +208,31 @@ describe('sea battle', () => {
       const { g, powersUsed } = play(['normal', 'hard'], 13, { powers });
       expect(g.winner).not.toBeNull();
       expect(powersUsed[0] + powersUsed[1]).toBeGreaterThan(0);
+    }
+  });
+
+  it('every bot level follows up its own radar contact', () => {
+    for (const lv of ['easy', 'normal', 'hard'] as BotLevel[])
+      for (let seed = 1; seed <= 20; seed++) {
+        const g = setup({ seed });
+        start(g, 0);
+        const centre = 6 * N + 6;
+        g.radar[0].push({ cell: centre, found: true });
+        const m = new SeaBattleBot(0, lv, makeRng(seed)).choose(g);
+        expect(m.kind).toBe('fire');
+        expect(radarCells(centre)).toContain(m.cell);
+      }
+  });
+
+  it('no seat bias: mirrored bots win about half the time from either seat', () => {
+    // Backlog 2026-10-31: a 200-game sim showed 58% for player 1. 2000 games per level
+    // gave 49-50% for every level, so it was noise; this pins it.
+    for (const lv of ['easy', 'normal'] as BotLevel[]) {
+      let p1 = 0;
+      const n = 300;
+      for (let s = 0; s < n; s++) if (play([lv, lv], 3000 + s).g.winner === 1) p1++;
+      expect(p1 / n).toBeGreaterThan(0.42);
+      expect(p1 / n).toBeLessThan(0.58);
     }
   });
 });

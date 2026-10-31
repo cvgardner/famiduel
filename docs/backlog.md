@@ -23,7 +23,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       on most holes. Now it shakes more (aim 0.3, power 0.42), sees fewer lines (12 angles,
       3 powers) and often goes for one of its 3 best-looking lines rather than the best:
       +0.8 over par (3.67), 7 aces. Normal (-0.5) and hard unchanged. Unit test pins it.
-- [ ] Sea Battle easy-vs-easy seat bias (~58% for player 1 in sims): find and fix.
+- [x] 2026-10-31: Sea Battle seat bias was noise: 2000 mirrored games per level give
+      player 1 49% (easy), 49% (normal), 50% (hard); first mover 49-52%. A unit test now
+      pins seat balance. The sim found a real problem instead: the easy bot ignored its own
+      radar contacts (it pinged "found!" and then fired anywhere), so an easy bot holding
+      radar lost ~70% to one holding mine or airstrike. Every level now fires into a found
+      box while hunting; easy radar vs mine/airstrike is now 45%/40% (was 31%/29%).
 - [ ] Letterbox bars on tall phones: fill them with each game's own background so the
       phone looks full, or let games use a taller world.
 - [ ] Haptics: short vibration on hits/goals where the browser supports it (Android).
@@ -52,3 +57,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       bowl funnels any decent shot. Maybe a lip so speed matters.
 - [ ] Bot pace table: a sim script printing every game's easy/normal/hard win rates and
       match lengths, so difficulty tuning across games has numbers (like this run's).
+- [ ] Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
+      the sloppy easy bot spends more turns targeting, when it never radars. Fine for now;
+      recheck if kids pick radar and lose.
+- [ ] Power balance sim per game (each power vs each, mirrored seats, per bot level), like
+      the Sea Battle one in this run, to catch powers a bot can't use.
+- [ ] Playtest: Sea Battle's "vs-bot-later" screenshot is still the fleet-placement screen,
+      so the real-time pass never fires a shot there. Teach it to tap Ready, then fire.
