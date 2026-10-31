@@ -136,3 +136,88 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   .half-inner { gap: 4px; }
   .intro-title { font-size: 18px; }
 }
+
+/* Ghost finger (src/app/demo.ts): a 64×44 looping picture of the game's gesture,
+   beside the intro title for a game's first few matches. "Up" is toward the other player. */
+.intro-head { display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 100%; }
+.intro-head .intro-title { min-width: 0; }
+.demo { position: relative; flex: none; width: 64px; height: 44px; border-radius: 10px; overflow: hidden;
+  background: rgba(255,255,255,0.07); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.18); pointer-events: none; }
+.demo i { position: absolute; display: block; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  animation-duration: 2.6s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+.demo .f { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.92);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 2px 4px rgba(0,0,0,0.4); z-index: 2; opacity: 0; }
+.demo .r { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--gold); opacity: 0; }
+.demo .p { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+.demo .cell { width: 14px; height: 14px; border-radius: 3px; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.45); }
+.demo .side { top: 0; height: 100%; width: 50%; transform: none; background: var(--c); opacity: 0; }
+.demo .side.l { left: 0; } .demo .side.r { left: 50%; }
+.demo .base { left: 28%; top: 58%; width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.4); }
+.demo .fire { left: 78%; top: 58%; width: 14px; height: 14px; border-radius: 50%; background: #ff5c7a; }
+
+/* tap: one press with a ripple (Quick Draw, Tic-Tac-Toe, RPS) */
+.g-tap .f { animation-name: d-tap-f; } .g-tap .r { animation-name: d-tap-r; }
+@keyframes d-tap-f { 0% { opacity: 0; scale: 1.4; } 20% { opacity: 1; scale: 1; } 30% { scale: 0.75; } 40% { scale: 1; } 70% { opacity: 1; } 85%, 100% { opacity: 0; } }
+@keyframes d-tap-r { 0%, 29% { opacity: 0; scale: 0.5; } 31% { opacity: 0.9; scale: 0.6; } 60%, 100% { opacity: 0; scale: 2.2; } }
+
+/* tap2: tap a square, tap again to fire (Sea Battle) */
+.g-tap2 .f { animation-name: d-tap2-f; } .g-tap2 .r { animation-name: d-tap2-r; } .g-tap2 .cell { animation-name: d-tap2-c; }
+@keyframes d-tap2-f { 0% { opacity: 0; scale: 1.4; } 15% { opacity: 1; scale: 1; } 25% { scale: 0.75; } 32% { scale: 1; } 50% { scale: 1; } 58% { scale: 0.75; } 65% { scale: 1; } 80% { opacity: 1; } 92%, 100% { opacity: 0; } }
+@keyframes d-tap2-r { 0%, 56% { opacity: 0; scale: 0.5; } 58% { opacity: 0.9; scale: 0.6; border-color: #ff5c7a; } 85%, 100% { opacity: 0; scale: 2.4; border-color: #ff5c7a; } }
+@keyframes d-tap2-c { 0%, 24% { box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.45); } 26%, 57% { box-shadow: inset 0 0 0 2.5px var(--gold); } 59%, 90% { box-shadow: inset 0 0 0 2.5px var(--gold); background: #ff5c7a; } 100% { box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.45); } }
+
+/* sides: tap the left, then the right of your half (Snack Snatch, Snake, Chop Chop) */
+.g-sides .f { animation-name: d-sides-f; } .g-sides .side.l { animation-name: d-sides-l; } .g-sides .side.r { animation-name: d-sides-r; }
+@keyframes d-sides-f { 0% { left: 25%; opacity: 0; scale: 1.4; } 12% { left: 25%; opacity: 1; scale: 1; } 20% { left: 25%; scale: 0.75; } 28% { left: 25%; scale: 1; } 48% { left: 75%; scale: 1; } 58% { left: 75%; scale: 0.75; } 66% { left: 75%; scale: 1; opacity: 1; } 82%, 100% { left: 75%; opacity: 0; } }
+@keyframes d-sides-l { 0%, 18% { opacity: 0; } 21% { opacity: 0.45; } 40%, 100% { opacity: 0; } }
+@keyframes d-sides-r { 0%, 56% { opacity: 0; } 59% { opacity: 0.45; } 78%, 100% { opacity: 0; } }
+
+/* hold: press and hold to charge, let go to dash (Sumo) */
+.g-hold .f { top: 62%; animation-name: d-hold-f; } .g-hold .r { top: 62%; animation-name: d-hold-r; } .g-hold .p { animation-name: d-hold-p; }
+@keyframes d-hold-f { 0% { opacity: 0; scale: 1.4; } 10% { opacity: 1; scale: 1; } 18%, 60% { scale: 0.75; } 63% { scale: 1; opacity: 1; } 80%, 100% { opacity: 0; scale: 1; } }
+@keyframes d-hold-r { 0%, 17% { opacity: 0; scale: 0.6; } 19% { opacity: 0.9; scale: 0.7; } 60% { opacity: 0.9; scale: 1.8; } 62%, 100% { opacity: 0; scale: 1.8; } }
+@keyframes d-hold-p { 0%, 61% { top: 30%; opacity: 0.8; } 72% { top: -20%; opacity: 0.8; } 73%, 88% { top: -20%; opacity: 0; } 100% { top: 30%; opacity: 0.8; } }
+
+/* pull: pull back from the ball and let go (Minigolf) */
+.g-pull .f { animation-name: d-pull-f; } .g-pull .p { animation-name: d-pull-p; }
+@keyframes d-pull-f { 0% { top: 40%; opacity: 0; scale: 1.4; } 10% { top: 40%; opacity: 1; scale: 1; } 18% { top: 40%; scale: 0.75; } 52% { top: 86%; scale: 0.75; } 56% { top: 86%; scale: 1; opacity: 1; } 72%, 100% { top: 86%; opacity: 0; scale: 1; } }
+@keyframes d-pull-p { 0%, 55% { top: 34%; opacity: 1; } 68% { top: -20%; opacity: 1; } 69%, 85% { top: -20%; opacity: 0; } 100% { top: 34%; opacity: 1; } }
+
+/* swipe: a quick flick toward the goal (Penalty) */
+.g-swipe .f { animation-name: d-swipe-f; } .g-swipe .p { animation-name: d-swipe-p; }
+@keyframes d-swipe-f { 0% { left: 46%; top: 88%; opacity: 0; scale: 1.4; } 12% { left: 46%; top: 88%; opacity: 1; scale: 1; } 18% { left: 46%; top: 88%; scale: 0.75; } 32% { left: 62%; top: 12%; scale: 0.75; opacity: 1; } 44%, 100% { left: 66%; top: 0%; opacity: 0; scale: 1; } }
+@keyframes d-swipe-p { 0%, 22% { left: 46%; top: 70%; opacity: 1; } 40% { left: 66%; top: -20%; opacity: 1; } 41%, 80% { opacity: 0; top: -20%; } 100% { left: 46%; top: 70%; opacity: 1; } }
+
+/* slide: slide along your end, the paddle follows (Ping Pong) */
+.g-slide .f { top: 60%; animation-name: d-slide-f; } .g-slide .p { top: 84%; width: 20px; height: 5px; border-radius: 3px; background: var(--c); animation-name: d-slide-p; }
+@keyframes d-slide-f { 0% { left: 25%; opacity: 0; scale: 1.4; } 10% { left: 25%; opacity: 1; scale: 1; } 16% { left: 25%; scale: 0.8; } 45% { left: 75%; scale: 0.8; } 75% { left: 25%; scale: 0.8; opacity: 1; } 82% { left: 25%; scale: 1; } 95%, 100% { left: 25%; opacity: 0; } }
+@keyframes d-slide-p { 0%, 16% { left: 25%; } 45% { left: 75%; } 75%, 100% { left: 25%; } }
+
+/* drag: drag the paddle around your half (Air Hockey) */
+.g-drag .f { animation-name: d-drag-f; } .g-drag .p { width: 14px; height: 14px; background: transparent; box-shadow: inset 0 0 0 3px var(--c); animation-name: d-drag-p; }
+@keyframes d-drag-f { 0% { left: 30%; top: 72%; opacity: 0; scale: 1.4; } 10% { left: 30%; top: 72%; opacity: 1; scale: 1; } 16% { left: 30%; top: 72%; scale: 0.8; } 40% { left: 68%; top: 55%; } 62% { left: 46%; top: 30%; } 84% { left: 30%; top: 72%; scale: 0.8; opacity: 1; } 92% { scale: 1; } 100% { left: 30%; top: 72%; opacity: 0; } }
+@keyframes d-drag-p { 0%, 16% { left: 30%; top: 72%; } 40% { left: 68%; top: 55%; } 62% { left: 46%; top: 30%; } 84%, 100% { left: 30%; top: 72%; } }
+
+/* move: tap a piece, then where it goes (Checkers) */
+.g-move .f { animation-name: d-move-f; } .g-move .p { width: 12px; height: 12px; background: var(--c); box-shadow: 0 0 0 2px rgba(255,255,255,0.6); animation-name: d-move-p; }
+.g-move .cell { left: 72%; top: 30%; }
+@keyframes d-move-f { 0% { left: 28%; top: 72%; opacity: 0; scale: 1.4; } 12% { left: 28%; top: 72%; opacity: 1; scale: 1; } 20% { left: 28%; top: 72%; scale: 0.75; } 28% { left: 28%; top: 72%; scale: 1; } 48% { left: 72%; top: 30%; scale: 1; } 56% { left: 72%; top: 30%; scale: 0.75; } 64% { left: 72%; top: 30%; scale: 1; opacity: 1; } 80%, 100% { left: 72%; top: 30%; opacity: 0; } }
+@keyframes d-move-p { 0%, 19% { left: 28%; top: 72%; scale: 1; } 21%, 55% { left: 28%; top: 72%; scale: 1.2; } 62% { left: 72%; top: 30%; scale: 1; } 92% { left: 72%; top: 30%; opacity: 1; } 96% { opacity: 0; } 100% { left: 28%; top: 72%; opacity: 1; } }
+
+/* drop: tap (or slide and let go) over a column (Four in a Row) */
+.g-drop .f { top: 66%; animation-name: d-drop-f; } .g-drop .p { width: 12px; height: 12px; background: var(--c); animation-name: d-drop-p; }
+@keyframes d-drop-f { 0% { left: 28%; opacity: 0; scale: 1.4; } 12% { left: 28%; opacity: 1; scale: 1; } 18% { left: 28%; scale: 0.8; } 44% { left: 70%; scale: 0.8; } 50% { left: 70%; scale: 1; opacity: 1; } 66%, 100% { left: 70%; opacity: 0; } }
+@keyframes d-drop-p { 0%, 17% { left: 28%; top: 34%; opacity: 0; } 18% { opacity: 1; } 44%, 50% { left: 70%; top: 34%; opacity: 1; } 64% { left: 70%; top: -20%; opacity: 1; } 65%, 100% { opacity: 0; left: 70%; top: -20%; } }
+
+/* stick: push the stick, then tap FIRE (Tanks) */
+.g-stick .f { animation-name: d-stick-f; } .g-stick .fire { animation-name: d-stick-fire; }
+@keyframes d-stick-f { 0% { left: 28%; top: 58%; opacity: 0; scale: 1.4; } 8% { left: 28%; top: 58%; opacity: 1; scale: 1; } 13% { left: 28%; top: 58%; scale: 0.8; } 26% { left: 40%; top: 32%; scale: 0.8; } 40% { left: 16%; top: 42%; scale: 0.8; } 50% { left: 28%; top: 58%; scale: 0.8; } 54% { left: 28%; top: 58%; scale: 1; } 64% { left: 78%; top: 58%; scale: 1; } 69% { left: 78%; top: 58%; scale: 0.75; } 75% { left: 78%; top: 58%; scale: 1; opacity: 1; } 88%, 100% { left: 78%; top: 58%; opacity: 0; } }
+@keyframes d-stick-fire { 0%, 68% { scale: 1; filter: none; } 70% { scale: 1.25; filter: brightness(1.6); } 80%, 100% { scale: 1; filter: none; } }
+
+/* Short phones: keep the demo no taller than the title line so tight intros (Penalty) still fit. */
+@media (max-height: 760px) { .demo { width: 54px; height: 32px; border-radius: 8px; margin-block: -3px; } .demo .f { width: 13px; height: 13px; } }
+@media (max-height: 600px) { .demo { width: 50px; height: 28px; margin-block: -4px; } .demo .f { width: 11px; height: 11px; } .demo .p { width: 6px; height: 6px; } }
+@media (prefers-reduced-motion: reduce) {
+  .demo i { animation: none !important; }
+  .demo .f { opacity: 0.9; }
+}
