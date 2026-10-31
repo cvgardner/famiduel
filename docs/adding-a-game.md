@@ -30,6 +30,8 @@ the card and the e2e "bot vs bot" test starts covering it.
   Put a player's power button in a corner of their half (airhockey uses bottom-left for
   player 0 and top-right for player 1) so it never sits under a control.
 - The DOM pause button sits at the left edge, vertically centred. Keep that spot clear.
+  It pauses on a 0.6 s press-and-hold (a quick tap only shows "Hold to pause"), so hands
+  resting on the centre line do not stop the match.
 - Desktop keys: `KEYS[p]` in `src/engine/game.ts` (left/right/up/down/action/power).
   Support them where it makes sense; they make local testing easy.
 

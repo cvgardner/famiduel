@@ -34,3 +34,13 @@ export async function botMatch(page: Page, id: string, maxSeconds = 900) {
   }, maxSeconds);
   await expect(page.locator('#result')).toBeVisible();
 }
+
+/** Press and hold the pause button like a person (it ignores quick taps). */
+export async function holdPause(page: Page, ms = 800) {
+  const b = (await page.locator('#pauseBtn').boundingBox())!;
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(ms);
+  await page.mouse.up();
+  await expect(page.locator('#resumeBtn')).toBeVisible();
+}
