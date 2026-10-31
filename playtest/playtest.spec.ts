@@ -99,22 +99,84 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
   expect(overflow, 'home scrolls sideways at 320px').toBe(false);
   for (const card of await page.locator('.game-card[data-ready="1"]').all()) built.push((await card.getAttribute('data-id'))!);
   const clipped: string[] = [];
-  await page.setViewportSize({ width: 360, height: 640 });
-  for (const id of built) {
-    await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
-    const bad = await page.evaluate(() =>
-      [...document.querySelectorAll('#intro .half')].some((h) => {
-        const inner = h.querySelector('.half-inner') as HTMLElement;
-        return inner.getBoundingClientRect().height > (h as HTMLElement).getBoundingClientRect().height + 1;
-      }),
-    );
-    if (bad) {
-      clipped.push(id);
-      await page.screenshot({ path: path.join(OUT, `${id}-intro-clipped.png`) });
+  // A common Android size, and the smallest iPhone still in families' drawers (SE 1st gen).
+  for (const [w, h] of [[360, 640], [320, 568]]) {
+    await page.setViewportSize({ width: w, height: h });
+    for (const id of built) {
+      await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+      const bad = await page.evaluate(() =>
+        [...document.querySelectorAll('#intro .half')].some((h) => {
+          const inner = h.querySelector('.half-inner') as HTMLElement;
+          return inner.getBoundingClientRect().height > (h as HTMLElement).getBoundingClientRect().height + 1;
+        }),
+      );
+      if (bad) {
+        clipped.push(`${id} at ${w}x${h}`);
+        await page.screenshot({ path: path.join(OUT, `${id}-intro-clipped-${w}x${h}.png`) });
+      }
+      await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
     }
+  }
+  expect(clipped, 'intro content cut off on a small phone').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+/**
+ * Every visible tap target (buttons, toggle labels) on the current screen that is
+ * smaller than MIN_TARGET CSS px in either direction. 44 is Apple's and WCAG 2.5.5's
+ * minimum; small children miss small targets more, so nothing goes below it.
+ */
+const MIN_TARGET = 44;
+async function smallTargets(page: Page, screen: string): Promise<string[]> {
+  const bad = await page.evaluate((min) => {
+    const els = [...document.querySelectorAll<HTMLElement>('button, label.toggle, [role="button"]')];
+    return els
+      .filter((e) => e.checkVisibility({ visibilityProperty: true, opacityProperty: false }))
+      .map((e) => ({ e, r: e.getBoundingClientRect() }))
+      .filter(({ r }) => r.width > 0 && (r.width < min - 0.5 || r.height < min - 0.5))
+      .map(({ e, r }) => `${e.id ? '#' + e.id : e.className || e.tagName} "${(e.textContent ?? '').trim().slice(0, 16)}" ${Math.round(r.width)}x${Math.round(r.height)}`);
+  }, MIN_TARGET);
+  return bad.map((b) => `${screen}: ${b}`);
+}
+
+test('layout: every tap target is at least 44px on a small phone', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  const small: string[] = [];
+  // A night in progress, so the "New night" link shows on home.
+  await page.evaluate(() => {
+    const a = (window as unknown as { __famiduel: Hook & { store: { data: { night: { wins: number[] } } } } }).__famiduel;
+    a.store.data.night.wins = [1, 0];
+    a.store.save();
+    a.showHome();
+  });
+  small.push(...(await smallTargets(page, 'home')));
+  await page.locator('.player-chip[data-p="0"]').tap();
+  small.push(...(await smallTargets(page, 'profile')));
+  await page.locator('#pDone').tap();
+  // One intro with powers, one without (Checkers has none), then play, pause, result.
+  for (const id of ['airhockey', 'checkers']) {
+    await setPlayers(page, [null, null]);
+    await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+    small.push(...(await smallTargets(page, `${id} intro`)));
     await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
   }
-  expect(clipped, 'intro content cut off on a 360x640 phone').toEqual([]);
+  await setPlayers(page, [null, 'normal']);
+  await page.locator('.game-card[data-id="airhockey"]').tap();
+  await introAsPeople(page, [0]);
+  small.push(...(await smallTargets(page, 'play')));
+  await page.click('#pauseBtn');
+  small.push(...(await smallTargets(page, 'pause')));
+  await page.click('#quitBtn');
+  await setPlayers(page, ['normal', 'hard']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('airhockey'));
+  await expect(page.locator('#play')).toBeVisible();
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
+  await expect(page.locator('#result')).toBeVisible();
+  small.push(...(await smallTargets(page, 'result')));
+  if (small.length) await page.screenshot({ path: path.join(OUT, 'small-targets.png') });
+  expect(small, `tap targets under ${MIN_TARGET}px on a 320x568 phone`).toEqual([]);
   expect(errors).toEqual([]);
 });
 
