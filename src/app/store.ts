@@ -3,7 +3,21 @@
 import { PLAYER_COLORS, safePair } from '../core/colors';
 import type { BotLevel, GameResult, PlayerIndex } from '../core/types';
 
-export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null };
+/**
+ * `bot` says whether this seat is a bot and its level for every game;
+ * `botLevels` holds a level picked for one game on that game's intro, which
+ * wins there (a parent may want an easy Checkers bot but a normal Air Hockey one).
+ */
+export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null; botLevels?: Record<string, BotLevel> };
+
+export const BOT_LEVELS: readonly BotLevel[] = ['easy', 'normal', 'hard'];
+
+/** Who plays this seat in this game: null for a person, else the bot's level. */
+export function botFor(pr: Profile, game: string): BotLevel | null {
+  if (!pr.bot) return null;
+  const lv = pr.botLevels?.[game];
+  return lv && BOT_LEVELS.includes(lv) ? lv : pr.bot;
+}
 export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean; haptics: boolean };
 export type MatchRecord = {
   game: string;
@@ -78,6 +92,20 @@ export class Store {
     if (this.data.history.length > HISTORY_CAP) this.data.history.splice(0, this.data.history.length - HISTORY_CAP);
     this.save();
     return rec;
+  }
+
+  /** Remember a bot level for one game (picked on its intro). */
+  setBotLevel(p: PlayerIndex, game: string, level: BotLevel): void {
+    const pr = this.data.profiles[p];
+    pr.botLevels = { ...pr.botLevels, [game]: level };
+    this.save();
+  }
+
+  /** Setting who plays from the player sheet applies to every game again. */
+  setBot(p: PlayerIndex, bot: BotLevel | null): void {
+    const pr = this.data.profiles[p];
+    if (pr.bot !== bot) delete pr.botLevels;
+    pr.bot = bot;
   }
 
   newNight(): void {

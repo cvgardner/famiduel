@@ -4,7 +4,7 @@ import { effectiveAssist, lerpAssist } from '../src/core/handicap';
 import { hashSeed, makeRng } from '../src/core/rng';
 import games from '../content/games.json';
 import powers from '../content/powers.json';
-import { Store } from '../src/app/store';
+import { Store, botFor } from '../src/app/store';
 
 describe('rng', () => {
   it('is deterministic per seed', () => {
@@ -67,6 +67,44 @@ describe('store', () => {
     expect(again.data.history).toHaveLength(1);
     again.newNight();
     expect(again.data.night.games).toHaveLength(0);
+  });
+});
+
+describe('bot level per game', () => {
+  const mem = () => {
+    const m = new Map<string, string>();
+    return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) } as Storage;
+  };
+  it('a level picked on one game\'s intro is kept for that game only', () => {
+    const storage = mem();
+    const s = new Store(storage);
+    s.setBot(1, 'normal');
+    s.setBotLevel(1, 'checkers', 'easy');
+    const again = new Store(storage);
+    const pr = again.data.profiles[1];
+    expect(botFor(pr, 'checkers')).toBe('easy');
+    expect(botFor(pr, 'airhockey')).toBe('normal');
+  });
+  it('a person is never a bot, whatever levels are saved', () => {
+    const s = new Store(mem());
+    s.setBot(1, 'hard');
+    s.setBotLevel(1, 'sumo', 'easy');
+    s.setBot(1, null);
+    expect(botFor(s.data.profiles[1], 'sumo')).toBeNull();
+    expect(botFor(s.data.profiles[0], 'sumo')).toBeNull();
+  });
+  it('changing who plays on the player sheet applies to every game again', () => {
+    const s = new Store(mem());
+    s.setBot(1, 'normal');
+    s.setBotLevel(1, 'checkers', 'easy');
+    s.setBot(1, 'normal'); // Done without a change keeps the per-game level
+    expect(botFor(s.data.profiles[1], 'checkers')).toBe('easy');
+    s.setBot(1, 'hard');
+    expect(botFor(s.data.profiles[1], 'checkers')).toBe('hard');
+  });
+  it('ignores a broken saved level', () => {
+    const pr = { name: 'x', color: '#fff', headStart: 0, bot: 'normal' as const, botLevels: { snake: 'silly' as never } };
+    expect(botFor(pr, 'snake')).toBe('normal');
   });
 });
 

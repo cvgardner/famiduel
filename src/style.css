@@ -90,6 +90,10 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .btn.ready { min-width: 180px; background: var(--c); color: #fff; }
 .btn.ready.on { background: var(--good, #4ade80); color: #14112b; }
 .who { font-weight: 800; color: var(--c); }
+/* A bot's level row sits where a person's Ready button would, at the same height. */
+.botlvl { flex-wrap: nowrap; width: 100%; max-width: 300px; }
+.botlvl button { min-height: 48px; font-size: 14px; }
+.botlvl button.on { background: var(--c); color: #fff; box-shadow: 0 0 0 2px var(--gold) inset; }
 .intro-mid { flex: none; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 8px 12px; background: #0e0c20; color: var(--dim); font-weight: 700; font-size: 13px; }
 .res-title { font-size: 40px; font-weight: 900; }
 .half.won .res-title { color: var(--gold); }
@@ -122,6 +126,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   .power-card { padding: 6px 4px; }
   .power-card .picon { font-size: 22px; }
   .power-card:not(.on) small { display: none; }
+  /* A bot's half only needs its power and level: no how-to, power names only. */
+  .half.bot .howto, .half.bot .power-card small { display: none; }
   .btn.ready { padding: 10px 16px; font-size: 15px; min-height: 48px; }
   .res-title { font-size: 32px; }
 }

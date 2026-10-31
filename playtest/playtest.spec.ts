@@ -271,6 +271,54 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
   expect(errors).toEqual([]);
 });
 
+test('bot level: picked on the intro, kept per game, fits a small phone', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type H = Hook & { runner: { players: { bot: string | null }[] } | null };
+  // Every intro with a bot on top: the level row replaces Ready, so nothing grows.
+  await setPlayers(page, [null, 'normal']);
+  const problems: string[] = [];
+  for (const g of games.games) {
+    const ok = await page.evaluate((id) => {
+      const a = (window as unknown as { __famiduel: H }).__famiduel;
+      a.openGame(id);
+      const half = document.querySelector('#intro .half.p1') as HTMLElement | null;
+      if (!half) return 'not built';
+      const inner = half.querySelector('.half-inner') as HTMLElement;
+      const row = half.querySelectorAll('.botlvl button');
+      const on = half.querySelector('.botlvl button.on') as HTMLElement | null;
+      if (row.length !== 3) return 'no bot level row';
+      if (on?.dataset.v !== 'normal') return `level shown is ${on?.dataset.v}`;
+      if (inner.getBoundingClientRect().height > half.getBoundingClientRect().height + 1) return 'intro does not fit';
+      return '';
+    }, g.id);
+    if (ok && ok !== 'not built') problems.push(`${g.id}: ${ok}`);
+    else if (!ok) problems.push(...(await smallTargets(page, `${g.id} intro with a bot`)));
+  }
+  expect(problems).toEqual([]);
+  // A parent turns the Checkers bot down to Easy right on the intro.
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
+  await page.locator('.game-card[data-id="checkers"]').tap();
+  await page.locator('.botlvl[data-p="1"] button[data-v="easy"]').tap();
+  await expect(page.locator('.botlvl[data-p="1"] button[data-v="easy"]')).toHaveClass(/on/);
+  await page.screenshot({ path: path.join(OUT, 'bot-level-intro.png') });
+  await introAsPeople(page, [0]);
+  expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players[1].bot), 'the match uses the picked level').toBe('easy');
+  await leaveMatch(page);
+  // Remembered for Checkers after a reload; other games keep the sheet's level.
+  await page.reload();
+  await page.locator('.game-card[data-id="checkers"]').tap();
+  await expect(page.locator('.botlvl[data-p="1"] button.on')).toHaveAttribute('data-v', 'easy');
+  await page.locator('#introBack').tap();
+  await page.locator('.game-card[data-id="airhockey"]').tap();
+  await expect(page.locator('.botlvl[data-p="1"] button.on')).toHaveAttribute('data-v', 'normal');
+  await introAsPeople(page, [0]);
+  expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players[1].bot)).toBe('normal');
+  await leaveMatch(page);
+  expect(errors).toEqual([]);
+});
+
 test('haptics: hits buzz the phone, and the Vibration toggle turns it off', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
