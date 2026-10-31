@@ -29,6 +29,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       radar contacts (it pinged "found!" and then fired anywhere), so an easy bot holding
       radar lost ~70% to one holding mine or airstrike. Every level now fires into a found
       box while hunting; easy radar vs mine/airstrike is now 45%/40% (was 31%/29%).
+- [x] 2026-10-31 (research run): tap targets for small hands. Kids' UX guidance (NN/g:
+      young children need larger controls than adults' 1 cm; Apple HIG and WCAG 2.5.5:
+      44 pt minimum; kids-app guides use 56-64 dp for ages 4-6) vs our menus on a 320×568
+      phone found 26 targets under 44 px: the intro's "← Back" (55×24), both Ready buttons
+      (39 px tall), the pause dot (34×34), settings toggles (40 px), colour swatches (36 px)
+      and head-start / bot buttons (34 px). All are now at least 44 px (Ready 48, swatches
+      fill the row with the dot drawn inside, pause keeps its small dot inside a 44 px
+      target). The playtest now fails on any target under 44 px and checks every intro also
+      fits a 320×568 phone (Sumo and Penalty needed 5 px back there).
 - [ ] Letterbox bars on tall phones: fill them with each game's own background so the
       phone looks full, or let games use a taller world.
 - [ ] Haptics: short vibration on hits/goals where the browser supports it (Android).
@@ -64,3 +73,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the Sea Battle one in this run, to catch powers a bot can't use.
 - [ ] Playtest: Sea Battle's "vs-bot-later" screenshot is still the fleet-placement screen,
       so the real-time pass never fires a shot there. Teach it to tap Ready, then fire.
+- [ ] In-game canvas buttons: Checkers squares (45 units) and Sea Battle grid cells are the
+      smallest canvas targets; check their size on a 320 px phone and whether a mis-tap is
+      easy to undo.
+- [ ] Ages 4-6 guidance asks for 56-64 px primary buttons; consider a "little hands" setting
+      that enlarges Ready / power cards (needs a taller intro layout).
+- [ ] Pause sits on the centre line where both players' hands rest; count accidental pauses
+      in the playtest monkey and consider a press-and-hold to pause.

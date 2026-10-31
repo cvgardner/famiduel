@@ -126,7 +126,7 @@ export class App {
     modal.innerHTML = `<div class="sheet">
       <h2>Player ${p + 1}</h2>
       <label class="field">Name<input id="pName" maxlength="12" value="${esc(pr.name)}"/></label>
-      <div class="field">Colour<div class="swatches">${PLAYER_COLORS.map((c) => `<button class="swatch${c === pr.color ? ' on' : ''}" data-c="${c}" style="background:${c}" aria-label="${c}"></button>`).join('')}</div></div>
+      <div class="field">Colour<div class="swatches">${PLAYER_COLORS.map((c) => `<button class="swatch${c === pr.color ? ' on' : ''}" data-c="${c}" style="--sw:${c}" aria-label="${c}"></button>`).join('')}</div></div>
       <div class="field">Head start <small>help for younger players</small>
         <div class="seg" id="pHead">${[0, 1, 2, 3].map((n) => `<button data-v="${n}" class="${n === pr.headStart ? 'on' : ''}">${n ? '★'.repeat(n) : 'None'}</button>`).join('')}</div></div>
       <div class="field">Who plays
