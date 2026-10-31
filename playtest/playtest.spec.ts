@@ -8,6 +8,7 @@ import { expect, test, type Page } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 import games from '../content/games.json' with { type: 'json' };
+import { PLAYER_COLORS } from '../src/core/colors';
 import { installFingers, monkey } from './monkey';
 import { checkersPerson, fourInARowPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
 
@@ -292,6 +293,52 @@ test('haptics: hits buzz the phone, and the Vibration toggle turns it off', asyn
   await page.reload();
   await expect(page.locator('.settings input[data-k="haptics"]'), 'the setting is saved').not.toBeChecked();
   expect(await play(), 'no vibration with the toggle off').toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test('colours: the picker only offers colours that stay apart for colour-blind eyes', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  // Player 2's editor: Player 1's colour is taken; every other swatch is named and pickable.
+  await page.locator('.player-chip').nth(1).tap();
+  const swatches = page.locator('.swatch');
+  await expect(swatches).toHaveCount(PLAYER_COLORS.length);
+  const p1 = await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.store.data.profiles[0]);
+  for (const [i, c] of PLAYER_COLORS.entries()) {
+    const label = await swatches.nth(i).getAttribute('aria-label');
+    if (c.hex === (p1 as unknown as { color: string }).color) {
+      await expect(swatches.nth(i), `${c.name} is Player 1's`).toBeDisabled();
+      expect(label).toContain('taken');
+    } else {
+      await expect(swatches.nth(i)).toBeEnabled();
+      expect(label).toBe(c.name);
+    }
+  }
+  await page.screenshot({ path: path.join(OUT, 'colours-picker.png') });
+  // Pick Mint (the old palette's green clashed with pink for red-green colour blindness).
+  await page.locator('.swatch[aria-label="Mint"]').tap();
+  await page.locator('#pDone').tap();
+  await expect(page.locator('.player-chip').nth(1)).toHaveAttribute('style', /#15e5b4/);
+  // A match as colour-blind players would see it, for a human to look at.
+  await setPlayers(page, ['normal', 'normal']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('airhockey'));
+  await expect(page.locator('#play')).toBeVisible();
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(3));
+  const SIM: Record<string, number[]> = {
+    protan: [0.152286, 1.052583, -0.204868, 0.114503, 0.786281, 0.099216, -0.003882, -0.048116, 1.051998],
+    deutan: [0.367322, 0.860646, -0.227968, 0.280085, 0.672501, 0.047413, -0.01182, 0.04294, 0.968881],
+    tritan: [1.255528, -0.076749, -0.178779, -0.078411, 0.930809, 0.147602, 0.004733, 0.691367, 0.3039],
+  };
+  for (const [kind, m] of Object.entries(SIM)) {
+    // feColorMatrix rows are r g b a offset; linearRGB matches the simulation's colour space.
+    const values = [0, 3, 6].map((r) => `${m.slice(r, r + 3).join(' ')} 0 0`).join(' ') + ' 0 0 0 1 0';
+    await page.evaluate(([k, v]) => {
+      document.getElementById('cvd')?.remove();
+      document.body.insertAdjacentHTML('beforeend', `<svg id="cvd" width="0" height="0" style="position:absolute"><filter id="cvd-${k}" color-interpolation-filters="linearRGB"><feColorMatrix type="matrix" values="${v}"/></filter></svg>`);
+      document.documentElement.style.filter = `url(#cvd-${k})`;
+    }, [kind, values] as const);
+    await page.screenshot({ path: path.join(OUT, `colours-airhockey-${kind}.png`) });
+  }
   expect(errors).toEqual([]);
 });
 

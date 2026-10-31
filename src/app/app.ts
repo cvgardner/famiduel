@@ -127,12 +127,16 @@ export class App {
 
   private editPlayer(p: PlayerIndex): void {
     const pr = this.store.data.profiles[p];
+    const other = this.store.data.profiles[p === 0 ? 1 : 0];
     const modal = $('#modal');
     modal.classList.remove('hidden');
     modal.innerHTML = `<div class="sheet">
       <h2>Player ${p + 1}</h2>
       <label class="field">Name<input id="pName" maxlength="12" value="${esc(pr.name)}"/></label>
-      <div class="field">Colour<div class="swatches">${PLAYER_COLORS.map((c) => `<button class="swatch${c === pr.color ? ' on' : ''}" data-c="${c}" style="--sw:${c}" aria-label="${c}"></button>`).join('')}</div></div>
+      <div class="field">Colour <small>easy to tell apart, colour-blind eyes too</small><div class="swatches">${PLAYER_COLORS.map((c) => {
+        const taken = c.hex === other.color;
+        return `<button class="swatch${c.hex === pr.color ? ' on' : ''}${taken ? ' taken' : ''}" data-c="${c.hex}" style="--sw:${c.hex}" aria-label="${taken ? `${c.name}, taken by ${esc(other.name)}` : c.name}" ${taken ? 'disabled' : ''}></button>`;
+      }).join('')}</div></div>
       <div class="field">Head start <small>help for younger players</small>
         <div class="seg" id="pHead">${[0, 1, 2, 3].map((n) => `<button data-v="${n}" class="${n === pr.headStart ? 'on' : ''}">${n ? '★'.repeat(n) : 'None'}</button>`).join('')}</div></div>
       <div class="field">Who plays
