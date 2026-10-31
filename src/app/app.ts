@@ -41,6 +41,7 @@ export class App {
       <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>`;
     this.stage = new Stage($<HTMLCanvasElement>('#stage', root));
     this.sfx.muted = !this.store.data.settings.sound;
+    this.sfx.haptics.enabled = this.store.data.settings.haptics;
     const seedParam = new URLSearchParams(location.search).get('seed');
     this.fixedSeed = seedParam ? hashSeed(seedParam) : null;
     root.addEventListener('pointerdown', () => this.sfx.unlock(), { capture: true });
@@ -77,6 +78,7 @@ export class App {
         ${this.toggle('powers', '⚡ Super powers', settings.powers)}
         ${this.toggle('autoHandicap', '⚖️ Auto handicap', settings.autoHandicap)}
         ${this.toggle('sound', '🔊 Sound', settings.sound)}
+        ${this.sfx.haptics.supported ? this.toggle('haptics', '📳 Vibration', settings.haptics) : ''}
       </section>
       <footer class="foot">Prototype · no ads, no accounts · everything stays on this device</footer>`;
     for (const el of document.querySelectorAll<HTMLElement>('.game-card[data-ready="1"]')) {
@@ -90,6 +92,7 @@ export class App {
         const k = el.dataset.k as keyof typeof settings;
         settings[k] = el.checked;
         this.sfx.muted = !settings.sound;
+        this.sfx.haptics.enabled = settings.haptics;
         this.store.save();
       });
     }
