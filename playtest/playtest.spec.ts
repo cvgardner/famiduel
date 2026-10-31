@@ -9,8 +9,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import games from '../content/games.json' with { type: 'json' };
 import { PLAYER_COLORS } from '../src/core/colors';
-import { installFingers, monkey } from './monkey';
-import { checkersPerson, fourInARowPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
+import { installFingers, monkey, worldBox } from './monkey';
+import { checkersPerson, fourInARowPerson, rpsPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
 
 const OUT = path.resolve('playtest-report');
 const SECONDS = Number(process.env.PLAYTEST_SECONDS ?? 8);
@@ -385,6 +385,63 @@ test('sumo: a small kid with a full head start gets two rows of rope saves', asy
   expect(errors).toEqual([]);
 });
 
+test('rock paper scissors: two people pick behind a look-away cover, one at a time', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  await page.locator('.game-card[data-id="rps"]').tap();
+  await introAsPeople(page, [0, 1]);
+  await page.waitForTimeout(2200); // countdown
+  type RpsHook = {
+    runner: null | { game: { secret: { step: { kind: string; p: number; t: number } | null }; game: { picks: (string | null)[]; revealing: boolean } } };
+  };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: RpsHook }).__famiduel.runner!.game;
+      return { step: v.secret.step, picks: [...v.game.picks], revealing: v.game.revealing };
+    });
+  const box = await worldBox(page);
+  const tap = async (x: number, y: number) => {
+    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
+    for (const t of ['pointerdown', 'pointerup'])
+      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, c.x, c.y] as const);
+  };
+  const flip = (p: number, x: number, y: number) => (p === 1 ? [360 - x, 640 - y] : [x, y]) as [number, number];
+  // Round 1: player 1 (bottom) is first. Nothing is on screen but the cover.
+  let s = await look();
+  expect(s.step, 'the round opens on a cover facing the first picker').toMatchObject({ kind: 'cover', p: 0 });
+  await page.screenshot({ path: path.join(OUT, 'rps-secret-cover.png') });
+  await page.waitForTimeout(700);
+  await tap(...flip(0, 180, 445));
+  await page.waitForTimeout(250);
+  expect((await look()).step).toMatchObject({ kind: 'secret', p: 0 });
+  await page.screenshot({ path: path.join(OUT, 'rps-secret-pick.png') });
+  await tap(...flip(0, 70, 424)); // rock
+  await page.waitForTimeout(200);
+  s = await look();
+  expect(s.picks[0], 'the pick is in').toBe('rock');
+  expect(s.revealing).toBe(false);
+  expect(s.step?.kind, 'right after picking, only "Locked in" shows').toBe('locked');
+  await page.screenshot({ path: path.join(OUT, 'rps-secret-locked.png') });
+  await page.waitForTimeout(1000);
+  expect((await look()).step, 'then the screen turns to the other player, behind a cover').toMatchObject({ kind: 'cover', p: 1 });
+  await page.screenshot({ path: path.join(OUT, 'rps-secret-cover-top.png') });
+  await page.waitForTimeout(600);
+  await tap(...flip(1, 180, 445));
+  await page.waitForTimeout(250);
+  expect((await look()).step).toMatchObject({ kind: 'secret', p: 1 });
+  await page.screenshot({ path: path.join(OUT, 'rps-secret-pick-top.png') });
+  await tap(...flip(1, 290, 424)); // scissors
+  await page.waitForTimeout(1300);
+  s = await look();
+  expect(s.revealing, 'both in: the reveal plays face to face').toBe(true);
+  await page.screenshot({ path: path.join(OUT, 'rps-secret-reveal.png') });
+  await page.waitForTimeout(2000);
+  // Round 2: the other player picks first.
+  expect((await look()).step).toMatchObject({ kind: 'cover', p: 1 });
+  expect(errors).toEqual([]);
+});
+
 /**
  * Turn-based games whose steps random touches can't reach (Sea Battle needs Ready,
  * then the same square tapped twice; Checkers needs a piece, then where it lands)
@@ -393,6 +450,7 @@ test('sumo: a small kid with a full head start gets two rows of rope saves', asy
  */
 const PEOPLE: Record<string, Person> = {
   seabattle: seaBattlePerson,
+  rps: rpsPerson,
   checkers: checkersPerson,
   fourinarow: fourInARowPerson,
   tictactoe: ticTacToePerson,

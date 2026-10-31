@@ -25,6 +25,8 @@ export class Rps {
   last: { picks: [Choice, Choice]; winner: PlayerIndex | null } | null = null;
   score: [number, number] = [0, 0];
   rounds = 0;
+  /** Picks made by each seat over the match. */
+  picksMade: [number, number] = [0, 0];
   winner: PlayerIndex | null = null;
   done = false;
   events: Event[] = [];
@@ -40,6 +42,8 @@ export class Rps {
     this.events = [];
     if (this.done || this.revealing || this.picks[p] !== null) return false;
     this.picks[p] = c;
+    this.picksMade[p]++;
+    // The event says who picked, never what: views must not leak a pick before the reveal.
     this.events.push({ type: 'picked', p });
     const [a, b] = this.picks;
     if (a && b) {

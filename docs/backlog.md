@@ -5,6 +5,10 @@ something better it found), ships it, and ticks it here with the date and PR num
 Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md win.
 
 ## Fixed
+- [x] 2026-10-31 (Chris): hidden-info games can't be played face to face. Rock Paper
+      Scissors between two people is now pass-and-play (src/engine/secret.ts): a look-away
+      cover, the pick on a screen facing the picker, "Locked in", then the other player,
+      then the reveal together. Audit and rules in docs/adding-a-game.md "Hidden information".
 - [x] 2026-10-31: main was red. The Sumo playtest timed out because the normal bot won
       2-0 inside the 8 s real-time window, so the pause button it tried to tap was gone.
       The playtest now leaves a finished match through the result screen and records it

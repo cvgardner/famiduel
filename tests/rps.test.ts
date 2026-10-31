@@ -70,4 +70,16 @@ describe('rock paper scissors', () => {
     for (let i = 0; i < 900; i++) n[bot.choose()]++;
     for (const k of Object.keys(n)) expect(n[k]).toBeGreaterThan(240);
   });
+
+  it('a pick is never exposed before both are in', () => {
+    const g = new Rps([player(), player()]);
+    g.pick(0, 'rock');
+    expect(g.events).toEqual([{ type: 'picked', p: 0 }]);
+    expect(g.last).toBeNull();
+    expect(g.revealing).toBe(false);
+    expect(g.pick(0, 'paper'), 'no changing a locked pick').toBe(false);
+    g.pick(1, 'scissors');
+    expect(g.last?.picks).toEqual(['rock', 'scissors']);
+    expect(g.picksMade).toEqual([1, 1]);
+  });
 });

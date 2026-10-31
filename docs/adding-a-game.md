@@ -35,6 +35,24 @@ the card and the e2e "bot vs bot" test starts covering it.
 - Desktop keys: `KEYS[p]` in `src/engine/game.ts` (left/right/up/down/action/power).
   Support them where it makes sense; they make local testing easy.
 
+## Hidden information
+
+The phone lies flat between two people, so anything one player picks on screen
+the other can see. Games with a secret choice (Rock Paper Scissors picks, Sea
+Battle fleets) must not use the face-to-face layout between two people. Use
+pass-and-play from `src/engine/secret.ts`: `SecretTurns` steps each secret move
+through a look-away cover (screen turned to the picker, a banner telling the
+other player to look away), the secret move on a full screen facing the picker,
+then "Locked in ✓" with nothing about the move shown, then the next player's
+cover. Reveal results face to face once everyone has moved. Logic events must
+never carry a secret before the reveal (RPS's `picked` event names the seat
+only). Against a bot skip the cover: bots never peek, so the person plays
+normally. Rock Paper Scissors is the reference; Sea Battle has its own cover.
+
+Audit (Oct 2026): RPS and Sea Battle hide information. Penalty Shootout is
+deliberately open: the keeper reads the shot and an early dive is shown to the
+shooter. Every other game is fully open.
+
 ## Logic rules
 
 - One class with `step(dt, intents)` (or a turn-based `apply(move)`), a `winner` field,
