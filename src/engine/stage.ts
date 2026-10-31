@@ -116,5 +116,65 @@ export class Stage {
     g.fillRect(0, 0, W, H);
     this.onRender?.(g);
     g.restore();
+    this.fillBars();
+  }
+
+  /**
+   * Tall (or wide) phones leave bars around the fixed world. Instead of black,
+   * stretch the world's own edge pixels out to the screen edge, so each game's
+   * table seems to run off the phone, then fade them a little so the play area
+   * still reads as the play area.
+   */
+  private fillBars(): void {
+    const g = this.g;
+    const cw = this.canvas.width;
+    const ch = this.canvas.height;
+    const x0 = Math.ceil(this.ox * this.dpr);
+    const y0 = Math.ceil(this.oy * this.dpr);
+    const x1 = Math.floor((this.ox + W * this.scale) * this.dpr);
+    const y1 = Math.floor((this.oy + H * this.scale) * this.dpr);
+    const top = y0 >= 2;
+    const side = x0 >= 2;
+    if ((!top && !side) || x1 - x0 < 4 || y1 - y0 < 4) return;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    const bw = x1 - x0;
+    if (top) {
+      this.bar([x0, y0 + 1, bw, 1], [x0, 0, bw, y0], [0, y0, 0, 0]);
+      this.bar([x0, y1 - 2, bw, 1], [x0, y1, bw, ch - y1], [0, y1, 0, ch]);
+    }
+    if (side) {
+      this.bar([x0 + 1, 0, 1, ch], [0, 0, x0, ch], [x0, 0, 0, 0]);
+      this.bar([x1 - 2, 0, 1, ch], [x1, 0, cw - x1, ch], [x1, 0, cw, 0]);
+    }
+  }
+
+  /**
+   * Stretches one edge strip of the canvas (`src`, device px) over a bar
+   * (`dst`), then darkens it along `fade` (x0, y0 → x1, y1): 15% at the
+   * world's edge, 55% at the screen edge.
+   */
+  private bar(src: number[], dst: number[], fade: number[]): void {
+    const g = this.g;
+    const [sx, sy, sw, sh] = src;
+    const [dx, dy, dw, dh] = dst;
+    g.save();
+    g.beginPath();
+    g.rect(dx, dy, dw, dh);
+    g.clip();
+    g.imageSmoothingEnabled = false;
+    // Soften whatever touches the edge (a power button's shadow, a goal post)
+    // into a glow instead of a hard streak. Browsers without canvas filters
+    // get the sharp version. Overdraw by the blur radius so the blur has no
+    // see-through rim; the clip keeps it inside the bar.
+    const r = 'filter' in g ? Math.round(10 * this.dpr) : 0;
+    if (r) g.filter = `blur(${r}px)`;
+    g.drawImage(this.canvas, sx, sy, sw, sh, dx - r, dy - r, dw + 2 * r, dh + 2 * r);
+    g.filter = 'none';
+    const grad = g.createLinearGradient(fade[0], fade[1], fade[2], fade[3]);
+    grad.addColorStop(0, 'rgba(11,9,24,0.15)');
+    grad.addColorStop(1, 'rgba(11,9,24,0.55)');
+    g.fillStyle = grad;
+    g.fillRect(dx, dy, dw, dh);
+    g.restore();
   }
 }

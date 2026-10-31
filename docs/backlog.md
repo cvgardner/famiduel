@@ -38,8 +38,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       fill the row with the dot drawn inside, pause keeps its small dot inside a 44 px
       target). The playtest now fails on any target under 44 px and checks every intro also
       fits a 320×568 phone (Sumo and Penalty needed 5 px back there).
-- [ ] Letterbox bars on tall phones: fill them with each game's own background so the
-      phone looks full, or let games use a taller world.
+- [x] 2026-10-31: letterbox bars on tall phones. On a 390×844 phone the fixed world left
+      75 px black bands top and bottom (more on 19.5:9 phones). The stage now stretches the
+      world's own edge row into each bar (blurred so a power button touching the edge glows
+      instead of streaking, darkened 15% → 55% toward the screen edge), and the same for
+      side bars on wide screens. Every game gets it with no per-game code: the air hockey
+      goals now run off the phone in each player's colour, the grass and tables fill the
+      screen. The playtest checks the bars carry each game's edge colour on a tall phone.
 - [ ] Haptics: short vibration on hits/goals where the browser supports it (Android).
 - [ ] Each game's first-time "how to play" overlay showing the gesture with a ghost finger.
 
@@ -80,3 +85,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       that enlarges Ready / power cards (needs a taller intro layout).
 - [ ] Pause sits on the centre line where both players' hands rest; count accidental pauses
       in the playtest monkey and consider a press-and-hold to pause.
+- [ ] Letterbox: games could use the bars for real (e.g. score or power buttons further
+      from the play area on tall phones) by exposing the visible world height to views.
+- [ ] Minigolf's top and bottom HUD strips are near-black, so its bars still read as black
+      bands; a lighter HUD edge (or grass running under it) would make it fill the phone too.
