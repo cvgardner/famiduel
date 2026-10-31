@@ -76,6 +76,33 @@ async function fps(page: Page): Promise<number> {
   );
 }
 
+/**
+ * On a tall phone the world is letterboxed. The bars should carry the game's
+ * own edge (stretched, softened, darkened to at most 55% toward the screen
+ * edge) instead of a flat black band. Returns how far, per colour channel, the
+ * outermost bar pixel is from that expected colour, top and bottom.
+ */
+async function barMismatch(page: Page): Promise<{ top: number; bottom: number; bars: boolean }> {
+  return page.evaluate(() => {
+    const c = document.getElementById('stage') as HTMLCanvasElement;
+    const g = c.getContext('2d')!;
+    const px = (x: number, y: number) => Array.from(g.getImageData(x, y, 1, 1).data.slice(0, 3));
+    const sc = Math.min(c.width / 360, c.height / 640);
+    const oy = (c.height - 640 * sc) / 2;
+    const y0 = Math.ceil(oy);
+    const y1 = Math.floor(oy + 640 * sc);
+    const x = c.width >> 1;
+    const backdrop = [11, 9, 24];
+    const expected = (edge: number[]) => edge.map((v, i) => v * 0.45 + backdrop[i] * 0.55);
+    const dist = (a: number[], b: number[]) => Math.round(Math.max(...a.map((v, i) => Math.abs(v - b[i]))));
+    return {
+      bars: y0 >= 2,
+      top: dist(px(x, 0), expected(px(x, y0 + 1))),
+      bottom: dist(px(x, c.height - 1), expected(px(x, y1 - 2))),
+    };
+  });
+}
+
 /** Tap through the intro like a person: pick a power if offered, then Ready. */
 async function introAsPeople(page: Page, players: (0 | 1)[]) {
   await expect(page.locator('#intro')).toBeVisible();
@@ -203,6 +230,10 @@ for (const g of games.games) {
     await introAsPeople(page, [0]);
     await page.waitForTimeout(2200); // countdown
     const a = await shot('vs-bot-start');
+    // 390×844 is taller than the world: the bars must show the game, not black.
+    const bars = await barMismatch(page);
+    expect(bars.bars, 'a tall phone letterboxes the world').toBe(true);
+    expect(Math.max(bars.top, bars.bottom), 'letterbox bars carry the game edge').toBeLessThan(24);
     row.gestures += await monkey(page, 0, SECONDS * 1000, 1);
     row.fps = await fps(page);
     const b = await shot('vs-bot-later');
