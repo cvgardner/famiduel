@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel } from '../src/core/types';
 import { AirHockey, AirHockeyBot, RULES } from '../src/games/airhockey/logic';
+import { H } from '../src/engine/world';
 import { DT, player, power } from './helpers';
 
 function play(levels: [BotLevel, BotLevel], seed: number, opts: { powers?: boolean; assist?: [number, number] } = {}) {
@@ -130,6 +131,76 @@ describe('air hockey', () => {
       }
       // A still paddle in front of its goal can deflect a shot in, but the bot mostly wins.
       expect(botWins).toBeGreaterThanOrEqual(9);
+    });
+
+    it('a bot almost never loses to a person who never moves, at any level', () => {
+      // Before the bot walked around the puck it often dragged its own shots back
+      // into its own goal: an idle person beat the easy bot in 21 of 40 matches and
+      // the hard bot in 10 of 40, with nearly one own goal per goal scored.
+      for (const level of ['easy', 'normal', 'hard'] as BotLevel[]) {
+        let botWins = 0;
+        let own = 0;
+        let scored = 0;
+        for (let seed = 1; seed <= 10; seed++) {
+          for (const p of [0, 1] as const) {
+            const rng = makeRng(seed);
+            const g = new AirHockey([player({ bot: level }), player({ bot: level })], false, rng);
+            const bot = new AirHockeyBot(p === 0 ? 1 : 0, level, rng);
+            let t = 0;
+            while (g.winner === null && t < 600) {
+              const b = bot.think(g, DT);
+              g.step(DT, p === 0 ? [idle(g, 0), b] : [b, idle(g, 1)]);
+              t += DT;
+            }
+            if (g.winner === bot.p) botWins++;
+            own += g.score[p];
+            scored += g.score[bot.p];
+          }
+        }
+        expect(botWins, level).toBeGreaterThanOrEqual(17);
+        // Own goals (the idle seat never touches the puck on purpose) stay well under the bot's goals.
+        expect(own / scored, level).toBeLessThan(level === 'easy' ? 0.7 : 0.35);
+      }
+    });
+
+    it('a bot in front of the puck goes around it instead of pushing it at its own goal', () => {
+      for (const level of ['easy', 'normal', 'hard'] as BotLevel[]) {
+        for (const x of [120, 180, 240]) {
+          const rng = makeRng(7);
+          const g = new AirHockey([player({ bot: level }), player()], false, rng);
+          g.serve = 0;
+          // Puck resting deep in player 0's half; the bot's paddle sits between it and the centre line.
+          g.pucks = [{ x, y: 520, vx: 0, vy: 0, alive: true }];
+          g.paddles[0].x = x;
+          g.paddles[0].y = 440;
+          const bot = new AirHockeyBot(0, level, rng);
+          let firstHitVy: number | null = null;
+          for (let t = 0; t < 1.5 && firstHitVy === null; t += DT) {
+            g.step(DT, [bot.think(g, DT), idle(g, 1)]);
+            if (g.events.some((e) => e.type === 'hit' && e.p === 0)) firstHitVy = g.pucks[0]?.vy ?? 0;
+          }
+          expect(g.score[1], `${level} x ${x}`).toBe(0);
+          // Its first touch sends the puck up the table (toward the goal it attacks), not down at its own.
+          expect(firstHitVy, `${level} x ${x}`).not.toBeNull();
+          expect(firstHitVy!, `${level} x ${x}`).toBeLessThan(0);
+        }
+      }
+    });
+
+    it('a puck resting on the bot\'s own back wall is cleared sideways, not jabbed in', () => {
+      for (const level of ['easy', 'normal', 'hard'] as BotLevel[]) {
+        for (const x of [150, 180, 210]) {
+          const rng = makeRng(3);
+          const g = new AirHockey([player({ bot: level }), player()], false, rng);
+          g.serve = 0;
+          g.pucks = [{ x, y: H - RULES.wall - RULES.puckR - 2, vx: 0, vy: 0, alive: true }];
+          g.paddles[0].x = x;
+          g.paddles[0].y = H - 120;
+          const bot = new AirHockeyBot(0, level, rng);
+          for (let t = 0; t < 2 && g.winner === null; t += DT) g.step(DT, [bot.think(g, DT), idle(g, 1)]);
+          expect(g.score[1], `${level} x ${x}`).toBe(0);
+        }
+      }
     });
 
     it('a rally that keeps crossing is never touched', () => {

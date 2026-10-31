@@ -261,6 +261,26 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Other real-time games may stall with an idle player too (Ping Pong serve, Penalty
       shooter, Tanks): a playtest that idles one seat against a bot in every game and
       checks a result arrives within ~3 minutes would find them all.
-- [ ] An idle person's still paddle sometimes deflects the bot's shots into the bot's own
-      goal (an idle person beat the easy bot in 1 of 12 sims); fine for a toddler, but the
-      easy bot could avoid shooting straight at a parked paddle.
+- [x] 2026-10-31: Air Hockey bots scored on themselves. Ran every real-time game with one
+      seat idle against each bot level (none stall now; Minigolf waits for its shot, as it
+      should). Air Hockey stood out: an idle person beat the easy bot in 21 of 40 matches
+      and the hard bot in 10 of 40, and the idle seat "scored" almost as often as the bot
+      (142 vs 145 goals at easy). It wasn't the parked paddle: 9 in 10 of those goals came
+      straight off the bot's own touch. When its paddle was on the far side of the puck it
+      drove straight to the spot behind it, dragging the puck into its own goal, and it
+      drove down onto pucks already between it and its goal. Now it walks around the puck
+      (sideways first, then back past it), steps aside from a puck behind it, and clears a
+      puck on its own back wall sideways. Idle person vs bot: easy 37/40, normal 40/40, hard
+      39/40 bot wins; own goals per bot goal 0.98 → 0.60 (easy), 0.37 → 0.22 (normal),
+      0.52 → 0.26 (hard). Bot-vs-bot matches last longer (normal vs normal ~60 s → ~2 min)
+      and the skill gap is clearer (hard beats easy 38/40, was 32/40). Unit tests pin the
+      idle-person results and the go-around.
+
+## Ideas found 2026-10-31 (air hockey own goals run)
+- [ ] Air Hockey easy bot vs a real kid: with fewer bot own goals, a kid's free goals are
+      gone. Check the playtest monkey's score vs easy and, if kids stop winning, slow the
+      easy bot's paddle reaction rather than bringing the own goals back.
+- [ ] The air hockey bot still concedes some goals off fast rebounds (it reacts to where
+      the puck was 0.1-0.45 s ago). Fine and human-like; recheck if hard looks clumsy.
+- [ ] An idle-seat sim for every real-time game (this run's scratch script) could become a
+      `npm run sim` table with the bot pace table idea above.

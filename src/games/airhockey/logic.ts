@@ -304,6 +304,7 @@ export class AirHockeyBot {
   private retarget = 0;
   private aim = W / 2;
   private backOff = 0;
+  private mode = '';
 
   constructor(
     readonly p: PlayerIndex,
@@ -347,6 +348,7 @@ export class AirHockeyBot {
         behind.x > RULES.wall + r && behind.x < W - RULES.wall - r && (this.p === 0 ? behind.y < H - RULES.wall - r : behind.y > RULES.wall + r);
       const lined = Math.hypot(pd.x - behind.x, pd.y - behind.y) < 22;
       if (!reachable) {
+        this.mode = 'jab';
         // Puck is in a corner or on our back wall: jab at it, then back off so it can bounce out.
         const cx = W / 2 - s.x;
         const cy = MID - s.y;
@@ -360,19 +362,91 @@ export class AirHockeyBot {
         } else {
           tx = s.x;
           ty = s.y;
+          const backWall = this.p === 0 ? H - RULES.wall : RULES.wall;
+          if (Math.abs(backWall - s.y) < r + RULES.puckR * 2) {
+            // On our own back wall a jab from in front pushes it into our goal. Come
+            // down beside it, then push it sideways along the wall instead.
+            const clear = r + RULES.puckR + 6;
+            const fromLeft = pd.x < s.x;
+            if (Math.abs(pd.x - s.x) < clear) {
+              tx = s.x + (fromLeft ? -clear * 1.1 : clear * 1.1);
+              ty = pd.y;
+            } else {
+              tx = s.x + (fromLeft ? 40 : -40);
+              ty = s.y;
+            }
+          }
         }
       } else {
+        this.mode = lined ? 'push' : 'behind';
         tx = lined ? s.x + (ax / al) * 40 : behind.x;
         ty = lined ? s.y + (ay / al) * 40 : behind.y;
+        if (!lined) {
+          const way = this.goAround(s, ax / al, ay / al, pd, r);
+          if (way) {
+            this.mode = 'around';
+            tx = way.x;
+            ty = way.y;
+          }
+        }
       }
     } else {
+      this.mode = 'defend';
       // Defend: stay between the puck and our own goal.
       tx = W / 2 + (s.x - W / 2) * 0.6 + this.jitter.x;
       ty = home.y + (s.y - home.y) * 0.15;
     }
+    if (this.mode !== 'jab') {
+      // Never drive down onto a puck that is already between us and our own goal:
+      // that pushes it in. Step aside and let it bounce off the back wall.
+      const r = game.paddleRadius(this.p);
+      const deeper = this.p === 0 ? s.y > pd.y : s.y < pd.y;
+      const towardGoal = this.p === 0 ? ty > pd.y : ty < pd.y;
+      const clear = r + RULES.puckR + 6;
+      if (deeper && towardGoal && Math.abs(s.x - pd.x) < clear && Math.abs(s.y - pd.y) < clear * 2) {
+        const side = pd.x < s.x ? -1 : 1;
+        const out = s.x + side * clear * 1.1;
+        tx = out > RULES.wall + r && out < W - RULES.wall - r ? out : s.x - side * clear * 1.1;
+        ty = pd.y;
+        this.mode = 'aside';
+      }
+    }
     const e = game.energy[this.p];
     const power = game.powersOn && e.ready && this.wantsPower(game);
     return { tx, ty, power };
+  }
+
+  /**
+   * When the paddle is on the far side of the puck (between it and the goal it is
+   * shooting at), heading straight for the spot behind the puck would drag the puck
+   * back into its own goal. A person walks around the puck instead: first sideways,
+   * clear of it, then back past it. Returns the next waypoint, or null when the
+   * paddle can go straight behind the puck.
+   */
+  private goAround(s: { x: number; y: number }, ux: number, uy: number, pd: { x: number; y: number }, r: number): { x: number; y: number } | null {
+    const relx = pd.x - s.x;
+    const rely = pd.y - s.y;
+    const along = relx * ux + rely * uy; // > 0: the paddle is on the target side of the puck
+    const px = -uy;
+    const py = ux;
+    const across = relx * px + rely * py;
+    const clear = r + RULES.puckR + 10;
+    if (along < -clear * 0.5) return null;
+    const lo = RULES.wall + r;
+    const hi = W - RULES.wall - r;
+    let side = across >= 0 ? 1 : -1;
+    const fits = (sd: number) => {
+      const x = s.x + px * sd * clear;
+      return x > lo && x < hi;
+    };
+    if (!fits(side) && fits(-side)) side = -side;
+    if (along > -clear * 0.2 && Math.abs(across) < clear * 0.95) {
+      // Ahead of the puck and in its way: step sideways first, keeping our distance along the line.
+      const a = Math.max(along, clear * 0.3);
+      return { x: s.x + px * side * clear * 1.1 + ux * a, y: s.y + py * side * clear * 1.1 + uy * a };
+    }
+    // Beside it: swing back past it on the same side.
+    return { x: s.x + px * side * clear - ux * clear, y: s.y + py * side * clear - uy * clear };
   }
 
   private wantsPower(game: AirHockey): boolean {
