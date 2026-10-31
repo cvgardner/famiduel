@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import games from '../content/games.json' with { type: 'json' };
-import { boot, botMatch } from './helpers';
+import { boot, botMatch, holdPause } from './helpers';
 
 test('home shows the games and both players', async ({ page }) => {
   const errors = await boot(page);
@@ -37,7 +37,44 @@ test('two people pick powers, play air hockey, and see the result', async ({ pag
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.7, { steps: 5 });
   await page.mouse.up();
+  await holdPause(page);
+  await page.click('#quitBtn');
+  await expect(page.locator('#home')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('pause needs a press and hold: a quick tap only shows a hint', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: { store: { data: { profiles: { bot: string | null }[] }; save(): void }; openGame(id: string): void } }).__famiduel;
+    app.store.data.profiles[0].bot = 'normal';
+    app.store.data.profiles[1].bot = 'normal';
+    app.store.save();
+    app.openGame('airhockey');
+  });
+  await expect(page.locator('#play')).toBeVisible();
+  // A quick tap (a resting hand, a missed paddle swipe) keeps the game going.
   await page.click('#pauseBtn');
+  await expect(page.locator('#pauseHint')).toBeVisible();
+  await expect(page.locator('#pauseHint span')).toHaveText(['Hold to pause', 'Hold to pause']);
+  await page.waitForTimeout(300);
+  await expect(page.locator('#modal')).toBeHidden();
+  // Sliding off the button before the ring fills cancels too.
+  const b = (await page.locator('#pauseBtn').boundingBox())!;
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(150);
+  await page.evaluate(() => document.querySelector('#pauseBtn')!.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true })));
+  await page.waitForTimeout(700);
+  await page.mouse.up();
+  await expect(page.locator('#modal')).toBeHidden();
+  // Holding fills the ring and pauses; Resume carries on.
+  await holdPause(page);
+  await page.click('#resumeBtn');
+  await expect(page.locator('#modal')).toBeHidden();
+  // Escape (keyboard) pauses at once.
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#resumeBtn')).toBeVisible();
   await page.click('#quitBtn');
   await expect(page.locator('#home')).toBeVisible();
   expect(errors).toEqual([]);

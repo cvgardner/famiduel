@@ -7,8 +7,13 @@ type Box = { x: number; y: number; width: number; height: number };
 
 export async function installFingers(page: Page): Promise<void> {
   await page.evaluate(() => {
+    // Like a real finger, a touch goes to whatever is under it when it lands (the
+    // canvas, or the pause button on the centre line) and stays with it until lifted.
+    const targets = new Map<number, Element>();
     (window as unknown as { __finger: unknown }).__finger = (id: number, type: string, x: number, y: number) => {
-      const c = document.querySelector('#stage')!;
+      if (type === 'pointerdown') targets.set(id, document.elementFromPoint(x, y) ?? document.querySelector('#stage')!);
+      const c = targets.get(id) ?? document.querySelector('#stage')!;
+      if (type === 'pointerup') targets.delete(id);
       c.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: x, clientY: y, bubbles: true, cancelable: true, pointerType: 'touch' }));
     };
   });

@@ -91,8 +91,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       easy to undo.
 - [ ] Ages 4-6 guidance asks for 56-64 px primary buttons; consider a "little hands" setting
       that enlarges Ready / power cards (needs a taller intro layout).
-- [ ] Pause sits on the centre line where both players' hands rest; count accidental pauses
-      in the playtest monkey and consider a press-and-hold to pause.
+- [x] 2026-10-31 (research run): pause sits on the centre line where both players' hands
+      rest, and one tap stopped the match for both. Guidance for small hands (Smashing
+      Magazine's "A Dad's Plea to Developers of iPad Apps for Children", uxdesign.cc "Design
+      considerations for little fingers") asks to keep stop/exit controls away from where
+      kids tap or to make them deliberate. Pause now needs a 0.6 s press-and-hold: a gold
+      ring fills around the dot, a quick tap only shows "Hold to pause" to both players
+      (one upside down), sliding off cancels. Keyboard Enter/Space and Escape pause at once.
+      The playtest monkey's touches now land on whatever is under the finger (so it can hit
+      the pause button like a real hand); the report counts ignored pause taps per game and
+      warns if a playing hand ever paused a match. Logic in `engine/hold.ts`, unit tested.
 - [ ] Letterbox: games could use the bars for real (e.g. score or power buttons further
       from the play area on tall phones) by exposing the visible world height to views.
 - [ ] Minigolf's top and bottom HUD strips are near-black, so its bars still read as black
@@ -104,3 +112,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Haptics per seat isn't possible on one phone (both players feel every buzz); keep
       patterns for shared moments only. If kids find it distracting, default it off for
       the turn-based games.
+
+## Ideas found 2026-10-31 (pause run)
+- [ ] Same hold-to-confirm for the result screen's "Games" button if kids skip the result
+      before the other player has seen it (check in the playtest how fast the monkey hits it).
+- [ ] VoiceOver/TalkBack: the pause button says "press and hold"; a screen reader double
+      tap is a click with detail 0, which pauses at once. Check that on a real phone.
+- [ ] Guided Access / screen pinning tip on the home screen for parents of toddlers (the
+      OS-level way to stop a kid leaving the app), behind the parental gate.

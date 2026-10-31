@@ -6,6 +6,7 @@ import { effectiveAssist } from '../core/handicap';
 import { hashSeed } from '../core/rng';
 import type { BotLevel, GameResult, PlayerIndex, PlayerInfo, PowerDef } from '../core/types';
 import { Sfx } from '../engine/sfx';
+import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
 import { Runner } from './runner';
@@ -35,7 +36,8 @@ export class App {
       <section id="intro" class="screen hidden"></section>
       <section id="play" class="screen hidden">
         <canvas id="stage" aria-label="Game"></canvas>
-        <button id="pauseBtn" class="pause-btn" aria-label="Pause">II</button>
+        <button id="pauseBtn" class="pause-btn" aria-label="Pause (press and hold)">II</button>
+        <div id="pauseHint" class="pause-hint hidden" aria-hidden="true"><span class="p1">Hold to pause</span><span class="p0">Hold to pause</span></div>
       </section>
       <section id="result" class="screen hidden"></section>
       <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>`;
@@ -45,7 +47,7 @@ export class App {
     const seedParam = new URLSearchParams(location.search).get('seed');
     this.fixedSeed = seedParam ? hashSeed(seedParam) : null;
     root.addEventListener('pointerdown', () => this.sfx.unlock(), { capture: true });
-    $('#pauseBtn', root).addEventListener('click', () => this.pause());
+    this.wirePauseButton($<HTMLButtonElement>('#pauseBtn', root), $('#pauseHint', root));
     this.showHome();
   }
 
@@ -246,8 +248,72 @@ export class App {
     this.stage.start();
   }
 
+  /**
+   * The pause button sits on the centre line, where both players' hands rest,
+   * so a finger has to stay on it for HOLD_MS (a ring fills) before the game
+   * pauses. A quick tap only shows "Hold to pause". Keyboard activation and
+   * Escape pause at once: they can't happen by accident.
+   */
+  private wirePauseButton(btn: HTMLButtonElement, hint: HTMLElement): void {
+    const gate = new HoldGate();
+    let raf = 0;
+    let hintTimer = 0;
+    const paint = () => btn.style.setProperty('--hold', String(gate.progress(performance.now())));
+    const stop = () => {
+      cancelAnimationFrame(raf);
+      btn.style.setProperty('--hold', '0');
+    };
+    const fire = () => {
+      stop();
+      hint.classList.add('hidden');
+      this.pause();
+    };
+    const tick = () => {
+      if (gate.update(performance.now()) === 'fired') return fire();
+      paint();
+      if (gate.holding) raf = requestAnimationFrame(tick);
+    };
+    btn.addEventListener('pointerdown', (e) => {
+      if (!this.runner || this.runner.paused) return;
+      try {
+        btn.setPointerCapture(e.pointerId);
+      } catch {
+        /* synthetic pointer (tests): no capture needed */
+      }
+      gate.press(performance.now());
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(tick);
+    });
+    btn.addEventListener('pointerup', () => {
+      const ev = gate.release(performance.now());
+      if (ev === 'fired') return fire();
+      stop();
+      if (ev === 'tooShort') {
+        this.pauseTaps++;
+        hint.classList.remove('hidden');
+        clearTimeout(hintTimer);
+        hintTimer = window.setTimeout(() => hint.classList.add('hidden'), 1400);
+      }
+    });
+    for (const t of ['pointercancel', 'lostpointercapture'] as const)
+      btn.addEventListener(t, () => {
+        gate.cancel();
+        stop();
+      });
+    btn.addEventListener('contextmenu', (e) => e.preventDefault()); // long-press menu on Android
+    btn.addEventListener('click', (e) => {
+      if (e.detail === 0) this.pause(); // Enter / Space from a keyboard or switch control
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !$('#play', this.root).classList.contains('hidden') && $('#modal').classList.contains('hidden')) this.pause();
+    });
+  }
+
+  /** Quick taps on the pause button that did not pause (playtest counts them). */
+  pauseTaps = 0;
+
   private pause(): void {
-    if (!this.runner) return;
+    if (!this.runner || this.runner.paused) return;
     this.runner.paused = true;
     const modal = $('#modal');
     modal.classList.remove('hidden');

@@ -13,7 +13,7 @@ import { installFingers, monkey } from './monkey';
 const OUT = path.resolve('playtest-report');
 const SECONDS = Number(process.env.PLAYTEST_SECONDS ?? 8);
 
-type Row = { id: string; name: string; shots: string[]; fps: number; gestures: number; haptics: number; warnings: string[]; errors: string[]; finished: boolean };
+type Row = { id: string; name: string; shots: string[]; fps: number; gestures: number; haptics: number; pauseTaps: number; warnings: string[]; errors: string[]; finished: boolean };
 const rows: Row[] = [];
 
 type Hook = {
@@ -60,9 +60,25 @@ async function leaveMatch(page: Page): Promise<'quit' | 'finished'> {
     await page.click('#homeBtn');
     return 'finished';
   }
-  await page.click('#pauseBtn');
+  // The monkey may have paused it already (a long hold on the pause button).
+  if (!(await page.locator('#quitBtn').isVisible())) await holdPause(page);
   await page.click('#quitBtn');
   return 'quit';
+}
+
+/** Press and hold the pause button like a person (quick taps only show a hint). */
+async function holdPause(page: Page) {
+  const b = (await page.locator('#pauseBtn').boundingBox())!;
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(800);
+  await page.mouse.up();
+  await expect(page.locator('#resumeBtn')).toBeVisible();
+}
+
+/** Quick taps on the pause button that would have paused before press-and-hold. */
+async function pauseTaps(page: Page): Promise<number> {
+  return page.evaluate(() => (window as unknown as { __famiduel: { pauseTaps: number } }).__famiduel.pauseTaps);
 }
 
 /** Vibrations sent since the page loaded. */
@@ -204,7 +220,7 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
   await page.locator('.game-card[data-id="airhockey"]').tap();
   await introAsPeople(page, [0]);
   small.push(...(await smallTargets(page, 'play')));
-  await page.click('#pauseBtn');
+  await holdPause(page);
   small.push(...(await smallTargets(page, 'pause')));
   await page.click('#quitBtn');
   await setPlayers(page, ['normal', 'hard']);
@@ -247,7 +263,7 @@ for (const g of games.games) {
   test(`play like a person: ${g.id}`, async ({ page }) => {
     test.skip(built.length > 0 && !built.includes(g.id), 'not built yet');
     const errors: string[] = [];
-    const row: Row = { id: g.id, name: g.name, shots: [], fps: 0, gestures: 0, haptics: 0, warnings: [], errors, finished: false };
+    const row: Row = { id: g.id, name: g.name, shots: [], fps: 0, gestures: 0, haptics: 0, pauseTaps: 0, warnings: [], errors, finished: false };
     rows.push(row);
     await boot(page, errors);
     const ready = await page.locator(`.game-card[data-id="${g.id}"]`).getAttribute('data-ready');
@@ -271,6 +287,7 @@ for (const g of games.games) {
     expect(bars.bars, 'a tall phone letterboxes the world').toBe(true);
     expect(Math.max(bars.top, bars.bottom), 'letterbox bars carry the game edge').toBeLessThan(24);
     row.gestures += await monkey(page, 0, SECONDS * 1000, 1);
+    if (await page.locator('#resumeBtn').isVisible()) row.warnings.push('a playing hand paused the game (one-player match)');
     row.fps = await fps(page);
     const b = await shot('vs-bot-later');
     if (a.equals(b)) row.warnings.push('screen did not change during play');
@@ -284,6 +301,8 @@ for (const g of games.games) {
     await page.waitForTimeout(2200);
     const counts = await Promise.all([monkey(page, 0, SECONDS * 1000, 2), monkey(page, 1, SECONDS * 1000, 3)]);
     row.gestures += counts[0] + counts[1];
+    if (await page.locator('#resumeBtn').isVisible()) row.warnings.push('a playing hand paused the game (two-player match)');
+    row.pauseTaps = await pauseTaps(page);
     await shot('two-people');
     row.haptics = await buzzes(page);
     if (row.haptics === 0) row.warnings.push('no vibration during real-time play');
@@ -307,7 +326,7 @@ test.afterAll(() => {
   const esc = (s: string) => s.replace(/[&<>]/g, (c) => `&#${c.charCodeAt(0)};`);
   const cards = rows
     .map(
-      (r) => `<section><h2>${esc(r.name)} <small>${r.fps} fps · ${r.gestures} gestures · ${r.haptics} buzzes · ${r.finished ? 'finished' : 'NOT finished'}</small></h2>
+      (r) => `<section><h2>${esc(r.name)} <small>${r.fps} fps · ${r.gestures} gestures · ${r.haptics} buzzes · ${r.pauseTaps} pause taps ignored · ${r.finished ? 'finished' : 'NOT finished'}</small></h2>
       ${[...r.errors.map((e) => `<p class="err">${esc(e)}</p>`), ...r.warnings.map((w) => `<p class="warn">${esc(w)}</p>`)].join('')}
       <div class="shots">${r.shots.map((s) => `<figure><img src="${s}" loading="lazy"><figcaption>${s.replace(`${r.id}-`, '').replace('.png', '')}</figcaption></figure>`).join('')}</div></section>`,
     )
