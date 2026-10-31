@@ -79,9 +79,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] More tank arenas, more Snack Snatch snack types.
 
 ## Ideas found 2026-10-31
-- [ ] Sumo: a mashing player still never wins a round against any bot. A "first match"
-      easy bot that waits a beat after GO! (or a slow-arrow assist knob) would let a
-      toddler win sometimes.
+- [x] 2026-10-31: Sumo: a mashing kid never won a match against any bot, even with the
+      full head start (0% at no help, 7.5% vs easy at ★★★). Measured why: 95% of the
+      masher's lost rounds were self-outs after the 3-6 rope saves ran out (in ~4 s); the
+      bot barely pushed them. A slower "waits a beat after GO!" easy bot was tried and
+      changed nothing (the masher falls out with no help from the bot), so it was dropped.
+      Instead the head start now gives far more rope saves: 3 at none (unchanged), about
+      7 / 12 / 16 at ★ / ★★ / ★★★ (was up to 6). With ★★★ a pure masher now wins 41% of
+      matches against the easy bot, 8% against normal, 2% against hard; rounds last ~16 s
+      instead of ~8. The knots wrap into two rows of 8 under the round pips. Unit test pins
+      the masher rates; the playtest plays a ★★★ kid against the easy bot and checks both
+      knot rows are drawn (screenshot `sumo-head-start.png`).
 - [ ] Playtest: per-game "self-out" counter (player lost without the other touching them)
       would catch the same trap in other games (Snake walls, Minigolf water).
 - [ ] Minigolf: easy bot still sinks the 'bowl' hole in 1-2 often (2.35 avg on par 3); the
@@ -136,3 +144,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] A "?" on the intro to bring the ghost finger back after the first 3 matches.
 - [ ] Penalty's demo shows only the shooter's swipe; the keeper's tap is in text only.
       Games with two roles could alternate both gestures.
+
+## Ideas found 2026-10-31 (Sumo head start run)
+- [ ] Sumo with no head start: a masher still loses every match (self-outs). Auto handicap
+      only adds help after a lost match in the night; for a first match against a bot, a
+      head start suggestion on the intro ("Little one? Give a head start") could help.
+- [ ] The playtest monkey and the unit-test "masher" are two models of a mashing kid;
+      share one masher model (tests/helpers) and reuse it for other one-button games
+      (Chop Chop, Quick Draw) to measure whether a masher can ever win there.
+- [ ] Checkers: the playtest's random taps never complete a move (the "later" screenshot
+      is the opening position); like Sea Battle, teach it a legal move so real-time play
+      gets exercised.

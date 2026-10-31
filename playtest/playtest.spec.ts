@@ -294,6 +294,49 @@ test('haptics: hits buzz the phone, and the Vibration toggle turns it off', asyn
   expect(errors).toEqual([]);
 });
 
+test('sumo: a small kid with a full head start gets two rows of rope saves', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await page.evaluate(() => {
+    const a = (window as unknown as { __famiduel: Hook }).__famiduel;
+    a.store.data.profiles[0].headStart = 3;
+    a.store.save();
+  });
+  await setPlayers(page, [null, 'easy']);
+  await page.locator('.game-card[data-id="sumo"]').tap();
+  await introAsPeople(page, [0]);
+  await page.waitForTimeout(2200); // countdown
+  type SumoHook = { runner: null | { game: { game: { wrestlers: { saves: number }[]; score: number[] } } } };
+  const saves = () =>
+    page.evaluate(() => (window as unknown as { __famiduel: SumoHook }).__famiduel.runner!.game.game.wrestlers.map((w) => w.saves));
+  expect(await saves(), 'full head start: 16 rope saves vs the bot\'s 3').toEqual([16, 3]);
+  // The knots under the bottom player's pips wrap into a second row, still on screen.
+  const knotColors = await page.evaluate(() => {
+    const c = document.getElementById('stage') as HTMLCanvasElement;
+    const g = c.getContext('2d')!;
+    const sc = Math.min(c.width / 360, c.height / 640);
+    const ox = (c.width - 360 * sc) / 2;
+    const oy = (c.height - 640 * sc) / 2;
+    const px = (wx: number, wy: number) => Array.from(g.getImageData(Math.round(ox + wx * sc), Math.round(oy + wy * sc), 1, 1).data.slice(0, 3));
+    // Row 1 at y = 640 - 42 + 24, row 2 eight units lower; 8 knots 9 units apart around x = 298.
+    return [0, 1].flatMap((row) => [0, 7].map((col) => px(298 + (col - 3.5) * 9, 622 + row * 8)));
+  });
+  const rope = [0xb8, 0x89, 0x3e];
+  for (const c of knotColors) expect(Math.max(...c.map((v, i) => Math.abs(v - rope[i]))), `rope knot colour, got ${c}`).toBeLessThan(40);
+  await page.screenshot({ path: path.join(OUT, 'sumo-head-start.png') });
+  // A mashing kid uses some saves but is still in the match after the real-time window.
+  await monkey(page, 0, SECONDS * 1000, 7);
+  const after = await page.evaluate(() => {
+    const g = (window as unknown as { __famiduel: SumoHook }).__famiduel.runner?.game.game;
+    return g ? { saves: g.wrestlers[0].saves, rounds: g.score[0] + g.score[1] } : null;
+  });
+  // Saves refill each round, so a finished round also counts as play having happened.
+  expect(after, 'the match is still on after the real-time window').not.toBeNull();
+  expect(after!.saves < 16 || after!.rounds > 0, 'the rope caught the mashing kid, or a round was played out').toBe(true);
+  await page.screenshot({ path: path.join(OUT, 'sumo-head-start-later.png') });
+  expect(errors).toEqual([]);
+});
+
 for (const g of games.games) {
   test(`play like a person: ${g.id}`, async ({ page }) => {
     test.skip(built.length > 0 && !built.includes(g.id), 'not built yet');

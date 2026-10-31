@@ -51,7 +51,7 @@ export const RULES = {
   ropeBounce: 0.3,
   /** Rope saves per round at assist 0, and at assist 3. */
   ropeSaves: 3,
-  ropeSavesMax: 6,
+  ropeSavesMax: 16,
   energyPerSec: 0.025,
   energyHit: 0.1,
   energyLoseRound: 0.3,
