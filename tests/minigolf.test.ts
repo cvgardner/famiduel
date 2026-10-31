@@ -103,6 +103,28 @@ describe('minigolf match', { timeout: 60_000 }, () => {
     expect(hardWins).toBeGreaterThanOrEqual(6);
   });
 
+  it('an easy bot plays over par, like a young kid, and a normal bot about par', () => {
+    // Strokes over par per hole, both seats, every hole, 2 seeds each.
+    const overPar = (level: BotLevel) => {
+      let over = 0;
+      let n = 0;
+      for (const h of HOLES) {
+        for (let s = 0; s < 2; s++) {
+          const { g } = play([level, level], 500 + s, { holes: [h.id] });
+          for (const st of g.card[0].strokes) {
+            over += st - h.par;
+            n++;
+          }
+        }
+      }
+      return over / n;
+    };
+    // Measured (10 seeds): easy +0.8 over par, normal -0.5. Before this change easy was
+    // -0.0 (under par on most holes, 22 aces in 160 holes), too strong for a 6-year-old.
+    expect(overPar('easy')).toBeGreaterThanOrEqual(0.4);
+    expect(overPar('normal')).toBeLessThanOrEqual(0.1);
+  });
+
   it('players alternate shots and the shot is the shooter only', () => {
     const g = atAim('zigzag');
     const first = g.shooter;
