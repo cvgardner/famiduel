@@ -435,6 +435,9 @@ export class SeaBattleBot {
       if (hotCells.length) pool = hotCells;
       if (pool.length) return { kind: 'fire', cell: this.rng.pick(pool) };
     }
+    // Every level follows up its own radar contact: a person who saw "found!" would.
+    const hotCells = unknown.filter((c) => kn.hot.some((b) => b.includes(c)));
+    if (hotCells.length) return { kind: 'fire', cell: this.rng.pick(hotCells) };
     return { kind: 'fire', cell: this.rng.pick(unknown) };
   }
 
