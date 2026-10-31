@@ -26,7 +26,7 @@ export class Runner {
     private readonly stage: Stage,
     readonly def: GameDef,
     readonly seed: number,
-    players: [PlayerInfo, PlayerInfo],
+    readonly players: [PlayerInfo, PlayerInfo],
     powersOn: boolean,
     private readonly sfx: Sfx,
     private readonly onDone: (r: GameResult) => void,

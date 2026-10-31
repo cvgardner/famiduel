@@ -74,7 +74,19 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Family Wrapped prototype from the on-device match history.
 - [ ] Daily minigolf course (seed from the date) with a "beat my score" link.
 - [ ] Remove-ads / unlock-all screen mock (no real purchases yet); free trio badge.
-- [ ] Settings: bot difficulty per game remembered; left-handed button mirroring.
+- [x] 2026-10-31: bot difficulty per game. The bot's level was one setting for all 15 games,
+      buried in the player sheet, so a parent whose kid was losing at Checkers had to leave
+      the game, open the sheet and make Air Hockey easier too. A bot's half of the intro now
+      shows Easy / Normal / Hard where a person's Ready button sits (same 48 px row, so no
+      intro grows); the pick is remembered for that game only (`botLevels` in the profile,
+      `botFor()` in `src/app/store.ts`), and changing "Who plays" on the player sheet resets
+      every game to it. Playing it showed every bot intro with a power overflowed a 320×568
+      phone (the bot's picked power showed its description: Sumo needed 317 px of 254), so
+      on short phones a bot's half drops the how-to line and power descriptions. The
+      playtest opens every intro with a bot on a 320×568 phone (fits, 44 px targets), turns
+      the Checkers bot to Easy, checks the match uses it and that it survives a reload while
+      Air Hockey stays Normal (`bot-level-intro.png`).
+- [ ] Settings: left-handed button mirroring.
 - [x] 2026-10-31 (research run): colour-blind safe player colours. About 1 in 12 boys has
       red-green colour blindness, and the player colour is how two kids tell whose paddle,
       snake or score is whose. Ran the six old colours through the Machado 2009 simulation
@@ -212,3 +224,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       name and icon carry them, but a game that colours pieces by card colour would need it.
 - [ ] A shape per seat (e.g. a small ring vs dot on paddles, snakes, pieces) would make
       seats readable even in greyscale or bright sunlight, not just for colour blindness.
+
+## Ideas found 2026-10-31 (bot level run)
+- [ ] Auto-suggest a level: after a kid loses 2 matches in a row to a bot in one game, the
+      result screen could offer "Make the bot easier?" (one tap sets that game's level).
+- [ ] The home player chip shows the sheet's bot level only; a game card could show a small
+      🤖 badge when that game has its own level.
+- [ ] The layout fit test only ran intros with two people; it now runs with a bot too, but
+      not on a tall phone (390×844) where the desktop-size how-to text shows for bots.

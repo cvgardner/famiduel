@@ -11,7 +11,7 @@ import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
 import { demoHtml, isGesture, showsDemo } from './demo';
 import { Runner } from './runner';
-import { PLAYER_COLORS, Store } from './store';
+import { BOT_LEVELS, PLAYER_COLORS, Store, botFor } from './store';
 
 export type GameMeta = (typeof gamesJson.games)[number];
 export const META: GameMeta[] = gamesJson.games;
@@ -19,6 +19,14 @@ const POWERS = powersJson.games as Record<string, PowerDef[]>;
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string, root: ParentNode = document) => root.querySelector(sel) as T;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+/** A bot's half of the intro: its level for this game, where a person's Ready button sits. */
+function botRow(p: PlayerIndex, level: BotLevel): string {
+  const name = (v: BotLevel) => v[0].toUpperCase() + v.slice(1);
+  return `<div class="seg botlvl" data-p="${p}" role="group" aria-label="Bot level for this game">${BOT_LEVELS.map(
+    (v) => `<button data-p="${p}" data-v="${v}" class="${v === level ? 'on' : ''}" aria-pressed="${v === level}">${name(v)}</button>`,
+  ).join('')}</div>`;
+}
 
 export class App {
   readonly store = new Store();
@@ -162,7 +170,7 @@ export class App {
       pr.name = ($<HTMLInputElement>('#pName', modal).value.trim() || `Player ${p + 1}`).slice(0, 12);
       pr.color = color;
       pr.headStart = head;
-      pr.bot = bot;
+      this.store.setBot(p, bot);
       this.store.save();
       modal.classList.add('hidden');
       this.showHome();
@@ -184,14 +192,15 @@ export class App {
     const half = (p: PlayerIndex) => {
       const pr = this.store.data.profiles[p];
       const assist = this.assistFor(p);
-      return `<div class="half p${p}" style="--c:${pr.color}">
+      const bot = botFor(pr, id);
+      return `<div class="half p${p}${bot ? ' bot' : ''}" style="--c:${pr.color}">
         <div class="half-inner">
           <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${demo}</div>
           <p class="howto">${meta.howTo}</p>
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>` : ''}
-          <button class="btn ready" id="ready${p}" data-p="${p}">${powers.length ? 'Pick a power' : 'Ready!'}</button>
-          <div class="who">${esc(pr.name)}${pr.bot ? ' 🤖' : ''}</div>
+          ${bot ? botRow(p, bot) : `<button class="btn ready" id="ready${p}" data-p="${p}">${powers.length ? 'Pick a power' : 'Ready!'}</button>`}
+          <div class="who">${esc(pr.name)}${bot ? ' 🤖' : ''}</div>
         </div>
       </div>`;
     };
@@ -199,10 +208,11 @@ export class App {
     $('#introBack', intro).addEventListener('click', () => this.showHome());
     const refresh = () => {
       for (const p of [0, 1] as PlayerIndex[]) {
-        const btn = $(`#ready${p}`, intro);
+        const btn = intro.querySelector<HTMLButtonElement>(`#ready${p}`);
+        if (!btn) continue; // a bot's half has its level row instead
         btn.classList.toggle('on', ready[p]);
         btn.textContent = ready[p] ? 'Ready ✓' : powers.length && !this.picks[p] ? 'Pick a power' : 'Ready!';
-        (btn as HTMLButtonElement).disabled = !!powers.length && !this.picks[p];
+        btn.disabled = !!powers.length && !this.picks[p];
       }
       if (ready[0] && ready[1]) setTimeout(() => this.startMatch(), 250);
     };
@@ -216,8 +226,20 @@ export class App {
         refresh();
       });
     }
+    // A bot's level for this game can be changed right here, and is remembered.
+    for (const b of intro.querySelectorAll<HTMLElement>('.botlvl button')) {
+      b.addEventListener('click', () => {
+        const p = Number(b.dataset.p) as PlayerIndex;
+        this.store.setBotLevel(p, id, b.dataset.v as BotLevel);
+        intro.querySelectorAll<HTMLElement>(`.botlvl[data-p="${p}"] button`).forEach((x) => {
+          x.classList.toggle('on', x === b);
+          x.setAttribute('aria-pressed', String(x === b));
+        });
+        this.sfx.play('tap');
+      });
+    }
     for (const p of [0, 1] as PlayerIndex[]) {
-      $(`#ready${p}`, intro).addEventListener('click', () => {
+      intro.querySelector(`#ready${p}`)?.addEventListener('click', () => {
         if (powers.length && !this.picks[p]) return;
         ready[p] = true;
         this.sfx.play('click');
@@ -246,7 +268,7 @@ export class App {
     const def = GAMES[meta.id];
     const players = ([0, 1] as PlayerIndex[]).map((p): PlayerInfo => {
       const pr = this.store.data.profiles[p];
-      return { name: pr.name, color: pr.color, assist: this.assistFor(p), power: this.picks[p], bot: pr.bot };
+      return { name: pr.name, color: pr.color, assist: this.assistFor(p), power: this.picks[p], bot: botFor(pr, meta.id) };
     }) as [PlayerInfo, PlayerInfo];
     const seed = this.fixedSeed !== null ? (this.fixedSeed + this.matchCount++) >>> 0 : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     const powersOn = this.store.data.settings.powers && !!this.picks[0] && !!this.picks[1];
