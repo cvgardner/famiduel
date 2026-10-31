@@ -2,6 +2,9 @@
 // Two round wrestlers on a round ring. Each one turns at a constant speed;
 // holding the button stops the turn and charges, letting go dashes forward.
 // Circle physics with friction; leaving the ring loses the round. Best of 3.
+// Rope saves: the rope catches a wrestler who dashes out on their own (nobody
+// pushed them) a few times a round, so a mashing kid doesn't lose by themself
+// in a second. The handicap adds saves.
 import { Energy } from '../../core/energy';
 import { lerpAssist } from '../../core/handicap';
 import type { Rng } from '../../core/rng';
@@ -42,6 +45,13 @@ export const RULES = {
   poundWindup: 0.35,
   poundPush: 430,
   poundRange: 260,
+  /** Seconds after contact during which the rope will not catch you (a push still counts). */
+  ropeGrace: 0.7,
+  /** Speed a caught wrestler bounces back off the rope, as a fraction of their outward speed. */
+  ropeBounce: 0.3,
+  /** Rope saves per round at assist 0, and at assist 3. */
+  ropeSaves: 3,
+  ropeSavesMax: 6,
   energyPerSec: 0.025,
   energyHit: 0.1,
   energyLoseRound: 0.3,
@@ -64,6 +74,10 @@ export type Wrestler = {
   slip: number;
   pound: number;
   out: boolean;
+  /** Seconds since this wrestler last touched the other one (or was pounded). */
+  freeT: number;
+  /** Rope saves left this round. */
+  saves: number;
 };
 
 export type Phase = 'ready' | 'fight' | 'over' | 'done';
@@ -75,6 +89,8 @@ export type Event =
   | { type: 'round'; winner: PlayerIndex | null; round: number }
   | { type: 'fight'; round: number }
   | { type: 'shrink' }
+  /** The rope caught a wrestler who was about to step out on their own. */
+  | { type: 'teeter'; p: PlayerIndex; x: number; y: number; left: number }
   | { type: 'pound'; p: PlayerIndex; x: number; y: number }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'win'; p: PlayerIndex | null };
@@ -108,7 +124,7 @@ export class Sumo {
       x: 0, y: 0, vx: 0, vy: 0, angle: 0, spin: 1, charging: false, charge: 0, cooldown: 0,
       baseMass: lerpAssist(players[p].assist, RULES.mass, RULES.massMax),
       margin: lerpAssist(players[p].assist, 0, RULES.marginMax),
-      grow: 0, slip: 0, pound: 0, out: false,
+      grow: 0, slip: 0, pound: 0, out: false, freeT: 99, saves: 0,
     });
     this.wrestlers = [mk(0), mk(1)];
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
@@ -160,6 +176,8 @@ export class Sumo {
       w.cooldown = 0;
       w.grow = w.slip = w.pound = 0;
       w.out = false;
+      w.freeT = 99;
+      w.saves = Math.round(lerpAssist(this.players[p].assist, RULES.ropeSaves, RULES.ropeSavesMax));
     }
     this.roundT = 0;
     this.shrinkAnnounced = false;
@@ -200,6 +218,7 @@ export class Sumo {
       w.grow = Math.max(0, w.grow - dt);
       w.slip = Math.max(0, w.slip - dt);
       w.cooldown = Math.max(0, w.cooldown - dt);
+      w.freeT += dt;
       if (w.pound > 0) {
         w.pound -= dt;
         if (w.pound <= 0) this.groundPound(p);
@@ -242,6 +261,7 @@ export class Sumo {
         w.y += w.vy * h;
       }
       this.collide();
+      if (this.phase === 'fight') this.rope();
     }
     for (const p of [0, 1] as PlayerIndex[]) {
       const w = this.wrestlers[p];
@@ -270,6 +290,7 @@ export class Sumo {
     b.x += nx * overlap * (ma / (ma + mb));
     b.y += ny * overlap * (ma / (ma + mb));
     const vn = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+    a.freeT = b.freeT = 0;
     if (vn >= 0) return;
     const j = (-(1 + RULES.restitution) * vn) / (1 / ma + 1 / mb);
     a.vx -= (j / ma) * nx;
@@ -290,6 +311,37 @@ export class Sumo {
           this.energy[p].charge(amt, this.score[p] < this.score[other(p)]);
         }
       }
+    }
+  }
+
+  /** True when the rope would stop this wrestler instead of letting them out. */
+  ropeCatches(p: PlayerIndex): boolean {
+    const w = this.wrestlers[p];
+    return w.saves > 0 && w.freeT >= RULES.ropeGrace && w.slip <= 0;
+  }
+
+  /** Stop a wrestler at the rope if nobody pushed them there. */
+  private rope(): void {
+    for (const p of [0, 1] as PlayerIndex[]) {
+      const w = this.wrestlers[p];
+      if (w.out || !this.ropeCatches(p)) continue;
+      const dx = w.x - RULES.cx;
+      const dy = w.y - RULES.cy;
+      const d = Math.hypot(dx, dy);
+      const lim = this.outR(p) - 0.5;
+      if (d <= lim || d === 0) continue;
+      const nx = dx / d;
+      const ny = dy / d;
+      w.x = RULES.cx + nx * lim;
+      w.y = RULES.cy + ny * lim;
+      // Bounce back in, at least a little, so the save is visible and you are clear of the rope.
+      const vr = Math.max(w.vx * nx + w.vy * ny, 60);
+      w.vx -= nx * vr * (1 + RULES.ropeBounce);
+      w.vy -= ny * vr * (1 + RULES.ropeBounce);
+      w.charging = false;
+      w.charge = 0;
+      w.saves--;
+      this.events.push({ type: 'teeter', p, x: w.x, y: w.y, left: w.saves });
     }
   }
 
@@ -359,6 +411,7 @@ export class Sumo {
     const foe = this.wrestlers[q];
     w.pound = 0;
     this.events.push({ type: 'pound', p, x: w.x, y: w.y });
+    foe.freeT = 0;
     const dx = foe.x - w.x;
     const dy = foe.y - w.y;
     const d = Math.hypot(dx, dy) || 1;

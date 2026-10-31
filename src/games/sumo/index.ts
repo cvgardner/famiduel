@@ -140,6 +140,17 @@ class SumoView implements GameInstance {
         sfx.play('go');
         this.showBanner('GO!', COLORS.gold, 0.6);
         for (const b of this.bodies) b.fall = 0;
+      } else if (e.type === 'teeter') {
+        // The rope caught a wrestler who nearly stepped out on their own.
+        sfx.play('hit');
+        fx.burst(e.x, e.y, ROPE, 10, 120, 3.5);
+        this.rings.push({ x: e.x, y: e.y, r: 8, life: 0.35, max: 0.35, color: ROPE, width: 6 });
+        const b = this.bodies[e.p];
+        b.axis = Math.atan2(e.y - MID, e.x - W / 2);
+        b.sv -= 6;
+        const msg = e.left > 0 ? 'Saved by the rope!' : 'Last rope save!';
+        const ty = e.y + (e.p === 0 ? -44 : 44);
+        fx.pop(msg, Math.max(90, Math.min(W - 90, e.x)), ty, e.left > 0 ? '#fff' : '#ff8a5c', e.p, 18);
       } else if (e.type === 'shrink') {
         sfx.play('buzz');
         fx.pop('The ring shrinks!', W / 2, MID + 40, '#ff8a5c', 0, 22);
@@ -443,6 +454,9 @@ class SumoView implements GameInstance {
         circle(gx, px, y + 4, 11, won ? COLORS.gold : 'rgba(255,255,255,0.12)', won ? '#fff' : alpha(c, 0.7), 2.5);
         if (won) text(gx, '★', px, y + 5, { size: 13, color: '#7a4b00' });
       }
+      // Rope saves left this round: small knots under the pips.
+      const saves = g.wrestlers[p].saves;
+      for (let i = 0; i < saves; i++) circle(gx, x + (i - (saves - 1) / 2) * 9, y + 24, 3.5, ROPE, '#fff2d0', 1.5);
     });
   }
 }

@@ -11,8 +11,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       as a warning instead of hanging.
 
 ## Feel and fairness
-- [ ] Sumo: the normal bot beats a mashing player 2-0 in under 8 s. Rounds that short
-      feel unfair to a small kid; consider a softer normal bot or a longer first round.
+- [x] 2026-10-31: Sumo: the normal bot beat a mashing player 2-0 in under 8 s. Measured:
+      the bot level made no difference; a masher fell off the ring *on their own* in about
+      1.5 s of fight, even against an opponent standing still. Added rope saves: the rope
+      catches a wrestler who dashes out without being pushed, 3 times a round (up to 6 with
+      the handicap), shown as knots under the round pips with a "Saved by the rope!" pop.
+      Pushes and Slippery Floor still put you out. Masher rounds now last ~4 s, matches
+      ~13 s; bot-vs-bot balance unchanged.
 - [ ] Minigolf easy bot: make it beatable by a 6-year-old (more aim/power noise).
 - [ ] Sea Battle easy-vs-easy seat bias (~58% for player 1 in sims): find and fix.
 - [ ] Letterbox bars on tall phones: fill them with each game's own background so the
@@ -32,3 +37,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Mini pool (first update).
 - [ ] More minigolf holes (target 18).
 - [ ] More tank arenas, more Snack Snatch snack types.
+
+## Ideas found 2026-10-31
+- [ ] Sumo: a mashing player still never wins a round against any bot. A "first match"
+      easy bot that waits a beat after GO! (or a slow-arrow assist knob) would let a
+      toddler win sometimes.
+- [ ] Playtest: per-game "self-out" counter (player lost without the other touching them)
+      would catch the same trap in other games (Snake walls, Minigolf water).
