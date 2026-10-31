@@ -268,4 +268,44 @@ describe('sumo', () => {
     // Without rope saves this was about 1.5 s.
     expect(total / N).toBeGreaterThan(3);
   });
+
+  it('with a full head start, a kid who just mashes beats the easy bot sometimes', () => {
+    // A mashing kid falls out on their own; only rope saves keep them in. At no head
+    // start they never won a match against any bot. A full head start (16 saves) makes
+    // the easy bot beatable while normal and hard stay clearly ahead.
+    const masherWins = (level: BotLevel, assist: number) => {
+      let wins = 0;
+      const N = 60;
+      for (let s = 0; s < N; s++) {
+        const rng = makeRng(s);
+        const mash = makeRng(5000 + s);
+        const g = new Sumo([player({ assist }), player({ bot: level })], false, rng);
+        const bot = new SumoBot(1, level, rng);
+        let holdLeft = 0;
+        let gap = 0;
+        let t = 0;
+        while (!g.finished && t < 300) {
+          let hold = false;
+          if (g.phase === 'fight') {
+            if (holdLeft > 0) {
+              holdLeft -= DT;
+              hold = true;
+            } else if (gap > 0) gap -= DT;
+            else {
+              holdLeft = mash.range(0.08, 0.6);
+              gap = mash.range(0.05, 0.5);
+            }
+          }
+          g.step(DT, [{ hold, power: false }, bot.think(g, DT)]);
+          t += DT;
+        }
+        if (g.winner === 0) wins++;
+      }
+      return wins / N;
+    };
+    expect(masherWins('easy', 3)).toBeGreaterThan(0.25);
+    expect(masherWins('easy', 3)).toBeLessThan(0.6);
+    expect(masherWins('hard', 3)).toBeLessThan(0.1);
+    expect(masherWins('easy', 0)).toBeLessThan(0.05);
+  });
 });

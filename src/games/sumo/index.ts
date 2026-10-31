@@ -454,12 +454,20 @@ class SumoView implements GameInstance {
         circle(gx, px, y + 4, 11, won ? COLORS.gold : 'rgba(255,255,255,0.12)', won ? '#fff' : alpha(c, 0.7), 2.5);
         if (won) text(gx, '★', px, y + 5, { size: 13, color: '#7a4b00' });
       }
-      // Rope saves left this round: small knots under the pips.
+      // Rope saves left this round: small knots under the pips, 8 to a row (a big
+      // head start gives up to 16, two rows).
       const saves = g.wrestlers[p].saves;
-      for (let i = 0; i < saves; i++) circle(gx, x + (i - (saves - 1) / 2) * 9, y + 24, 3.5, ROPE, '#fff2d0', 1.5);
+      for (let i = 0; i < saves; i++) {
+        const row = Math.floor(i / KNOTS_PER_ROW);
+        const inRow = Math.min(KNOTS_PER_ROW, saves - row * KNOTS_PER_ROW);
+        const col = i % KNOTS_PER_ROW;
+        circle(gx, x + (col - (inRow - 1) / 2) * 9, y + 24 + row * 8, 3.5, ROPE, '#fff2d0', 1.5);
+      }
     });
   }
 }
+
+const KNOTS_PER_ROW = 8;
 
 const def: GameDef = { id: 'sumo', create: (ctx) => new SumoView(ctx) };
 export default def;
