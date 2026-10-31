@@ -184,4 +184,88 @@ describe('sumo', () => {
     for (let i = 0; i < (RULES.shrinkAfter + RULES.shrinkTime) / DT; i++) g.step(DT, [idle, idle]);
     expect(g.ringR()).toBeCloseTo(r0 * RULES.ringMinFrac);
   });
+  it('the rope saves a wrestler who dashes out on their own, a few times a round', () => {
+    const g = fight();
+    const a = g.wrestlers[0];
+    g.wrestlers[1].x = 40; // out of the way
+    g.wrestlers[1].y = RULES.cy - 60;
+    expect(a.saves).toBe(RULES.ropeSaves);
+    const dashOut = () => {
+      a.x = RULES.cx;
+      a.y = RULES.cy + 60;
+      a.vx = 0;
+      a.vy = 600; // straight at the bottom rope
+      let teeter = false;
+      for (let i = 0; i < 60 && g.phase === 'fight'; i++) {
+        g.step(DT, [idle, idle]);
+        if (g.events.some((e) => e.type === 'teeter' && e.p === 0)) teeter = true;
+      }
+      return teeter;
+    };
+    for (let k = RULES.ropeSaves; k > 0; k--) {
+      expect(dashOut()).toBe(true);
+      expect(a.out).toBe(false);
+      expect(a.saves).toBe(k - 1);
+    }
+    // Out of saves: the next one goes out.
+    dashOut();
+    expect(a.out).toBe(true);
+    expect(g.score).toEqual([0, 1]);
+  });
+
+  it('the rope does not save you from a push or on a slippery floor', () => {
+    const pushed = fight();
+    const [a, b] = pushed.wrestlers;
+    b.x = RULES.cx;
+    b.y = RULES.cy + 100;
+    a.x = RULES.cx;
+    a.y = RULES.cy + 50;
+    a.vy = 700;
+    for (let i = 0; i < 90 && pushed.phase === 'fight'; i++) pushed.step(DT, [idle, idle]);
+    expect(b.out).toBe(true);
+    expect(b.saves).toBe(RULES.ropeSaves);
+
+    const slip = fight();
+    const w = slip.wrestlers[0];
+    slip.wrestlers[1].x = 40;
+    w.slip = 3;
+    w.vy = 600;
+    for (let i = 0; i < 60 && slip.phase === 'fight'; i++) slip.step(DT, [idle, idle]);
+    expect(w.out).toBe(true);
+  });
+
+  it('the handicap gives more rope saves', () => {
+    const g = fight({ assist: [3, 0] });
+    expect(g.wrestlers[0].saves).toBe(RULES.ropeSavesMax);
+    expect(g.wrestlers[1].saves).toBe(RULES.ropeSaves);
+  });
+
+  it('a player mashing the button lasts several seconds instead of falling out at once', () => {
+    let total = 0;
+    const N = 40;
+    for (let s = 0; s < N; s++) {
+      const mash = makeRng(1000 + s);
+      const g = new Sumo([player(), player()], false, makeRng(s));
+      while (g.phase !== 'fight') g.step(DT, [idle, idle]);
+      let holdLeft = 0;
+      let gap = 0;
+      let t = 0;
+      while (g.phase === 'fight' && t < 30) {
+        let hold = false;
+        if (holdLeft > 0) {
+          holdLeft -= DT;
+          hold = true;
+        } else if (gap > 0) gap -= DT;
+        else {
+          holdLeft = mash.range(0.08, 0.6);
+          gap = mash.range(0.05, 0.5);
+        }
+        g.step(DT, [{ hold, power: false }, idle]);
+        t += DT;
+      }
+      total += t;
+    }
+    // Without rope saves this was about 1.5 s.
+    expect(total / N).toBeGreaterThan(3);
+  });
 });
