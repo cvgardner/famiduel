@@ -80,4 +80,25 @@ describe('pop-up words', () => {
     }
     expect(faint).toEqual([]);
   });
+  it('the probe judges a label at rest; mid-fade samples only stand in until then', async () => {
+    const { keepSample } = await import('../src/engine/draw');
+    expect(keepSample(undefined, 2, false)).toBe(true);
+    // A label first caught fading in (2.8:1) is replaced by its first at-rest sample, even a lower one.
+    expect(keepSample({ best: 2.8, rest: false }, 2.0, true)).toBe(true);
+    // Once seen at rest, a fade frame never changes the verdict, a better rest frame does.
+    expect(keepSample({ best: 2.0, rest: true }, 9, false)).toBe(false);
+    expect(keepSample({ best: 2.0, rest: true }, 3, true)).toBe(true);
+    expect(keepSample({ best: 4.0, rest: true }, 3, true)).toBe(false);
+  });
+
+  it("minigolf's hole card and shot banner fade their words with their dark card", async () => {
+    const fs = await import('node:fs');
+    const src = fs.readFileSync('src/games/minigolf/index.ts', 'utf8');
+    for (const fn of ['drawIntro', 'drawBanner']) {
+      const body = src.slice(src.indexOf(`private ${fn}(`), src.indexOf('\n  }\n', src.indexOf(`private ${fn}(`)));
+      const calls = body.match(/text\(gx,[^;]*\);/g) ?? [];
+      expect(calls.length, fn).toBeGreaterThan(0);
+      for (const c of calls) expect(c, fn).toContain('alpha: fade');
+    }
+  });
 });
