@@ -862,6 +862,75 @@ test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) =
   expect(errors).toEqual([]);
 });
 
+test('sea battle: the first shot says who goes first, and the rematch swaps it', async ({ page }) => {
+  // Sea Battle picks its first shooter after both fleets are hidden, so the countdown can't
+  // say who starts. The first turn says it instead: "You go first!" for a person, "<bot> goes
+  // first" while a bot opens. Two matches through the real Rematch button: both cases show.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, 'easy']);
+  await page.locator('.game-card[data-id="seabattle"]').tap();
+  type SeaHook = {
+    runner: null | { result: unknown; game: { header: string; announced: string | null; mode: { kind: string; p: number }; firstMover(): number | null; game: { phase: string } } };
+  };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner!.game;
+      return { kind: v.mode.kind, p: v.mode.p, phase: v.game.phase, header: v.header, announced: v.announced, first: v.firstMover() };
+    });
+  const tap = async (x: number, y: number) => {
+    const box = await worldBox(page);
+    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
+    for (const t of ['pointerdown', 'pointerup']) {
+      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(78, tt, cx, cy), [t, c.x, c.y] as const);
+      await page.waitForTimeout(60);
+    }
+  };
+  const firsts: number[] = [];
+  for (let m = 0; m < 2; m++) {
+    await introAsPeople(page, [0]);
+    await page.waitForTimeout(2200); // countdown
+    await expect.poll(async () => (await look()).kind, { timeout: 8000 }).toBe('place');
+    await page.waitForTimeout(700);
+    await tap(204 + 70, 404 + 29); // Ready, fleet as dealt
+    // Catch the opening turn's first frames (a bot fires within a second or so).
+    let seen: Awaited<ReturnType<typeof look>> | null = null;
+    await expect
+      .poll(
+        async () => {
+          const s = await look();
+          if (s.phase === 'fire' && (s.kind === 'fire' || s.kind === 'bot') && s.announced) seen = s;
+          return !!seen;
+        },
+        { timeout: 8000, intervals: [40] },
+      )
+      .toBe(true);
+    const s = seen!;
+    firsts.push(s.first!);
+    if (s.first === 0) {
+      expect(s.kind, 'the person opens').toBe('fire');
+      expect(s.announced, 'a pop tells the person they start').toBe('You go first!');
+      expect(s.header, 'the header says it too').toContain('you go first!');
+      await page.waitForTimeout(250);
+      await page.screenshot({ path: path.join(OUT, 'seabattle-you-first.png') });
+    } else {
+      expect(s.kind, 'the bot opens').toBe('bot');
+      expect(s.announced, 'a pop says the bot starts').toMatch(/ goes first$/);
+      expect(s.header, 'the header names who starts').toMatch(/ goes first…$/);
+      await page.screenshot({ path: path.join(OUT, 'seabattle-bot-first.png') });
+    }
+    // End in a draw, then Rematch.
+    await page.evaluate(() => {
+      const r = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner!;
+      if (!r.result) r.result = { winner: null, score: [0, 0] };
+    });
+    await expect(page.locator('#result')).toBeVisible({ timeout: 5000 });
+    if (m === 0) await page.locator('#rematchBtn').tap();
+  }
+  expect(firsts[1], 'the rematch hands the first shot to the other seat').not.toBe(firsts[0]);
+  expect(errors).toEqual([]);
+});
+
 test("tic-tac-toe: the bot's newest mark sits on a tile until you move", async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);

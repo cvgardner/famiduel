@@ -556,6 +556,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Checkers: the jump trail line is thin on a 320 px phone; if kids still miss a bot's
       jump, replay the last move's hops once (slow) when the person taps a ghost ring.
 
+## Ideas found 2026-11-01 (Sea Battle first shot run)
+- [ ] The two-person look-away cover is the only Sea Battle screen no playtest checks for
+      the opening line; a two-people match in the playtest could read it on the cover.
+- [ ] Turn games could show a small "first" marker beside the starter's score for the whole
+      match (like a serve dot in Ping Pong), so a parent glancing in mid-match knows too.
+
 ## Ideas found 2026-11-01 (rematch starter run)
 - [x] 2026-11-01: The countdown says who goes first. Rematches swap the starter, but the
       only sign was each game's small turn line, so a kid who went second could think the
@@ -571,8 +577,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       It now waits to see the piece picked up before tapping where it goes, like a person.
 - [ ] Other playtests that tap twice in a row with one finger id (`__finger(77, …)` and
       friends) could hit the same race; a shared `tapThenWait` helper would cover them.
-- [ ] Sea Battle picks its first shooter after placement, so its countdown says nothing; its
-      "fire" phase could open with the same "You go first!" line on the shooter's side.
+- [x] 2026-11-01: Sea Battle says who goes first. It picks its first shooter only after both
+      fleets are hidden, so the countdown said nothing and a rematch's swap of the first shot
+      went unseen. Now the first turn opens with a gold "You go first!" pop over the sea and a
+      "<name>, you go first!" header for the shooter; against a bot that opens, the person
+      sees "<bot> goes first" (header "<bot> goes first…" while it aims). Between two people
+      the look-away cover says "You go first!" instead of "Your turn to fire". It stops at
+      the first shell fired (`openingLine()` in `seabattle/beat.ts`, unit tested with the real
+      first shooter and a rematch starter). A new playtest plays two matches against the bot
+      through Rematch and checks the pop and header for whoever opens each, and that the
+      first shot swaps seats (`seabattle-you-first.png`, `seabattle-bot-first.png`).
 - [ ] Reviews also ask to pick their colour when playing a bot and complain hard bots feel
       like they "never lose" (RPS, Mini Golf) or copy your moves (Snake); check our hard RPS
       bot stays near 1/3 per throw against a patterned kid, and that the hard Snake bot never
