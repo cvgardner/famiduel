@@ -1,5 +1,6 @@
 // Quick Draw rules: wait for DRAW!, then tap first. Tapping early, or on a
 // fake-out, loses the round. Pure and deterministic for a seed.
+import { HUMAN } from '../../core/human';
 import { Energy } from '../../core/energy';
 import { lerpAssist } from '../../core/handicap';
 import type { Rng } from '../../core/rng';
@@ -256,14 +257,18 @@ export class QuickDraw {
 // It only reacts to what is on screen. On DRAW! it samples a human-like reaction
 // time for its skill; it never taps before the signal, and an easy bot sometimes
 // falls for a fake-out (which loses it the round, exactly like a person).
+// The times are what a person would see on the round's timer: their reaction
+// plus the phone's screen and touch delay, which the bot doesn't otherwise pay.
+// Hard is a quick adult (about 0.3 s on a phone), and never beats the fastest
+// a person can do (HUMAN.reaction + HUMAN.touchLag).
 const BOT = {
-  easy: { mean: 0.45, sd: 0.07, fooled: 0.22 },
-  normal: { mean: 0.32, sd: 0.045, fooled: 0.05 },
-  hard: { mean: 0.24, sd: 0.03, fooled: 0 },
+  easy: { mean: 0.5, sd: 0.07, fooled: 0.22 },
+  normal: { mean: 0.38, sd: 0.045, fooled: 0.05 },
+  hard: { mean: 0.3, sd: 0.03, fooled: 0 },
 } satisfies Record<BotLevel, { mean: number; sd: number; fooled: number }>;
 
 export const BOT_LEVELS = BOT;
-const MIN_REACTION = 0.15;
+export const MIN_REACTION = HUMAN.reaction + HUMAN.touchLag;
 
 export class QuickDrawBot {
   /** Seconds until the bot's thumb lands, or Infinity when it is not about to tap. */
