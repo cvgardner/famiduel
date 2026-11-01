@@ -21,6 +21,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       `fx.pop` in Sumo from the source and checks its colour at its size on both sand tones,
       so rare pops are checked every run, not only when a match happens to trigger them.
 
+- [x] 2026-11-01 (Chris): "the minigolf screen orientation is really off sometimes". A phone
+      lying flat has no reliable up, so leaning in to putt or lifting an edge made the OS flip
+      the page to landscape and the portrait table shrank into a sideways strip. Browsers can't
+      lock orientation, so src/engine/portrait.ts counter-rotates the whole app when a phone
+      reports a landscape turn (Stage maps touches back through it). Unit test + e2e on an
+      844×390 landscape phone. The course's own turn now always lands on 0° or 180°.
+- [x] 2026-11-01 (Chris): Minigolf needs "a bunch of stages that get randomized" and the
+      "too fast to drop" rule "might feel bad for players used to just needing a hole".
+      12 new holes (22 in all; a match still plays 3 picked by the seed, easier first).
+      Cup: capture speed 250 -> 420 (only a hard-hit ball skips over), and a ball that does
+      rattle over loses 45% of its speed as it rolls out, so it usually stops close.
+      Found on the way: the bot's distance map stopped spreading past the first wall (a
+      float32 rounding slip in the Dijkstra), so bots misread most of Zig Zag-like holes.
+      Bot noise retuned for the new cup: easy +0.76, normal -0.44, hard -1.39 per hole.
+
 ## Feel and fairness
 - [x] 2026-10-31: Sumo: the normal bot beat a mashing player 2-0 in under 8 s. Measured:
       the bot level made no difference; a masher fell off the ring *on their own* in about

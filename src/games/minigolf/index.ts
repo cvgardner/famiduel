@@ -74,7 +74,11 @@ class MinigolfView implements GameInstance {
     if (p === this.facingP) return;
     this.facingP = p;
     this.rotFrom = this.rot;
-    this.rotTo = this.rot + Math.PI;
+    // Aim for p's exact facing (0 or π, mod 2π), even if a turn is still
+    // animating; adding π to a half-done turn would leave the course sideways.
+    const want = p === 1 ? Math.PI : 0;
+    const d = (((want - this.rot) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    this.rotTo = this.rot + (d < 1e-6 ? 0 : d > Math.PI + 1e-6 ? d - 2 * Math.PI : d);
     this.rotT = 0;
   }
 

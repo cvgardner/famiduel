@@ -340,8 +340,8 @@ export class Minigolf {
 // `pick` is how many of its best-looking lines it chooses between: an easy bot
 // often goes for a plausible line rather than the best one, like a young kid.
 const BOT = {
-  easy: { aim: 0.3, pow: 0.42, angles: 12, powers: 3, refine: 0, delay: 1.6, pick: 3 },
-  normal: { aim: 0.085, pow: 0.13, angles: 32, powers: 5, refine: 8, delay: 1.25, pick: 1 },
+  easy: { aim: 0.4, pow: 0.55, angles: 12, powers: 3, refine: 0, delay: 1.6, pick: 3 },
+  normal: { aim: 0.2, pow: 0.3, angles: 32, powers: 5, refine: 8, delay: 1.25, pick: 2 },
   hard: { aim: 0.035, pow: 0.055, angles: 48, powers: 6, refine: 16, delay: 1.0, pick: 1 },
 } satisfies Record<BotLevel, { aim: number; pow: number; angles: number; powers: number; refine: number; delay: number; pick: number }>;
 

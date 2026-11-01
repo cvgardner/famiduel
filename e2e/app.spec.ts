@@ -93,3 +93,35 @@ for (const g of games.games) {
     expect(errors).toEqual([]);
   });
 }
+
+test.describe('a flat phone that flips to landscape', () => {
+  test.use({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
+  test('keeps the table portrait and taps land where the finger is', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(screen, 'orientation', {
+        configurable: true,
+        value: Object.assign(new EventTarget(), { angle: 90, type: 'landscape-primary' }),
+      });
+    });
+    const errors = await boot(page);
+    await expect(page.locator('#app')).toHaveAttribute('data-turn', '-90');
+    await page.locator('.game-card[data-id="minigolf"]').click();
+    await page.locator('.power-card[data-p="0"]').first().click();
+    await page.locator('.power-card[data-p="1"]').first().click();
+    await page.click('#ready0');
+    await page.click('#ready1');
+    await expect(page.locator('#play')).toBeVisible();
+    const r = await page.evaluate(() => {
+      const c = document.getElementById('stage') as HTMLCanvasElement;
+      const st = (window as unknown as { __famiduel: { stage: { toWorld(x: number, y: number): { x: number; y: number } } } }).__famiduel.stage;
+      // rotate(-90deg): the world's bottom (player 0) is on the screen's right, its top on the left.
+      return { w: c.clientWidth, h: c.clientHeight, mid: st.toWorld(422, 195), right: st.toWorld(800, 195), left: st.toWorld(44, 195) };
+    });
+    expect(r.h).toBeGreaterThan(r.w); // laid out portrait
+    expect(r.mid.x).toBeCloseTo(180, 0);
+    expect(r.mid.y).toBeCloseTo(320, 0);
+    expect(r.right.y).toBeGreaterThan(560);
+    expect(r.left.y).toBeLessThan(80);
+    expect(errors).toEqual([]);
+  });
+});

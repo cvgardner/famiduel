@@ -15,6 +15,38 @@
       "movers": []
     },
     {
+      "id": "corner",
+      "name": "Corner Pocket",
+      "par": 2,
+      "tee": [115, 525],
+      "cup": [262, 150],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[60, 565], [170, 565], [170, 215], [310, 215], [310, 90], [60, 90]] },
+        { "kind": "inner", "closed": true, "pts": [[60, 90], [125, 90], [60, 155]] }
+      ],
+      "zones": [
+        { "type": "sand", "circle": [205, 120, 16] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "downhill",
+      "name": "Downhill Dash",
+      "par": 2,
+      "tee": [180, 525],
+      "cup": [180, 150],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[100, 565], [260, 565], [260, 85], [100, 85]] },
+        { "kind": "inner", "closed": true, "pts": [[180, 315], [196, 335], [180, 355], [164, 335]] }
+      ],
+      "zones": [
+        { "type": "slope", "poly": [[100, 200], [260, 200], [260, 480], [100, 480]], "accel": [0, -70] },
+        { "type": "sand", "circle": [128, 205, 20] },
+        { "type": "sand", "circle": [232, 205, 20] }
+      ],
+      "movers": []
+    },
+    {
       "id": "dogleg",
       "name": "Dog Leg",
       "par": 3,
@@ -28,6 +60,115 @@
         { "type": "slope", "poly": [[150, 235], [240, 235], [240, 200], [150, 200]], "accel": [0, -60] }
       ],
       "movers": []
+    },
+    {
+      "id": "crater",
+      "name": "Crater",
+      "par": 3,
+      "tee": [180, 525],
+      "cup": [245, 128],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[50, 565], [310, 565], [310, 80], [50, 80]] }
+      ],
+      "zones": [
+        { "type": "bowl", "circle": [180, 330, 58], "pull": 200 },
+        { "type": "sand", "circle": [90, 200, 24] },
+        { "type": "sand", "circle": [270, 200, 24] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "bumps",
+      "name": "Speed Bumps",
+      "par": 3,
+      "tee": [180, 525],
+      "cup": [180, 130],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[80, 565], [280, 565], [280, 80], [80, 80]] }
+      ],
+      "zones": [
+        { "type": "slope", "poly": [[80, 420], [280, 420], [280, 450], [80, 450]], "accel": [0, 200] },
+        { "type": "slope", "poly": [[80, 300], [280, 300], [280, 330], [80, 330]], "accel": [0, 200] },
+        { "type": "slope", "poly": [[80, 180], [280, 180], [280, 210], [80, 210]], "accel": [0, 200] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "fork",
+      "name": "Fork in the Road",
+      "par": 3,
+      "tee": [180, 530],
+      "cup": [180, 140],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[40, 565], [320, 565], [320, 80], [40, 80]] },
+        { "kind": "inner", "closed": true, "pts": [[174, 215], [186, 215], [186, 470], [174, 470]] }
+      ],
+      "zones": [
+        { "type": "sand", "circle": [105, 340, 30] },
+        { "type": "slope", "poly": [[186, 300], [320, 300], [320, 390], [186, 390]], "accel": [0, 120] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "pinball",
+      "name": "Pinball",
+      "par": 3,
+      "tee": [180, 525],
+      "cup": [180, 125],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[90, 565], [270, 565], [320, 500], [320, 140], [270, 80], [90, 80], [40, 140], [40, 500]] },
+        { "kind": "inner", "closed": true, "pts": [[120, 364], [136, 380], [120, 396], [104, 380]] },
+        { "kind": "inner", "closed": true, "pts": [[240, 364], [256, 380], [240, 396], [224, 380]] },
+        { "kind": "inner", "closed": true, "pts": [[180, 274], [196, 290], [180, 306], [164, 290]] },
+        { "kind": "inner", "closed": true, "pts": [[115, 184], [131, 200], [115, 216], [99, 200]] },
+        { "kind": "inner", "closed": true, "pts": [[245, 184], [261, 200], [245, 216], [229, 200]] }
+      ],
+      "zones": [],
+      "movers": []
+    },
+    {
+      "id": "hourglass",
+      "name": "Hourglass",
+      "par": 3,
+      "tee": [180, 525],
+      "cup": [240, 130],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[60, 565], [300, 565], [300, 420], [208, 330], [300, 240], [300, 80], [60, 80], [60, 240], [152, 330], [60, 420]] }
+      ],
+      "zones": [
+        { "type": "sand", "circle": [110, 145, 24] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "spinners",
+      "name": "Double Spin",
+      "par": 3,
+      "tee": [180, 525],
+      "cup": [180, 125],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[60, 565], [300, 565], [300, 80], [60, 80]] }
+      ],
+      "zones": [],
+      "movers": [
+        { "type": "windmill", "x": 130, "y": 400, "len": 50, "blades": 4, "speed": 1.4 },
+        { "type": "windmill", "x": 230, "y": 245, "len": 50, "blades": 3, "speed": -1.7 }
+      ]
+    },
+    {
+      "id": "sliders",
+      "name": "Sliding Doors",
+      "par": 3,
+      "tee": [180, 525],
+      "cup": [180, 130],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[60, 565], [300, 565], [300, 80], [60, 80]] }
+      ],
+      "zones": [],
+      "movers": [
+        { "type": "slider", "a": [135, 385], "b": [225, 385], "travel": [70, 0], "period": 2.4 },
+        { "type": "slider", "a": [135, 250], "b": [225, 250], "travel": [-70, 0], "period": 3.0 }
+      ]
     },
     {
       "id": "windmill",
@@ -98,6 +239,57 @@
       ]
     },
     {
+      "id": "island",
+      "name": "Island Green",
+      "par": 3,
+      "tee": [180, 525],
+      "cup": [180, 165],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[40, 565], [320, 565], [320, 80], [40, 80]] }
+      ],
+      "zones": [
+        { "type": "water", "poly": [[40, 80], [122, 80], [122, 262], [40, 262]] },
+        { "type": "water", "poly": [[238, 80], [320, 80], [320, 262], [238, 262]] },
+        { "type": "water", "poly": [[40, 262], [158, 262], [158, 292], [40, 292]] },
+        { "type": "water", "poly": [[202, 262], [320, 262], [320, 292], [202, 292]] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "moat",
+      "name": "The Moat",
+      "par": 3,
+      "tee": [260, 525],
+      "cup": [255, 135],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[40, 565], [320, 565], [320, 80], [40, 80]] },
+        { "kind": "inner", "closed": true, "pts": [[200, 205], [218, 223], [200, 241], [182, 223]] }
+      ],
+      "zones": [
+        { "type": "water", "poly": [[125, 330], [320, 330], [320, 372], [125, 372]] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "bowl",
+      "name": "Bumper Bowl",
+      "par": 3,
+      "tee": [180, 535],
+      "cup": [180, 170],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[120, 568], [240, 568], [330, 470], [330, 160], [250, 74], [110, 74], [30, 160], [30, 470]] },
+        { "kind": "inner", "closed": true, "pts": [[180, 300], [215, 340], [145, 340]] },
+        { "kind": "inner", "closed": true, "pts": [[85, 380], [115, 410], [70, 420]] },
+        { "kind": "inner", "closed": true, "pts": [[275, 380], [290, 420], [245, 410]] }
+      ],
+      "zones": [
+        { "type": "bowl", "circle": [180, 170, 62], "pull": 160 },
+        { "type": "water", "poly": [[30, 210], [62, 210], [62, 300], [30, 300]] },
+        { "type": "water", "poly": [[298, 210], [330, 210], [330, 300], [298, 300]] }
+      ],
+      "movers": []
+    },
+    {
       "id": "zigzag",
       "name": "Zig Zag",
       "par": 4,
@@ -132,21 +324,19 @@
       "movers": []
     },
     {
-      "id": "bowl",
-      "name": "Bumper Bowl",
-      "par": 3,
-      "tee": [180, 535],
-      "cup": [180, 170],
+      "id": "switchback",
+      "name": "Switchback",
+      "par": 4,
+      "tee": [262, 522],
+      "cup": [262, 128],
       "walls": [
-        { "kind": "border", "closed": true, "pts": [[120, 568], [240, 568], [330, 470], [330, 160], [250, 74], [110, 74], [30, 160], [30, 470]] },
-        { "kind": "inner", "closed": true, "pts": [[180, 300], [215, 340], [145, 340]] },
-        { "kind": "inner", "closed": true, "pts": [[85, 380], [115, 410], [70, 420]] },
-        { "kind": "inner", "closed": true, "pts": [[275, 380], [290, 420], [245, 410]] }
+        { "kind": "border", "closed": true, "pts": [[40, 565], [320, 565], [320, 80], [40, 80]] },
+        { "kind": "inner", "closed": true, "pts": [[125, 425], [320, 425], [320, 437], [125, 437]] },
+        { "kind": "inner", "closed": true, "pts": [[40, 305], [235, 305], [235, 317], [40, 317]] },
+        { "kind": "inner", "closed": true, "pts": [[125, 185], [320, 185], [320, 197], [125, 197]] }
       ],
       "zones": [
-        { "type": "bowl", "circle": [180, 170, 62], "pull": 160 },
-        { "type": "water", "poly": [[30, 210], [62, 210], [62, 300], [30, 300]] },
-        { "type": "water", "poly": [[298, 210], [330, 210], [330, 300], [298, 300]] }
+        { "type": "sand", "circle": [80, 250, 22] }
       ],
       "movers": []
     },

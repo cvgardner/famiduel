@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel } from '../src/core/types';
-import { PingPong, PingPongBot, predictX, RULES, type Intent } from '../src/games/pingpong/logic';
+import { forecast, PingPong, PingPongBot, predictX, RULES, type Intent } from '../src/games/pingpong/logic';
 import { DT, player, power } from './helpers';
+import { H } from '../src/engine/world';
 
 function play(levels: [BotLevel, BotLevel], seed: number, opts: { powers?: [string, string]; assist?: [number, number] } = {}) {
   const rng = makeRng(seed);
@@ -33,8 +34,31 @@ function rallyToward(g: PingPong, to: 0 | 1, speed = 400) {
   b.vx = 0;
   b.vy = to === 0 ? speed : -speed;
   b.fromY = b.y;
-  b.toY = g.faceY(to);
+  b.toY = g.homeFaceY(to);
   b.ax = 0;
+  b.top = 0;
+  b.bounced = false;
+}
+
+/** Step until player `p` hits the ball (driving that paddle with `intent`), return the hit event. */
+function untilHit(g: PingPong, p: 0 | 1, intent: (i: number) => Intent) {
+  for (let i = 0; i < 300; i++) {
+    const intents: [Intent, Intent] = p === 0 ? [intent(i), still()] : [still(), intent(i)];
+    g.step(DT, intents);
+    const e = g.events.find((x) => x.type === 'hit');
+    if (e && e.type === 'hit') return e;
+  }
+  throw new Error('no hit');
+}
+
+/** Paddle 0 waits at home, then lunges toward the net at the last moment at `speed`. */
+function lungeAt(g: PingPong, speed: number) {
+  return (): Intent => {
+    const b = g.ball;
+    const timeLeft = (g.faceY(0) - (b.y + RULES.ballR)) / Math.max(1, b.vy);
+    // Lunge with ~3 frames to go so the paddle is moving at contact.
+    return { tx: 180, ty: timeLeft < 4 * DT ? g.paddles[0].y - speed * DT : RULES.paddleY[0], power: false };
+  };
 }
 
 const still = (x = 180): Intent => ({ tx: x, power: false });
@@ -177,5 +201,128 @@ describe('ping pong', () => {
     for (let i = 0; i < 300 && g.ball.vy < 0 && g.ball.y > g.faceY(1) + 20; i++) g.step(DT, [still(), still(100)]);
     expect(g.ball.ax).toBeGreaterThan(0);
     expect(g.ball.x).toBeGreaterThan(straight + 40);
+  });
+
+  it('a still paddle blocks: rally speed, no spin', () => {
+    const g = new PingPong([player(), player()], false, makeRng(10));
+    rallyToward(g, 0);
+    const e = untilHit(g, 0, () => still());
+    expect(e.shot).toBe('block');
+    expect(e.spin).toBe(0);
+    expect(Math.hypot(g.ball.vx, g.ball.vy)).toBeCloseTo(RULES.serveSpeed + RULES.speedUp, 3);
+  });
+
+  it('lunging toward the net drives the ball faster with topspin; a fast lunge smashes', () => {
+    const g = new PingPong([player(), player()], false, makeRng(11));
+    rallyToward(g, 0);
+    const drive = untilHit(g, 0, lungeAt(g, 300));
+    expect(drive.shot).toBe('drive');
+    expect(drive.speed).toBeGreaterThan(RULES.serveSpeed + RULES.speedUp + 60);
+    expect(g.ball.top).toBeGreaterThan(0);
+    const g2 = new PingPong([player(), player()], false, makeRng(11));
+    rallyToward(g2, 0);
+    const smash = untilHit(g2, 0, lungeAt(g2, RULES.paddleSpeed));
+    expect(smash.shot).toBe('smash');
+    expect(g2.ball.smash).toBe(true);
+    expect(smash.speed).toBeGreaterThan(drive.speed);
+  });
+
+  it('the paddle can lunge only so far, at the same speed cap', () => {
+    const g = new PingPong([player(), player()], false, makeRng(12));
+    g.step(DT, [{ tx: 180, ty: 0, power: false }, { tx: 180, ty: H, power: false }]);
+    expect(RULES.paddleY[0] - g.paddles[0].y).toBeCloseTo(RULES.paddleSpeed * DT, 5);
+    expect(g.paddles[1].y - RULES.paddleY[1]).toBeCloseTo(RULES.paddleSpeed * DT, 5);
+    for (let i = 0; i < 60; i++) g.step(DT, [{ tx: 180, ty: 0, power: false }, { tx: 180, ty: H, power: false }]);
+    expect(g.paddles[0].y).toBeCloseTo(RULES.paddleY[0] - RULES.reach, 5);
+    expect(g.paddles[1].y).toBeCloseTo(RULES.paddleY[1] + RULES.reach, 5);
+  });
+
+  it('pulling the paddle back as you hit chops: slower, with backspin that checks the bounce', () => {
+    const g = new PingPong([player(), player()], false, makeRng(13));
+    // Start lunged forward, then pull back right as the ball arrives.
+    for (let i = 0; i < 30; i++) g.step(DT, [{ tx: 180, ty: 0, power: false }, still()]);
+    rallyToward(g, 0);
+    const e = untilHit(g, 0, () => {
+      const timeLeft = (g.faceY(0) - (g.ball.y + RULES.ballR)) / g.ball.vy;
+      // Ease back slower than the ball comes in, so it still meets the paddle.
+      return { tx: 180, ty: timeLeft < 4 * DT ? g.paddles[0].y + 220 * DT : 0, power: false };
+    });
+    expect(e.shot).toBe('chop');
+    expect(g.ball.top).toBe(-1);
+    const before = Math.hypot(g.ball.vx, g.ball.vy);
+    expect(before).toBeCloseTo((RULES.serveSpeed + RULES.speedUp) * RULES.chopSlow, 3);
+    for (let i = 0; i < 300 && !g.ball.bounced; i++) g.step(DT, [still(), still()]);
+    expect(Math.hypot(g.ball.vx, g.ball.vy)).toBeLessThan(before);
+  });
+
+  it('swiping sideways through the ball curves it the way you swiped', () => {
+    for (const dir of [1, -1]) {
+      const g = new PingPong([player(), player()], false, makeRng(14));
+      rallyToward(g, 0);
+      const e = untilHit(g, 0, () => {
+        const timeLeft = (g.faceY(0) - (g.ball.y + RULES.ballR)) / g.ball.vy;
+        // Sweep across the ball: start on one side, move through at full speed.
+        return { tx: timeLeft < 4 * DT ? g.paddles[0].x + dir * 100 : 180 - dir * 30, power: false };
+      });
+      expect(Math.sign(e.spin)).toBe(dir);
+      expect(Math.abs(g.ball.ax)).toBeGreaterThan(100);
+    }
+  });
+
+  it('a slow sideways drift adds no curve (dead zone)', () => {
+    const g = new PingPong([player(), player()], false, makeRng(15));
+    rallyToward(g, 0);
+    const e = untilHit(g, 0, (i) => ({ tx: 170 + 1.5 * (i % 14), power: false }));
+    expect(e.spin).toBe(0);
+  });
+
+  it('rallies speed up and are called out at milestones', () => {
+    const { g } = play(['hard', 'hard'], 21);
+    expect(g.bestRally).toBeGreaterThanOrEqual(5);
+    const seen: number[] = [];
+    const g2 = new PingPong([player(), player()], false, makeRng(22));
+    g2.hits = 4;
+    rallyToward(g2, 0);
+    untilHit(g2, 0, () => still());
+    for (const e of g2.events) if (e.type === 'rally') seen.push(e.hits);
+    expect(seen).toEqual([5]);
+  });
+
+  it('the bot forecast matches the real flight of a curving, spinning ball', () => {
+    const g = new PingPong([player(), player()], false, makeRng(23));
+    rallyToward(g, 1);
+    g.ball.vx = 90;
+    g.ball.ax = -200;
+    g.ball.top = 1;
+    const fc = forecast({ ...g.ball }, g.faceY(1));
+    let t = 0;
+    while (g.ball.y - RULES.ballR > g.faceY(1) && t < 3) {
+      g.step(DT, [still(), still(20)]);
+      t += DT;
+    }
+    expect(Math.abs(g.ball.x - fc.x)).toBeLessThan(8);
+    expect(Math.abs(t - fc.t)).toBeLessThan(0.05);
+  });
+
+  it('bots use drives, smashes and curve, more often the better they are', () => {
+    const count = (lv: BotLevel) => {
+      const rng = makeRng(31);
+      const g = new PingPong([player({ bot: lv }), player({ bot: lv })], false, rng);
+      const bots = [new PingPongBot(0, lv, rng), new PingPongBot(1, lv, rng)];
+      let fancy = 0;
+      let hits = 0;
+      for (let t = 0; t < 120 && g.winner === null; t += DT) {
+        g.step(DT, [bots[0].think(g, DT), bots[1].think(g, DT)]);
+        for (const e of g.events) if (e.type === 'hit') {
+          hits++;
+          if (e.shot !== 'block' || e.spin !== 0) fancy++;
+        }
+      }
+      return fancy / hits;
+    };
+    const easy = count('easy');
+    const hard = count('hard');
+    expect(hard).toBeGreaterThan(easy);
+    expect(hard).toBeGreaterThan(0.4);
   });
 });
