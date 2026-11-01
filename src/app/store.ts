@@ -8,7 +8,24 @@ import type { BotLevel, GameResult, PlayerIndex } from '../core/types';
  * `botLevels` holds a level picked for one game on that game's intro, which
  * wins there (a parent may want an easy Checkers bot but a normal Air Hockey one).
  */
-export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null; botLevels?: Record<string, BotLevel>; /** Swaps two-thumb controls (stick and FIRE); older saves are right-handed. */ lefty?: boolean; /** The bot level "Play the bot" brings back after "Play together". */ lastBot?: BotLevel };
+export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null; botLevels?: Record<string, BotLevel>; /** Swaps two-thumb controls (stick and FIRE); older saves are right-handed. */ lefty?: boolean; /** The bot level "Play the bot" brings back after "Play together". */ lastBot?: BotLevel; /** A name given to this seat's bot; a bot without one is called "Bot". */ botName?: string };
+
+/** What a bot seat is called when nobody named it. */
+export const BOT_NAME = 'Bot';
+
+/**
+ * The name a seat shows on screen and in the history. A bot never borrows the
+ * person's name (after "Play the bot", the top seat said "Player 2" or a
+ * sibling's name), and the person's name comes back when a person sits there.
+ */
+export function seatName(profiles: readonly [Profile, Profile], p: PlayerIndex): string {
+  const pr = profiles[p];
+  if (!pr.bot) return pr.name;
+  if (pr.botName) return pr.botName;
+  // Two unnamed bots (a demo match) still need names a viewer can tell apart.
+  const other = profiles[p === 0 ? 1 : 0];
+  return other.bot && !other.botName ? `${BOT_NAME} ${p + 1}` : BOT_NAME;
+}
 
 export const BOT_LEVELS: readonly BotLevel[] = ['easy', 'normal', 'hard'];
 
@@ -125,7 +142,7 @@ export class Store {
     const rec: MatchRecord = {
       game,
       at: Date.now(),
-      names: [this.data.profiles[0].name, this.data.profiles[1].name],
+      names: [seatName(this.data.profiles, 0), seatName(this.data.profiles, 1)],
       winner: result.winner,
       score: result.score,
       powers,

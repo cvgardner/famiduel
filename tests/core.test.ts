@@ -4,7 +4,7 @@ import { effectiveAssist, lerpAssist } from '../src/core/handicap';
 import { hashSeed, makeRng } from '../src/core/rng';
 import games from '../content/games.json';
 import powers from '../content/powers.json';
-import { Store, botFor, easierOffer } from '../src/app/store';
+import { Store, botFor, easierOffer, seatName } from '../src/app/store';
 
 describe('rng', () => {
   it('is deterministic per seed', () => {
@@ -127,6 +127,28 @@ describe('play the bot (solo)', () => {
     const m = new Map<string, string>();
     return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) } as Storage;
   };
+  it('calls the bot "Bot", never the person\'s name, and gives the name back after', () => {
+    const storage = mem();
+    const s = new Store(storage);
+    s.data.profiles[1].name = 'Mia';
+    expect(seatName(s.data.profiles, 1)).toBe('Mia');
+    s.setSolo(true);
+    expect(seatName(s.data.profiles, 1)).toBe('Bot');
+    expect(seatName(s.data.profiles, 0)).toBe('Player 1');
+    s.record('sumo', { winner: 1, score: [0, 1] }, [null, null]);
+    expect(s.data.history.at(-1)!.names).toEqual(['Player 1', 'Bot']);
+    s.data.profiles[1].botName = 'Robo';
+    expect(seatName(s.data.profiles, 1)).toBe('Robo');
+    s.setSolo(false);
+    expect(seatName(s.data.profiles, 1)).toBe('Mia');
+    expect(new Store(storage).data.profiles[1].name).toBe('Mia');
+  });
+  it('two unnamed bots get told apart', () => {
+    const s = new Store(mem());
+    s.setBot(0, 'easy');
+    s.setBot(1, 'hard');
+    expect([seatName(s.data.profiles, 0), seatName(s.data.profiles, 1)]).toEqual(['Bot 1', 'Bot 2']);
+  });
   it('puts an Easy bot in the top seat, and switching back makes both seats people', () => {
     const s = new Store(mem());
     expect(s.solo).toBe(false);

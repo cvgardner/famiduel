@@ -12,7 +12,7 @@ import { GAMES } from '../games/registry';
 import { demoHelpHtml, demoHtml, HelpMemory, howToHalfHtml, isGesture, showsDemo } from './demo';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
-import { BOT_LEVELS, PLAYER_COLORS, Store, botFor, easierOffer } from './store';
+import { BOT_LEVELS, BOT_NAME, PLAYER_COLORS, Store, botFor, easierOffer, seatName } from './store';
 
 export type GameMeta = (typeof gamesJson.games)[number];
 export const META: GameMeta[] = gamesJson.games;
@@ -139,7 +139,7 @@ export class App {
     const pr = this.store.data.profiles[p];
     const stars = pr.headStart ? `<small>${'★'.repeat(pr.headStart)}</small>` : '';
     const bot = pr.bot ? `<small class="botlbl">🤖 ${pr.bot}</small>` : '';
-    return `<button class="player-chip" data-p="${p}" style="--c:${pr.color}"><span class="dot"></span><span class="pname">${esc(pr.name)}</span>${stars}${bot}</button>`;
+    return `<button class="player-chip" data-p="${p}" style="--c:${pr.color}"><span class="dot"></span><span class="pname">${esc(seatName(this.store.data.profiles, p))}</span>${stars}${bot}</button>`;
   }
 
   private card(m: GameMeta): string {
@@ -162,10 +162,10 @@ export class App {
     modal.classList.remove('hidden', 'help');
     modal.innerHTML = `<div class="sheet">
       <h2>Player ${p + 1}</h2>
-      <label class="field">Name<input id="pName" maxlength="12" value="${esc(pr.name)}"/></label>
+      <label class="field">Name<input id="pName" maxlength="12" value="${esc(seatName(this.store.data.profiles, p))}"/></label>
       <div class="field">Colour <small>easy to tell apart, colour-blind eyes too</small><div class="swatches">${PLAYER_COLORS.map((c) => {
         const taken = c.hex === other.color;
-        return `<button class="swatch${c.hex === pr.color ? ' on' : ''}${taken ? ' taken' : ''}" data-c="${c.hex}" style="--sw:${c.hex}" aria-label="${taken ? `${c.name}, taken by ${esc(other.name)}` : c.name}" ${taken ? 'disabled' : ''}></button>`;
+        return `<button class="swatch${c.hex === pr.color ? ' on' : ''}${taken ? ' taken' : ''}" data-c="${c.hex}" style="--sw:${c.hex}" aria-label="${taken ? `${c.name}, taken by ${esc(seatName(this.store.data.profiles, p === 0 ? 1 : 0))}` : c.name}" ${taken ? 'disabled' : ''}></button>`;
       }).join('')}</div></div>
       <div class="field">Head start <small>help for younger players</small>
         <div class="seg" id="pHead">${[0, 1, 2, 3].map((n) => `<button data-v="${n}" class="${n === pr.headStart ? 'on' : ''}">${n ? '★'.repeat(n) : 'None'}</button>`).join('')}</div></div>
@@ -191,9 +191,20 @@ export class App {
     };
     seg('pHead', (v) => (head = Number(v)));
     seg('pHand', (v) => (lefty = v === 'left'));
-    seg('pBot', (v) => (bot = v === 'human' ? null : (v as BotLevel)));
+    // Switching between a person and a bot swaps the name field to that one's name,
+    // unless it was just typed.
+    const nameOf = (b: BotLevel | null) => (b ? pr.botName || BOT_NAME : pr.name);
+    seg('pBot', (v) => {
+      const next = v === 'human' ? null : (v as BotLevel);
+      const field = $<HTMLInputElement>('#pName', modal);
+      if (!!next !== !!bot && field.value.trim() === nameOf(bot)) field.value = nameOf(next);
+      bot = next;
+    });
     $('#pDone', modal).addEventListener('click', () => {
-      pr.name = ($<HTMLInputElement>('#pName', modal).value.trim() || `Player ${p + 1}`).slice(0, 12);
+      const typed = $<HTMLInputElement>('#pName', modal).value.trim().slice(0, 12);
+      if (!bot) pr.name = typed || `Player ${p + 1}`;
+      else if (typed && typed !== BOT_NAME) pr.botName = typed;
+      else delete pr.botName;
       pr.color = color;
       pr.headStart = head;
       if (lefty) pr.lefty = true;
@@ -233,7 +244,7 @@ export class App {
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>` : ''}
           ${bot ? botRow(p, bot) : `<button class="btn ready" id="ready${p}" data-p="${p}">${powers.length ? 'Pick a power' : 'Ready!'}</button>`}
-          <div class="who">${esc(pr.name)}${bot ? ' 🤖' : ''}</div>
+          <div class="who">${esc(seatName(this.store.data.profiles, p))}${bot ? ' 🤖' : ''}</div>
         </div>
       </div>`;
     };
@@ -311,7 +322,7 @@ export class App {
     const def = GAMES[meta.id];
     const players = ([0, 1] as PlayerIndex[]).map((p): PlayerInfo => {
       const pr = this.store.data.profiles[p];
-      return { name: pr.name, color: pr.color, assist: this.assistFor(p), power: this.picks[p], bot: botFor(pr, meta.id), lefty: !!pr.lefty };
+      return { name: seatName(this.store.data.profiles, p), color: pr.color, assist: this.assistFor(p), power: this.picks[p], bot: botFor(pr, meta.id), lefty: !!pr.lefty };
     }) as [PlayerInfo, PlayerInfo];
     const seed = this.fixedSeed !== null ? (this.fixedSeed + this.matchCount++) >>> 0 : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     const powersOn = this.store.data.settings.powers && !!this.picks[0] && !!this.picks[1];
@@ -477,7 +488,7 @@ export class App {
       return `<div class="half p${p} ${won ? 'won' : ''}" style="--c:${profiles[p].color}"><div class="half-inner">
         <div class="res-title">${title}</div>
         <div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>
-        <div class="who">${esc(profiles[p].name)}${won ? ' 🏆' : ''}</div>
+        <div class="who">${esc(seatName(profiles, p))}${won ? ' 🏆' : ''}</div>
         <div class="res-night">${solo ? (botHalf ? 'Bot' : 'You vs the bot') : 'Match night'}: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}</div>
         ${offer?.person === p ? `<button class="btn easier" id="easierBtn" data-v="${offer.to}" aria-label="Make the bot easier: ${level(offer.from)} to ${level(offer.to)}">🤖 Make the bot easier?</button>` : ''}
       </div></div>`;
