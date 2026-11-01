@@ -230,7 +230,7 @@ class QuickDrawView implements GameInstance {
       const f = g.fake;
       if (f && f.kind !== 'tumbleweed') {
         const [a, b] = FAKE_TEXT[f.kind];
-        const pop = Math.min(1, this.fakeT / 0.08);
+        const pop = 0.7 + 0.3 * Math.min(1, this.fakeT / 0.08);
         rrect(gx, 24, y - 34, W - 48, 68, 16, 'rgba(255,248,230,0.95)', '#c0392b', 3);
         text(gx, a, W / 2, y - 12, { size: 26 * pop, color: '#c0392b', weight: 900 });
         text(gx, b, W / 2, y + 16, { size: 20 * pop, color: '#5b3412' });
@@ -262,9 +262,9 @@ class QuickDrawView implements GameInstance {
       text(gx, `You ${ms(mine)}`, W / 2 - 74, y + 16, { size: 17, color: shade(this.ctx.players[p].color, -0.3) });
       text(gx, `Them ${ms(theirs)}`, W / 2 + 74, y + 16, { size: 17, color: shade(this.ctx.players[other(p)].color, -0.3) });
       const pen = r.penalty[p];
-      if (pen > 0.001 && mine !== null) text(gx, `(+${Math.round(pen * 1000)} ms handicap)`, W / 2 - 74, y + 33, { size: 11, color: 'rgba(80,50,20,0.7)' });
+      if (pen > 0.001 && mine !== null) text(gx, `+${Math.round(pen * 1000)} ms handicap`, W / 2 - 74, y + 32, { size: 13, color: 'rgba(80,50,20,0.7)' });
       const penO = r.penalty[other(p)];
-      if (penO > 0.001 && theirs !== null) text(gx, `(+${Math.round(penO * 1000)} ms handicap)`, W / 2 + 74, y + 33, { size: 11, color: 'rgba(80,50,20,0.7)' });
+      if (penO > 0.001 && theirs !== null) text(gx, `+${Math.round(penO * 1000)} ms handicap`, W / 2 + 74, y + 32, { size: 13, color: 'rgba(80,50,20,0.7)' });
     }
   }
 

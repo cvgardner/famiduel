@@ -196,6 +196,30 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
  * minimum; small children miss small targets more, so nothing goes below it.
  */
 const MIN_TARGET = 44;
+
+/**
+ * Text on menus must be at least MIN_FONT CSS px (Apple's minimum is 11 pt; early
+ * readers need more). Canvas text has its own floor, MIN_TEXT world units, checked
+ * while each game is played (`__smallText`).
+ */
+const MIN_FONT = 12;
+async function smallFonts(page: Page, screen: string): Promise<string[]> {
+  const bad = await page.evaluate((min) => {
+    const out: string[] = [];
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const str = (n.textContent ?? '').trim();
+      if ((str.match(/[\p{L}\p{N}]/gu) ?? []).length < 2) continue;
+      const el = n.parentElement;
+      if (!el || !el.checkVisibility({ visibilityProperty: true, opacityProperty: true })) continue;
+      if (el.getBoundingClientRect().width === 0) continue;
+      const px = parseFloat(getComputedStyle(el).fontSize);
+      if (px < min - 0.01) out.push(`${el.className || el.tagName} "${str.slice(0, 20)}" ${px}px`);
+    }
+    return out;
+  }, MIN_FONT);
+  return bad.map((b) => `${screen}: ${b}`);
+}
 async function smallTargets(page: Page, screen: string): Promise<string[]> {
   const bad = await page.evaluate((min) => {
     const els = [...document.querySelectorAll<HTMLElement>('button, label.toggle, [role="button"]')];
@@ -235,6 +259,7 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
   await page.setViewportSize({ width: 320, height: 568 });
   await boot(page, errors);
   const small: string[] = [];
+  const fonts: string[] = [];
   // A night in progress, so the "New night" link shows on home.
   await page.evaluate(() => {
     const a = (window as unknown as { __famiduel: Hook & { store: { data: { night: { wins: number[] } } } } }).__famiduel;
@@ -243,22 +268,27 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
     a.showHome();
   });
   small.push(...(await smallTargets(page, 'home')));
+  fonts.push(...(await smallFonts(page, 'home')));
   await page.locator('.player-chip[data-p="0"]').tap();
   small.push(...(await smallTargets(page, 'profile')));
+  fonts.push(...(await smallFonts(page, 'profile')));
   await page.locator('#pDone').tap();
   // One intro with powers, one without (Checkers has none), then play, pause, result.
   for (const id of ['airhockey', 'checkers']) {
     await setPlayers(page, [null, null]);
     await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
     small.push(...(await smallTargets(page, `${id} intro`)));
+    fonts.push(...(await smallFonts(page, `${id} intro`)));
     await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
   }
   await setPlayers(page, [null, 'normal']);
   await page.locator('.game-card[data-id="airhockey"]').tap();
   await introAsPeople(page, [0]);
   small.push(...(await smallTargets(page, 'play')));
+  fonts.push(...(await smallFonts(page, 'play')));
   await holdPause(page);
   small.push(...(await smallTargets(page, 'pause')));
+  fonts.push(...(await smallFonts(page, 'pause')));
   await page.click('#quitBtn');
   await setPlayers(page, ['normal', 'hard']);
   await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('airhockey'));
@@ -266,8 +296,10 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
   await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
   await expect(page.locator('#result')).toBeVisible();
   small.push(...(await smallTargets(page, 'result')));
+  fonts.push(...(await smallFonts(page, 'result')));
   if (small.length) await page.screenshot({ path: path.join(OUT, 'small-targets.png') });
   expect(small, `tap targets under ${MIN_TARGET}px on a 320x568 phone`).toEqual([]);
+  expect(fonts, `menu text under ${MIN_FONT}px on a 320x568 phone`).toEqual([]);
   expect(errors).toEqual([]);
 });
 
@@ -294,7 +326,10 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
       return '';
     }, g.id);
     if (ok && ok !== 'not built') problems.push(`${g.id}: ${ok}`);
-    else if (!ok) problems.push(...(await smallTargets(page, `${g.id} intro with a bot`)));
+    else if (!ok) {
+      problems.push(...(await smallTargets(page, `${g.id} intro with a bot`)));
+      problems.push(...(await smallFonts(page, `${g.id} intro with a bot`)));
+    }
   }
   expect(problems).toEqual([]);
   // A parent turns the Checkers bot down to Easy right on the intro.
@@ -669,6 +704,9 @@ for (const g of games.games) {
     row.finished = await page.locator('#result').isVisible();
     if (row.finished) await shot('result');
     expect(row.finished, 'bot vs bot reaches the result screen').toBe(true);
+    // Every word drawn on the canvas during all three matches, at a readable size.
+    const tiny = await page.evaluate(() => [...(window as unknown as { __smallText: Map<string, number> }).__smallText]);
+    expect(tiny.map(([str, size]) => `"${str}" at ${size}`), 'canvas text below the minimum size').toEqual([]);
     expect(errors).toEqual([]);
   });
 }

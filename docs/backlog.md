@@ -101,7 +101,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       nearest new colour (teal/green → Mint, and a clash moves Player 2). The playtest checks
       the picker and saves air hockey as protan / deutan / tritan players see it
       (`colours-airhockey-*.png`).
-- [ ] Accessibility: larger text option.
+- [x] 2026-11-01 (research run): readable text everywhere. Store reviews of the leading
+      2-player app complain the screen is cramped on small iPhones; kids' typography guidance
+      (Cantuni, "Typography in digital products for kids": early readers need a bigger
+      x-height than adults, sentence case over ALL CAPS) and Apple's 11 pt minimum vs our
+      canvas found 20 labels drawn at 9-12 world units, i.e. 8-10.7 px on a 320 px phone:
+      Minigolf's HOLE / TOTAL / "★ −1 a hole" / scorecard pars, Tanks' "1 bonk" and "Sudden
+      bonk" line, Snake's round line, Sea Battle's "Ships sunk", Ping Pong's "vs 3", Chop
+      Chop's "them: 4", Quick Draw's handicap note, Checkers' "Taken: none yet". Every word
+      or number on the canvas is now at least 13 units (`MIN_TEXT` in engine/draw.ts, 11.5 px
+      on a 320 px phone), Minigolf's headers are sentence case, and menu text is at least
+      12 px (game kinds, power descriptions were 11). A unit test scans every literal text
+      size; the playtest records every word drawn while it plays each game and fails on
+      one under the floor, and checks menu font sizes on a 320×568 phone.
+- [ ] Accessibility: larger text option (a setting that scales canvas text and menus ~1.25×;
+      needs the intros to fit at that size).
 
 ## Content
 - [ ] Mini pool (first update).
@@ -176,6 +190,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tap is a click with detail 0, which pauses at once. Check that on a real phone.
 - [ ] Guided Access / screen pinning tip on the home screen for parents of toddlers (the
       OS-level way to stop a kid leaving the app), behind the parental gate.
+
+## Ideas found 2026-11-01 (text size run)
+- [ ] Reviews of the leading app: a game where the first shooter wins if they score every
+      shot (basketball). Check every turn-based game for a first-mover edge in sims (Penalty
+      already alternates with sudden death; Minigolf's lead-off alternates).
+- [ ] Contrast: dim labels are white at 60% on dark panels; check every label against
+      WCAG 4.5:1 (smaller text needs it most).
 
 ## Ideas found 2026-10-31 (ghost finger run)
 - [ ] Ghost finger in play: show the same gesture once over each player's own half at the

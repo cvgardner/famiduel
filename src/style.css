@@ -44,7 +44,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .game-card.soon { filter: grayscale(0.85) brightness(0.6); cursor: default; }
 .gicon { font-size: 34px; line-height: 1.1; }
 .gname { font-weight: 900; font-size: 14px; text-align: center; line-height: 1.1; }
-.gkind { font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 600; }
+.gkind { font-size: 12px; color: rgba(255,255,255,0.8); font-weight: 600; }
 .settings { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .toggle { display: flex; align-items: center; gap: 6px; background: var(--bg2); padding: 8px 12px; min-height: 44px; border-radius: 999px; font-weight: 700; font-size: 14px; }
 .toggle input { accent-color: var(--gold); width: 18px; height: 18px; }
@@ -86,7 +86,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .power-card.on { border-color: var(--gold); background: rgba(255,213,74,0.18); }
 .power-card .picon { font-size: 26px; }
 .power-card b { font-size: 13px; }
-.power-card small { font-size: 11px; color: var(--dim); line-height: 1.2; }
+.power-card small { font-size: 12px; color: var(--dim); line-height: 1.2; }
 .btn.ready { min-width: 180px; background: var(--c); color: #fff; }
 .btn.ready.on { background: var(--good, #4ade80); color: #14112b; }
 .who { font-weight: 800; color: var(--c); }

@@ -547,10 +547,10 @@ class SeaBattleView implements GameInstance {
     }
     // Right panel: score + power
     const sunkBy = (p: PlayerIndex) => g.score[p];
-    text(gx, 'Ships sunk', 264, 594, { size: 12, color: COLORS.dim, weight: 700 });
+    text(gx, 'Ships sunk', 264, 594, { size: 13, color: COLORS.dim, weight: 700 });
     text(gx, `${sunkBy(v)} – ${sunkBy(other(v))}`, 264, 570, { size: 26, color: '#fff' });
-    text(gx, `you`, 236, 548, { size: 11, color: alpha(vc, 0.9) });
-    text(gx, `them`, 292, 548, { size: 11, color: alpha(this.ctx.players[other(v)].color, 0.9) });
+    text(gx, `you`, 236, 548, { size: 13, color: alpha(vc, 0.9) });
+    text(gx, `them`, 292, 548, { size: 13, color: alpha(this.ctx.players[other(v)].color, 0.9) });
     const btn = this.powerBtn[v];
     if (btn && m.kind !== 'over') {
       if (this.armed && m.kind === 'fire') {
