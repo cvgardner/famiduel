@@ -12,6 +12,7 @@ import { GAMES } from '../games/registry';
 import { demoHelpHtml, demoHtml, HelpMemory, howToHalfHtml, isGesture, showsDemo } from './demo';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
+import { homeGroups } from './homegroups';
 import { BOT_LEVELS, BOT_NAME, PLAYER_COLORS, Store, botFor, easierOffer, seatName } from './store';
 
 export type GameMeta = (typeof gamesJson.games)[number];
@@ -95,9 +96,12 @@ export class App {
         <div class="night-score"><b style="color:${profiles[0].color}">${night.wins[0]}</b><span>${solo ? 'You vs the bot' : 'Match night'} · ${played} game${played === 1 ? '' : 's'}</span><b style="color:${profiles[1].color}">${night.wins[1]}</b></div>
         ${played ? `<button id="newNightBtn" class="link">${solo ? 'Start over' : 'New night'}</button>` : ''}
       </section>
-      <section class="grid" aria-label="Games">
-        ${META.map((m) => this.card(m)).join('')}
-      </section>
+      <div class="games">
+        ${homeGroups(META).map((g) => `<section class="group" data-group="${g.id}" aria-labelledby="grp-${g.id}">
+          <h2 class="group-title" id="grp-${g.id}">${g.title}</h2>
+          <div class="grid">${g.games.map((m) => this.card(m)).join('')}</div>
+        </section>`).join('')}
+      </div>
       <section class="settings">
         ${this.toggle('powers', '⚡ Super powers', settings.powers)}
         ${this.toggle('autoHandicap', '⚖️ Auto handicap', settings.autoHandicap)}
