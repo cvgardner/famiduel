@@ -9,7 +9,7 @@ import { PowerButton } from '../../engine/widgets';
 import { clamp, H, W } from '../../engine/world';
 import { cellsOf, isSunk, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIP_NAMES, SHIPS, strikeCells, type Move } from './logic';
 import { inkOn } from '../../core/contrast';
-import { botBeat, botResultTitle, shooterBeat, shooterResult } from './beat';
+import { botBeat, botResultTitle, openingLine, shooterBeat, shooterResult } from './beat';
 
 // Layout, in the viewer's frame (the viewer sits at the bottom).
 const C = 27;
@@ -60,6 +60,8 @@ class SeaBattleView implements GameInstance {
   private again = 0;
   /** The header line last drawn (read by the playtest). */
   header = '';
+  /** "You go first!" / "<name> goes first" once popped over the sea (read by the playtest). */
+  announced: string | null = null;
   private keyCell = 44;
   private ended = false;
   private t = 0;
@@ -162,6 +164,22 @@ class SeaBattleView implements GameInstance {
     return this.game.firstShooter;
   }
 
+  /** Who starts, said until the first shell is fired (the countdown can't: the coin falls after placement). */
+  private opening(shooter: PlayerIndex, viewer: PlayerIndex = this.viewer): string | null {
+    if (this.humans.length === 0) return null;
+    const g = this.game;
+    return openingLine(g.firstShooter, shooter, viewer, g.shotsFired[0] + g.shotsFired[1], this.ctx.players[shooter].name);
+  }
+
+  /** Pop the opening line over the sea once, as the first turn starts. */
+  private announceOpening(shooter: PlayerIndex): void {
+    if (this.announced !== null) return;
+    const line = this.opening(shooter);
+    if (!line) return;
+    this.announced = line;
+    this.pop(line, W / 2, GY + (N * C) / 2, COLORS.gold, line === 'You go first!' ? 30 : 24);
+  }
+
   update(dt: number, input: Input): void {
     this.t += dt;
     const m = this.mode;
@@ -184,8 +202,12 @@ class SeaBattleView implements GameInstance {
       }
     } else if (m.kind === 'place') this.placeInput(m.p, input);
     else if (m.kind === 'fire') {
+      this.announceOpening(m.p);
       if (!busy) this.fireInput(m.p, input, taps);
-    } else if (m.kind === 'bot') this.botStep(m, busy);
+    } else if (m.kind === 'bot') {
+      this.announceOpening(m.p);
+      this.botStep(m, busy);
+    }
     else if (m.kind === 'after') {
       // Like the bot's beat: counted from when the last shell lands, so the shooter
       // sees where it went (and two people read "pass the phone") before the hand-over.
@@ -488,7 +510,8 @@ class SeaBattleView implements GameInstance {
     const o = other(m.p);
     text(gx, '🙈', W / 2, 150, { size: 64 });
     text(gx, `${this.ctx.players[o].name}, look away!`, W / 2, 222, { size: 20, color: COLORS.dim, weight: 700 });
-    text(gx, m.next === 'place' ? 'Hide your fleet' : 'Your turn to fire', W / 2, 300, { size: 22, color: '#fff', weight: 700 });
+    const first = m.next === 'fire' ? this.opening(m.p, m.p) : null;
+    text(gx, m.next === 'place' ? 'Hide your fleet' : first ?? 'Your turn to fire', W / 2, 300, { size: 22, color: '#fff', weight: 700 });
     text(gx, pl.name, W / 2, 344, { size: 40, color: pl.color, stroke: 'rgba(0,0,0,0.4)' });
     const s = 1 + 0.05 * Math.sin(this.t * 5);
     rrect(gx, W / 2 - 140 * s, 410, 280 * s, 70, 35, pl.color, '#fff', 3);
@@ -527,12 +550,14 @@ class SeaBattleView implements GameInstance {
       sub = 'Tap a ship to turn it · drag to move it';
     } else if (m.kind === 'fire') {
       const again = this.again > 0 && this.shells.length === 0;
-      title = this.armed === 'mine' ? 'Hide a mine' : again ? `${an}, go again!` : `${an}, fire!`;
+      const first = this.opening(m.p);
+      title = this.armed === 'mine' ? 'Hide a mine' : again ? `${an}, go again!` : first ? `${an}, you go first!` : `${an}, fire!`;
       sub = again && !this.armed ? 'A hit! Fire again: tap, tap again' : this.armed === 'radar' ? 'Tap a spot to scan 3×3, tap again to scan' : this.armed === 'airstrike' ? 'Pick a row spot, tap again to strike 5 cells' : this.armed === 'mine' ? 'Tap empty water in your sea, tap again to hide it' : g.shotsLeft > 1 ? `Bonus: ${g.shotsLeft} shots this turn! Tap, tap again to fire` : 'Tap a square, tap it again to fire';
     } else if (m.kind === 'bot') {
       const landed = g.turn !== m.p && this.shells.length === 0;
       const again = !landed && this.again > 0 && this.shells.length === 0;
-      title = landed ? botResultTitle(an, this.turnLog[m.p], lay.bigShips) : again ? `Hit! ${an} goes again…` : `${an} is aiming…`;
+      const first = landed || again ? null : this.opening(m.p);
+      title = landed ? botResultTitle(an, this.turnLog[m.p], lay.bigShips) : again ? `Hit! ${an} goes again…` : first ? `${first}…` : `${an} is aiming…`;
       sub = landed && lay.bigShips ? 'Look where it landed' : lay.bigShips ? 'Watch your fleet!' : `Firing at ${this.ctx.players[other(a)].name}`;
     } else if (m.kind === 'after') {
       ({ title, sub } = shooterResult(this.volley, this.turnLog[m.p], this.twoHumans, this.shells.length > 0));

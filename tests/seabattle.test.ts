@@ -363,3 +363,34 @@ describe("sea battle: your own shot's result stays on screen", () => {
     expect(src).toMatch(/if \(busy\) m\.t = 0;\s*else if \(m\.t > shooterBeat\(this\.volley, this\.twoHumans\)\) this\.advance\(\);/);
   });
 });
+
+describe('sea battle opening line', () => {
+  it('tells the first shooter they go first, and a watching person who does', async () => {
+    const { openingLine } = await import('../src/games/seabattle/beat');
+    expect(openingLine(0, 0, 0, 0, 'Mia')).toBe('You go first!');
+    expect(openingLine(1, 1, 0, 0, 'Bot')).toBe('Bot goes first');
+    expect(openingLine(1, 1, 0, 0, 'Grandma Josephine')).toBe('Grandma Jos… goes first');
+  });
+
+  it('says nothing before the coin falls, on the second turn, or once a shell is fired', async () => {
+    const { openingLine } = await import('../src/games/seabattle/beat');
+    expect(openingLine(null, 0, 0, 0, 'Mia')).toBeNull();
+    expect(openingLine(0, 1, 1, 0, 'Leo')).toBeNull();
+    expect(openingLine(0, 0, 0, 1, 'Mia')).toBeNull();
+  });
+
+  it('follows the real first shooter, including a rematch starter', async () => {
+    const { openingLine } = await import('../src/games/seabattle/beat');
+    for (const starter of [0, 1] as PlayerIndex[]) {
+      const g = new SeaBattle([player({}), player({})], false, makeRng(3), starter);
+      g.setReady(0);
+      g.setReady(1);
+      expect(g.firstShooter).toBe(starter);
+      const shots = () => g.shotsFired[0] + g.shotsFired[1];
+      expect(openingLine(g.firstShooter, g.turn, g.turn, shots(), 'x')).toBe('You go first!');
+      const open = [...g.seas[other(starter)].marks].findIndex((k) => k === MARK.none);
+      expect(g.apply({ kind: 'fire', cell: open })).toBe(true);
+      expect(openingLine(g.firstShooter, starter, starter, shots(), 'x')).toBeNull();
+    }
+  });
+});

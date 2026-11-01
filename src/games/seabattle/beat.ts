@@ -45,3 +45,17 @@ export function shooterResult(volley: TurnLog, turn: TurnLog, passing: boolean, 
   const tally = !volley.hits && earlier > 0 ? `${earlier} hit${earlier > 1 ? 's' : ''} this turn` : '';
   return { title, sub: [tally, pass].filter(Boolean).join(' · ') };
 }
+
+/**
+ * The opening shot. Sea Battle only picks its first shooter after both fleets are
+ * hidden, so the countdown can't say who starts (it does in the other turn games),
+ * and a rematch's swap of the first shooter went unseen. Until the first shell is
+ * fired, the screen says it: the shooter reads "You go first!", and a person
+ * watching a bot start reads "<bot> goes first". Null once the match is under way.
+ */
+export function openingLine(firstShooter: number | null, shooter: number, viewer: number, shotsFired: number, name: string): string | null {
+  if (firstShooter === null || shotsFired > 0 || shooter !== firstShooter) return null;
+  if (viewer === shooter) return 'You go first!';
+  const short = name.length > 12 ? `${name.slice(0, 11)}…` : name;
+  return `${short} goes first`;
+}
