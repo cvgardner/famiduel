@@ -10,7 +10,7 @@
       "blurb": "Push the other wrestler out. Best of 3.", "howTo": "Your wrestler turns slowly. Hold your side of the screen to stop and charge, let go to dash where the arrow points. The rope catches you 3 times a round if you slip out alone.",
       "handicap": "Heavier wrestler, more room and more rope saves at the edge" },
     { "id": "pingpong", "gesture": "slide", "name": "Ping Pong", "icon": "🏓", "kind": "Action", "free": false, "color": "#ff5c7a",
-      "blurb": "First to 7, win by 2. Rallies heat up.", "howTo": "Slide to move your paddle. Push it toward the net as you hit to drive, push fast to SMASH. Swipe sideways through the ball to curve it.",
+      "blurb": "First to 7, win by 2. Rallies heat up.", "howTo": "Slide to move your paddle. Push it toward the net as you hit to drive; flick hard and straight to SMASH. Swipe sideways or at an angle through the ball to curve it.",
       "handicap": "Bigger paddle, slower ball toward you" },
     { "id": "snacksnatch", "gesture": "sides", "name": "Snack Snatch", "icon": "🐸", "kind": "Frantic", "free": false, "color": "#b06cff",
       "blurb": "Most points in 30 seconds. Gold snacks are worth 3.", "howTo": "Tap the left or right of your side to snap that critter at the snacks. A miss makes it dizzy for a moment. The last 10 seconds are a Frenzy: more snacks, flying faster.",
