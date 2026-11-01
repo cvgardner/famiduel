@@ -5,7 +5,7 @@ import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../e
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
-import { CONTROLS_Y, controlsFor, FIRE_R, STICK_R, type Controls } from './controls';
+import { CONTROLS_Y, controlsFor, FIRE_R, FIRE_RIM, fireLook, STICK_R, type Controls } from './controls';
 import { COLS, LAYOUTS, ROWS } from './mazes';
 import { ARENA, CELL, IDLE, RULES, TankBot, TankDuel, type Intent, type Tank } from './logic';
 
@@ -491,14 +491,19 @@ class TankView implements GameInstance {
     const ready = live && g.canFire(p);
     const press = this.fireHeld[p] > 0;
     const r = press ? FIRE_R * 0.9 : FIRE_R;
-    circle(gx, f.x, f.y + 4, r, 'rgba(0,0,0,0.35)');
+    const look = fireLook(c, ready);
+    const rr = r + FIRE_RIM;
+    circle(gx, f.x, f.y + 4, rr, 'rgba(0,0,0,0.35)');
     if (tk.bouncy > 0) glow(gx, COLORS.gold, 14);
-    circle(gx, f.x, f.y, r, ready ? '#ff5c5c' : '#8a5560', 'rgba(255,255,255,0.6)', 3);
+    // The owner's colour as a band around the red button, with a dark gap so a red-ish
+    // player colour (Pink) still reads as a separate ring.
+    circle(gx, f.x, f.y, rr, look.rim);
     noGlow(gx);
+    circle(gx, f.x, f.y, r + 1, look.fill, look.gap, 2.5);
     circle(gx, f.x, f.y - r * 0.25, r * 0.7, 'rgba(255,255,255,0.12)');
     if (tk.reload > 0) {
       gx.beginPath();
-      gx.arc(f.x, f.y, r + 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - tk.reload / RULES.reload));
+      gx.arc(f.x, f.y, rr + 4, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - tk.reload / RULES.reload));
       gx.strokeStyle = alpha('#ffffff', 0.7);
       gx.lineWidth = 3;
       gx.stroke();
@@ -506,7 +511,7 @@ class TankView implements GameInstance {
     text(gx, 'FIRE', f.x, f.y, { size: 17, player: p, color: '#ffffff', stroke: 'rgba(0,0,0,0.35)' });
     const left = RULES.maxShells - g.shellsOf(p);
     for (let i = 0; i < RULES.maxShells; i++) {
-      const o = seat(p, cs.fireX - 16 + i * 16, CONTROLS_Y - FIRE_R - 13);
+      const o = seat(p, cs.fireX - 16 + i * 16, CONTROLS_Y - FIRE_R - FIRE_RIM - 15);
       circle(gx, o.x, o.y, 5, i < left ? (tk.bouncy > 0 ? COLORS.gold : '#ffffff') : 'rgba(255,255,255,0.18)', 'rgba(0,0,0,0.3)', 1.5);
     }
     // Hearts (armor left), readable from either side
