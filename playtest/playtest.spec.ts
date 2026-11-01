@@ -159,6 +159,27 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
   const shown = await page.locator('.game-card').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.id));
   expect(shown, 'home grid order').toEqual(games.games.map((g) => g.id));
   await page.screenshot({ path: path.join(OUT, 'home-small-phone.png') });
+  // The grid is split into labelled groups so a parent can find a calm game: each heading
+  // shows, sits right above its own cards, and the groups come in the list's order.
+  const groups = await page.locator('.group').evaluateAll((els) =>
+    els.map((g) => {
+      const h = g.querySelector('.group-title') as HTMLElement;
+      const first = g.querySelector('.game-card') as HTMLElement;
+      const hr = h.getBoundingClientRect();
+      const cr = first.getBoundingClientRect();
+      return { id: (g as HTMLElement).dataset.group, title: h.textContent, h: hr.height, gap: cr.top - hr.bottom, cards: g.querySelectorAll('.game-card').length };
+    }),
+  );
+  expect(groups.map((g) => g.id), 'home groups').toEqual(['action', 'board', 'extra']);
+  for (const g of groups) {
+    expect(g.h, `${g.id} heading visible`).toBeGreaterThan(10);
+    expect(g.gap, `${g.id} heading sits above its cards`).toBeGreaterThanOrEqual(0);
+    expect(g.gap, `${g.id} heading sits right above its cards`).toBeLessThan(16);
+  }
+  expect(groups.reduce((n, g) => n + g.cards, 0)).toBe(games.games.length);
+  await page.locator('.group[data-group="board"] .group-title').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: path.join(OUT, 'home-groups.png') });
+  await page.evaluate(() => window.scrollTo(0, 0));
   const clipped: string[] = [];
   // A common Android size, and the smallest iPhone still in families' drawers (SE 1st gen).
   for (const [w, h] of [[360, 640], [320, 568]]) {
