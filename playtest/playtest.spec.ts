@@ -517,9 +517,15 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
   await boot(page, errors);
   type H = Hook & { runner: { players: { bot: string | null }[]; result: unknown } | null };
   await expect(page.locator('#modeSeg button.on')).toHaveAttribute('data-v', 'together');
+  // The top seat has a sibling's name; the bot must not borrow it.
+  await page.locator('.player-chip[data-p="1"]').tap();
+  await page.locator('#pName').fill('Mia');
+  await page.locator('#pDone').tap();
+  await expect(page.locator('.player-chip[data-p="1"] .pname')).toHaveText('Mia');
   await page.locator('#modeSeg button[data-v="solo"]').tap();
   await expect(page.locator('#modeSeg button.on')).toHaveAttribute('data-v', 'solo');
   await expect(page.locator('.player-chip[data-p="1"] .botlbl')).toContainText('easy');
+  await expect(page.locator('.player-chip[data-p="1"] .pname')).toHaveText('Bot');
   await expect(page.locator('.night-score span')).toContainText('You vs the bot · 0 games');
   expect(await smallTargets(page, 'home solo')).toEqual([]);
   await page.screenshot({ path: path.join(OUT, 'solo-home.png') });
@@ -528,6 +534,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
   for (const id of built) {
     await page.locator(`.game-card[data-id="${id}"]`).tap();
     await expect(page.locator('#intro .half.p1.bot'), `${id}: bot half on the intro`).toBeVisible();
+    await expect(page.locator('#intro .half.p1 .who'), id).toHaveText('Bot 🤖');
     await introAsPeople(page, [0]);
     expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players.map((p) => p.bot)), id).toEqual([null, 'easy']);
     // The bot wins this one (ended by hand to keep the pass short).
@@ -537,6 +544,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     await expect(page.locator('#result')).toBeVisible();
     n++;
     await expect(page.locator('#result .half.p1 .res-title'), id).toHaveText('Bot wins');
+    await expect(page.locator('#result .half.p1 .who'), id).toHaveText('Bot 🏆');
     await expect(page.locator('#result .half.p0 .res-title'), id).toHaveText('So close!');
     await expect(page.locator('#result .half.p0 .res-night'), id).toHaveText(`You vs the bot: 0 – ${n}`);
     if (id === 'airhockey') await page.screenshot({ path: path.join(OUT, 'solo-result.png') });
@@ -546,6 +554,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
   // The family's match night never saw those games, and solo survives a reload.
   await page.locator('#modeSeg button[data-v="together"]').tap();
   await expect(page.locator('.night-score span')).toContainText('Match night · 0 games');
+  await expect(page.locator('.player-chip[data-p="1"] .pname')).toHaveText('Mia');
   expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.store.data.profiles.map((p) => p.bot))).toEqual([null, null]);
   await page.locator('#modeSeg button[data-v="solo"]').tap();
   await page.reload();
@@ -1408,7 +1417,7 @@ const PEOPLE: Record<string, Person> = {
 };
 
 // The waiting seat's pill in the board games says who is thinking while the bot moves
-// ("🤖 Player 2 is thinking…"), "Waiting…" between two people, and never the old grey
+// ("🤖 Bot is thinking…"), "Waiting…" between two people, and never the old grey
 // "<name>'s turn" line Four in a Row used to show.
 const boardPersons: [string, Person][] = [['checkers', checkersPerson], ['fourinarow', fourInARowPerson], ['tictactoe', ticTacToePerson]];
 for (const [id, person] of boardPersons) {
@@ -1421,7 +1430,7 @@ for (const [id, person] of boardPersons) {
     await page.locator(`.game-card[data-id="${id}"]`).tap();
     await introAsPeople(page, [0]);
     await page.waitForTimeout(2200); // countdown
-    const botLine = '🤖 Player 2 is thinking…';
+    const botLine = '🤖 Bot is thinking…';
     const seen = () =>
       page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, unknown> } }).__contrast.seen.keys()]);
     // Play the person's moves for a while; catch the bot's think on camera once.

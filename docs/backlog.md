@@ -636,4 +636,22 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       bot half reads "Bot wins / Bot lost". A playtest plays every game solo from the switch.
 - [ ] Air hockey "walks away" playtest failed once in a full `npm run verify` (no result after
       fastForward(600)) and passed in 4 reruns, alone and in the full playtest. Watch for flakes.
-- [ ] Solo: the bot still shows the top seat's name ("Player 2"). Call it "Bot" in solo play?
+- [x] 2026-11-01: Solo: the bot is called "Bot". After "Play the bot" it borrowed the top
+      seat's person's name ("Player 2", or a sibling's name like Mia) on the home chip, the
+      intro, the result screen, in-game lines ("Mia is thinking…", "Mia goes first") and the
+      saved history. `seatName()` in `app/store.ts` now names an unnamed bot "Bot" ("Bot 1" /
+      "Bot 2" when two bots play a demo); a name typed on the player sheet while the seat is a
+      bot is kept as that bot's own (`botName`), and the person's name comes back on "Play
+      together". Unit tested; the solo playtest names the top seat Mia, then checks "Bot" on
+      the chip, every intro and result, and "Mia" again after switching back.
+
+      Four in a Row's player name (in the player's colour) got the dark pop outline: the
+      contrast probe caught "Bot 2" in pink at 3.4:1 on the pink glow of the active panel.
+
+## Ideas found 2026-11-01 (bot name run)
+- [ ] Other games print the name in the player's colour on a tinted panel; Sumo and Sea
+      Battle already have an outline, but a shared `nameLabel()` would keep them alike.
+- [ ] Bot names with character: each bot level could have a friendly name and face (e.g. a
+      sleepy robot for Easy) so a kid knows which one they are beating, without new words.
+- [ ] Saves from before this change that named a bot on the sheet now show "Bot"; harmless
+      before launch, but a save migration would be needed after.
