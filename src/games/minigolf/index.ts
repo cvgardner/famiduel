@@ -679,11 +679,11 @@ class MinigolfView implements GameInstance {
     if (p === shooter) {
       const y = MID + 70;
       rrect(gx, 30, y - 26, W - 60, 52, 26, c, '#ffffff', 3);
-      text(gx, 'YOUR SHOT!', W / 2, y, { size: 30, color: '#ffffff', stroke: shade(c, -0.5), alpha: fade });
+      text(gx, 'YOUR SHOT!', W / 2, y, { size: 30, color: '#ffffff', stroke: shade(c, -0.5) });
     } else {
       const y = H - STRIP - 22;
       rrect(gx, 60, y - 15, W - 120, 30, 15, 'rgba(10,12,28,0.8)', alpha(c, 0.9), 2);
-      text(gx, `${this.ctx.players[shooter].name}'s shot`, W / 2, y, { size: 17, color: c, alpha: fade });
+      text(gx, `${this.ctx.players[shooter].name}'s shot`, W / 2, y, { size: 17, color: c });
     }
     gx.globalAlpha = 1;
   }
@@ -694,15 +694,14 @@ class MinigolfView implements GameInstance {
     gx.globalAlpha = Math.max(0, k);
     const y = MID + 150;
     rrect(gx, 40, y - 62, W - 80, 124, 20, 'rgba(10,12,28,0.88)', 'rgba(255,255,255,0.3)', 2);
-    // text() draws at its own alpha, so pass the card's: the words fade in with
-    // their dark card instead of popping onto the bright grass ahead of it.
-    const fade = Math.max(0, k);
-    text(gx, `HOLE ${g.holeIdx + 1} OF ${g.holes.length}`, W / 2, y - 38, { size: 13, color: COLORS.dim, alpha: fade });
-    text(gx, g.hole.name, W / 2, y - 10, { size: 28, color: '#ffffff', alpha: fade });
-    text(gx, `Par ${g.hole.par}`, W / 2, y + 18, { size: 15, color: COLORS.gold, alpha: fade });
+    // text() multiplies the canvas's alpha, so the words fade in with their dark
+    // card instead of popping onto the bright grass ahead of it.
+    text(gx, `HOLE ${g.holeIdx + 1} OF ${g.holes.length}`, W / 2, y - 38, { size: 13, color: COLORS.dim });
+    text(gx, g.hole.name, W / 2, y - 10, { size: 28, color: '#ffffff' });
+    text(gx, `Par ${g.hole.par}`, W / 2, y + 18, { size: 15, color: COLORS.gold });
     const lead = g.leadOff;
     const who = lead === p ? 'You tee off first' : `${this.ctx.players[lead].name} tees off first`;
-    text(gx, who, W / 2, y + 42, { size: 14, color: this.ctx.players[lead].color, weight: 700, alpha: fade });
+    text(gx, who, W / 2, y + 42, { size: 14, color: this.ctx.players[lead].color, weight: 700 });
     gx.globalAlpha = 1;
   }
 
