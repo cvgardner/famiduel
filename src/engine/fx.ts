@@ -6,6 +6,13 @@ import { W, H } from './world';
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number };
 type Floater = { str: string; x: number; y: number; life: number; max: number; color: string; size: number; player: 0 | 1 };
 
+/**
+ * Outline round pop-up words. Pops land on anything (dark floors, sand, grass),
+ * so the outline is what they are read against: 75% black keeps even orange and
+ * pink pops at 4.5:1 on Sumo's pale sand (at 50% "Last rope save!" was 2.4:1).
+ */
+export const POP_OUTLINE = 'rgba(0,0,0,0.75)';
+
 export class Fx {
   private particles: Particle[] = [];
   private floaters: Floater[] = [];
@@ -74,7 +81,7 @@ export class Fx {
     }
     g.globalAlpha = 1;
     for (const f of this.floaters) {
-      text(g, f.str, f.x, f.y, { size: f.size, color: f.color, player: f.player, stroke: 'rgba(0,0,0,0.5)', alpha: Math.min(1, f.life / f.max * 1.6) });
+      text(g, f.str, f.x, f.y, { size: f.size, color: f.color, player: f.player, stroke: POP_OUTLINE, alpha: Math.min(1, f.life / f.max * 1.6) });
     }
     if (this.flashT > 0) {
       g.globalAlpha = (this.flashT / 0.18) * 0.35;

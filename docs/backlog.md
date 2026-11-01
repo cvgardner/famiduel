@@ -13,6 +13,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2-0 inside the 8 s real-time window, so the pause button it tried to tap was gone.
       The playtest now leaves a finished match through the result screen and records it
       as a warning instead of hanging.
+- [x] 2026-11-01: main was red again. The Sumo playtest found "Last rope save!" at 2.4:1 on
+      the pale sand (orange #ff8a5c with the pop's 50% black outline); it only shows when a
+      wrestler uses their last rope save, so earlier runs never saw it. "The ring shrinks!"
+      (same orange) was 2.4:1 too. Every pop-up word in every game now has a 75% black
+      outline (`POP_OUTLINE` in engine/fx.ts): both reach 5:1+. A unit test reads every
+      `fx.pop` in Sumo from the source and checks its colour at its size on both sand tones,
+      so rare pops are checked every run, not only when a match happens to trigger them.
 
 ## Feel and fairness
 - [x] 2026-10-31: Sumo: the normal bot beat a mashing player 2-0 in under 8 s. Measured:
@@ -325,3 +332,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       screens' text (computed colour vs the element's background) would cover them.
 - [ ] The playtest only plays Blue vs Pink; run the contrast pass once with Mint vs Orange
       (the lightest pair) so labels drawn in a player's colour are checked at their worst.
+
+## Ideas found 2026-11-01 (pop outline run)
+- [ ] Extend the source check of `fx.pop` colours to every game against its own play
+      surfaces (Quick Draw sand, Minigolf grass, Ping Pong table), so rare pops elsewhere
+      are covered too; needs each view to export its surface colours.
+- [ ] Purple on the dark floor (#14112b) is about 4.2:1, so a small (15-16 px) pop in a
+      Purple player's colour ("they used …" in Snake/Tanks) is below 4.5:1; the playtest
+      only plays Blue vs Pink. Run one pass with Purple and Mint and give player-colour
+      pops a lighter tint or a larger size.

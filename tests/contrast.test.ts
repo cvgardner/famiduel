@@ -46,3 +46,38 @@ describe('text contrast', () => {
     expect(contrastRatio([255, 255, 255], rgb('#15e5b4'))).toBeLessThan(3);
   });
 });
+
+describe('pop-up words', () => {
+  // Every fx.pop in Sumo, read against the ring it lands on. The playtest only
+  // sees a pop when the match happens to trigger it ("Last rope save!" is rare),
+  // so this checks each one from the source, at its own size.
+  it("Sumo's pops read on its pale sand", async () => {
+    const fs = await import('node:fs');
+    const { POP_OUTLINE } = await import('../src/engine/fx');
+    const { COLORS } = await import('../src/engine/draw');
+    const src = fs.readFileSync('src/games/sumo/index.ts', 'utf8');
+    const consts = Object.fromEntries([...src.matchAll(/^const ([A-Z_]+) = '(#[0-9a-f]{3,6})'/gim)].map((m) => [m[1], m[2]]));
+    const colour = (expr: string): string[] => {
+      const lit = [...expr.matchAll(/'(#[0-9a-f]{3,6})'/gi)].map((m) => m[1]);
+      const named = [...expr.matchAll(/COLORS\.(\w+)/g)].map((m) => (COLORS as Record<string, string>)[m[1]]);
+      const own = [...expr.matchAll(/\b([A-Z_]{3,})\b/g)].map((m) => consts[m[1]]).filter(Boolean);
+      const seats = /players\[/.test(expr) ? PLAYER_COLORS.map((c) => c.hex) : [];
+      return [...lit, ...named, ...own, ...seats];
+    };
+    const pops = [...src.matchAll(/fx\.pop\(([^;]*)\);/g)].map((m) => m[1]);
+    expect(pops.length).toBeGreaterThan(3);
+    const outline = parseColor(POP_OUTLINE)!;
+    const faint: string[] = [];
+    for (const call of pops) {
+      const args = call.split(/,(?![^(]*\))/);
+      const size = Number(args[args.length - 1]) || 22;
+      for (const fill of colour(args.slice(3).join(','))) {
+        for (const bg of [consts.SAND, consts.SAND_DARK]) {
+          const r = labelContrast(parseColor(fill)!, rgb(bg), 1, outline);
+          if (r < contrastNeeded(size, 800)) faint.push(`${args[0].trim()} ${fill} on ${bg}: ${r.toFixed(1)}:1`);
+        }
+      }
+    }
+    expect(faint).toEqual([]);
+  });
+});
