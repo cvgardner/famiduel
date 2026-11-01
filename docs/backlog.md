@@ -295,7 +295,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 ## Ideas found 2026-10-31 (ghost finger run)
 - [ ] Ghost finger in play: show the same gesture once over each player's own half at the
       first serve / first turn of a first match (needs a view hook per game for where).
-- [ ] A "?" on the intro to bring the ghost finger back after the first 3 matches.
+- [x] 2026-11-01: A "?" brings the ghost finger back. After a game's first 3 matches the
+      finger used to vanish for good, so a kid who forgot the gesture (or a new kid on the
+      phone) had only the how-to text. Each person's intro half now shows a small "?" where
+      the finger was; one tap plays the finger in that half only (mirrored for a lefty's
+      stick). It is a 44 px target whose visible circle is 26 px, with negative margins so it
+      never makes the title line taller. Bot halves get none. Unit tests cover the button
+      and the lefty mirror; a new playtest opens every intro on a 320×568 phone after 3
+      matches, checks both halves have a 44 px "?" that fits, taps one and checks only that
+      half shows the finger (`demo-help.png`, `demo-help-tapped.png`).
+- [ ] Remember a "?" tap: if a seat taps it, show that game's finger again for its next
+      match too (a kid who needed help once probably needs it twice).
 - [ ] Penalty's demo shows only the shooter's swipe; the keeper's tap is in text only.
       Games with two roles could alternate both gestures.
 
