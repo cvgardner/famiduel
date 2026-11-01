@@ -205,7 +205,9 @@ class ChopView implements GameInstance {
     if (fill > 0) rrect(gx, bx, L.barY - 8, Math.max(16, fill), 16, 8, low ? (Math.sin(this.t * 20) > 0 ? COLORS.bad : '#ff9f43') : col);
     text(gx, '⏱', bx - 18, L.barY, { size: 16 });
     text(gx, `${c.chops}`, W / 2, L.barY + 30, { size: 28, color: '#ffffff', stroke: 'rgba(0,0,0,0.45)' });
-    text(gx, `/ ${RULES.goal}`, W / 2 + 40, L.barY + 33, { size: 13, color: 'rgba(255,255,255,0.85)', stroke: 'rgba(0,0,0,0.35)' });
+    // A dark pill keeps the small goal label readable over sky, trunk or a flying chunk.
+    rrect(gx, W / 2 + 24, L.barY + 23, 32, 20, 10, 'rgba(20,20,40,0.75)');
+    text(gx, `/ ${RULES.goal}`, W / 2 + 40, L.barY + 33, { size: 13, color: '#ffffff' });
     // Round wins
     for (let i = 0; i < RULES.winRounds; i++) circle(gx, bx + bw + 22, L.barY + 4 + i * 20 - 0, 7, i < g.score[p] ? COLORS.gold : 'rgba(255,255,255,0.35)', 'rgba(0,0,0,0.3)', 1.5);
     // Rival progress, small

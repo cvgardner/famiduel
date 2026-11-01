@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
-import type { BotLevel } from '../src/core/types';
+import { other, type BotLevel } from '../src/core/types';
 import { lineWinner, RULES, TicTacToe, TicTacToeBot } from '../src/games/tictactoe/logic';
 import { player } from './helpers';
 
@@ -81,5 +81,20 @@ describe('tic-tac-toe', () => {
     expect(new TicTacToeBot(1, 'hard', makeRng(1)).chooseMove(g)).toBe(2);
     g.board = [0, 0, -1, 1, 1, -1, 0, -1, -1];
     expect(new TicTacToeBot(1, 'hard', makeRng(1)).chooseMove(g)).toBe(5);
+  });
+
+  it('X always goes first: whoever starts a game plays X', () => {
+    for (const seed of [1, 2, 3, 4]) {
+      const g = new TicTacToe([player(), player()], makeRng(seed));
+      for (let n = 0; n < 4; n++) {
+        const p = g.turn;
+        expect(g.isX(p)).toBe(true);
+        expect(g.isX(other(p))).toBe(false);
+        // Play the game out with the first open cell, then start the next one.
+        while (!g.between && !g.done) g.apply(g.legal()[0]);
+        if (g.done) break;
+        g.next();
+      }
+    }
   });
 });

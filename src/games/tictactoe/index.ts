@@ -217,7 +217,7 @@ class TicTacToeView implements GameInstance {
     gx.lineJoin = 'round';
     gx.lineWidth = 13;
     gx.strokeStyle = c;
-    if (p === 0) {
+    if (this.game.isX(p)) {
       // X: two strokes, the second starts when the first is half done.
       const k1 = Math.min(1, k * 1.6);
       const k2 = Math.max(0, (k - 0.4) / 0.6);
@@ -243,7 +243,7 @@ class TicTacToeView implements GameInstance {
     const top = GY + CELL * 3 + 42;
     const mine = !g.done && !g.between && g.turn === p;
     // Name and mark
-    text(gx, `${p === 0 ? '✕' : '◯'}  ${this.ctx.players[p].name}${this.bots[p] ? ' 🤖' : ''}`, W / 2, top, { size: 18, color: c });
+    text(gx, `${g.isX(p) ? '✕' : '◯'}  ${this.ctx.players[p].name}${this.bots[p] ? ' 🤖' : ''}`, W / 2, top, { size: 18, color: c });
     // Game wins as three pips
     for (let i = 0; i < RULES.winGames; i++) {
       const x = W / 2 + (i - 1) * 40;
