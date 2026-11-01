@@ -851,7 +851,7 @@ test('minigolf: every hole comes up in a match, fits the phone and can be finish
   type GolfHook = {
     openGame(id: string): void;
     startMatch(): void;
-    runner: null | { fastForward(s: number): void; game: { game: { holes: { id: string }[]; holeIdx: number; finished: boolean; phase: string; card: unknown[]; balls: { x: number; y: number }[]; startHole(i: number): void } } };
+    runner: null | { fastForward(s: number): void; game: { game: { holes: { id: string; par: number }[]; holeIdx: number; finished: boolean; phase: string; card: unknown[]; balls: { x: number; y: number }[]; startHole(i: number): void } } };
   };
   for (const h of holes.holes) {
     // Start matches until the seeded pick includes this hole, then jump to it.
@@ -865,11 +865,14 @@ test('minigolf: every hole comes up in a match, fits the phone and can be finish
         if (idx < 0) continue;
         g.startHole(idx);
         app.runner!.fastForward(5); // countdown and the hole card
-        return { idx, tries, phase: g.phase };
+        return { idx, tries, phase: g.phase, pars: g.holes.map((x) => x.par) };
       }
       return null;
     }, h.id);
     expect(found, `${h.id} is picked for some match`).not.toBeNull();
+    // The match ramps up: the shipped pars are the content's, and never drop hole to hole.
+    expect(found!.pars[found!.idx], `${h.id}: par on the hole card`).toBe(h.par);
+    expect([...found!.pars].sort((a, b) => a - b), `${h.id}: match pars ${found!.pars}`).toEqual(found!.pars);
     await page.waitForTimeout(150);
     await page.screenshot({ path: path.join(OUT, `minigolf-hole-${h.id}.png`) });
     const bars = await barMismatch(page);

@@ -197,8 +197,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       knot rows are drawn (screenshot `sumo-head-start.png`).
 - [ ] Playtest: per-game "self-out" counter (player lost without the other touching them)
       would catch the same trap in other games (Snake walls, Minigolf water).
-- [ ] Minigolf: easy bot still sinks the 'bowl' hole in 1-2 often (2.35 avg on par 3); the
-      bowl funnels any decent shot. Maybe a lip so speed matters.
+- [x] 2026-11-01: Minigolf pars and hole order now come from measurements. Every hole was
+      played by the easy bot (a young kid) and the normal bot (a grown-up), 24 rounds each:
+      many par 3s were really 2-stroke holes (the easy bot averaged 2.0 on Crater, 2.3 on
+      Speed Bumps and Fork, 2.9 on Bumper Bowl), so a kid "beat par" on them, while Windmill
+      (normal 3.7 on par 3) and Twin Gates (normal 4.2 on par 4) left grown-ups over par.
+      Par is now the whole number between the two: Crater, Speed Bumps, Fork, Pinball and
+      Bumper Bowl are par 2, Windmill par 4, Twin Gates par 5. The list is re-sorted by
+      measured strokes (Warm-Up Lane stays first to teach the putt), so a match's three
+      holes really get harder and "Birdie!" means something. Unit test checks every hole's
+      par sits between the bots (easy no more than 0.5 under, normal no more than 0.5 over)
+      and that pars never drop along the list; the hole playtest checks each match's pars
+      ramp up. (Replaces the "lip on the bowl" idea: the bowl is fine, its par was wrong.)
 - [ ] Bot pace table: a sim script printing every game's easy/normal/hard win rates and
       match lengths, so difficulty tuning across games has numbers (like this run's).
 - [ ] Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
@@ -246,9 +256,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and shot banner no longer pass their fade twice. The contrast probe now judges a label
       at the opacity it is really drawn at. Unit tests with a recording canvas
       (`tests/alpha.test.ts`); verify warnings unchanged from main.
-- [ ] Minigolf: Bumper Bowl gives the hard bot 40 aces in 40 and normal 17; Lily Pond and Hill
-      Climb give normal ~14 aces in 40. Fine for kids, but a hole order by measured difficulty
-      (normal-bot strokes over par) would put them before Dog Leg.
+- [x] 2026-11-01: Minigolf hole order by measured difficulty (see the pars entry above).
+      Bumper Bowl now sits among the par 2s; Lily Pond and Hill Climb lead the par 3s.
 
 ## Ideas found 2026-10-31 (haptics run)
 - [ ] Store wrapper: plug a native haptics call (Capacitor Haptics, iOS Taptic) into
@@ -478,3 +487,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       draw timeout, so the "idle player stalls the match" worry is covered for those; Tanks
       and Snack Snatch have match clocks. Only a turn game left waiting (Minigolf putt,
       Sea Battle shot) can wait forever, which is fine with a person there.
+
+## Ideas found 2026-11-01 (minigolf pars run)
+- [ ] Minigolf: a hole-by-hole strokes table (easy / normal / hard, 12 seeds) as an
+      `npm run` script, so a new hole gets its par and place in the list from numbers.
+- [ ] Minigolf: the hard bot aces 9 of the 22 holes almost every time (Speed Bumps, Island
+      Green, Bumper Bowl, Downhill Dash 12/12). Fine as "hard", but a hole where an ace needs
+      a bank shot would give a strong grown-up something to chase.
+- [ ] Minigolf: Twin Gates (easy 5.3, normal 4.2 strokes) and Switchback are long for a small
+      kid with a 6-stroke cap; check the cap is hit rarely with the head start on.
