@@ -550,8 +550,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       sea at the hand-over would make a strong turn feel as good as it was.
 
 ## Ideas found 2026-11-01 (home order run)
-- [ ] Home grid: on a 320 px phone only the first two rows show above the fold; a small
-      "Action" / "Take turns" label between the groups could help parents find a calm game.
+- [x] 2026-11-01: Home grid in labelled groups. On a 320 px phone only the first rows show,
+      and the 15 cards were one unbroken grid, so a parent looking for a calm game had to read
+      every card's small kind line. The grid is now three groups with a heading each:
+      "⚡ Action games" (Minigolf and the free trio still on top), "🧩 Board games · take
+      turns" (Sea Battle, Four in a Row, Checkers) and "🎁 Free extras". Groups come from each
+      game's `kind` in content/games.json (`homeGroups()` in `src/app/homegroups.ts`, unit
+      tested: the groups flatten back to the exact list order). The layout playtest checks
+      the three headings show, each sits right above its own cards, and saves
+      `home-groups.png` scrolled to the board games.
 - [ ] Idle-seat stalls: Ping Pong serves itself, Penalty has a shot clock and Quick Draw a
       draw timeout, so the "idle player stalls the match" worry is covered for those; Tanks
       and Snack Snatch have match clocks. Only a turn game left waiting (Minigolf putt,
@@ -655,3 +662,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       sleepy robot for Easy) so a kid knows which one they are beating, without new words.
 - [ ] Saves from before this change that named a bot on the sheet now show "Bot"; harmless
       before launch, but a save migration would be needed after.
+
+## Ideas found 2026-11-01 (home groups run)
+- [ ] The group headings could be tappable chips at the top of home ("Action · Board ·
+      Extras") that scroll to their group, so the board games are one tap away on a small
+      phone.
+- [ ] The home screen (DOM) is still not contrast-checked; the headings use `--dim` (62%
+      white on #14112b, about 7:1), but a probe over all menu text would catch a regression.
