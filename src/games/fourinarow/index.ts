@@ -6,6 +6,7 @@ import { alpha, circle, COLORS, fitSize, glow, line, noGlow, rrect, shade, text,
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
+import { POP_OUTLINE } from '../../engine/fx';
 import { clamp, H, MID, W } from '../../engine/world';
 import { COLS, FourInARow, FourInARowBot, idx, ROWS, RULES, type Move } from './logic';
 
@@ -367,7 +368,7 @@ class FourInARowView implements GameInstance {
       const s = p === 0 ? -1 : 1;
       const yName = edge + s * 30;
       const yTurn = edge + s * 112;
-      text(gx, pl.name, W / 2, yName, { size: 18, color: alpha(pl.color, 0.95), player: p, weight: 800 });
+      text(gx, pl.name, W / 2, yName, { size: 18, color: alpha(pl.color, 0.95), player: p, weight: 800, stroke: POP_OUTLINE });
       // Win pips (best of 3)
       for (let i = 0; i < RULES.winsNeeded; i++) {
         const x = W / 2 + (i - (RULES.winsNeeded - 1) / 2) * 26 * (p === 0 ? 1 : -1);
