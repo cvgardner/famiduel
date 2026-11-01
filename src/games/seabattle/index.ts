@@ -54,6 +54,10 @@ class SeaBattleView implements GameInstance {
     { hits: 0, misses: 0, sunk: 0 },
     { hits: 0, misses: 0, sunk: 0 },
   ];
+  /** Hits in a row this turn (each one earned another shot). Shown once the shell lands. */
+  private again = 0;
+  /** The header line last drawn (read by the playtest). */
+  header = '';
   private keyCell = 44;
   private ended = false;
   private t = 0;
@@ -99,6 +103,7 @@ class SeaBattleView implements GameInstance {
       return;
     }
     const p = g.turn;
+    this.again = 0;
     this.turnLog[p] = { hits: 0, misses: 0, sunk: 0 };
     this.lastShots[other(p)] = [];
     if (this.bots[p]) this.mode = { kind: 'bot', p, t: 0, aim: null };
@@ -344,7 +349,9 @@ class SeaBattleView implements GameInstance {
     const { sfx, fx } = this.ctx;
     const d = other(a);
     let delay = 0;
+    if (mv.kind === 'fire' && !g.events.some((e) => e.type === 'again')) this.again = 0;
     for (const e of g.events) {
+      if (e.type === 'again') this.again++;
       if (e.type === 'shot') {
         this.shells.push({ owner: d, cell: e.cell, t: -delay, result: e.result, a });
         delay += 0.09;
@@ -501,11 +508,13 @@ class SeaBattleView implements GameInstance {
       title = `${an}, hide your fleet`;
       sub = 'Tap a ship to turn it · drag to move it';
     } else if (m.kind === 'fire') {
-      title = this.armed === 'mine' ? 'Hide a mine' : `${an}, fire!`;
-      sub = this.armed === 'radar' ? 'Tap a spot to scan 3×3, tap again to scan' : this.armed === 'airstrike' ? 'Pick a row spot, tap again to strike 5 cells' : this.armed === 'mine' ? 'Tap empty water in your sea, tap again to hide it' : g.shotsLeft > 1 ? `Bonus: ${g.shotsLeft} shots this turn! Tap, tap again to fire` : 'Tap a square, tap it again to fire';
+      const again = this.again > 0 && this.shells.length === 0;
+      title = this.armed === 'mine' ? 'Hide a mine' : again ? `${an}, go again!` : `${an}, fire!`;
+      sub = again && !this.armed ? 'A hit! Fire again: tap, tap again' : this.armed === 'radar' ? 'Tap a spot to scan 3×3, tap again to scan' : this.armed === 'airstrike' ? 'Pick a row spot, tap again to strike 5 cells' : this.armed === 'mine' ? 'Tap empty water in your sea, tap again to hide it' : g.shotsLeft > 1 ? `Bonus: ${g.shotsLeft} shots this turn! Tap, tap again to fire` : 'Tap a square, tap it again to fire';
     } else if (m.kind === 'bot') {
       const landed = g.turn !== m.p && this.shells.length === 0;
-      title = landed ? botResultTitle(an, this.turnLog[m.p], lay.bigShips) : `${an} is aiming…`;
+      const again = !landed && this.again > 0 && this.shells.length === 0;
+      title = landed ? botResultTitle(an, this.turnLog[m.p], lay.bigShips) : again ? `Hit! ${an} goes again…` : `${an} is aiming…`;
       sub = landed && lay.bigShips ? 'Look where it landed' : lay.bigShips ? 'Watch your fleet!' : `Firing at ${this.ctx.players[other(a)].name}`;
     } else if (m.kind === 'after') {
       const lg = this.turnLog[m.p];
@@ -516,6 +525,7 @@ class SeaBattleView implements GameInstance {
       title = `${this.ctx.players[w].name} wins! 🏆`;
       sub = 'Every ship sunk. Here is where they all were:';
     }
+    this.header = title;
     const tc = m.kind === 'over' ? this.ctx.players[g.winner ?? 0].color : this.ctx.players[a].color;
     rrect(gx, 12, 8, W - 24, 62, 18, alpha(tc, 0.28), alpha(tc, 0.9), 2);
     text(gx, title, W / 2, 30, { size: 22, color: '#fff', stroke: 'rgba(0,0,0,0.35)' });

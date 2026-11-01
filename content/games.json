@@ -28,7 +28,7 @@
       "blurb": "Five bonks wins.", "howTo": "Push your stick to turn and drive (a little push just turns). Tap FIRE. Shells bounce off blocks, so watch out for your own!",
       "handicap": "Extra armor: more bonks to knock out" },
     { "id": "seabattle", "gesture": "tap2", "name": "Sea Battle", "icon": "🚢", "kind": "Strategy · turns", "free": false, "color": "#1e88e5",
-      "blurb": "Sink every ship.", "howTo": "Shuffle or drag your 5 ships, pass the phone, then take turns: tap a square, tap again to fire.",
+      "blurb": "Sink every ship.", "howTo": "Shuffle or drag your 5 ships, pass the phone, then take turns: tap a square, tap again to fire. A hit fires again.",
       "handicap": "Bonus shot every few turns" },
     { "id": "fourinarow", "gesture": "drop", "name": "Four in a Row", "icon": "🔴", "kind": "Strategy · turns", "free": false, "color": "#e53935",
       "blurb": "Four in a line. Best of 3.", "howTo": "On your turn, tap (or slide and let go) on your side to drop a disc in that column.",
