@@ -3,6 +3,7 @@ import { Energy, ENERGY } from '../src/core/energy';
 import { effectiveAssist, lerpAssist } from '../src/core/handicap';
 import { hashSeed, makeRng } from '../src/core/rng';
 import games from '../content/games.json';
+import { groupOf, homeGroups } from '../src/app/homegroups';
 import powers from '../content/powers.json';
 import { Store, botFor, easierOffer, seatName } from '../src/app/store';
 
@@ -67,6 +68,20 @@ describe('content', () => {
     expect(list.slice(firstSlow).every((g) => slow(g.kind))).toBe(true);
     // Extras sit at the very end.
     expect(list.slice(-2).every((g) => g.kind === 'Extra')).toBe(true);
+  });
+
+  it('home groups: action, then board games, then extras, each once, in list order', () => {
+    const groups = homeGroups(games.games);
+    expect(groups.map((g) => g.id)).toEqual(['action', 'board', 'extra']);
+    // Flattened, the groups are exactly the list (nothing dropped, nothing reordered).
+    expect(groups.flatMap((g) => g.games.map((m) => m.id))).toEqual(games.games.map((g) => g.id));
+    expect(groups[0].games[0].id).toBe('minigolf');
+    expect(groups[1].games.map((g) => g.id)).toEqual(['seabattle', 'fourinarow', 'checkers']);
+    expect(groupOf('Aim · turns')).toBe('action');
+    expect(groupOf('Strategy · turns')).toBe('board');
+    expect(groupOf('Extra')).toBe('extra');
+    // A list that interleaves kinds would split a group in two; the content never does.
+    expect(new Set(groups.map((g) => g.id)).size).toBe(groups.length);
   });
 });
 
