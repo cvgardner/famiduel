@@ -259,6 +259,56 @@ test('ghost finger: shows on a game\'s first matches, then gets out of the way',
   expect(errors).toEqual([]);
 });
 
+test('ghost finger: a "?" brings it back after the first matches, on a small phone', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type H = Hook & { store: { data: { history: { game: string }[] } } };
+  // Every game has been played 3 times on this phone, so the finger is gone.
+  await page.evaluate((ids) => {
+    const h = (window as unknown as { __famiduel: H }).__famiduel.store.data.history;
+    for (const g of ids) for (let i = 0; i < 3; i++) h.push({ game: g });
+  }, built);
+  const problems: string[] = [];
+  for (const id of built) {
+    await setPlayers(page, [null, null]);
+    await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+    const halves = await page.evaluate(() =>
+      [...document.querySelectorAll('#intro .half')].map((h) => {
+        const head = h.querySelector('.intro-head') as HTMLElement;
+        const inner = h.querySelector('.half-inner') as HTMLElement;
+        const q = h.querySelector('.demo-help') as HTMLElement | null;
+        const hr = (h as HTMLElement).getBoundingClientRect();
+        const r = q?.getBoundingClientRect();
+        return {
+          help: !!q,
+          demo: !!h.querySelector('.demo'),
+          big: !!r && r.width >= 44 && r.height >= 44,
+          fits: head.scrollWidth <= head.clientWidth + 1 && !!r && r.left >= hr.left && r.right <= hr.right && inner.getBoundingClientRect().height <= hr.height + 1,
+        };
+      }),
+    );
+    for (const [i, h] of halves.entries()) {
+      if (!h.help || h.demo) problems.push(`${id} half ${i}: no "?" after 3 matches`);
+      else if (!h.big) problems.push(`${id} half ${i}: "?" under 44 px`);
+      else if (!h.fits) problems.push(`${id} half ${i}: "?" pushes the intro off a 320x568 phone`);
+    }
+    if (id === 'tanks') await page.screenshot({ path: path.join(OUT, 'demo-help.png') });
+  }
+  // Tapping the bottom player's "?" shows the finger in their half only.
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
+  await page.locator('.half.p0 .demo-help').tap();
+  expect(await page.locator('.half.p0 .demo').count(), 'finger back after "?"').toBe(1);
+  expect(await page.locator('.half.p1 .demo-help').count(), 'other half keeps its "?"').toBe(1);
+  await page.screenshot({ path: path.join(OUT, 'demo-help-tapped.png') });
+  // A bot's half never gets a "?".
+  await setPlayers(page, [null, 'easy']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
+  expect(await page.locator('.half.p1 .demo-help').count(), 'no "?" for a bot').toBe(0);
+  expect(problems).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('layout: every tap target is at least 44px on a small phone', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });

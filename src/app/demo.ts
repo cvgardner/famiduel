@@ -36,6 +36,14 @@ const PROPS: Record<Gesture, string> = {
   stick: '<i class="base"></i><i class="fire"></i>',
 };
 
-export function demoHtml(g: Gesture): string {
-  return `<div class="demo g-${g}" aria-hidden="true" data-gesture="${g}">${PROPS[g]}<i class="r"></i><i class="f"></i></div>`;
+export function demoHtml(g: Gesture, lefty = false): string {
+  return `<div class="demo${lefty && g === 'stick' ? ' lefty' : ''} g-${g}" aria-hidden="true" data-gesture="${g}">${PROPS[g]}<i class="r"></i><i class="f"></i></div>`;
+}
+
+/**
+ * After the first matches the finger goes away, but a kid can forget (or a new kid
+ * picks the phone up). A small "?" beside the title brings it back for that half.
+ */
+export function demoHelpHtml(p: number): string {
+  return `<button class="demo-help" data-p="${p}" aria-label="Show me how to play"><span>?</span></button>`;
 }

@@ -9,7 +9,7 @@ import { Sfx } from '../engine/sfx';
 import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
-import { demoHtml, isGesture, showsDemo } from './demo';
+import { demoHelpHtml, demoHtml, isGesture, showsDemo } from './demo';
 import { Runner } from './runner';
 import { BOT_LEVELS, PLAYER_COLORS, Store, botFor, easierOffer } from './store';
 
@@ -194,14 +194,16 @@ export class App {
     const intro = $('#intro');
     this.show('intro');
     // Ghost finger for the first few matches of this game on this phone.
-    const demo = isGesture(meta.gesture) && showsDemo(this.store.data.history, id) ? demoHtml(meta.gesture) : '';
+    // After that, a person's half gets a "?" that brings it back.
+    const gesture = isGesture(meta.gesture) ? meta.gesture : null;
+    const firstMatches = showsDemo(this.store.data.history, id);
     const half = (p: PlayerIndex) => {
       const pr = this.store.data.profiles[p];
       const assist = this.assistFor(p);
       const bot = botFor(pr, id);
       return `<div class="half p${p}${bot ? ' bot' : ''}" style="--c:${pr.color}">
         <div class="half-inner">
-          <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${pr.lefty && !bot && meta.gesture === 'stick' ? demo.replace('class="demo ', 'class="demo lefty ') : demo}</div>
+          <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${!gesture ? '' : firstMatches ? demoHtml(gesture, !!pr.lefty && !bot) : bot ? '' : demoHelpHtml(p)}</div>
           <p class="howto">${meta.howTo}</p>
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>` : ''}
@@ -212,6 +214,14 @@ export class App {
     };
     intro.innerHTML = `${half(1)}<div class="intro-mid"><button id="introBack" class="link">← Back</button><span>${meta.blurb}</span></div>${half(0)}`;
     $('#introBack', intro).addEventListener('click', () => this.showHome());
+    for (const b of intro.querySelectorAll<HTMLElement>('.demo-help')) {
+      b.addEventListener('click', () => {
+        if (!gesture) return;
+        const p = Number(b.dataset.p) as PlayerIndex;
+        b.outerHTML = demoHtml(gesture, !!this.store.data.profiles[p].lefty);
+        this.sfx.play('tap');
+      });
+    }
     const refresh = () => {
       for (const p of [0, 1] as PlayerIndex[]) {
         const btn = intro.querySelector<HTMLButtonElement>(`#ready${p}`);

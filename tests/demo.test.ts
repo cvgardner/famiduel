@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import games from '../content/games.json';
-import { DEMO_MATCHES, demoHtml, GESTURES, isGesture, showsDemo } from '../src/app/demo';
+import { DEMO_MATCHES, demoHelpHtml, demoHtml, GESTURES, isGesture, showsDemo } from '../src/app/demo';
 
 describe('ghost finger demo', () => {
   it('every game names a known gesture', () => {
@@ -24,5 +24,18 @@ describe('ghost finger demo', () => {
       expect(html).toContain('class="f"');
       expect(html).toContain('aria-hidden="true"');
     }
+  });
+
+  it('mirrors only the stick for a left-handed player', () => {
+    expect(demoHtml('stick', true)).toContain('class="demo lefty g-stick"');
+    expect(demoHtml('tap', true)).not.toContain('lefty');
+    expect(demoHtml('stick')).not.toContain('lefty');
+  });
+
+  it('the "?" that brings the finger back is a labelled button for its seat', () => {
+    const html = demoHelpHtml(1);
+    expect(html).toMatch(/^<button class="demo-help"/);
+    expect(html).toContain('data-p="1"');
+    expect(html).toContain('aria-label="Show me how to play"');
   });
 });
