@@ -1303,6 +1303,83 @@ test('minigolf: every hole comes up in a match, fits the phone and can be finish
   expect(errors).toEqual([]);
 });
 
+test('air hockey: the bot paddle moves like a hand in real time, not a twitch', async ({ page }) => {
+  // Chris (Nov 2026): the bot looked "super spazzy". Watch a real-time match in the app
+  // (a hard bot at the top against a normal bot), trace the top paddle every frame, score
+  // it with the same motion check as the unit tests, and draw the path for a person to look at.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, ['normal', 'hard']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('airhockey'));
+  await expect(page.locator('#play')).toBeVisible();
+  await page.waitForTimeout(2200); // countdown
+  type Trace = { t: number; x: number; y: number; serve: boolean }[];
+  const trace: Trace = await page.evaluate(
+    (ms) =>
+      new Promise<Trace>((done) => {
+        type G = { paddles: { x: number; y: number }[]; serve: number };
+        const app = (window as unknown as { __famiduel: { runner: { game: { game: G } } } }).__famiduel;
+        const out: Trace = [];
+        const t0 = performance.now();
+        const tick = () => {
+          const g = app.runner.game.game;
+          out.push({ t: performance.now(), x: g.paddles[1].x, y: g.paddles[1].y, serve: g.serve > 0 });
+          if (performance.now() - t0 < ms) requestAnimationFrame(tick);
+          else done(out);
+        };
+        requestAnimationFrame(tick);
+      }),
+    SECONDS * 1000,
+  );
+  const { MotionTrace, mergeReports } = await import('../src/core/motion');
+  const parts = [];
+  let m = new MotionTrace();
+  for (let i = 1; i < trace.length; i++) {
+    const dt = (trace[i].t - trace[i - 1].t) / 1000;
+    if (trace[i].serve || dt <= 0) {
+      parts.push(m.cut());
+      m = new MotionTrace();
+      continue;
+    }
+    m.record(trace[i].x, trace[i].y, dt);
+  }
+  parts.push(m.cut());
+  const r = mergeReports(parts.filter((p) => p.seconds > 0.5));
+  // Draw the traced path over the table (brighter = later) and keep the picture.
+  const box = await worldBox(page);
+  await page.evaluate(
+    ({ pts, box }) => {
+      const c = document.createElement('canvas');
+      c.id = 'trace';
+      Object.assign(c.style, { position: 'fixed', left: `${box.x}px`, top: `${box.y}px`, width: `${box.width}px`, height: `${box.height}px`, pointerEvents: 'none', zIndex: '99' });
+      c.width = 360;
+      c.height = 640;
+      const g = c.getContext('2d')!;
+      g.lineWidth = 2;
+      for (let i = 1; i < pts.length; i++) {
+        if (pts[i].serve) continue;
+        g.strokeStyle = `rgba(255,213,74,${0.25 + (0.75 * i) / pts.length})`;
+        g.beginPath();
+        g.moveTo(pts[i - 1].x, pts[i - 1].y);
+        g.lineTo(pts[i].x, pts[i].y);
+        g.stroke();
+      }
+      document.body.append(c);
+    },
+    { pts: trace, box },
+  );
+  fs.mkdirSync(OUT, { recursive: true });
+  await page.screenshot({ path: path.join(OUT, 'airhockey-bot-path.png') });
+  fs.writeFileSync(path.join(OUT, 'airhockey-bot-motion.json'), JSON.stringify(r, null, 2));
+  await page.evaluate(() => document.getElementById('trace')?.remove());
+  expect(r.seconds, 'traced long enough').toBeGreaterThan(SECONDS * 0.5);
+  // Looser than the unit test (real frames are uneven), still far below the old bot's ~9 flips/s.
+  expect(r.flipsPerSec, 'direction flips per second').toBeLessThan(4);
+  expect(r.twitchesPerSec, 'twitches per second').toBeLessThan(1);
+  expect(r.wobbleShare, 'time spent wobbling on the spot').toBeLessThan(0.35);
+  expect(errors).toEqual([]);
+});
+
 test('rematch: whoever went second last match starts the rematch', async ({ page }) => {
   // A coin toss every match could leave a kid going second rematch after rematch. Play
   // three matches in a row of each turn game (two people, through the real result screen's

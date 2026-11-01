@@ -12,7 +12,8 @@
     "test:e2e": "playwright test --project=phone --project=desktop",
     "playtest": "playwright test --project=playtest",
     "verify": "npm run typecheck && npm test && npm run build && npm run test:e2e && npm run playtest",
-    "sim": "vite-node scripts/sim.ts"
+    "sim": "vite-node scripts/sim.ts",
+    "motion": "vite-node scripts/motion.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
