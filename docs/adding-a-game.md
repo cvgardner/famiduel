@@ -95,3 +95,19 @@ shooter. Every other game is fully open.
 6. rule edge cases (e.g. checkers forced capture, four-in-a-row diagonal win).
 
 Then run all checks (see CLAUDE.md).
+
+## Rules audit (1 Nov 2026)
+
+Every game was checked against the rules a family already knows. Classic games follow
+the real rules (or the house rule most kids play), and the how-to text says so:
+
+- Sea Battle: a hit fires again; the turn ends on a miss (house rule kids play). An
+  airstrike never earns a free shot, and a hidden mine counts as a miss.
+- Tic-Tac-Toe: X always goes first, so whoever starts a game plays X.
+- Checkers: English draughts (compulsory, finished jumps; crowning ends the move;
+  no move = loss). Four in a Row: 7 × 6, full board is a draw.
+- Ping Pong: win by 2, serve swaps every 2 points and every point at deuce.
+- Penalty Shootout: 5 kicks each, ends early when one side can't catch up, then sudden death.
+- Air Hockey: the player scored on gets the puck. Minigolf: lowest score on a hole tees
+  off first, penalty stroke for water, 6-stroke cap.
+The rest (Sumo, Snack Snatch, Snake, Quick Draw, Tanks, Chop Chop) are our own games.

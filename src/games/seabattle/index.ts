@@ -502,14 +502,14 @@ class SeaBattleView implements GameInstance {
       sub = 'Tap a ship to turn it · drag to move it';
     } else if (m.kind === 'fire') {
       title = this.armed === 'mine' ? 'Hide a mine' : `${an}, fire!`;
-      sub = this.armed === 'radar' ? 'Tap a spot to scan 3×3, tap again to scan' : this.armed === 'airstrike' ? 'Pick a row spot, tap again to strike 5 cells' : this.armed === 'mine' ? 'Tap empty water in your sea, tap again to hide it' : g.shotsLeft > 1 ? `Bonus: ${g.shotsLeft} shots this turn! Tap, tap again to fire` : 'Tap a square, tap it again to fire';
+      sub = this.armed === 'radar' ? 'Tap a spot to scan 3×3, tap again to scan' : this.armed === 'airstrike' ? 'Pick a row spot, tap again to strike 5 cells' : this.armed === 'mine' ? 'Tap empty water in your sea, tap again to hide it' : g.again && !this.shells.length ? 'Hit! Fire again · a miss ends your turn' : g.shotsLeft > 1 ? `Bonus: ${g.shotsLeft} shots this turn! Tap, tap again to fire` : 'Tap a square, tap it again to fire';
     } else if (m.kind === 'bot') {
       const landed = g.turn !== m.p && this.shells.length === 0;
       title = landed ? botResultTitle(an, this.turnLog[m.p], lay.bigShips) : `${an} is aiming…`;
       sub = landed && lay.bigShips ? 'Look where it landed' : lay.bigShips ? 'Watch your fleet!' : `Firing at ${this.ctx.players[other(a)].name}`;
     } else if (m.kind === 'after') {
       const lg = this.turnLog[m.p];
-      title = lg.sunk ? 'You sank a ship!' : lg.hits ? 'Direct hit!' : 'Missed…';
+      title = lg.sunk ? 'You sank a ship!' : lg.hits > 1 ? `${lg.hits} hits!` : lg.hits ? 'Direct hit!' : 'Missed…';
       sub = this.twoHumans ? 'Now pass the phone' : '';
     } else if (m.kind === 'over') {
       const w = g.winner ?? 0;

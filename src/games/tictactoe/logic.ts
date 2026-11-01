@@ -17,7 +17,7 @@ export const LINES: readonly [number, number, number][] = [
   [2, 4, 6],
 ];
 
-/** Cell: -1 empty, else the player who marked it. Player 0 is X, player 1 is O. */
+/** Cell: -1 empty, else the player who marked it. X always goes first: whoever starts a game plays X. */
 export type Board = number[];
 
 export type Event =
@@ -80,6 +80,11 @@ export class TicTacToe {
     this.starters.push(this.turn);
     this.between = false;
     this.winLine = null;
+  }
+
+  /** X always goes first, so the starter of the current game plays X. */
+  isX(p: PlayerIndex): boolean {
+    return this.starters[this.starters.length - 1] === p;
   }
 
   /** Start the next game after a finished one (the view waits for its animation first). */

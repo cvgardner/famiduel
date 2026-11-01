@@ -1,7 +1,7 @@
 // Tank Duel rules: pure and deterministic, so tests can run whole matches.
 // Two toy tanks in a small block maze. Shells bounce off blocks and can bonk
 // their own tank. Every bonk restarts the round in a fresh arena; knock out
-// the other tank's armor (3 hits, more with handicap help) to win.
+// the other tank's armor (5 hits, more with handicap help) to win.
 import { Energy } from '../../core/energy';
 import { lerpAssist } from '../../core/handicap';
 import type { Rng } from '../../core/rng';

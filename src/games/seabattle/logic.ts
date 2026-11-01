@@ -1,5 +1,6 @@
 // Sea Battle rules: pure and deterministic, so tests can run whole matches.
 // Each player hides 5 ships on a 10×10 sea, then players take turns firing.
+// House rule most kids play: a hit earns another shot, so a turn lasts until a miss.
 // Cells are numbered i = y * N + x.
 import { Energy } from '../../core/energy';
 import type { Rng } from '../../core/rng';
@@ -16,6 +17,8 @@ export const RULES = {
   energyMiss: 0.03,
   energyHitTaken: 0.06,
   airstrikeLen: 5,
+  /** A hit (from a normal shot) earns another shot; the turn ends on a miss. */
+  hitAgain: true,
   /** Extra shot every N of your turns, by assist 0..3 (0 = never). */
   extraEvery: [0, 4, 3, 2],
 };
@@ -47,6 +50,7 @@ export type Event =
   | { type: 'mine'; p: PlayerIndex; cell: number }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'turn'; p: PlayerIndex; shots: number }
+  | { type: 'again'; p: PlayerIndex }
   | { type: 'win'; p: PlayerIndex };
 
 export const cellsOf = (s: Pick<Ship, 'len' | 'x' | 'y' | 'horiz'>): number[] =>
@@ -93,6 +97,8 @@ export class SeaBattle {
   ready: [boolean, boolean] = [false, false];
   turn: PlayerIndex = 0;
   shotsLeft = 1;
+  /** The last shot this turn was a hit, so the shooter fires again. */
+  again = false;
   /** Turns started per player (for the extra-shot handicap). */
   turnNo: [number, number] = [0, 0];
   /** Radar results per attacker. */
@@ -206,6 +212,7 @@ export class SeaBattle {
     this.turn = p;
     this.turnNo[p]++;
     this.shotsLeft = this.extraShot(p) ? 2 : 1;
+    this.again = false;
     this.usedFree.clear();
     this.events.push({ type: 'turn', p, shots: this.shotsLeft });
   }
@@ -261,16 +268,23 @@ export class SeaBattle {
       }
     } else {
       if (enemy.marks[m.cell] !== MARK.none) return false;
-      this.shoot(a, m.cell);
+      const hit = this.shoot(a, m.cell);
       if (this.winner !== null) return true;
+      // Hit = shoot again: the shot is not used up. An airstrike never earns one.
+      if (hit && RULES.hitAgain) {
+        this.again = true;
+        this.events.push({ type: 'again', p: a });
+        return true;
+      }
     }
+    this.again = false;
     this.shotsLeft--;
     if (this.shotsLeft <= 0) this.startTurn(d);
     return true;
   }
 
-  /** charge = false for airstrike hits, so a power never refills itself. */
-  private shoot(a: PlayerIndex, cell: number, charge = true): void {
+  /** charge = false for airstrike hits, so a power never refills itself. Returns true on a ship hit. */
+  private shoot(a: PlayerIndex, cell: number, charge = true): boolean {
     const d = other(a);
     const sea = this.seas[d];
     this.shotsFired[a]++;
@@ -294,18 +308,19 @@ export class SeaBattle {
           this.events.push({ type: 'win', p: a });
         }
       }
-      return;
+      return true;
     }
     if (sea.mines.has(cell)) {
       sea.mines.delete(cell);
       sea.marks[cell] = MARK.mine;
       this.events.push({ type: 'shot', a, cell, result: 'mine' });
       this.hitBack(a);
-      return;
+      return false;
     }
     sea.marks[cell] = MARK.miss;
     this.events.push({ type: 'shot', a, cell, result: 'miss' });
     this.energy[a].charge(RULES.energyMiss * k, trailing);
+    return false;
   }
 
   /** The mine fires back: one of the attacker's ship cells is hit. It never sinks a ship. */

@@ -114,22 +114,86 @@ describe('sea battle', () => {
 
   it('extra shots: the assisted player gets 2 shots every N turns', () => {
     const g = setup({ assist: [3, 0] });
+    lineUp(g, 0);
+    lineUp(g, 1);
     start(g, 1);
     const shotsPerTurn: number[] = [];
     for (let t = 0; t < 8; t++) {
       const p = g.turn;
       let n = 0;
       while (g.turn === p && g.winner === null) {
-        g.apply({ kind: 'fire', cell: g.open(p)[0] });
+        // Only water (rows 5-9), so no hit earns a shot again.
+        g.apply({ kind: 'fire', cell: g.open(p).find((c) => c >= 5 * N)! });
         n++;
       }
       if (p === 0) shotsPerTurn.push(n);
     }
     expect(shotsPerTurn).toEqual([1, 2, 1, 2]); // every 2nd turn at assist 3
     const plain = setup();
+    lineUp(plain, 1);
     start(plain, 0);
-    plain.apply({ kind: 'fire', cell: 0 });
+    plain.apply({ kind: 'fire', cell: 99 });
     expect(plain.turn).toBe(1);
+  });
+
+  it('hit = shoot again: hits keep the turn, the first miss ends it', () => {
+    const g = setup();
+    lineUp(g, 1);
+    start(g, 0);
+    expect(g.apply({ kind: 'fire', cell: 0 })).toBe(true); // carrier
+    expect(g.turn).toBe(0);
+    expect(g.again).toBe(true);
+    expect(g.events.some((e) => e.type === 'again')).toBe(true);
+    g.apply({ kind: 'fire', cell: 1 });
+    expect(g.turn).toBe(0);
+    g.apply({ kind: 'fire', cell: 99 }); // water
+    expect(g.turn).toBe(1);
+    expect(g.again).toBe(false);
+  });
+
+  it('hit = shoot again even when it sinks a ship, and a whole fleet can go in one turn', () => {
+    const g = setup();
+    lineUp(g, 1);
+    start(g, 0);
+    const turns = [...g.turnNo];
+    for (const s of g.seas[1].ships)
+      for (const c of cellsOf(s)) {
+        expect(g.turn).toBe(0); // player 1 never gets a turn
+        g.apply({ kind: 'fire', cell: c });
+      }
+    expect(g.winner).toBe(0);
+    expect(g.turnNo).toEqual(turns);
+  });
+
+  it('a hit on the bonus shot still keeps the turn; the bonus is used on the miss', () => {
+    const g = setup({ assist: [3, 0] });
+    lineUp(g, 1);
+    start(g, 0);
+    g.shotsLeft = 2;
+    g.apply({ kind: 'fire', cell: 0 }); // hit: free
+    expect(g.shotsLeft).toBe(2);
+    g.apply({ kind: 'fire', cell: 99 }); // miss: 1 left
+    expect(g.turn).toBe(0);
+    expect(g.shotsLeft).toBe(1);
+    expect(g.again).toBe(false);
+    g.apply({ kind: 'fire', cell: 98 });
+    expect(g.turn).toBe(1);
+  });
+
+  it('an airstrike that hits still ends the turn, and firing into a mine is a miss', () => {
+    const g = setup({ powers: ['airstrike', 'mine'] });
+    lineUp(g, 0);
+    lineUp(g, 1);
+    start(g, 0);
+    g.energy[0].value = 1;
+    g.apply({ kind: 'airstrike', cell: 12 });
+    expect(g.turn).toBe(1);
+    g.energy[1].value = 1;
+    expect(g.apply({ kind: 'mine', cell: 99 })).toBe(true);
+    g.apply({ kind: 'fire', cell: 98 }); // player 1 misses
+    expect(g.turn).toBe(0);
+    g.apply({ kind: 'fire', cell: 99 }); // the mine
+    expect(g.turn).toBe(1);
   });
 
   it('sinking every ship wins; hits charge energy', () => {
