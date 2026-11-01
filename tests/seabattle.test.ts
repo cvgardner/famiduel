@@ -236,3 +236,31 @@ describe('sea battle', () => {
     }
   });
 });
+
+describe('sea battle: the bot\'s shot stays on screen', () => {
+  it('holds longer on a hit and longest on a sinking, never under a beat', async () => {
+    const { botBeat } = await import('../src/games/seabattle/beat');
+    const miss = botBeat({ hits: 0, misses: 1, sunk: 0 });
+    const hit = botBeat({ hits: 1, misses: 0, sunk: 0 });
+    const sunk = botBeat({ hits: 1, misses: 0, sunk: 1 });
+    expect(miss).toBeGreaterThanOrEqual(0.8);
+    expect(hit).toBeGreaterThanOrEqual(1.5);
+    expect(sunk).toBeGreaterThan(hit);
+    expect(sunk).toBeLessThanOrEqual(2.5); // a kid shouldn't wait long either
+  });
+
+  it('names what the bot did, and only says "your" for your own fleet', async () => {
+    const { botResultTitle } = await import('../src/games/seabattle/beat');
+    expect(botResultTitle('Bot', { hits: 0, misses: 1, sunk: 0 })).toBe('Bot missed!');
+    expect(botResultTitle('Bot', { hits: 1, misses: 0, sunk: 0 })).toBe('Bot hit your ship!');
+    expect(botResultTitle('Bot', { hits: 1, misses: 0, sunk: 0 }, false)).toBe('Bot hit a ship!');
+    expect(botResultTitle('Bot', { hits: 3, misses: 2, sunk: 0 })).toBe('Bot hit 3 times!');
+    expect(botResultTitle('Bot', { hits: 2, misses: 0, sunk: 1 })).toBe('Bot sank a ship!');
+  });
+
+  it('the view starts the beat when the last shell lands, not when the bot fires', async () => {
+    const fs = await import('node:fs');
+    const src = fs.readFileSync('src/games/seabattle/index.ts', 'utf8');
+    expect(src).toMatch(/if \(busy\) m\.t = 0;\s*else if \(m\.t > botBeat\(this\.turnLog\[m\.p\]\)\) this\.advance\(\);/);
+  });
+});

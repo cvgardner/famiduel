@@ -254,9 +254,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Playing it showed Four in a Row never buzzed on a drop (the disc landing played
       'bounce', which has no vibration): the landing now plays 'hit', so dropping a disc
       gives a short tick (0 → 18 buzzes in the playtest).
-- [ ] Sea Battle vs a bot: the bot's shot and the hand-back are quick (0.45 s + 0.7 s); a
-      kid may not see where it hit. Consider a short ring on the cell hit and a longer beat
-      on hits.
+- [x] 2026-11-01: Sea Battle vs a bot: a kid couldn't see where the bot's shot went. The
+      0.7 s "beat" before the hand-back was counted from the moment the bot fired, so with
+      the 0.38 s shell flight the result stayed on screen for about 0.3 s. The beat now
+      starts when the last shell lands and lasts 0.9 s on a miss, 1.6 s on a hit, 2.2 s on
+      a sinking (`src/games/seabattle/beat.ts`); the cells it fired at get a pulsing ring in
+      the bot's colour on your big fleet, and the header says what happened ("Player 2 hit
+      your ship!", "… missed!", "… sank a ship!", "Look where it landed"). Unit tests pin the
+      timings and titles; a new playtest plays a person against the hard bot for 30 s and
+      checks every bot turn's result stays up that long after landing
+      (`seabattle-bot-hit.png`).
 
 ## Ideas found 2026-10-31 (board person run)
 - [ ] Checkers vs the normal bot: the person (random legal moves) is down a few pieces within
@@ -357,3 +364,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       opposite corner cleared first (Minigolf's Hole/Total, Air Hockey's score).
 - [ ] Tank Duel: both FIRE buttons are the same red for both players; a player-coloured
       rim would make "whose button" clearer when kids sit close.
+
+## Ideas found 2026-11-01 (Sea Battle beat run)
+- [ ] Sea Battle between two people: the 'after' beat (1.3 s) is also counted from the
+      shot, not the landing, so the shooter sees their own result for about 0.9 s before
+      "Now pass the phone"; check whether it needs the same landing-based timer.
+- [ ] Other turn-based games with a bot (Checkers, Four in a Row, Tic-Tac-Toe): check the
+      bot's move is highlighted long enough for a kid to see what changed.

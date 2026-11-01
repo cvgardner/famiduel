@@ -611,6 +611,54 @@ test('tanks: a left-handed player gets FIRE on the left and the stick on the rig
   expect(errors).toEqual([]);
 });
 
+test('sea battle: where the bot hit your fleet stays on screen long enough to find', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, 'hard']);
+  await page.locator('.game-card[data-id="seabattle"]').tap();
+  await introAsPeople(page, [0]);
+  await page.waitForTimeout(2200); // countdown
+  type SeaHook = { runner: null | { game: { mode: { kind: string; p: number; t: number }; shells: unknown[]; turnLog: { hits: number; sunk: number }[]; game: { turn: number; phase: string } } } };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner?.game;
+      if (!v) return null;
+      const m = v.mode;
+      const landed = m.kind === 'bot' && v.game.turn !== m.p && v.shells.length === 0;
+      return { landed, t: m.t, kind: m.kind, log: m.kind === 'bot' ? { ...v.turnLog[m.p] } : null, phase: v.game.phase };
+    });
+  // The person plays; meanwhile watch every bot turn's result beat from the moment its shots land.
+  const turns: { hits: number; sunk: number; shown: number }[] = [];
+  let cur: { hits: number; sunk: number; shown: number } | null = null;
+  let hitShot = false;
+  const playing = seaBattlePerson(page, 30_000, 5);
+  const end = Date.now() + 30_000;
+  while (Date.now() < end) {
+    const s = await look().catch(() => null);
+    if (s?.landed && s.log) {
+      cur ??= { hits: s.log.hits, sunk: s.log.sunk, shown: 0 };
+      cur.shown = Math.max(cur.shown, s.t);
+      if (cur.hits && !hitShot && s.t > 0.4) {
+        hitShot = true;
+        await page.screenshot({ path: path.join(OUT, 'seabattle-bot-hit.png') });
+      }
+    } else if (cur) {
+      turns.push(cur);
+      cur = null;
+    }
+    if (s && s.phase === 'over') break;
+    await page.waitForTimeout(60);
+  }
+  await playing;
+  expect(turns.length, 'the bot took turns against the person').toBeGreaterThanOrEqual(2);
+  for (const tr of turns) {
+    const need = tr.sunk ? 1.9 : tr.hits ? 1.3 : 0.7;
+    expect(tr.shown, `bot ${tr.sunk ? 'sinking' : tr.hits ? 'hit' : 'miss'} stays on screen after it lands`).toBeGreaterThan(need);
+  }
+  if (!hitShot) await page.screenshot({ path: path.join(OUT, 'seabattle-bot-hit.png') });
+  expect(errors).toEqual([]);
+});
+
 test('rock paper scissors: two people pick behind a look-away cover, one at a time', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
