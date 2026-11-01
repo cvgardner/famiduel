@@ -1262,6 +1262,43 @@ const PEOPLE: Record<string, Person> = {
   tictactoe: ticTacToePerson,
 };
 
+// The waiting seat's pill in the board games says who is thinking while the bot moves
+// ("🤖 Player 2 is thinking…"), "Waiting…" between two people, and never the old grey
+// "<name>'s turn" line Four in a Row used to show.
+const boardPersons: [string, Person][] = [['checkers', checkersPerson], ['fourinarow', fourInARowPerson], ['tictactoe', ticTacToePerson]];
+for (const [id, person] of boardPersons) {
+  test(`${id}: the waiting player sees who is thinking`, async ({ page }) => {
+    const errors: string[] = [];
+    await page.setViewportSize({ width: 320, height: 568 });
+    await boot(page, errors);
+    await page.evaluate(() => ((window as unknown as { __contrast: { on: boolean } }).__contrast.on = true));
+    await setPlayers(page, [null, 'normal']);
+    await page.locator(`.game-card[data-id="${id}"]`).tap();
+    await introAsPeople(page, [0]);
+    await page.waitForTimeout(2200); // countdown
+    const botLine = '🤖 Player 2 is thinking…';
+    const seen = () =>
+      page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, unknown> } }).__contrast.seen.keys()]);
+    // Play the person's moves for a while; catch the bot's think on camera once.
+    let shot = false;
+    const watch = async () => {
+      for (let i = 0; i < 80 && !shot; i++) {
+        if ((await seen()).includes(botLine)) {
+          await page.screenshot({ path: path.join(OUT, `${id}-bot-thinking.png`) });
+          shot = true;
+        } else await page.waitForTimeout(100);
+      }
+    };
+    const [played] = await Promise.all([person(page, 9000, 7), watch()]);
+    expect(played.moves[0], 'the person moved').toBeGreaterThan(0);
+    const words = await seen();
+    expect(words, "the person's pill names the thinking bot").toContain(botLine);
+    expect(words.filter((w) => w.endsWith("'s turn")), "no grey \"<name>'s turn\" line").toEqual([]);
+    expect(shot).toBe(true);
+    expect(errors).toEqual([]);
+  });
+}
+
 for (const g of games.games) {
   test(`play like a person: ${g.id}`, async ({ page }) => {
     test.skip(built.length > 0 && !built.includes(g.id), 'not built yet');

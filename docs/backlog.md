@@ -498,8 +498,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       forced double jump for the normal bot, checks the path and both taken squares are
       drawn in the canvas, that they stay for 2.5 s, and that the marks move to the person's
       move (`checkers-double-jump.png`).
-- [ ] Four in a Row's top player reads "Player 1's turn" in small grey text: the waiting
-      side could say "Waiting…" like Tic-Tac-Toe, which reads quicker.
+- [x] 2026-11-01: The waiting player sees who is thinking. Four in a Row's waiting side read
+      "<name>'s turn" in small grey text with no pill, while Checkers and Tic-Tac-Toe said
+      "Waiting…" even during the bot's pause, so a kid sat through it with nothing saying
+      why (the bot's own "Thinking…" faces the other way). All three board games now give
+      the waiting seat the same quiet pill: "🤖 Player 2 is thinking…" while a bot picks its
+      move, "Waiting…" while a person does (`waitingLine()` in `core/turnline.ts`, sharing
+      the countdown's name shortener). Long names shrink to fit the pill (`fitSize()` in
+      engine/draw.ts, never below MIN_TEXT). Unit tested; a playtest plays each game against
+      the normal bot on a 320×568 phone, checks the person's pill names the thinking bot and
+      that no "'s turn" line is drawn (`<game>-bot-thinking.png`).
 
 ## Ideas found 2026-11-01 (Sea Battle hit-again run)
 - [ ] Sea Battle: with hit-again, a bot can chain 4-5 hits on your fleet in one turn; the
@@ -593,3 +601,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       mirrors a player's path.
 - [ ] Reviews: "hard to tell whether the ball has landed yet" (Ping Pong). Ours has a bounce
       ring and a shadow; check the ring reads on a sunny phone (it lasts 0.5 s).
+
+## Ideas found 2026-11-01 (thinking pill run)
+- [ ] Sea Battle's header already names the aiming bot; Penalty and Minigolf (bot's shot)
+      could use `waitingLine()` on the waiting side too, so every turn game reads the same.
+- [ ] Tic-Tac-Toe's "Game 1" card covers the board for a moment while the bot may already be
+      thinking; check a kid doesn't tap through it and miss the bot's first mark.
