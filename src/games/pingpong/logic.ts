@@ -34,16 +34,26 @@ export const RULES = {
   maxAngle: 0.85,
   /** Extra ball speed per unit of forward paddle speed at contact (a drive). */
   driveK: 0.4,
-  /** Forward paddle speed at contact that turns a drive into a smash. */
-  smashFwd: 470,
+  /** Forward swing speed at contact that turns a drive into a smash (a hard, deliberate flick). */
+  smashFwd: 600,
+  /** A smash must be a mostly straight flick: sideways swing must stay under this × the forward swing. */
+  smashStraight: 0.95,
   smashBonus: 230,
   /** Pulling the paddle back at contact: a soft chop with backspin. */
   chopFwd: -150,
   chopSlow: 0.8,
   /** Sideways paddle speed at contact turns into curve (sidespin), above a dead zone. */
-  spinDead: 130,
-  spinK: 0.42,
-  maxSpin: 270,
+  spinDead: 80,
+  spinK: 0.6,
+  maxSpin: 300,
+  /** Sidespin (units/s²) that counts as a curve shot: called out and drawn purple. */
+  curveCall: 110,
+  /**
+   * The swing a shot reads is the paddle's speed at contact or, if it was moving faster a
+   * moment ago, that speed fading over this many seconds. A swipe that ends or hits the
+   * end of the lunge just before the ball arrives still counts.
+   */
+  swingFade: 0.09,
   /** On the table bounce: topspin kicks the ball on, backspin checks it, sidespin kicks it sideways. */
   topKick: 0.16,
   backKick: 0.2,
@@ -88,6 +98,9 @@ export type Paddle = {
   vx: number;
   vy: number;
   w: number;
+  /** Recent swing speed per axis (see RULES.swingFade); this is what shots read. */
+  swingX: number;
+  swingY: number;
   smash: boolean;
   curve: boolean;
   slowmo: number;
@@ -108,6 +121,42 @@ export type Intent = { tx: number; ty?: number; power: boolean };
 
 /** +1 if "toward the net" is increasing y for this player, else -1. */
 export const fwdSign = (p: PlayerIndex): number => (p === 0 ? -1 : 1);
+
+/** Relative-drag gain: finger travel toward the net → paddle lunge. */
+export const LUNGE_GAIN = 0.85;
+/** How fast a held lunge drifts back home (units/s of anchor creep). */
+export const ANCHOR_CREEP = 70;
+
+/**
+ * Turns one player's finger into a paddle target. The paddle follows the finger's x;
+ * pushing the finger toward the net (from the rear-most point it has been) lunges the
+ * paddle forward. Pure so tests can play swipes through it exactly as the view does.
+ */
+export class FingerPaddle {
+  private steer: { id: number; anchor: number } | null = null;
+
+  constructor(readonly p: PlayerIndex) {}
+
+  /** Lunge distance (0..) for this frame's finger, or 0 with no finger down. */
+  lunge(finger: { id: number; y: number } | null | undefined, dt: number): number {
+    if (!finger) {
+      this.steer = null;
+      return 0;
+    }
+    const fs = fwdSign(this.p);
+    let st = this.steer;
+    if (!st || st.id !== finger.id) st = this.steer = { id: finger.id, anchor: finger.y };
+    // Distance the finger is in front of its anchor; pulling back past it moves the anchor.
+    let ahead = (finger.y - st.anchor) * fs;
+    if (ahead < 0) {
+      st.anchor = finger.y;
+      ahead = 0;
+    }
+    // A held lunge drifts home slowly (too slowly to count as a chop).
+    st.anchor += fs * Math.min(ahead, ANCHOR_CREEP * dt);
+    return ahead * LUNGE_GAIN;
+  }
+}
 
 export class PingPong {
   score: [number, number] = [0, 0];
@@ -137,7 +186,7 @@ export class PingPong {
     private readonly rng: Rng,
   ) {
     const w = (p: PlayerIndex) => lerpAssist(players[p].assist, RULES.paddleW, RULES.paddleWMax);
-    const mk = (p: PlayerIndex): Paddle => ({ x: W / 2, y: RULES.paddleY[p], vx: 0, vy: 0, w: w(p), smash: false, curve: false, slowmo: 0 });
+    const mk = (p: PlayerIndex): Paddle => ({ x: W / 2, y: RULES.paddleY[p], vx: 0, vy: 0, swingX: 0, swingY: 0, w: w(p), smash: false, curve: false, slowmo: 0 });
     this.paddles = [mk(0), mk(1)];
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     this.towardFactor = [lerpAssist(players[0].assist, 1, RULES.assistSlow), lerpAssist(players[1].assist, 1, RULES.assistSlow)];
@@ -231,6 +280,8 @@ export class PingPong {
       const dy = clamp(ty - pd.y, -cap, cap);
       pd.vx = dx / dt;
       pd.vy = dy / dt;
+      pd.swingX = swing(pd.swingX, pd.vx, dt);
+      pd.swingY = swing(pd.swingY, pd.vy, dt);
       moves.push([dx, dy]);
     }
     const sub = 4;
@@ -332,18 +383,19 @@ export class PingPong {
     this.bestRally = Math.max(this.bestRally, this.hits);
     this.rally = Math.min(RULES.maxSpeed, this.rally + RULES.speedUp);
     // How the paddle was moving when it met the ball decides the shot.
-    const fwd = pd.vy * s;
+    const fwd = pd.swingY * s;
+    const sideSwing = pd.swingX;
     let shot: Shot = 'block';
     let sp = this.rally;
     let top = 0;
-    if (fwd >= RULES.smashFwd) {
+    if (fwd >= RULES.smashFwd && Math.abs(sideSwing) <= RULES.smashStraight * fwd) {
       shot = 'smash';
       sp = Math.min(RULES.smashSpeed, this.rally + RULES.smashBonus);
       top = 1;
     } else if (fwd > 60) {
       shot = 'drive';
-      sp = this.rally + fwd * RULES.driveK;
-      top = fwd / RULES.smashFwd;
+      sp = this.rally + Math.min(fwd, RULES.smashFwd) * RULES.driveK;
+      top = Math.min(1, fwd / RULES.smashFwd);
     } else if (fwd <= RULES.chopFwd) {
       shot = 'chop';
       sp = this.rally * RULES.chopSlow;
@@ -363,7 +415,7 @@ export class PingPong {
     b.shot = shot;
     b.top = top;
     // Brushing sideways through the ball puts curve on it, in the direction of the swipe.
-    const side = Math.abs(pd.vx) > RULES.spinDead ? clamp((pd.vx - Math.sign(pd.vx) * RULES.spinDead) * RULES.spinK, -RULES.maxSpin, RULES.maxSpin) : 0;
+    const side = Math.abs(sideSwing) > RULES.spinDead ? clamp((sideSwing - Math.sign(sideSwing) * RULES.spinDead) * RULES.spinK, -RULES.maxSpin, RULES.maxSpin) : 0;
     b.ax = side;
     const curve = pd.curve;
     if (curve) {
@@ -396,6 +448,13 @@ export class PingPong {
     b.vx = b.vy = b.ax = 0;
     this.pointT = RULES.pointDelay;
   }
+}
+
+/** Swing memory for one axis: the current speed, or a faster recent one fading out. */
+function swing(prev: number, v: number, dt: number): number {
+  if (prev * v <= 0 && Math.abs(v) > 1) return v;
+  if (Math.abs(v) >= Math.abs(prev)) return v;
+  return v + (prev - v) * Math.exp(-dt / RULES.swingFade);
 }
 
 /** What the table bounce does to a spinning ball. Shared with the bot's forecast. */
