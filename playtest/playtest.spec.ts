@@ -963,6 +963,71 @@ test("four in a row: the bot's newest disc keeps a ring until you move", async (
   expect(errors).toEqual([]);
 });
 
+test("checkers: a bot's double jump stays traced on the board until you move", async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, 'normal']);
+  await page.locator('.game-card[data-id="checkers"]').tap();
+  await introAsPeople(page, [0]);
+  type Marks = { trail: number[]; taken: number[]; mover: number } | null;
+  type CheckersHook = { runner: null | { game: { lastMarks(): Marks; game: { cells: Int8Array; turn: number; done: boolean } } } };
+  // Before the countdown ends, set up a position where the bot (top, moving down) must
+  // double-jump: its man on (1,2) takes (2,3) and (4,5), landing on (5,6). The person keeps
+  // a man on (7,0) so the match goes on.
+  await page.evaluate(() => {
+    const v = (window as unknown as { __famiduel: CheckersHook }).__famiduel.runner!.game;
+    const b = new Int8Array(64);
+    b[1 * 8 + 2] = -1;
+    b[2 * 8 + 3] = 1;
+    b[4 * 8 + 5] = 1;
+    b[7 * 8 + 0] = 1;
+    const g = v.game as unknown as { cells: Int8Array; turn: number; moves: unknown; lastMove: unknown };
+    g.cells = b;
+    g.turn = 1;
+    g.moves = null;
+    g.lastMove = null;
+  });
+  const look = () => page.evaluate(() => (window as unknown as { __famiduel: CheckersHook }).__famiduel.runner!.game.lastMarks());
+  await expect.poll(look, { timeout: 8000 }).not.toBeNull();
+  let m = await look();
+  expect(m, 'the whole path is traced, not just start and end').toEqual({ trail: [10, 28, 46], taken: [19, 37], mover: 1 });
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: path.join(OUT, 'checkers-double-jump.png') });
+  // The canvas really shows it: the empty taken squares are marked (ring, tint, cross),
+  // while an untouched empty dark square is still plain board brown.
+  const brownOff = await page.evaluate(() => {
+    const c = document.getElementById('stage') as HTMLCanvasElement;
+    const g = c.getContext('2d')!;
+    const sc = Math.min(c.width / 360, c.height / 640);
+    const ox = (c.width - 360 * sc) / 2;
+    const oy = (c.height - 640 * sc) / 2;
+    const off = (sqr: number) => {
+      const d = g.getImageData(Math.round(ox + (40 + (sqr % 8) * 39 + 19.5) * sc), Math.round(oy + (164 + Math.floor(sqr / 8) * 39 + 19.5) * sc), 1, 1).data;
+      return Math.abs(d[0] - 0x8a) + Math.abs(d[1] - 0x5a) + Math.abs(d[2] - 0x3b);
+    };
+    return { taken: [off(19), off(37)], plain: off(3) };
+  });
+  expect(brownOff.plain, 'a plain empty square is board brown').toBeLessThan(20);
+  for (const o of brownOff.taken) expect(o, 'each taken square is marked').toBeGreaterThan(60);
+  // Still traced while the person thinks.
+  await page.waitForTimeout(2500);
+  expect(await look()).toEqual(m);
+  // The person moves (7,0) to (6,1); the marks move to that simple move.
+  const box = await worldBox(page);
+  const tapSq = async (sqr: number) => {
+    const x = box.x + ((40 + (sqr % 8) * 39 + 19.5) / 360) * box.width;
+    const y = box.y + ((164 + Math.floor(sqr / 8) * 39 + 19.5) / 640) * box.height;
+    for (const t of ['pointerdown', 'pointerup'])
+      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, x, y] as const);
+  };
+  await tapSq(56);
+  await tapSq(49);
+  await expect.poll(async () => (await look())?.mover, { timeout: 2000 }).toBe(0);
+  m = await look();
+  expect(m).toEqual({ trail: [56, 49], taken: [], mover: 0 });
+  expect(errors).toEqual([]);
+});
+
 test('minigolf: every hole comes up in a match, fits the phone and can be finished', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
