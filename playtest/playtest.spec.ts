@@ -339,6 +339,74 @@ test('ghost finger: a "?" brings it back after the first matches, on a small pho
   expect(errors).toEqual([]);
 });
 
+test('how to play: the pause menu shows each player the finger, the rules and their power', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type R = { paused: boolean };
+  const paused = () => page.evaluate(() => ((window as unknown as { __famiduel: { runner: R | null } }).__famiduel.runner as R).paused);
+  const problems: string[] = [];
+  for (const id of built) {
+    await setPlayers(page, [null, null]);
+    await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+    const hasPowers = (await page.locator('.power-card').count()) > 0;
+    await introAsPeople(page, [0, 1]);
+    await holdPause(page);
+    await page.locator('#howBtn').tap();
+    await expect(page.locator('.pause-help')).toBeVisible();
+    const halves = await page.evaluate(() =>
+      [...document.querySelectorAll('.pause-help .half')].map((h) => {
+        const inner = h.querySelector('.half-inner') as HTMLElement;
+        const hr = (h as HTMLElement).getBoundingClientRect();
+        const ir = inner.getBoundingClientRect();
+        return {
+          demo: !!h.querySelector('.demo'),
+          howto: !!h.querySelector('.howto'),
+          power: !!h.querySelector('.my-power'),
+          fits: ir.height <= hr.height + 1 && ir.top >= hr.top - 1 && ir.bottom <= hr.bottom + 1,
+        };
+      }),
+    );
+    if (halves.length !== 2) problems.push(`${id}: ${halves.length} halves on how to play`);
+    for (const [i, h] of halves.entries()) {
+      if (!h.demo) problems.push(`${id} half ${i}: no ghost finger`);
+      if (!h.howto) problems.push(`${id} half ${i}: no how-to line`);
+      if (h.power !== hasPowers) problems.push(`${id} half ${i}: picked power ${h.power ? 'shown without powers' : 'missing'}`);
+      if (!h.fits) problems.push(`${id} half ${i}: how to play doesn't fit a 320x568 phone`);
+    }
+    if (!(await paused())) problems.push(`${id}: match ran while how to play was up`);
+    if (id === 'tanks') await page.screenshot({ path: path.join(OUT, 'pause-help.png') });
+    await page.locator('#helpResume').tap();
+    await expect(page.locator('#modal')).toBeHidden();
+    if (await paused()) problems.push(`${id}: Resume left the match paused`);
+    await leaveMatch(page);
+  }
+  // A left-handed seat sees the mirrored stick; a bot's half gets no finger and no rules.
+  await page.evaluate(() => {
+    const a = (window as unknown as { __famiduel: { store: { data: { profiles: { lefty?: boolean }[] } } } }).__famiduel;
+    a.store.data.profiles[0].lefty = true;
+  });
+  await setPlayers(page, [null, 'easy']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('tanks'));
+  await introAsPeople(page, [0]);
+  await holdPause(page);
+  await page.locator('#howBtn').tap();
+  expect(await page.locator('.pause-help .half.p0 .demo.lefty').count(), 'lefty finger mirrored').toBe(1);
+  expect(await page.locator('.pause-help .half.p1 .demo').count(), 'no finger for a bot').toBe(0);
+  expect(await page.locator('.pause-help .half.p1 .my-power').count(), 'no power card for a bot').toBe(0);
+  await page.screenshot({ path: path.join(OUT, 'pause-help-bot.png') });
+  // "← Menu" goes back to the pause menu, still paused.
+  await page.locator('#helpBack').tap();
+  await expect(page.locator('#resumeBtn')).toBeVisible();
+  expect(await paused(), 'still paused on the menu').toBe(true);
+  await page.click('#quitBtn');
+  await page.evaluate(() => {
+    (window as unknown as { __famiduel: { store: { data: { profiles: { lefty?: boolean }[] } } } }).__famiduel.store.data.profiles[0].lefty = false;
+  });
+  expect(problems).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('layout: every tap target is at least 44px on a small phone', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
@@ -374,6 +442,10 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
   await holdPause(page);
   small.push(...(await smallTargets(page, 'pause')));
   fonts.push(...(await smallFonts(page, 'pause')));
+  await page.locator('#howBtn').tap();
+  small.push(...(await smallTargets(page, 'pause how to play')));
+  fonts.push(...(await smallFonts(page, 'pause how to play')));
+  await page.locator('#helpBack').tap();
   await page.click('#quitBtn');
   await setPlayers(page, ['normal', 'hard']);
   await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('airhockey'));
