@@ -233,10 +233,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       bands; a lighter HUD edge (or grass running under it) would make it fill the phone too.
 
 ## Ideas found 2026-11-01 (minigolf holes run)
-- [ ] `text()` sets `globalAlpha` to its own `alpha`, so a caller's fade (`gx.globalAlpha = k`)
-      never reaches the words: disabled button labels (widgets.ts 0.35), Penalty's unusable
-      power, Tanks' fading banner and others draw their text at full opacity. Decide per call
-      whether that is wanted, then make text() multiply instead (and have the probe count it).
+- [x] 2026-11-01: `text()` set `globalAlpha` to its own `alpha`, so a caller's fade never
+      reached the words: a disabled button's label stayed bright on its 35% circle, and
+      `PowerButton.render` reset the alpha for its own parts, so Penalty's unusable power
+      (dimmed to 45% by the game) drew at full strength. `text()` now multiplies the canvas's
+      alpha by its own and buttons draw relative to the caller's alpha; Minigolf's hole card
+      and shot banner no longer pass their fade twice. The contrast probe now judges a label
+      at the opacity it is really drawn at. Unit tests with a recording canvas
+      (`tests/alpha.test.ts`); verify warnings unchanged from main.
 - [ ] Minigolf: Bumper Bowl gives the hard bot 40 aces in 40 and normal 17; Lily Pond and Hill
       Climb give normal ~14 aces in 40. Fine for kids, but a hole order by measured difficulty
       (normal-bot strokes over par) would put them before Dog Leg.
@@ -442,3 +446,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       forced jumps and kings, Four in a Row, Ping Pong serve every 2 points, Penalty 5 each
       then sudden death), listed in docs so a parent can check "is this the real rule?".
 
+## Ideas found 2026-11-01 (text alpha run)
+- [ ] Other helpers that set `globalAlpha` to an absolute value (fx particles and flash,
+      several games' `= 1` resets) would also cancel an outer fade; if a whole screen ever
+      fades (e.g. a result transition), make them relative like the buttons.

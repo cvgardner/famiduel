@@ -96,9 +96,17 @@ describe('pop-up words', () => {
     const src = fs.readFileSync('src/games/minigolf/index.ts', 'utf8');
     for (const fn of ['drawIntro', 'drawBanner']) {
       const body = src.slice(src.indexOf(`private ${fn}(`), src.indexOf('\n  }\n', src.indexOf(`private ${fn}(`)));
+      // text() multiplies the canvas's alpha (tests/alpha.test.ts), so every word must be
+      // drawn after the card's fade is set and before it is put back to 1.
       const calls = body.match(/text\(gx,[^;]*\);/g) ?? [];
       expect(calls.length, fn).toBeGreaterThan(0);
-      for (const c of calls) expect(c, fn).toContain('alpha: fade');
+      const fadeOn = body.search(/gx\.globalAlpha = (?!1;)/);
+      const fadeOff = body.lastIndexOf('gx.globalAlpha = 1;');
+      expect(fadeOn, fn).toBeGreaterThan(-1);
+      for (const c of calls) {
+        const at = body.indexOf(c);
+        expect(at > fadeOn && at < fadeOff, `${fn}: ${c}`).toBe(true);
+      }
     }
   });
 });

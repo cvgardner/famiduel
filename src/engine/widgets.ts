@@ -58,12 +58,13 @@ export class Button {
   render(g: G, opts: { icon?: string; fill?: string; disabled?: boolean } = {}): void {
     const r = this.held ? this.r * 0.92 : this.r;
     const fill = opts.fill ?? this.color;
-    g.globalAlpha = opts.disabled ? 0.35 : 1;
+    const base = g.globalAlpha;
+    g.globalAlpha = base * (opts.disabled ? 0.35 : 1);
     circle(g, this.x, this.y + 4, r, 'rgba(0,0,0,0.35)');
     circle(g, this.x, this.y, r, fill, 'rgba(255,255,255,0.5)', 2);
     const label = opts.icon ?? this.label;
     if (label) text(g, label, this.x, this.y, { size: Math.round(r * (opts.icon ? 0.9 : 0.55)), player: this.owner, color: '#fff', stroke: 'rgba(0,0,0,0.35)' });
-    g.globalAlpha = 1;
+    g.globalAlpha = base;
   }
 }
 
@@ -111,8 +112,6 @@ export class PowerButton {
     if (ready) glow(g, COLORS.gold, 12 + 6 * Math.sin(t * 8));
     circle(g, x, y, r - 2, ready ? alpha(this.color, 0.95) : active ? COLORS.gold : 'rgba(255,255,255,0.08)');
     noGlow(g);
-    g.globalAlpha = ready || active ? 1 : 0.5;
-    text(g, this.power.icon, x, y + 1, { size: 20, player: this.owner });
-    g.globalAlpha = 1;
+    text(g, this.power.icon, x, y + 1, { size: 20, player: this.owner, alpha: ready || active ? 1 : 0.5 });
   }
 }

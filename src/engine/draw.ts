@@ -34,6 +34,7 @@ export type TextOpts = {
   /** Rotate for the top player. */
   player?: 0 | 1;
   stroke?: string;
+  /** Opacity, multiplied with the canvas's current globalAlpha (a caller's fade reaches the words). */
   alpha?: number;
 };
 
@@ -90,7 +91,8 @@ function probeContrast(g: G, str: string, x: number, y: number, o: TextOpts): vo
   for (let i = 0; i < px.length; i += 4) for (let k = 0; k < 3; k++) sum[k] += px[i + k];
   const n = px.length / 4;
   const bg = [sum[0] / n, sum[1] / n, sum[2] / n] as [number, number, number];
-  const a = o.alpha ?? 1;
+  // The opacity the words are really drawn at: the caller's fade times the label's own.
+  const a = g.globalAlpha;
   const ratio = labelContrast(fill, bg, a, o.stroke ? parseColor(o.stroke) : null);
   const rest = a >= 0.99;
   if (keepSample(contrastProbe.seen.get(str), ratio, rest))
@@ -116,7 +118,7 @@ export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}):
   const size = o.size ?? 20;
   if (size < MIN_TEXT && readable(str)) smallText.set(str, size);
   facing(g, o.player ?? 0, x, y, () => {
-    g.globalAlpha = o.alpha ?? 1;
+    g.globalAlpha *= o.alpha ?? 1;
     g.font = `${o.weight ?? 800} ${o.size ?? 20}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
     g.textAlign = o.align ?? 'center';
     g.textBaseline = 'middle';
