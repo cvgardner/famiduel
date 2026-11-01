@@ -409,6 +409,49 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
   expect(errors).toEqual([]);
 });
 
+test('play the bot: one tap on home makes every game a solo match, with its own tally', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type H = Hook & { runner: { players: { bot: string | null }[]; result: unknown } | null };
+  await expect(page.locator('#modeSeg button.on')).toHaveAttribute('data-v', 'together');
+  await page.locator('#modeSeg button[data-v="solo"]').tap();
+  await expect(page.locator('#modeSeg button.on')).toHaveAttribute('data-v', 'solo');
+  await expect(page.locator('.player-chip[data-p="1"] .botlbl')).toContainText('easy');
+  await expect(page.locator('.night-score span')).toContainText('You vs the bot · 0 games');
+  expect(await smallTargets(page, 'home solo')).toEqual([]);
+  await page.screenshot({ path: path.join(OUT, 'solo-home.png') });
+  // Every built game from its home card: the top seat is the Easy bot.
+  let n = 0;
+  for (const id of built) {
+    await page.locator(`.game-card[data-id="${id}"]`).tap();
+    await expect(page.locator('#intro .half.p1.bot'), `${id}: bot half on the intro`).toBeVisible();
+    await introAsPeople(page, [0]);
+    expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players.map((p) => p.bot)), id).toEqual([null, 'easy']);
+    // The bot wins this one (ended by hand to keep the pass short).
+    await page.evaluate(() => {
+      (window as unknown as { __famiduel: H }).__famiduel.runner!.result = { winner: 1, score: [0, 1] };
+    });
+    await expect(page.locator('#result')).toBeVisible();
+    n++;
+    await expect(page.locator('#result .half.p1 .res-title'), id).toHaveText('Bot wins');
+    await expect(page.locator('#result .half.p0 .res-title'), id).toHaveText('So close!');
+    await expect(page.locator('#result .half.p0 .res-night'), id).toHaveText(`You vs the bot: 0 – ${n}`);
+    if (id === 'airhockey') await page.screenshot({ path: path.join(OUT, 'solo-result.png') });
+    await page.locator('#homeBtn').tap();
+  }
+  await expect(page.locator('.night-score span')).toContainText(`You vs the bot · ${n} games`);
+  // The family's match night never saw those games, and solo survives a reload.
+  await page.locator('#modeSeg button[data-v="together"]').tap();
+  await expect(page.locator('.night-score span')).toContainText('Match night · 0 games');
+  expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.store.data.profiles.map((p) => p.bot))).toEqual([null, null]);
+  await page.locator('#modeSeg button[data-v="solo"]').tap();
+  await page.reload();
+  await expect(page.locator('#modeSeg button.on')).toHaveAttribute('data-v', 'solo');
+  await expect(page.locator('.night-score span')).toContainText(`You vs the bot · ${n} games`);
+  expect(errors).toEqual([]);
+});
+
 test('make the bot easier: offered after losing twice in a row to a bot', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });

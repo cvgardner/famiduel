@@ -8,7 +8,7 @@ import type { BotLevel, GameResult, PlayerIndex } from '../core/types';
  * `botLevels` holds a level picked for one game on that game's intro, which
  * wins there (a parent may want an easy Checkers bot but a normal Air Hockey one).
  */
-export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null; botLevels?: Record<string, BotLevel>; /** Swaps two-thumb controls (stick and FIRE); older saves are right-handed. */ lefty?: boolean };
+export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null; botLevels?: Record<string, BotLevel>; /** Swaps two-thumb controls (stick and FIRE); older saves are right-handed. */ lefty?: boolean; /** The bot level "Play the bot" brings back after "Play together". */ lastBot?: BotLevel };
 
 export const BOT_LEVELS: readonly BotLevel[] = ['easy', 'normal', 'hard'];
 
@@ -62,7 +62,19 @@ export { PLAYER_COLORS };
 const KEY = 'famiduel.v1';
 const HISTORY_CAP = 2000;
 
-type Saved = { profiles: [Profile, Profile]; settings: Settings; night: Night; history: MatchRecord[] };
+/**
+ * `night` is the family's match night (two people). Games against the bot keep
+ * their own tally in `soloNight`, so a kid's practice never lands on the family
+ * scoreboard or tips the auto handicap between two people.
+ */
+type Saved = { profiles: [Profile, Profile]; settings: Settings; night: Night; soloNight?: Night; history: MatchRecord[] };
+
+const freshNight = (): Night => ({ started: Date.now(), wins: [0, 0], games: [] });
+
+/** Solo play: exactly one seat is a bot (two bots is a demo, two people a duel). */
+export function isSolo(profiles: readonly [Profile, Profile]): boolean {
+  return !!profiles[0].bot !== !!profiles[1].bot;
+}
 
 function defaults(): Saved {
   return {
@@ -71,7 +83,7 @@ function defaults(): Saved {
       { name: 'Player 2', color: PLAYER_COLORS[1].hex, headStart: 0, bot: null },
     ],
     settings: { powers: true, autoHandicap: true, sound: true, haptics: true },
-    night: { started: Date.now(), wins: [0, 0], games: [] },
+    night: freshNight(),
     history: [],
   };
 }
@@ -119,7 +131,7 @@ export class Store {
       powers,
       bots,
     };
-    const night = this.data.night;
+    const night = this.night;
     if (result.winner !== null) night.wins[result.winner]++;
     night.games.push(rec);
     this.data.history.push(rec);
@@ -142,8 +154,40 @@ export class Store {
     pr.bot = bot;
   }
 
+  /** The scoreboard in play: the bot tally in solo play, else the family's match night. */
+  get night(): Night {
+    if (!isSolo(this.data.profiles)) return this.data.night;
+    return (this.data.soloNight ??= freshNight());
+  }
+
+  get solo(): boolean {
+    return isSolo(this.data.profiles);
+  }
+
+  /**
+   * The home screen's "Play together / Play the bot" switch. The bot takes the
+   * top seat at the level it had last time (Easy at first); per-game levels
+   * picked on intros survive switching back and forth.
+   */
+  setSolo(on: boolean): void {
+    const [a, b] = this.data.profiles;
+    if (on) {
+      if (!isSolo(this.data.profiles)) {
+        a.bot = null;
+        b.bot = b.lastBot ?? 'easy';
+      }
+    } else {
+      for (const pr of [a, b]) {
+        if (pr.bot) pr.lastBot = pr.bot;
+        pr.bot = null;
+      }
+    }
+    this.save();
+  }
+
   newNight(): void {
-    this.data.night = { started: Date.now(), wins: [0, 0], games: [] };
+    if (this.solo) this.data.soloNight = freshNight();
+    else this.data.night = freshNight();
     this.save();
   }
 }

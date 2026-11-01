@@ -607,3 +607,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       could use `waitingLine()` on the waiting side too, so every turn game reads the same.
 - [ ] Tic-Tac-Toe's "Game 1" card covers the board for a moment while the bot may already be
       thinking; check a kid doesn't tap through it and miss the bot's first mark.
+- [x] 2026-11-01 (Chris: "should famiduel have a solo mode vs AI?" → build it): Play the bot.
+      Every game already had an honest bot, but it hid behind Player 2's sheet. Home now has a
+      "👫 Play together / 🤖 Play the bot" switch (`Store.setSolo`): the bot takes the top seat at
+      its last level (Easy at first) and per-game intro levels survive switching back. Bot games
+      keep their own tally (`soloNight`, home shows "You vs the bot"), so practice never lands on
+      the family match night or tips the auto handicap between two people. The result screen's
+      bot half reads "Bot wins / Bot lost". A playtest plays every game solo from the switch.
+- [ ] Air hockey "walks away" playtest failed once in a full `npm run verify` (no result after
+      fastForward(600)) and passed in 4 reruns, alone and in the full playtest. Watch for flakes.
+- [ ] Solo: the bot still shows the top seat's name ("Player 2"). Call it "Bot" in solo play?
