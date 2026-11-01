@@ -13,7 +13,8 @@
     "playtest": "playwright test --project=playtest",
     "verify": "npm run typecheck && npm test && npm run build && npm run test:e2e && npm run playtest",
     "sim": "vite-node scripts/sim.ts",
-    "motion": "vite-node scripts/motion.ts"
+    "motion": "vite-node scripts/motion.ts",
+    "swipes": "vite-node scripts/pingpong-swipes.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
