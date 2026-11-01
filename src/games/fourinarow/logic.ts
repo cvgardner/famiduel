@@ -186,6 +186,12 @@ export class FourInARow {
   /** Moves made this match (drops and flips). */
   moves = 0;
   events: Event[] = [];
+  /**
+   * The newest disc this game: who placed it and its cell (a drop's new disc, or the disc
+   * a flip turned). The view rings it so the other player can see what changed. A block
+   * places no disc, so it leaves this alone. Cleared when the next game starts.
+   */
+  last: { p: PlayerIndex; cell: number } | null = null;
   private nextId = 1;
 
   constructor(
@@ -249,6 +255,7 @@ export class FourInARow {
       this.energy[p].spend();
       this.board[idx(m.col, m.row)] = p;
       this.events.push({ type: 'power', p, id: 'flip' }, { type: 'flip', p, col: m.col, row: m.row });
+      this.last = { p, cell: idx(m.col, m.row) };
       this.endTurn(p);
       return true;
     }
@@ -266,6 +273,7 @@ export class FourInARow {
     const id = this.nextId++;
     const row = dropInto(this.board, m.col, p, bomb, this.ids, id);
     this.events.push({ type: 'drop', p, col: m.col, row, id, bomb, bombRow, cleared });
+    this.last = { p, cell: idx(m.col, row) };
     // Small energy reward for blocking an immediate threat.
     if (winningCols(before, other(p)).includes(m.col)) this.energy[p].charge(RULES.energyBlockThreat, this.score[p] < this.score[other(p)]);
     this.endTurn(p);
@@ -319,6 +327,7 @@ export class FourInARow {
     this.turn = this.starter;
     this.board.fill(EMPTY);
     this.ids.fill(0);
+    this.last = null;
     this.roundOver = null;
     this.events = [];
   }

@@ -318,6 +318,20 @@ class FourInARowView implements GameInstance {
     this.ctx.sfx.play('go');
   }
 
+  /**
+   * The cell of the newest disc once it has landed (and finished turning, for a flip),
+   * while the game is live; null otherwise. The playtest reads this too.
+   */
+  ringCell(): number | null {
+    const g = this.game;
+    const last = g.last;
+    if (!last || g.roundOver || g.done || this.hold) return null;
+    const c = Math.floor(last.cell / ROWS);
+    const r = last.cell % ROWS;
+    for (const d of this.discs.values()) if (d.c === c && d.target === r) return d.settled && d.flipT < 0.5 ? last.cell : null;
+    return null;
+  }
+
   // ---------- drawing ----------
 
   render(gx: G): void {
@@ -442,6 +456,16 @@ class FourInARowView implements GameInstance {
     for (const d of this.drain) disc(cx(d.c), cy(d.y), d.p, 0, false);
     for (const d of this.discs.values()) disc(cx(d.c), cy(d.y), d.p, d.flipT, d.bomb);
     gx.restore();
+    // The newest disc wears a white ring until the next move, so the player looking back
+    // at the board (often a kid after the bot's quick drop) can see what changed.
+    const ring = this.ringCell();
+    if (ring !== null) {
+      const x = cx(Math.floor(ring / ROWS));
+      const y = cy(ring % ROWS);
+      const rr = S / 2 - 1.5 + 1.2 * Math.sin(this.t * 5);
+      circle(gx, x, y, rr, undefined, 'rgba(0,0,0,0.55)', 6);
+      circle(gx, x, y, rr, undefined, '#ffffff', 3);
+    }
     // Flip targets
     if (live && this.armed[p] === 'flip' && !this.bots[p]) {
       for (const i of g.flippable(p)) circle(gx, cx(Math.floor(i / ROWS)), cy(i % ROWS), S / 2 - 2 + 2 * Math.sin(this.t * 8), undefined, COLORS.gold, 3);
