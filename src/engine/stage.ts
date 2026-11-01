@@ -2,6 +2,7 @@
 // key events into world-space Input, and runs a fixed-step loop.
 import { COLORS, type G } from './draw';
 import { Input } from './input';
+import { currentTurn, unturn } from './portrait';
 import { H, W } from './world';
 
 export const STEP = 1 / 60;
@@ -54,18 +55,23 @@ export class Stage {
   }
 
   resize(): void {
-    const rect = this.canvas.getBoundingClientRect();
+    // Layout size, not the bounding box: the app may be counter-rotated (portrait.ts).
+    const cw = this.canvas.clientWidth;
+    const ch = this.canvas.clientHeight;
     this.dpr = Math.min(window.devicePixelRatio || 1, 3);
-    this.canvas.width = Math.max(1, Math.round(rect.width * this.dpr));
-    this.canvas.height = Math.max(1, Math.round(rect.height * this.dpr));
-    this.scale = Math.min(rect.width / W, rect.height / H);
-    this.ox = (rect.width - W * this.scale) / 2;
-    this.oy = (rect.height - H * this.scale) / 2;
+    this.canvas.width = Math.max(1, Math.round(cw * this.dpr));
+    this.canvas.height = Math.max(1, Math.round(ch * this.dpr));
+    this.scale = Math.min(cw / W, ch / H);
+    this.ox = (cw - W * this.scale) / 2;
+    this.oy = (ch - H * this.scale) / 2;
   }
 
   toWorld(clientX: number, clientY: number): { x: number; y: number } {
     const rect = this.canvas.getBoundingClientRect();
-    return { x: (clientX - rect.left - this.ox) / this.scale, y: (clientY - rect.top - this.oy) / this.scale };
+    const l = unturn(currentTurn(), clientX - (rect.left + rect.width / 2), clientY - (rect.top + rect.height / 2));
+    const x = l.x + this.canvas.clientWidth / 2;
+    const y = l.y + this.canvas.clientHeight / 2;
+    return { x: (x - this.ox) / this.scale, y: (y - this.oy) / this.scale };
   }
 
   start(): void {
