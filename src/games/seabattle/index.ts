@@ -9,6 +9,7 @@ import { PowerButton } from '../../engine/widgets';
 import { clamp, H, W } from '../../engine/world';
 import { cellsOf, isSunk, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIP_NAMES, SHIPS, strikeCells, type Move } from './logic';
 import { inkOn } from '../../core/contrast';
+import { botBeat, botResultTitle } from './beat';
 
 // Layout, in the viewer's frame (the viewer sits at the bottom).
 const C = 27;
@@ -308,12 +309,15 @@ class SeaBattleView implements GameInstance {
   private botStep(m: Extract<Mode, { kind: 'bot' }>, busy: boolean): void {
     const g = this.game;
     const bot = this.bots[m.p]!;
-    if (busy || g.phase !== 'fire') return;
+    if (g.phase !== 'fire') return;
     if (g.turn !== m.p) {
-      // Bot's turn is over: a short beat to see the last shot, then hand over.
-      if (m.t > 0.7) this.advance();
+      // Bot's turn is over: the beat starts when its last shell lands, so a kid can
+      // see where it went (longer on a hit), then hand over.
+      if (busy) m.t = 0;
+      else if (m.t > botBeat(this.turnLog[m.p])) this.advance();
       return;
     }
+    if (busy) return;
     if (!m.aim && m.t > bot.think * 0.6) {
       m.aim = bot.choose(g);
       m.t = 0;
@@ -500,8 +504,9 @@ class SeaBattleView implements GameInstance {
       title = this.armed === 'mine' ? 'Hide a mine' : `${an}, fire!`;
       sub = this.armed === 'radar' ? 'Tap a spot to scan 3×3, tap again to scan' : this.armed === 'airstrike' ? 'Pick a row spot, tap again to strike 5 cells' : this.armed === 'mine' ? 'Tap empty water in your sea, tap again to hide it' : g.shotsLeft > 1 ? `Bonus: ${g.shotsLeft} shots this turn! Tap, tap again to fire` : 'Tap a square, tap it again to fire';
     } else if (m.kind === 'bot') {
-      title = `${an} is aiming…`;
-      sub = lay.bigShips ? 'Watch your fleet!' : `Firing at ${this.ctx.players[other(a)].name}`;
+      const landed = g.turn !== m.p && this.shells.length === 0;
+      title = landed ? botResultTitle(an, this.turnLog[m.p], lay.bigShips) : `${an} is aiming…`;
+      sub = landed && lay.bigShips ? 'Look where it landed' : lay.bigShips ? 'Watch your fleet!' : `Firing at ${this.ctx.players[other(a)].name}`;
     } else if (m.kind === 'after') {
       const lg = this.turnLog[m.p];
       title = lg.sunk ? 'You sank a ship!' : lg.hits ? 'Direct hit!' : 'Missed…';
@@ -526,6 +531,16 @@ class SeaBattleView implements GameInstance {
     if (m.kind === 'place') {
       this.drawPlaceUi(gx, m.p);
       return;
+    }
+    // Where the bot's shots just landed on your fleet, ringed until the hand-over.
+    if (m.kind === 'bot' && g.turn !== m.p && this.shells.length === 0 && lay.big === v) {
+      const ring = alpha(this.ctx.players[m.p].color, 0.95);
+      for (const c of this.lastShots[lay.big]) {
+        const [cx, cy] = this.cellXY(c);
+        const r = C / 2 + 3 + 2.5 * Math.sin(this.t * 7);
+        circle(gx, cx, cy, r + 2, undefined, 'rgba(0,0,0,0.55)', 4);
+        circle(gx, cx, cy, r, undefined, ring, 3);
+      }
     }
     // Fleet status of the big sea
     const bigSea = g.seas[lay.big];
