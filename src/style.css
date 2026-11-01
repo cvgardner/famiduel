@@ -26,6 +26,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .logo { margin: 0; font-size: 44px; font-weight: 900; letter-spacing: -1px; line-height: 1; color: var(--p0); text-shadow: 0 4px 0 rgba(0,0,0,0.3); }
 .logo span { color: var(--p1); }
 .tag { margin: 6px 0 0; color: var(--dim); font-weight: 600; }
+.seg.mode { flex-wrap: nowrap; }
+.seg.mode button { font-size: 15px; }
 .players { display: flex; align-items: center; gap: 8px; }
 .vs { font-weight: 900; color: var(--dim); }
 .player-chip { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: 16px; background: var(--panel); border: 2px solid var(--c); font-weight: 800; flex-wrap: wrap; }

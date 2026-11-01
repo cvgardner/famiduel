@@ -71,19 +71,25 @@ export class App {
   // ---------- Home ----------
   showHome(): void {
     this.show('home');
-    const { profiles, night, settings } = this.store.data;
+    const { profiles, settings } = this.store.data;
+    const night = this.store.night;
+    const solo = this.store.solo;
     const played = night.games.length;
     $('#home').innerHTML = `
       <header class="brand">
         <h1 class="logo">Fami<span>Duel</span></h1>
         <p class="tag">Two players. One phone. Super powers.</p>
       </header>
+      <div class="seg mode" id="modeSeg" role="group" aria-label="Who is playing">
+        <button data-v="together" class="${solo ? '' : 'on'}" aria-pressed="${!solo}">👫 Play together</button>
+        <button data-v="solo" class="${solo ? 'on' : ''}" aria-pressed="${solo}">🤖 Play the bot</button>
+      </div>
       <section class="players">
         ${[0, 1].map((i) => this.playerChip(i as PlayerIndex)).join('<div class="vs">vs</div>')}
       </section>
-      <section class="night" aria-label="Match night">
-        <div class="night-score"><b style="color:${profiles[0].color}">${night.wins[0]}</b><span>Match night · ${played} game${played === 1 ? '' : 's'}</span><b style="color:${profiles[1].color}">${night.wins[1]}</b></div>
-        ${played ? `<button id="newNightBtn" class="link">New night</button>` : ''}
+      <section class="night" aria-label="${solo ? 'You vs the bot' : 'Match night'}">
+        <div class="night-score"><b style="color:${profiles[0].color}">${night.wins[0]}</b><span>${solo ? 'You vs the bot' : 'Match night'} · ${played} game${played === 1 ? '' : 's'}</span><b style="color:${profiles[1].color}">${night.wins[1]}</b></div>
+        ${played ? `<button id="newNightBtn" class="link">${solo ? 'Start over' : 'New night'}</button>` : ''}
       </section>
       <section class="grid" aria-label="Games">
         ${META.map((m) => this.card(m)).join('')}
@@ -97,6 +103,15 @@ export class App {
       <footer class="foot">Prototype · no ads, no accounts · everything stays on this device</footer>`;
     for (const el of document.querySelectorAll<HTMLElement>('.game-card[data-ready="1"]')) {
       el.addEventListener('click', () => this.openGame(el.dataset.id!));
+    }
+    for (const el of document.querySelectorAll<HTMLElement>('#modeSeg button')) {
+      el.addEventListener('click', () => {
+        const on = el.dataset.v === 'solo';
+        if (on === this.store.solo) return;
+        this.store.setSolo(on);
+        this.sfx.play('tap');
+        this.showHome();
+      });
     }
     for (const el of document.querySelectorAll<HTMLElement>('.player-chip')) {
       el.addEventListener('click', () => this.editPlayer(Number(el.dataset.p) as PlayerIndex));
@@ -276,7 +291,8 @@ export class App {
   }
 
   private assistFor(p: PlayerIndex): number {
-    const { profiles, night, settings } = this.store.data;
+    const { profiles, settings } = this.store.data;
+    const night = this.store.night;
     return effectiveAssist([profiles[0].headStart, profiles[1].headStart], night.wins, settings.autoHandicap, p);
   }
 
@@ -404,19 +420,23 @@ export class App {
     );
     this.stage.stop();
     this.sfx.play('win');
-    const { profiles, night, history } = this.store.data;
+    const { profiles, history } = this.store.data;
+    const night = this.store.night;
+    const solo = this.store.solo;
     // Lost twice in a row to this bot: offer an easier one, on the person's half.
     const offer = easierOffer(history, meta.id, profiles);
     const level = (v: string) => v[0].toUpperCase() + v.slice(1);
     const half = (p: PlayerIndex) => {
       const won = r.winner === p;
       const draw = r.winner === null;
-      const title = draw ? 'Draw!' : won ? 'You win!' : 'So close!';
+      // In solo play the bot's half speaks about the bot, not to it.
+      const botHalf = solo && !!seats?.[p].bot;
+      const title = draw ? 'Draw!' : botHalf ? (won ? 'Bot wins' : 'Bot lost') : won ? 'You win!' : 'So close!';
       return `<div class="half p${p} ${won ? 'won' : ''}" style="--c:${profiles[p].color}"><div class="half-inner">
         <div class="res-title">${title}</div>
         <div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>
         <div class="who">${esc(profiles[p].name)}${won ? ' 🏆' : ''}</div>
-        <div class="res-night">Match night: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}</div>
+        <div class="res-night">${solo ? (botHalf ? 'Bot' : 'You vs the bot') : 'Match night'}: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}</div>
         ${offer?.person === p ? `<button class="btn easier" id="easierBtn" data-v="${offer.to}" aria-label="Make the bot easier: ${level(offer.from)} to ${level(offer.to)}">🤖 Make the bot easier?</button>` : ''}
       </div></div>`;
     };

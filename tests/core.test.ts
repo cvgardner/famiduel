@@ -122,6 +122,58 @@ describe('bot level per game', () => {
   });
 });
 
+describe('play the bot (solo)', () => {
+  const mem = () => {
+    const m = new Map<string, string>();
+    return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) } as Storage;
+  };
+  it('puts an Easy bot in the top seat, and switching back makes both seats people', () => {
+    const s = new Store(mem());
+    expect(s.solo).toBe(false);
+    s.setSolo(true);
+    expect(s.solo).toBe(true);
+    expect(s.data.profiles[0].bot).toBeNull();
+    expect(s.data.profiles[1].bot).toBe('easy');
+    s.setSolo(false);
+    expect(s.data.profiles.map((p) => p.bot)).toEqual([null, null]);
+  });
+  it('brings back the last bot level and the per-game levels', () => {
+    const storage = mem();
+    const s = new Store(storage);
+    s.setSolo(true);
+    s.setBot(1, 'hard');
+    s.setBotLevel(1, 'checkers', 'easy');
+    s.setSolo(false);
+    const again = new Store(storage);
+    again.setSolo(true);
+    expect(botFor(again.data.profiles[1], 'airhockey')).toBe('hard');
+    expect(botFor(again.data.profiles[1], 'checkers')).toBe('easy');
+  });
+  it('keeps bot games off the family match night', () => {
+    const storage = mem();
+    const s = new Store(storage);
+    s.record('sumo', { winner: 0, score: [2, 1] }, [null, null]);
+    s.setSolo(true);
+    expect(s.night.wins).toEqual([0, 0]);
+    s.record('sumo', { winner: 1, score: [0, 2] }, [null, null]);
+    s.record('sumo', { winner: 1, score: [1, 2] }, [null, null]);
+    expect(s.night.wins).toEqual([0, 2]);
+    s.newNight();
+    expect(s.night.games).toHaveLength(0);
+    s.setSolo(false);
+    expect(s.night.wins).toEqual([1, 0]);
+    expect(new Store(storage).data.history).toHaveLength(3);
+  });
+  it('two bots (a demo) or two people are not solo', () => {
+    const s = new Store(mem());
+    s.setBot(0, 'easy');
+    s.setBot(1, 'easy');
+    expect(s.solo).toBe(false);
+    s.setSolo(true);
+    expect(s.data.profiles.map((p) => p.bot)).toEqual([null, 'easy']);
+  });
+});
+
 describe('button', () => {
   it('counts a tap that lands and lifts within one frame', async () => {
     const { Input } = await import('../src/engine/input');
