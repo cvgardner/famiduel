@@ -9,7 +9,7 @@ import { PowerButton } from '../../engine/widgets';
 import { clamp, H, W } from '../../engine/world';
 import { cellsOf, isSunk, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIP_NAMES, SHIPS, strikeCells, type Move } from './logic';
 import { inkOn } from '../../core/contrast';
-import { botBeat, botResultTitle } from './beat';
+import { botBeat, botResultTitle, shooterBeat, shooterResult } from './beat';
 
 // Layout, in the viewer's frame (the viewer sits at the bottom).
 const C = 27;
@@ -54,6 +54,8 @@ class SeaBattleView implements GameInstance {
     { hits: 0, misses: 0, sunk: 0 },
     { hits: 0, misses: 0, sunk: 0 },
   ];
+  /** The last shot's result alone (the one that ended a turn), for the shooter's own beat. */
+  volley = { hits: 0, misses: 0, sunk: 0 };
   /** Hits in a row this turn (each one earned another shot). Shown once the shell lands. */
   private again = 0;
   /** The header line last drawn (read by the playtest). */
@@ -181,7 +183,10 @@ class SeaBattleView implements GameInstance {
       if (!busy) this.fireInput(m.p, input, taps);
     } else if (m.kind === 'bot') this.botStep(m, busy);
     else if (m.kind === 'after') {
-      if (!busy && m.t > (this.twoHumans ? 1.3 : 0.8)) this.advance();
+      // Like the bot's beat: counted from when the last shell lands, so the shooter
+      // sees where it went (and two people read "pass the phone") before the hand-over.
+      if (busy) m.t = 0;
+      else if (m.t > shooterBeat(this.volley, this.twoHumans)) this.advance();
     } else if (m.kind === 'over') {
       if (!busy && m.t > 3 && !this.ended) {
         this.ended = true;
@@ -343,7 +348,10 @@ class SeaBattleView implements GameInstance {
       this.ctx.sfx.play('buzz');
       return;
     }
-    if (mv.kind === 'fire' || mv.kind === 'airstrike') this.notice[a] = null;
+    if (mv.kind === 'fire' || mv.kind === 'airstrike') {
+      this.notice[a] = null;
+      this.volley = { hits: 0, misses: 0, sunk: 0 };
+    }
     this.armed = null;
     this.aim = null;
     const { sfx, fx } = this.ctx;
@@ -404,13 +412,17 @@ class SeaBattleView implements GameInstance {
       this.burst(x, y, '#ff8a3d', big ? 22 : 10, big ? 240 : 120, big ? 4 : 2);
       this.burst(x, y, '#ffd54a', 8, 120, 3);
       fx.shake(big ? 6 : 3, 0.18);
-      if (s.result === 'hit') log.hits++;
+      if (s.result === 'hit') {
+        log.hits++;
+        this.volley.hits++;
+      }
       if (big) this.pop(s.result === 'hitBack' ? 'Hit back!' : 'HIT!', x, y + (y < GY + 70 ? 26 : -24), '#ff8a3d', 24);
       const sea = this.game.seas[s.owner];
       const ship = sea.ships[sea.occ[s.cell]];
       if (s.result === 'hit' && isSunk(ship) && cellsOf(ship).every((c) => !this.shells.some((o) => o !== s && o.owner === s.owner && o.cell === c && o.t < SHOT_T))) {
         sfx.play('score');
         log.sunk++;
+        this.volley.sunk++;
         fx.flash('#ff8a3d', 0.15);
         for (const c of cellsOf(ship)) {
           const [cx, cy] = this.cellPos(s.owner, c);
@@ -425,11 +437,13 @@ class SeaBattleView implements GameInstance {
       this.burst(x, y, '#ffb020', 30, 300, 5);
       if (big) this.pop('MINE!', x, y + (y < GY + 70 ? 26 : -24), COLORS.bad, 28);
       log.misses++;
+      this.volley.misses++;
     } else {
       sfx.play('splash');
       this.burst(x, y, '#bfe9ff', big ? 12 : 6, big ? 140 : 70, big ? 3 : 2);
       if (big) this.pop('Splash', x, y + (y < GY + 70 ? 24 : -22), '#bfe9ff', 18);
       log.misses++;
+      this.volley.misses++;
     }
   }
 
@@ -517,9 +531,7 @@ class SeaBattleView implements GameInstance {
       title = landed ? botResultTitle(an, this.turnLog[m.p], lay.bigShips) : again ? `Hit! ${an} goes again…` : `${an} is aiming…`;
       sub = landed && lay.bigShips ? 'Look where it landed' : lay.bigShips ? 'Watch your fleet!' : `Firing at ${this.ctx.players[other(a)].name}`;
     } else if (m.kind === 'after') {
-      const lg = this.turnLog[m.p];
-      title = lg.sunk ? 'You sank a ship!' : lg.hits ? 'Direct hit!' : 'Missed…';
-      sub = this.twoHumans ? 'Now pass the phone' : '';
+      ({ title, sub } = shooterResult(this.volley, this.turnLog[m.p], this.twoHumans, this.shells.length > 0));
     } else if (m.kind === 'over') {
       const w = g.winner ?? 0;
       title = `${this.ctx.players[w].name} wins! 🏆`;

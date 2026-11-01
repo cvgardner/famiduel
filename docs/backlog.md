@@ -419,9 +419,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rim would make "whose button" clearer when kids sit close.
 
 ## Ideas found 2026-11-01 (Sea Battle beat run)
-- [ ] Sea Battle between two people: the 'after' beat (1.3 s) is also counted from the
-      shot, not the landing, so the shooter sees their own result for about 0.9 s before
-      "Now pass the phone"; check whether it needs the same landing-based timer.
+- [x] 2026-11-01: Sea Battle: your own shot's result now stays up long enough to see. The
+      shooter's beat was counted from the shot, so after the 0.38 s flight a miss showed for
+      ~0.9 s between two people (~0.4 s against a bot) before the turn moved on, and the
+      header said "Missed…" before the shell had landed. With hit-again it was also wrong:
+      after hit, hit, miss it said "Direct hit!" because it read the whole turn. Now the beat
+      starts when the last shell lands (0.6 s on a miss, 1.2 s on a hit, 1.6 s on a sinking,
+      +0.6 s when two people pass the phone), the header says "Fire!" while the shell flies,
+      then names the shot that ended the turn, with "2 hits this turn" underneath
+      (`shooterBeat` / `shooterResult` in `src/games/seabattle/beat.ts`, unit tested). A new
+      playtest plays two people for 30 s and checks every turn's beat, header and the
+      no-spoiler flight (`seabattle-pass-beat.png`).
 - [x] 2026-11-01: Four in a Row rings the newest disc. Checkers already tints the last
       move's squares and Tic-Tac-Toe's 9 cells draw each mark in, but in Four in a Row a
       bot's disc landed in 0.6 s among up to 41 others with nothing to say which was new.
@@ -450,3 +458,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Other helpers that set `globalAlpha` to an absolute value (fx particles and flash,
       several games' `= 1` resets) would also cancel an outer fade; if a whole screen ever
       fades (e.g. a result transition), make them relative like the buttons.
+
+## Ideas found 2026-11-01 (shooter beat run)
+- [ ] Sea Battle: the "go again" header after a hit appears only once the shell lands, but the
+      big "HIT!" pop sits over the grid near the top player's side; check the pop reads
+      upright for whoever is shooting when the top player fires (two people).
+- [ ] Between two people a whole turn of hits ends on a miss; a short "3 hits!" pop over the
+      sea at the hand-over would make a strong turn feel as good as it was.
