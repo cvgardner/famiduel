@@ -1,7 +1,8 @@
 // Four in a Row view: the board sits in the middle; each player taps (or slides
 // and lets go) in their own half to drop a disc in that column.
 import { PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { waitingLine } from '../../core/turnline';
+import { alpha, circle, COLORS, fitSize, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -381,7 +382,10 @@ class FourInARowView implements GameInstance {
         rrect(gx, W / 2 - 120, yTurn - 22, 240, 44, 22, alpha(pl.color, 0.9), '#fff', 3);
         text(gx, label, W / 2, yTurn, { size: Math.round(22 * Math.min(1.25, pulse)), player: p, color: '#fff', stroke: 'rgba(0,0,0,0.3)' });
       } else {
-        text(gx, `${this.ctx.players[g.turn].name}'s turn`, W / 2, yTurn, { size: 16, player: p, color: COLORS.dim, weight: 700 });
+        // Same quiet pill as Checkers and Tic-Tac-Toe: "Waiting…", or who is thinking.
+        const msg = waitingLine(this.ctx.players[g.turn]);
+        rrect(gx, W / 2 - 110, yTurn - 20, 220, 40, 20, 'rgba(255,255,255,0.07)', 'rgba(255,255,255,0.15)', 2);
+        text(gx, msg, W / 2, yTurn, { size: fitSize(gx, msg, 196, 17, 700), player: p, color: COLORS.dim, weight: 700 });
       }
       // Arrow from the active player's panel toward the board.
       if (mine && !this.bots[p]) {

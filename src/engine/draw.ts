@@ -114,6 +114,19 @@ export function readable(str: string): boolean {
   return (str.match(/[\p{L}\p{N}]/gu) ?? []).length >= 2;
 }
 
+/**
+ * The largest size from `size` down to MIN_TEXT at which `str` fits `maxW` units, so a
+ * long name in a pill shrinks a little instead of running past its edge.
+ */
+export function fitSize(g: G, str: string, maxW: number, size: number, weight = 800): number {
+  let s = size;
+  for (; s > MIN_TEXT; s--) {
+    g.font = `${weight} ${s}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+    if (g.measureText(str).width <= maxW) break;
+  }
+  return s;
+}
+
 export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}): void {
   const size = o.size ?? 20;
   if (size < MIN_TEXT && readable(str)) smallText.set(str, size);

@@ -1,6 +1,7 @@
 // Tic-Tac-Toe view: tap a square. Big hand-drawn X and O, first to 3 games.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, noGlow, rrect, text, type G } from '../../engine/draw';
+import { waitingLine } from '../../core/turnline';
+import { alpha, circle, COLORS, facing, fitSize, glow, noGlow, rrect, text, type G } from '../../engine/draw';
 import type { GameContext, GameDef, GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { H, MID, W } from '../../engine/world';
@@ -288,8 +289,8 @@ class TicTacToeView implements GameInstance {
       text(gx, this.bots[p] ? 'Thinking…' : g.starters[g.starters.length - 1] === p && g.board.every((v) => v < 0) ? 'You start!' : 'Your turn!', W / 2, py, { size: 20, color: '#fff', stroke: 'rgba(0,0,0,0.25)' });
     } else {
       rrect(gx, W / 2 - pw / 2, py - 20, pw, 40, 20, 'rgba(255,255,255,0.07)', 'rgba(255,255,255,0.15)', 2);
-      const msg = g.done ? (g.winner === p ? 'Champion!' : g.winner === null ? 'Draw' : 'Good game') : g.between ? `Game ${g.games} done` : 'Waiting…';
-      text(gx, msg, W / 2, py, { size: 17, color: COLORS.dim, weight: 700 });
+      const msg = g.done ? (g.winner === p ? 'Champion!' : g.winner === null ? 'Draw' : 'Good game') : g.between ? `Game ${g.games} done` : waitingLine(this.ctx.players[g.turn]);
+      text(gx, msg, W / 2, py, { size: fitSize(gx, msg, pw - 24, 17, 700), color: COLORS.dim, weight: 700 });
     }
   }
 }
