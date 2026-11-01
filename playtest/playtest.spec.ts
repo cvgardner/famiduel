@@ -155,6 +155,10 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(overflow, 'home scrolls sideways at 320px').toBe(false);
   for (const card of await page.locator('.game-card[data-ready="1"]').all()) built.push((await card.getAttribute('data-id'))!);
+  // The home grid follows content/games.json: action games first, slow turn games last.
+  const shown = await page.locator('.game-card').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.id));
+  expect(shown, 'home grid order').toEqual(games.games.map((g) => g.id));
+  await page.screenshot({ path: path.join(OUT, 'home-small-phone.png') });
   const clipped: string[] = [];
   // A common Android size, and the smallest iPhone still in families' drawers (SE 1st gen).
   for (const [w, h] of [[360, 640], [320, 568]]) {

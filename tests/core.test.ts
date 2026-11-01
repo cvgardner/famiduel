@@ -54,6 +54,20 @@ describe('content', () => {
       expect(new Set(list.map((p) => p.id)).size).toBe(3);
     }
   });
+
+  it('home grid: minigolf (the hero) first, the free trio on the top row, action games before slow turn games', () => {
+    // Chris's playtest (1 Nov 2026): the action games are the most fun, so they are the
+    // stars of the home screen. Strategy board games and the free extras come last.
+    const list = games.games;
+    expect(list[0].id).toBe('minigolf');
+    expect(list.slice(0, 3).every((g) => g.free)).toBe(true);
+    const slow = (k: string) => k.startsWith('Strategy') || k === 'Extra';
+    const firstSlow = list.findIndex((g) => slow(g.kind));
+    expect(firstSlow).toBeGreaterThan(0);
+    expect(list.slice(firstSlow).every((g) => slow(g.kind))).toBe(true);
+    // Extras sit at the very end.
+    expect(list.slice(-2).every((g) => g.kind === 'Extra')).toBe(true);
+  });
 });
 
 describe('store', () => {

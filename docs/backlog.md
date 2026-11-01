@@ -103,6 +103,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       320 px phone, and that it is gone after 3 matches.
 
 ## App
+- [x] 2026-11-01 (Chris's playtest: "action games are the stars"): the home grid now leads
+      with the action games. Minigolf (the hero) and the free trio keep the top row, then
+      Ping Pong, Snack Snatch, Tank Duel, Snake Duel, Penalty, Quick Draw, Chop Chop; Sea
+      Battle, Four in a Row, Checkers and the two extras moved to the bottom. A unit test
+      guards the order and the playtest checks the grid and saves `home-small-phone.png`.
 - [ ] Rivalry card after a match night (shareable image, behind a parental gate).
 - [ ] Family Wrapped prototype from the on-device match history.
 - [ ] Daily minigolf course (seed from the date) with a "beat my score" link.
@@ -465,3 +470,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       upright for whoever is shooting when the top player fires (two people).
 - [ ] Between two people a whole turn of hits ends on a miss; a short "3 hits!" pop over the
       sea at the hand-over would make a strong turn feel as good as it was.
+
+## Ideas found 2026-11-01 (home order run)
+- [ ] Home grid: on a 320 px phone only the first two rows show above the fold; a small
+      "Action" / "Take turns" label between the groups could help parents find a calm game.
+- [ ] Idle-seat stalls: Ping Pong serves itself, Penalty has a shot clock and Quick Draw a
+      draw timeout, so the "idle player stalls the match" worry is covered for those; Tanks
+      and Snack Snatch have match clocks. Only a turn game left waiting (Minigolf putt,
+      Sea Battle shot) can wait forever, which is fine with a person there.
