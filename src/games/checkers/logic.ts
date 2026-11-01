@@ -147,6 +147,15 @@ export function countPieces(b: Cells, p: PlayerIndex): { men: number; kings: num
   return { men, kings };
 }
 
+/**
+ * What the board keeps showing about a move once it has played: every square the piece
+ * stood on (its start and each landing, in order) and the squares of the pieces it took.
+ * A multi-jump shows its whole path, not just where it started and ended.
+ */
+export function moveTrail(m: Move): { trail: number[]; taken: number[] } {
+  return { trail: [m.from, ...m.path], taken: [...m.caps] };
+}
+
 type Snapshot = { cells: Cells; turn: PlayerIndex; quiet: number; ply: number; mover: PlayerIndex };
 
 export class Checkers {

@@ -5,7 +5,7 @@ import type { GameContext, GameDef, GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
-import { Checkers, CheckersBot, colOf, isDark, ownerOfCell, rowOf, type Cells, type Move } from './logic';
+import { Checkers, CheckersBot, colOf, isDark, moveTrail, ownerOfCell, rowOf, type Cells, type Move } from './logic';
 
 // Board geometry. The board is nudged right so the DOM pause button (left edge,
 // vertically centred) never covers a playable square.
@@ -211,6 +211,15 @@ class CheckersView implements GameInstance {
     this.ctx.end({ winner: w, score, summary: `${score[0]} – ${score[1]} pieces taken` });
   }
 
+  /** The last move as the board shows it (null while a move animates or after an undo). */
+  lastMarks(): { trail: number[]; taken: number[]; mover: PlayerIndex } | null {
+    const lm = this.game.lastMove;
+    if (!lm || this.anim) return null;
+    const mover = ownerOfCell(this.game.cells[lm.path[lm.path.length - 1]]);
+    if (mover === null) return null;
+    return { ...moveTrail(lm), mover };
+  }
+
   private currentHint(): Move | null {
     const g = this.game;
     const p = g.turn;
@@ -263,11 +272,28 @@ class CheckersView implements GameInstance {
         gx.fillStyle = isDark(r, c) ? '#8a5a3b' : '#f1dfbd';
         gx.fillRect(BX + c * SQ, BY + r * SQ, SQ, SQ);
       }
-    const lm = g.lastMove;
-    if (lm && !this.anim) {
-      for (const s of [lm.from, lm.path[lm.path.length - 1]]) {
+    const marks = this.lastMarks();
+    if (marks) {
+      // The last move stays on the board until the next one: every square of its path is
+      // tinted, a jump's path is traced in the mover's colour, and each taken piece leaves a
+      // faint dashed ring with a cross in its owner's colour, so a kid looking back after a
+      // bot's double jump can see which pieces went and how.
+      for (const s of marks.trail) {
         gx.fillStyle = 'rgba(255,230,120,0.22)';
         gx.fillRect(cx(s) - SQ / 2, cy(s) - SQ / 2, SQ, SQ);
+      }
+      if (marks.taken.length) {
+        const mc = this.color(marks.mover);
+        gx.setLineDash([6, 4]);
+        for (let i = 1; i < marks.trail.length; i++) line(gx, cx(marks.trail[i - 1]), cy(marks.trail[i - 1]), cx(marks.trail[i]), cy(marks.trail[i]), alpha(mc, 0.7), 3);
+        const tc = this.color(other(marks.mover));
+        for (const s of marks.taken) circle(gx, cx(s), cy(s), SQ * 0.34, alpha(tc, 0.18), alpha(tc, 0.85), 2.5);
+        gx.setLineDash([]);
+        for (const s of marks.taken) {
+          const d = SQ * 0.13;
+          line(gx, cx(s) - d, cy(s) - d, cx(s) + d, cy(s) + d, alpha('#ffffff', 0.75), 2.5);
+          line(gx, cx(s) - d, cy(s) + d, cx(s) + d, cy(s) - d, alpha('#ffffff', 0.75), 2.5);
+        }
       }
     }
     if (this.anim) {

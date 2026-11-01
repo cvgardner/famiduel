@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel, PlayerIndex } from '../src/core/types';
-import { Checkers, CheckersBot, legalMoves, RULES, sq, type Cells } from '../src/games/checkers/logic';
+import { Checkers, CheckersBot, legalMoves, moveTrail, RULES, sq, type Cells } from '../src/games/checkers/logic';
 import { player } from './helpers';
 
 function play(levels: [BotLevel, BotLevel], seed: number) {
@@ -77,6 +77,27 @@ describe('checkers rules', () => {
     expect(g.apply({ from: sq(7, 0), path: [sq(5, 2)], caps: [sq(6, 1)], crown: false })).toBe(false);
     expect(g.apply(moves[0])).toBe(true);
     expect(g.score[0]).toBe(3);
+  });
+
+  it('the last move shows its whole path and every piece it took', () => {
+    const b = empty();
+    b[sq(7, 0)] = 1;
+    b[sq(6, 1)] = -1;
+    b[sq(4, 3)] = -1;
+    b[sq(2, 3)] = -1;
+    b[sq(0, 7)] = -1;
+    const g = gameWith(b, 0);
+    expect(g.apply(legalMoves(b, 0)[0])).toBe(true);
+    const m = moveTrail(g.lastMove!);
+    // Start, then each landing in order (not just start and end).
+    expect(m.trail).toEqual([sq(7, 0), sq(5, 2), sq(3, 4), sq(1, 2)]);
+    expect(m.taken).toEqual([sq(6, 1), sq(4, 3), sq(2, 3)]);
+    // The taken squares are empty now; the mover stands on the trail's end.
+    for (const s of m.taken) expect(g.cells[s]).toBe(0);
+    expect(g.cells[m.trail[m.trail.length - 1]]).toBe(1);
+    // A simple move: start and end, nothing taken.
+    const q = moveTrail({ from: sq(0, 7), path: [sq(1, 6)], caps: [], crown: false });
+    expect(q).toEqual({ trail: [sq(0, 7), sq(1, 6)], taken: [] });
   });
 
   it('a man crowned during a capture ends its move there', () => {

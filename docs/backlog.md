@@ -478,8 +478,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       between games, where the winning line takes over. `TicTacToe.last` is unit tested; the
       playtest plays a normal bot, checks its mark stays tiled for 3 s and that the tile
       moves to the person's mark (`tictactoe-last-mark.png`).
-- [ ] Checkers already tints the last move's squares; check that tint still reads after a
-      multi-jump (only the final hop's squares, or the whole path?).
+- [x] 2026-11-01: Checkers: a multi-jump now stays readable after it lands. Only the start
+      and end squares were tinted, so after a bot's double jump a kid saw two of their pieces
+      gone with nothing to say how. Now every square of the last move's path is tinted, a
+      jump's path is traced (dashed, in the mover's colour) and each taken piece leaves a
+      dashed ring with a white cross in its owner's colour, until the next move; an undo
+      clears it. `moveTrail()` in `checkers/logic.ts` is unit tested; the playtest sets up a
+      forced double jump for the normal bot, checks the path and both taken squares are
+      drawn in the canvas, that they stay for 2.5 s, and that the marks move to the person's
+      move (`checkers-double-jump.png`).
 - [ ] Four in a Row's top player reads "Player 1's turn" in small grey text: the waiting
       side could say "Waiting…" like Tic-Tac-Toe, which reads quicker.
 
@@ -531,3 +538,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tile, Checkers tint, Sea Battle's last shot) so a kid learns one cue for "what changed".
 - [ ] Tic-Tac-Toe's ghost dots in empty cells only show for a person's turn; during the
       bot's think a faint "🤖 thinking" over the board would explain the pause to small kids.
+
+## Ideas found 2026-11-01 (checkers trail run)
+- [ ] Checkers: the "Taken" line under each panel could show the taken pieces as small
+      discs (like captured pieces beside a real board), so a kid can count them at a glance.
+- [ ] Checkers: the jump trail line is thin on a 320 px phone; if kids still miss a bot's
+      jump, replay the last move's hops once (slow) when the person taps a ghost ring.
