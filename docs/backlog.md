@@ -21,6 +21,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       `fx.pop` in Sumo from the source and checks its colour at its size on both sand tones,
       so rare pops are checked every run, not only when a match happens to trigger them.
 
+- [x] 2026-11-01 (Chris): "the minigolf screen orientation is really off sometimes". A phone
+      lying flat has no reliable up, so leaning in to putt or lifting an edge made the OS flip
+      the page to landscape and the portrait table shrank into a sideways strip. Browsers can't
+      lock orientation, so src/engine/portrait.ts counter-rotates the whole app when a phone
+      reports a landscape turn (Stage maps touches back through it). Unit test + e2e on an
+      844×390 landscape phone. The course's own turn now always lands on 0° or 180°.
+
 ## Feel and fairness
 - [x] 2026-10-31: Sumo: the normal bot beat a mashing player 2-0 in under 8 s. Measured:
       the bot level made no difference; a masher fell off the ring *on their own* in about
