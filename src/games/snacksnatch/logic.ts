@@ -2,7 +2,9 @@
 // A snack pot in the middle shoots snacks around a picnic blanket. Each player
 // has two round frog-like critters at their edge; a tap snaps one critter's
 // head forward and it gulps any snack it touches. Golden snacks are worth 3.
-// Most points after 30 seconds wins; a tie goes to one "sudden snack".
+// Most points after 30 seconds wins; a tie goes to a "sudden snack".
+// Fairness: the pot always shoots mirrored pairs, one identical snack at each
+// player (same angle, speed and gold), so both get exactly the same supply.
 import { Energy } from '../../core/energy';
 import { lerpAssist } from '../../core/handicap';
 import type { Rng } from '../../core/rng';
@@ -12,7 +14,7 @@ import { clamp, MID, W } from '../../engine/world';
 
 export const RULES = {
   matchTime: 30,
-  /** Sudden snack: first to grab the golden tie-break snack wins; after this long it's a draw. */
+  /** Sudden snack: one golden snack at each player, first gulp wins; after this long it's a draw. */
   suddenTime: 12,
   /** Field edges: the side walls and each player's "gum line" the snacks bounce off. */
   wall: 12,
@@ -23,21 +25,24 @@ export const RULES = {
   headR: 24,
   reach: 92,
   /** Reach at assist 3. */
-  reachMax: 122,
+  reachMax: 140,
   extendT: 0.12,
   holdT: 0.05,
   retractT: 0.16,
   cooldown: 0.4,
   /** A snap that catches nothing leaves the critter dizzy for longer, so spamming doesn't pay. */
   missCooldown: 1.0,
+  /** Miss cooldown at assist 3: an assisted player recovers from a miss much sooner. */
+  missCooldownMin: 0.45,
   snackR: 10,
   goldR: 11,
   goldChance: 0.14,
   goldValue: 3,
   potR: 24,
-  maxSnacks: 9,
-  spawnMin: 0.5,
-  spawnMax: 0.85,
+  maxSnacks: 10,
+  /** Seconds between mirrored pairs. */
+  spawnMin: 1.0,
+  spawnMax: 1.7,
   /** The last seconds spawn faster. */
   frenzyAt: 24,
   speedMin: 200,
@@ -96,6 +101,8 @@ export class SnackSnatch {
   critters: [[Critter, Critter], [Critter, Critter]];
   energy: [Energy, Energy];
   reach: [number, number];
+  /** Each player's miss cooldown (shorter with assist). */
+  missCooldown: [number, number];
   /** Remaining "Double Grab" snaps. */
   doubleLeft: [number, number] = [0, 0];
   /** Seconds left in regulation, then in sudden snack. */
@@ -108,8 +115,8 @@ export class SnackSnatch {
   private spawnIn = 0.3;
   private nextId = 1;
   private lastSec = Math.ceil(RULES.matchTime);
-  /** The opening volley of snacks. */
-  private opening = 3;
+  /** The opening volley: this many quick pairs. */
+  private opening = 2;
 
   constructor(
     readonly players: [PlayerInfo, PlayerInfo],
@@ -133,6 +140,10 @@ export class SnackSnatch {
     ];
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     this.reach = [lerpAssist(players[0].assist, RULES.reach, RULES.reachMax), lerpAssist(players[1].assist, RULES.reach, RULES.reachMax)];
+    this.missCooldown = [
+      lerpAssist(players[0].assist, RULES.missCooldown, RULES.missCooldownMin),
+      lerpAssist(players[1].assist, RULES.missCooldown, RULES.missCooldownMin),
+    ];
   }
 
   /** How far forward of its rest point a critter's head is right now. */
@@ -187,8 +198,10 @@ export class SnackSnatch {
     for (let s = 0; s < sub; s++) {
       for (const p of [0, 1] as PlayerIndex[]) for (const c of this.critters[p]) this.advanceSnap(c, dt / sub);
       for (const sn of this.snacks) this.moveSnack(sn, dt / sub);
+      const before = this.score[0] + this.score[1];
       for (const p of [0, 1] as PlayerIndex[]) for (const c of this.critters[p]) this.gulp(c);
       this.snacks = this.snacks.filter((s) => s.alive);
+      if (this.sudden && this.score[0] + this.score[1] > before) this.settleSudden();
       if (this.finished) return;
     }
     for (const sn of this.snacks) this.dampSnack(sn, dt);
@@ -211,7 +224,7 @@ export class SnackSnatch {
     const wasBiting = this.biting(c);
     c.snapT += h;
     if (wasBiting && !this.biting(c) && c.gulps === 0) {
-      c.cooldown = Math.max(c.cooldown, RULES.missCooldown - RULES.extendT - RULES.holdT);
+      c.cooldown = Math.max(c.cooldown, this.missCooldown[c.p] - RULES.extendT - RULES.holdT);
       c.dizzy = true;
       this.events.push({ type: 'miss', p: c.p, i: c.i });
     }
@@ -230,37 +243,36 @@ export class SnackSnatch {
       this.score[c.p] += value;
       this.events.push({ type: 'grab', p: c.p, i: c.i, x: sn.x, y: sn.y, value, gold: sn.gold, combo: c.gulps });
       if (this.powersOn) this.energy[c.p].charge(RULES.energyPerPoint * value, this.score[c.p] < this.score[other(c.p)]);
-      if (this.sudden) {
-        this.finish(c.p);
-        return;
-      }
     }
   }
 
   private spawn(dt: number): void {
     if (this.sudden) return;
     this.spawnIn -= dt;
-    if (this.spawnIn > 0 || this.snacks.length >= RULES.maxSnacks) return;
+    if (this.spawnIn > 0 || this.snacks.length + 2 > RULES.maxSnacks) return;
     const frenzy = RULES.matchTime - this.timeLeft >= RULES.frenzyAt;
     if (this.opening > 0) {
       this.opening--;
-      this.spawnIn = 0.12;
+      this.spawnIn = 0.25;
     } else {
       this.spawnIn = this.rng.range(RULES.spawnMin, RULES.spawnMax) * (frenzy ? 0.6 : 1);
     }
-    this.launch(this.rng.chance(RULES.goldChance) || (frenzy && this.rng.chance(0.15)));
+    this.launchPair(this.rng.chance(RULES.goldChance) || (frenzy && this.rng.chance(0.15)));
   }
 
   /**
-   * Shoot one snack out of the pot. It alternates toward each player so both get the same
-   * supply, and angles avoid straight sideways so snacks reach the critters.
+   * Shoot two snacks out of the pot at once, mirror images across the halfway line: one at
+   * each player, with the same angle, speed and gold. Neither player can be dealt a better
+   * supply. Angles avoid straight sideways so snacks reach the critters.
    */
-  private launch(gold: boolean, speed?: number): Snack {
-    const toward = this.sudden ? (this.rng.chance(0.5) ? 1 : -1) : this.nextId % 2 === 0 ? 1 : -1;
+  private launchPair(gold: boolean, speed?: number): void {
     const a = Math.PI / 2 + this.rng.range(-1.05, 1.05);
     const sp = speed ?? this.rng.range(RULES.speedMin, RULES.speedMax);
-    const dirY = Math.sin(a) * toward;
-    const dirX = Math.cos(a);
+    const kind = this.rng.int(0, 3);
+    for (const toward of [1, -1]) this.launch(gold, sp, Math.cos(a), Math.sin(a) * toward, kind);
+  }
+
+  private launch(gold: boolean, sp: number, dirX: number, dirY: number, kind: number): Snack {
     const r = gold ? RULES.goldR : RULES.snackR;
     const sn: Snack = {
       id: this.nextId++,
@@ -271,7 +283,7 @@ export class SnackSnatch {
       gold,
       r,
       alive: true,
-      kind: this.rng.int(0, 3),
+      kind,
     };
     this.snacks.push(sn);
     this.events.push({ type: 'spawn', x: sn.x, y: sn.y, gold });
@@ -387,12 +399,22 @@ export class SnackSnatch {
       this.finish(this.score[0] > this.score[1] ? 0 : 1);
       return;
     }
-    // Tie: clear the blanket and shoot one golden snack. First to gulp it wins.
+    // Tie: clear the blanket and shoot a golden snack at each player. First to gulp one wins.
     this.sudden = true;
     this.timeLeft = RULES.suddenTime;
     this.snacks = [];
     this.events.push({ type: 'sudden' });
-    this.launch(true, 170);
+    this.launchPair(true, 170);
+  }
+
+  /** Someone gulped during the sudden snack: the leader wins; a same-instant double gulp goes again. */
+  private settleSudden(): void {
+    if (this.score[0] !== this.score[1]) {
+      this.finish(this.score[0] > this.score[1] ? 0 : 1);
+      return;
+    }
+    this.snacks = [];
+    this.launchPair(true, 170);
   }
 
   private finish(winner: PlayerIndex | null): void {

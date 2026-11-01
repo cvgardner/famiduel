@@ -361,7 +361,7 @@ class SnackSnatchView implements GameInstance {
       // Cooldown arc on the body
       if (c.cooldown > 0) {
         gx.beginPath();
-        gx.arc(c.x, by + press, 46, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (c.cooldown / RULES.missCooldown));
+        gx.arc(c.x, by + press, 46, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (c.cooldown / g.missCooldown[c.p]));
         gx.strokeStyle = c.dizzy ? 'rgba(255,92,122,0.9)' : 'rgba(255,255,255,0.6)';
         gx.lineWidth = 4;
         gx.lineCap = 'round';

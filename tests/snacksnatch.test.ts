@@ -129,14 +129,77 @@ describe('snack snatch', () => {
     g.step(DT, [idle, idle]);
     expect(g.sudden).toBe(true);
     expect(g.finished).toBe(false);
-    expect(g.snacks).toHaveLength(1);
-    expect(g.snacks[0].gold).toBe(true);
+    expect(g.snacks).toHaveLength(2);
+    expect(g.snacks.every((s) => s.gold)).toBe(true);
+    expect(g.snacks[0].vy).toBeCloseTo(-g.snacks[1].vy);
     const c = g.critters[0][1];
     only(g, { x: c.x, y: c.restY - 50, gold: true, r: RULES.goldR });
     g.step(DT, [{ snap: [false, true], power: false }, idle]);
     for (let i = 0; i < 10 && !g.finished; i++) g.step(DT, [idle, idle]);
     expect(g.finished).toBe(true);
     expect(g.winner).toBe(0);
+  });
+
+  it('both players gulping in the same instant of a sudden snack goes again', () => {
+    const g = game();
+    g.score = [4, 4];
+    g.timeLeft = DT / 2;
+    g.step(DT, [idle, idle]);
+    expect(g.sudden).toBe(true);
+    const [a, b] = [g.critters[0][1], g.critters[1][1]];
+    g.snacks = [
+      { id: 900, x: a.x, y: a.restY - 50, vx: 0, vy: 0, gold: true, r: RULES.goldR, alive: true, kind: 0 },
+      { id: 901, x: b.x, y: b.restY + 50, vx: 0, vy: 0, gold: true, r: RULES.goldR, alive: true, kind: 0 },
+    ];
+    g.step(DT, [{ snap: [false, true], power: false }, { snap: [false, true], power: false }]);
+    for (let i = 0; i < 10; i++) g.step(DT, [idle, idle]);
+    expect(g.score[0]).toBe(g.score[1]);
+    expect(g.finished).toBe(false);
+    expect(g.snacks.filter((s) => s.gold)).toHaveLength(2);
+  });
+
+  it('the pot deals both players the same snacks: mirrored pairs, gold together', () => {
+    for (const seed of [1, 2, 3]) {
+      const g = new SnackSnatch([player(), player()], false, makeRng(seed));
+      const seen = new Map<number, Snack>();
+      for (let i = 0; i < RULES.matchTime / DT && !g.finished; i++) {
+        g.step(DT, [idle, idle]);
+        for (const s of g.snacks) if (!seen.has(s.id)) seen.set(s.id, { ...s });
+      }
+      const all = [...seen.values()].sort((p, q) => p.id - q.id);
+      expect(all.length).toBeGreaterThanOrEqual(RULES.maxSnacks);
+      expect(all.length % 2).toBe(0);
+      for (let i = 0; i < all.length; i += 2) {
+        const [p, q] = [all[i], all[i + 1]];
+        expect(q.id).toBe(p.id + 1);
+        expect(q.gold).toBe(p.gold);
+        expect(q.kind).toBe(p.kind);
+        expect(q.x).toBeCloseTo(p.x);
+        expect(q.vx).toBeCloseTo(p.vx);
+        expect(q.vy).toBeCloseTo(-p.vy);
+        expect(q.y - 320).toBeCloseTo(-(p.y - 320));
+      }
+    }
+  });
+
+  it('assist shortens the dizzy time after a miss, and lets a weaker bot catch up', () => {
+    const g = game({ assist: [3, 0] });
+    expect(g.missCooldown[0]).toBeCloseTo(RULES.missCooldownMin);
+    expect(g.missCooldown[1]).toBeCloseTo(RULES.missCooldown);
+    const wins = (assist: number) => {
+      let w = 0;
+      for (let i = 0; i < 40; i++) if (play(['easy', 'normal'], 500 + i, { assist: [assist, 0] }).g.winner === 0) w++;
+      return w;
+    };
+    expect(wins(3)).toBeGreaterThan(wins(0) + 10);
+  });
+
+  it('equal bots split wins evenly between the seats', () => {
+    let bottom = 0;
+    const N = 120;
+    for (let i = 0; i < N; i++) if (play(['normal', 'normal'], 3000 + i).g.winner === 0) bottom++;
+    expect(bottom / N).toBeGreaterThan(0.35);
+    expect(bottom / N).toBeLessThan(0.65);
   });
 
   it('a sudden snack nobody gulps ends in a draw', () => {
