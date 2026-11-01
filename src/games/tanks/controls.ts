@@ -19,3 +19,15 @@ export function controlsFor(lefty: boolean): Controls {
   if (!lefty) return { stickX: STICK_X, fireX: FIRE_X, fireSide: (x) => x > FIRE_ZONE, stickSide: (x) => x < STICK_ZONE };
   return { stickX: W - STICK_X, fireX: W - FIRE_X, fireSide: (x) => x < W - FIRE_ZONE, stickSide: (x) => x > W - STICK_ZONE };
 }
+
+/** Width of the player-coloured band around a FIRE button. */
+export const FIRE_RIM = 5;
+
+/**
+ * How a seat's FIRE button is painted. The button stays red (red means fire), but it
+ * sits in a band of its owner's colour behind a thin dark gap, so two kids sitting
+ * close can tell whose button is whose even when a player's colour is close to red.
+ */
+export function fireLook(playerColor: string, ready: boolean): { rim: string; gap: string; fill: string; rimR: number } {
+  return { rim: playerColor, gap: '#14112b', fill: ready ? '#ff5c5c' : '#8a5560', rimR: FIRE_R + FIRE_RIM };
+}

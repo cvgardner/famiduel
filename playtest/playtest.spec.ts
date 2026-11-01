@@ -643,6 +643,26 @@ test('tanks: a left-handed player gets FIRE on the left and the stick on the rig
   ]);
   await page.waitForTimeout(2200); // countdown
   await expect.poll(async () => (await view()).phase, { timeout: 5000 }).toBe('play');
+  // Each FIRE button wears its owner's colour as a band (sampled just outside the dark gap,
+  // left and right of the button so neither the reload ring nor the ammo pips are in the way).
+  const rimCheck = () =>
+    page.evaluate(() => {
+      const r = (window as unknown as { __famiduel: { runner: { game: { ctx: { players: { color: string }[] } } } } }).__famiduel.runner.game;
+      const c = document.getElementById('stage') as HTMLCanvasElement;
+      const g = c.getContext('2d')!;
+      const sc = Math.min(c.width / 360, c.height / 640);
+      const ox = (c.width - 360 * sc) / 2;
+      const oy = (c.height - 640 * sc) / 2;
+      const px = (wx: number, wy: number) => Array.from(g.getImageData(Math.round(ox + wx * sc), Math.round(oy + wy * sc), 1, 1).data.slice(0, 3));
+      const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+      // Seat 0 (lefty) FIRE at (72, 584); seat 1's (bot, right-handed) turned 180° lands at (72, 56).
+      const off = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i])));
+      return [
+        [px(72 - 37.5, 584), px(72 + 37.5, 584)].map((p) => off(p, hex(r.ctx.players[0].color))),
+        [px(72 - 37.5, 56), px(72 + 37.5, 56)].map((p) => off(p, hex(r.ctx.players[1].color))),
+      ];
+    });
+  await expect.poll(async () => Math.max(...(await rimCheck()).flat()), { timeout: 3000, message: 'both FIRE buttons ringed in their owner\'s colour' }).toBeLessThan(40);
   const box = await worldBox(page);
   const at = (wx: number, wy: number) => ({ x: box.x + (wx / 360) * box.width, y: box.y + (wy / 640) * box.height });
   const finger = (id: number, type: string, p: { x: number; y: number }) =>

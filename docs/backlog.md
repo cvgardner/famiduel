@@ -439,8 +439,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Left-handed power buttons: most games put the power button in the player's left
       corner (free hand for a right-hander). Mirroring it for a lefty needs each game's
       opposite corner cleared first (Minigolf's Hole/Total, Air Hockey's score).
-- [ ] Tank Duel: both FIRE buttons are the same red for both players; a player-coloured
-      rim would make "whose button" clearer when kids sit close.
+- [x] 2026-11-01: Tank Duel: both FIRE buttons were the same red with a white edge, so two
+      kids sitting close had only the button's corner to tell whose it was (the stick was
+      already player-coloured). FIRE stays red (red means fire) but now sits in a 5-unit band
+      of its owner's colour behind a dark gap (the floor colour), so Pink still reads as its
+      own ring around red; the reload ring moved out past the band and the ammo pips moved
+      up to clear it. `fireLook()` in `tanks/controls.ts` is unit tested (rim per seat, gap
+      contrast against every player colour on ready and reloading buttons, fits the phone);
+      the left-handed tank playtest samples both seats' bands in the canvas against their
+      owner's colour (`tanks-left-handed.png`).
 
 ## Ideas found 2026-11-01 (Sea Battle beat run)
 - [x] 2026-11-01: Sea Battle: your own shot's result now stays up long enough to see. The
@@ -506,3 +513,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       a bank shot would give a strong grown-up something to chase.
 - [ ] Minigolf: Twin Gates (easy 5.3, normal 4.2 strokes) and Switchback are long for a small
       kid with a 6-stroke cap; check the cap is hit rarely with the head start on.
+
+## Ideas found 2026-11-01 (FIRE rim run)
+- [ ] The same owner-colour band could go on other shared-looking buttons: Penalty's and
+      Snack Snatch's power buttons, and Quick Draw's two DRAW pads, if kids mix them up.
+- [ ] Tank Duel's FIRE button could flash its band gold while a bouncy shell is loaded
+      (the glow does this today, faintly on a light rim like Mint).
