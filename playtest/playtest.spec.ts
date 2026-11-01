@@ -660,6 +660,61 @@ test('sea battle: where the bot hit your fleet stays on screen long enough to fi
   expect(errors).toEqual([]);
 });
 
+test('sea battle: two people see where their own shot landed before passing the phone', async ({ page }) => {
+  // The shooter's beat used to start at the shot, so the result showed for ~0.9 s after the
+  // 0.38 s flight, and after hit, hit, miss the header said "Direct hit!".
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  await page.locator('.game-card[data-id="seabattle"]').tap();
+  await introAsPeople(page, [0, 1]);
+  await page.waitForTimeout(2200); // countdown
+  type SeaHook = { runner: null | { game: { header: string; volley: { hits: number; sunk: number }; mode: { kind: string; t: number }; shells: unknown[] } } };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner?.game;
+      if (!v) return null;
+      return { kind: v.mode.kind, t: v.mode.t, flying: v.shells.length > 0, header: v.header, volley: { ...v.volley } };
+    });
+  type Turn = { shown: number; hits: number; sunk: number; early: string[]; header: string };
+  const turns: Turn[] = [];
+  let cur: Turn | null = null;
+  let shot = false;
+  const playing = seaBattlePerson(page, 30_000, 9);
+  const end = Date.now() + 30_000;
+  while (Date.now() < end) {
+    const s = await look().catch(() => null);
+    if (s?.kind === 'after') {
+      cur ??= { shown: 0, hits: 0, sunk: 0, early: [], header: '' };
+      if (s.flying) cur.early.push(s.header);
+      else {
+        cur.shown = Math.max(cur.shown, s.t);
+        cur.hits = s.volley.hits;
+        cur.sunk = s.volley.sunk;
+        cur.header = s.header;
+        if (!shot && s.t > 0.5) {
+          shot = true;
+          await page.screenshot({ path: path.join(OUT, 'seabattle-pass-beat.png') });
+        }
+      }
+    } else if (cur) {
+      turns.push(cur);
+      cur = null;
+    }
+    await page.waitForTimeout(50);
+  }
+  await playing;
+  expect(turns.length, 'both people took turns').toBeGreaterThanOrEqual(2);
+  for (const tr of turns) {
+    for (const h of tr.early) expect(h, 'no result in the header before the shell lands').not.toMatch(/Missed|hit|sank/i);
+    const need = tr.sunk ? 2.0 : tr.hits ? 1.6 : 1.0; // shooterBeat with passing, less polling slack
+    expect(tr.shown, 'the result stays up after it lands').toBeGreaterThan(need);
+    expect(tr.header, 'the header names the shot that ended the turn').toBe(tr.sunk ? 'You sank a ship!' : tr.hits ? 'Direct hit!' : 'Missed…');
+  }
+  if (!shot) await page.screenshot({ path: path.join(OUT, 'seabattle-pass-beat.png') });
+  expect(errors).toEqual([]);
+});
+
 test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) => {
   // Chris, 2026-11-01: rules must match the ones kids know, like another shot after a hit.
   const errors: string[] = [];

@@ -328,3 +328,38 @@ describe('sea battle: the bot\'s shot stays on screen', () => {
     expect(src).toMatch(/if \(busy\) m\.t = 0;\s*else if \(m\.t > botBeat\(this\.turnLog\[m\.p\]\)\) this\.advance\(\);/);
   });
 });
+
+describe("sea battle: your own shot's result stays on screen", () => {
+  const T = (hits: number, misses: number, sunk = 0) => ({ hits, misses, sunk });
+
+  it('holds from the landing: longer when two people pass the phone, longest on a sinking', async () => {
+    const { shooterBeat } = await import('../src/games/seabattle/beat');
+    expect(shooterBeat(T(0, 1), false)).toBeGreaterThanOrEqual(0.6);
+    expect(shooterBeat(T(0, 1), true)).toBeGreaterThanOrEqual(1.1); // time to read "Now pass the phone"
+    expect(shooterBeat(T(5, 0), true)).toBeGreaterThan(shooterBeat(T(0, 1), true));
+    expect(shooterBeat(T(5, 0, 1), true)).toBeGreaterThan(shooterBeat(T(5, 0), true));
+    for (const passing of [false, true]) expect(shooterBeat(T(5, 0, 1), passing)).toBeLessThanOrEqual(2.5);
+  });
+
+  it('names the shot that ended the turn, not the turn\'s earlier hits', async () => {
+    const { shooterResult } = await import('../src/games/seabattle/beat');
+    // Hit, hit, then a miss: the turn ends on the miss.
+    expect(shooterResult(T(0, 1), T(2, 1), true, false)).toEqual({ title: 'Missed…', sub: '2 hits this turn · Now pass the phone' });
+    expect(shooterResult(T(0, 1), T(1, 1), false, false)).toEqual({ title: 'Missed…', sub: '1 hit this turn' });
+    expect(shooterResult(T(0, 1), T(0, 1), false, false)).toEqual({ title: 'Missed…', sub: '' });
+    // An airstrike can end the turn on hits.
+    expect(shooterResult(T(2, 3), T(2, 3), true, false).title).toBe('Direct hit!');
+    expect(shooterResult(T(1, 4, 1), T(1, 4, 1), false, false).title).toBe('You sank a ship!');
+  });
+
+  it("doesn't give the result away while the shell is still flying", async () => {
+    const { shooterResult } = await import('../src/games/seabattle/beat');
+    for (const v of [T(0, 0), T(1, 0)]) expect(shooterResult(v, v, true, true)).toEqual({ title: 'Fire!', sub: '' });
+  });
+
+  it('the view counts the beat from the landing for people too', async () => {
+    const fs = await import('node:fs');
+    const src = fs.readFileSync('src/games/seabattle/index.ts', 'utf8');
+    expect(src).toMatch(/if \(busy\) m\.t = 0;\s*else if \(m\.t > shooterBeat\(this\.volley, this\.twoHumans\)\) this\.advance\(\);/);
+  });
+});
