@@ -1,19 +1,30 @@
 // Ping Pong view: a table seen from above. Fingers and bots become paddle
-// targets; the ball gets a shadow, a bounce ring on the table and hit sparks.
+// targets: finger x is where the paddle goes, pushing the finger toward the net
+// lunges the paddle forward (drives and smashes), pulling it back chops, and a
+// sideways swipe through the ball curves it. The ball shows its spin, a shadow,
+// a bounce ring on the table and a trail that heats up as the rally grows.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
-import { PingPong, PingPongBot, RULES, type Intent } from './logic';
+import { fwdSign, PingPong, PingPongBot, RULES, type Intent, type Shot } from './logic';
 import { inkOn } from '../../core/contrast';
 
 const TABLE = { x0: 22, x1: W - 22, y0: RULES.tableY0, y1: RULES.tableY1 };
 const TABLE_GREEN = '#1d7a52';
 
 type Ring = { x: number; y: number; t: number; color: string };
-type Trail = { x: number; y: number; smash: boolean; curve: boolean };
+type Trail = { x: number; y: number; color: string };
+
+/** Trail and glow colour for each kind of shot. */
+const SHOT_COLOR: Record<Shot, string> = { serve: '#ffffff', block: '#ffffff', drive: '#ffd54a', smash: '#ff7a3d', chop: '#6ad1ff' };
+const CURVE_COLOR = '#c08bff';
+/** Relative-drag gain: finger travel toward the net → paddle lunge. */
+const LUNGE_GAIN = 1.3;
+/** How fast a held lunge drifts back home (units/s of anchor creep). */
+const ANCHOR_CREEP = 70;
 
 class PingPongView implements GameInstance {
   readonly game: PingPong;
@@ -21,6 +32,9 @@ class PingPongView implements GameInstance {
   private powerBtns: (PowerButton | null)[];
   private targets: number[] = [W / 2, W / 2];
   private keyMove = [false, false];
+  /** Per player: the finger steering the paddle and its rear-most y (lunge = distance in front of it). */
+  private steer: ({ id: number; anchor: number } | null)[] = [null, null];
+  private spinAngle = 0;
   private trail: Trail[] = [];
   private rings: Ring[] = [];
   private t = 0;
@@ -46,15 +60,32 @@ class PingPongView implements GameInstance {
       if (bot) return bot.think(g, dt);
       const btn = this.powerBtns[p];
       const fire = btn ? btn.update(input, g.energy[p], KEYS[p].power) : false;
-      // Drag anywhere in your half: the paddle follows your finger's x.
+      // Drag anywhere in your half: the paddle follows your finger's x, and pushing the
+      // finger toward the net lunges the paddle forward.
       const finger = input.of(p).find((f) => f.down && !(btn && btn.button.hit(f.startX, f.startY)));
-      if (finger) this.targets[p] = finger.x;
+      const fs = fwdSign(p);
+      let lunge = 0;
+      if (finger) {
+        this.targets[p] = finger.x;
+        let st = this.steer[p];
+        if (!st || st.id !== finger.id) st = this.steer[p] = { id: finger.id, anchor: finger.y };
+        // Distance the finger is in front of its anchor; pulling back past it moves the anchor.
+        let ahead = (finger.y - st.anchor) * fs;
+        if (ahead < 0) {
+          st.anchor = finger.y;
+          ahead = 0;
+        }
+        // A held lunge drifts home slowly (too slowly to count as a chop).
+        st.anchor += fs * Math.min(ahead, ANCHOR_CREEP * dt);
+        lunge = ahead * LUNGE_GAIN;
+      } else this.steer[p] = null;
       const k = KEYS[p];
       const keyDir = (input.key(k.right) ? 1 : 0) - (input.key(k.left) ? 1 : 0);
       if (keyDir) this.targets[p] = g.paddles[p].x + keyDir * 60;
       else if (this.keyMove[p]) this.targets[p] = g.paddles[p].x;
       this.keyMove[p] = keyDir !== 0;
-      return { tx: this.targets[p], power: fire };
+      if (input.key(k.up)) lunge = RULES.reach;
+      return { tx: this.targets[p], ty: RULES.paddleY[p] + fs * lunge, power: fire };
     }) as [Intent, Intent];
     g.step(dt, intents);
     this.pointFlash = Math.max(0, this.pointFlash - dt);
@@ -64,18 +95,25 @@ class PingPongView implements GameInstance {
     const col = (p: PlayerIndex) => this.ctx.players[p].color;
     for (const e of g.events) {
       if (e.type === 'hit') {
-        sfx.play(e.smash ? 'thud' : 'hit');
-        fx.burst(e.x, e.y, col(e.p), e.smash ? 22 : 8, e.smash ? 320 : 150, e.smash ? 4 : 2.5);
-        fx.burst(e.x, e.y, '#ffffff', 5, 120, 2);
-        this.curving = e.curve;
-        if (e.smash) {
+        const big = e.shot === 'smash';
+        sfx.play(big ? 'thud' : 'hit');
+        fx.burst(e.x, e.y, col(e.p), big ? 22 : e.shot === 'drive' ? 12 : 8, big ? 320 : 150, big ? 4 : 2.5);
+        fx.burst(e.x, e.y, e.curve || Math.abs(e.spin) > 120 ? CURVE_COLOR : SHOT_COLOR[e.shot], 6, 140, 2);
+        this.curving = e.curve || Math.abs(e.spin) > 60;
+        if (big) {
           fx.shake(7, 0.2);
           this.popBoth('SMASH!', '#ff7a3d', 28);
-        } else if (e.curve) this.popBoth('CURVE!', '#c08bff', 26);
-        if (g.hits === 10) this.popBoth('Rally x10!', COLORS.gold, 20);
+        } else if (e.curve) this.popBoth('CURVE!', CURVE_COLOR, 26);
+        else if (Math.abs(e.spin) > 190) this.popBoth('Curve!', CURVE_COLOR, 20);
+        else if (e.shot === 'chop') this.popBoth('Chop!', '#6ad1ff', 18);
+      } else if (e.type === 'rally') {
+        sfx.play('power');
+        const words: Record<number, string> = { 5: 'Rally x5!', 10: 'Rally x10! 🔥', 15: 'On fire! x15', 20: 'Legendary x20!' };
+        this.popBoth(words[e.hits] ?? `Rally x${e.hits}!`, COLORS.gold, e.hits >= 10 ? 24 : 20);
+        if (e.hits >= 10) fx.shake(3, 0.15);
       } else if (e.type === 'table') {
         sfx.play('tap');
-        this.rings.push({ x: e.x, y: e.y, t: 0, color: '#ffffff' });
+        this.rings.push({ x: e.x, y: e.y, t: 0, color: e.top > 0.3 ? '#ffd54a' : e.top < -0.3 ? '#6ad1ff' : '#ffffff' });
       } else if (e.type === 'wall') {
         sfx.play('bounce');
         this.curving = false;
@@ -92,6 +130,7 @@ class PingPongView implements GameInstance {
         fx.burst(e.x, e.y, col(e.scorer), 26, 260, 4);
         fx.pop('POINT!', W / 2, MID + 90, col(e.scorer), 0, 34);
         fx.pop('POINT!', W / 2, MID - 90, col(e.scorer), 1, 34);
+        if (e.rally >= 10) this.popBoth(`What a rally! ${e.rally} hits`, COLORS.gold, 18);
         this.matchPointPops();
       } else if (e.type === 'power') {
         sfx.play('power');
@@ -104,9 +143,14 @@ class PingPongView implements GameInstance {
         this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]}` });
       }
     }
+    const b = g.ball;
+    this.spinAngle += dt * (b.ax / 25 + b.top * 14 + 4);
     if (!g.serving && g.pointT <= 0) {
-      this.trail.push({ x: g.ball.x, y: g.ball.y, smash: g.ball.smash, curve: this.curving });
-      if (this.trail.length > 12) this.trail.shift();
+      const color = this.curving ? CURVE_COLOR : g.hits >= 10 && b.shot === 'block' ? '#ff9a3d' : SHOT_COLOR[b.shot];
+      this.trail.push({ x: b.x, y: b.y, color });
+      // The trail grows with the rally.
+      const len = 10 + Math.min(g.hits, 12);
+      while (this.trail.length > len) this.trail.shift();
     } else this.trail = [];
   }
 
@@ -161,10 +205,17 @@ class PingPongView implements GameInstance {
     gx.fillRect(TABLE.x0, TABLE.y0, TABLE.x1 - TABLE.x0, TABLE.y1 - TABLE.y0);
     rrect(gx, TABLE.x0 + 3, TABLE.y0 + 3, TABLE.x1 - TABLE.x0 - 6, TABLE.y1 - TABLE.y0 - 6, 4, undefined, 'rgba(255,255,255,0.9)', 3);
     line(gx, W / 2, TABLE.y0 + 4, W / 2, TABLE.y1 - 4, 'rgba(255,255,255,0.55)', 2);
-    // Bounce rings
+    // Lunge line: how far toward the net each paddle can reach
+    for (const p of PLAYERS) {
+      const y = RULES.paddleY[p] + fwdSign(p) * (RULES.reach + RULES.paddleH / 2);
+      gx.setLineDash([6, 8]);
+      line(gx, TABLE.x0 + 10, y, TABLE.x1 - 10, y, alpha(c[p], 0.45), 2);
+      gx.setLineDash([]);
+    }
+    // Bounce rings, tinted by spin
     for (const r of this.rings) {
       const k = r.t / 0.5;
-      circle(gx, r.x, r.y, 6 + 18 * k, undefined, `rgba(255,255,255,${0.7 * (1 - k)})`, 2);
+      circle(gx, r.x, r.y, 6 + 18 * k, undefined, alpha(r.color, 0.75 * (1 - k)), 2);
     }
     // Scores, each on its owner's side of the net, readable from that seat
     for (const p of PLAYERS) {
@@ -185,10 +236,27 @@ class PingPongView implements GameInstance {
     this.renderBall(gx);
     // Paddles
     for (const p of PLAYERS) this.renderPaddle(gx, p);
+    // Rally counter by the net, readable from both seats
+    if (g.hits >= 3 && g.pointT <= 0 && !g.serving) {
+      const hot = g.hits >= 10 ? '#ff9a3d' : g.hits >= 5 ? COLORS.gold : '#ffffff';
+      text(gx, `Rally ${g.hits}`, 72, MID + 24, { size: 15, color: hot, stroke: 'rgba(0,0,0,0.8)' });
+      text(gx, `Rally ${g.hits}`, W - 72, MID - 24, { size: 15, color: hot, stroke: 'rgba(0,0,0,0.8)', player: 1 });
+    }
+    // How-to hint for people at the start of the match
+    if (g.score[0] + g.score[1] === 0 && g.t < 7) {
+      const a = Math.min(1, (7 - g.t) / 0.8);
+      for (const p of PLAYERS) {
+        if (this.ctx.players[p].bot) continue;
+        const y = p === 0 ? MID + 150 : MID - 150;
+        const d = p === 0 ? 1 : -1;
+        text(gx, 'Push up as you hit: SMASH', W / 2, y, { size: 15, color: '#ffd54a', stroke: 'rgba(0,0,0,0.85)', player: p, alpha: a });
+        text(gx, 'Swipe sideways: curve', W / 2, y + d * 22, { size: 15, color: '#e2ccff', stroke: 'rgba(0,0,0,0.85)', player: p, alpha: a });
+      }
+    }
     // Serve hint
     if (g.serving) {
       const p = g.server;
-      const y = p === 0 ? RULES.paddleY[0] - 44 : RULES.paddleY[1] + 44;
+      const y = g.paddles[p].y + fwdSign(p) * 44;
       text(gx, 'SERVE', g.paddles[p].x, y, { size: 14, color: c[p], player: p, stroke: 'rgba(0,0,0,0.75)' });
     }
     for (const p of PLAYERS) this.powerBtns[p]?.render(gx, g.energy[p], this.t);
@@ -205,18 +273,30 @@ class PingPongView implements GameInstance {
     const b = g.ball;
     const z = g.height();
     const r = RULES.ballR * (1 + z / 70);
-    // Trail
+    // Trail, coloured by the shot (gold drive, orange smash, blue chop, purple curve)
     this.trail.forEach((p, i) => {
       const k = i / this.trail.length;
-      const col = p.smash ? `rgba(255,110,40,${0.5 * k})` : p.curve ? `rgba(190,130,255,${0.45 * k})` : `rgba(255,255,255,${0.18 * k})`;
-      circle(gx, p.x, p.y, RULES.ballR * (0.4 + 0.6 * k) * (p.smash ? 1.3 : 1), col);
+      const hot = p.color !== '#ffffff';
+      circle(gx, p.x, p.y, RULES.ballR * (0.4 + 0.6 * k) * (b.smash ? 1.3 : 1), alpha(p.color, (hot ? 0.5 : 0.18) * k));
     });
     // Shadow on the table drifts away from the ball as it rises
     circle(gx, b.x + z * 0.35, b.y + z * 0.55, RULES.ballR * (1 - z / 120), `rgba(0,0,0,${0.35 - z / 200})`);
-    if (b.smash) glow(gx, '#ff7a3d', 16);
-    else if (this.curving) glow(gx, '#c08bff', 14);
-    circle(gx, b.x, b.y, r, b.smash ? '#ffd2a8' : '#fffdf5', b.smash ? '#ff7a3d' : '#d9d2bf', 1.5);
+    const tint = this.curving ? CURVE_COLOR : b.shot === 'block' || b.shot === 'serve' ? null : SHOT_COLOR[b.shot];
+    if (tint) glow(gx, tint, b.smash ? 16 : 12);
+    circle(gx, b.x, b.y, r, b.smash ? '#ffd2a8' : '#fffdf5', tint ?? '#d9d2bf', 1.5);
     noGlow(gx);
+    // Spinning seam so you can see the spin
+    const sa = this.spinAngle;
+    gx.save();
+    gx.beginPath();
+    gx.arc(b.x, b.y, r * 0.95, 0, Math.PI * 2);
+    gx.clip();
+    gx.strokeStyle = tint ? alpha(tint, 0.9) : 'rgba(170,150,120,0.6)';
+    gx.lineWidth = 1.6;
+    gx.beginPath();
+    gx.ellipse(b.x, b.y, r * 0.9, r * 0.35 * Math.abs(Math.cos(sa)) + 0.5, sa * 0.5, 0, Math.PI * 2);
+    gx.stroke();
+    gx.restore();
     circle(gx, b.x - r * 0.35, b.y - r * 0.35, r * 0.3, 'rgba(255,255,255,0.9)');
     if (g.serving) circle(gx, b.x, b.y, r + 6 + 4 * Math.sin(this.t * 10), undefined, 'rgba(255,255,255,0.5)', 2);
   }
@@ -225,9 +305,22 @@ class PingPongView implements GameInstance {
     const g = this.game;
     const pd = g.paddles[p];
     const col = this.ctx.players[p].color;
-    const y = RULES.paddleY[p];
+    const y = pd.y;
     const hh = RULES.paddleH;
     const dir = p === 0 ? 1 : -1;
+    const fwd = pd.vy * fwdSign(p);
+    // Speed streaks behind a paddle lunging forward
+    if (fwd > 200) {
+      for (let i = 1; i <= 3; i++) {
+        rrect(gx, pd.x - pd.w / 2, y - hh / 2 + dir * i * 7, pd.w, hh, 6, alpha(fwd >= RULES.smashFwd ? '#ff7a3d' : col, 0.22 / i));
+      }
+    }
+    // The paddle tilts with a sideways swipe
+    const tilt = Math.max(-1, Math.min(1, pd.vx / RULES.paddleSpeed)) * 0.22 * dir;
+    gx.save();
+    gx.translate(pd.x, y);
+    gx.rotate(tilt);
+    gx.translate(-pd.x, -y);
     // Handle toward the player's own edge
     rrect(gx, pd.x - 7, y + (dir > 0 ? 2 : -18), 14, 16, 4, '#c8935a', '#8a5a2b', 1.5);
     rrect(gx, pd.x - pd.w / 2 + 3, y - hh / 2 + 5, pd.w, hh, 6, 'rgba(0,0,0,0.3)');
@@ -237,6 +330,7 @@ class PingPongView implements GameInstance {
     noGlow(gx);
     // Rubber face stripe on the net side
     rrect(gx, pd.x - pd.w / 2 + 4, y - dir * (hh / 2 - 2) - 1.5, pd.w - 8, 3, 2, shade(col, 0.4));
+    gx.restore();
     const badge = pd.smash ? '💥' : pd.curve ? '🌀' : pd.slowmo > 0 ? '🐢' : '';
     if (badge) text(gx, badge, pd.x, y - dir * 26, { size: 18, player: p });
   }

@@ -10,7 +10,7 @@
       "blurb": "Push the other wrestler out. Best of 3.", "howTo": "Your wrestler turns slowly. Hold your side of the screen to stop and charge, let go to dash where the arrow points. The rope catches you 3 times a round if you slip out alone.",
       "handicap": "Heavier wrestler, more room and more rope saves at the edge" },
     { "id": "pingpong", "gesture": "slide", "name": "Ping Pong", "icon": "🏓", "kind": "Action", "free": false, "color": "#ff5c7a",
-      "blurb": "First to 7.", "howTo": "Slide your paddle along your end. Where the ball hits sets the angle.",
+      "blurb": "First to 7. Rallies heat up.", "howTo": "Slide to move your paddle. Push it toward the net as you hit to drive, push fast to SMASH. Swipe sideways through the ball to curve it.",
       "handicap": "Bigger paddle, slower ball toward you" },
     { "id": "penalty", "gesture": "swipe", "name": "Penalty Shootout", "icon": "⚽", "kind": "Aim · turns", "free": false, "color": "#2ecc71",
       "blurb": "Five kicks each, then sudden death.", "howTo": "Shooter swipes toward the goal: faster is harder, a curved swipe bends the ball. Keeper taps left, middle or right to dive, but dive too early and the shooter sees it.",
