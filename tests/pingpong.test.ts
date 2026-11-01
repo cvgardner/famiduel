@@ -272,7 +272,8 @@ describe('ping pong', () => {
   it('a slow sideways drift adds no curve (dead zone)', () => {
     const g = new PingPong([player(), player()], false, makeRng(15));
     rallyToward(g, 0);
-    const e = untilHit(g, 0, (i) => ({ tx: 170 + 1.5 * (i % 14), power: false }));
+    // 48 units/s, under the dead zone.
+    const e = untilHit(g, 0, (i) => ({ tx: 155 + 0.8 * i, power: false }));
     expect(e.spin).toBe(0);
   });
 
