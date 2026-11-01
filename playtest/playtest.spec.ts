@@ -660,6 +660,79 @@ test('sea battle: where the bot hit your fleet stays on screen long enough to fi
   expect(errors).toEqual([]);
 });
 
+test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) => {
+  // Chris, 2026-11-01: rules must match the ones kids know, like another shot after a hit.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, 'easy']);
+  await page.locator('.game-card[data-id="seabattle"]').tap();
+  await introAsPeople(page, [0]);
+  await page.waitForTimeout(2200); // countdown
+  type SeaHook = {
+    runner: null | { game: { header: string; again: number; mode: { kind: string; p: number; t: number }; shells: unknown[]; game: { turn: number; phase: string; seas: { occ: number[]; marks: number[] }[] } } };
+  };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner!.game;
+      const enemy = v.game.seas[1];
+      const open = [...enemy.marks].map((k, i) => (k === 0 ? i : -1)).filter((i) => i >= 0);
+      return {
+        kind: v.mode.kind,
+        p: v.mode.p,
+        t: v.mode.t,
+        still: v.shells.length === 0,
+        turn: v.game.turn,
+        header: v.header,
+        again: v.again,
+        ship: open.find((i) => enemy.occ[i] >= 0) ?? null,
+        water: open.find((i) => enemy.occ[i] < 0) ?? null,
+      };
+    });
+  const box = await worldBox(page);
+  const tap = async (x: number, y: number) => {
+    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
+    for (const t of ['pointerdown', 'pointerup']) {
+      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, c.x, c.y] as const);
+      await page.waitForTimeout(60);
+    }
+  };
+  // Grid geometry from src/games/seabattle/index.ts (the person is seat 0, upright).
+  const N = 10, C = 27, GX = (360 - N * C) / 2, GY = 82;
+  const fire = async (cell: number) => {
+    const x = GX + (cell % N) * C + C / 2, y = GY + Math.floor(cell / N) * C + C / 2;
+    await tap(x, y);
+    await page.waitForTimeout(300);
+    await tap(x, y);
+  };
+  // Hide the fleet as dealt: Ready.
+  await expect.poll(async () => (await look()).kind, { timeout: 5000 }).toBe('place');
+  await page.waitForTimeout(700);
+  await tap(204 + 70, 404 + 29);
+  // Wait for the person's turn (the bot may go first), then hit a ship.
+  const myTurn = async () => expect.poll(async () => { const s = await look(); return s.kind === 'fire' && s.p === 0 && s.still; }, { timeout: 20_000 }).toBe(true);
+  await myTurn();
+  for (let hit = 1; hit <= 2; hit++) {
+    const s = await look();
+    await fire(s.ship!);
+    await expect.poll(async () => { const x = await look(); return x.still && x.again === hit; }, { timeout: 3000 }).toBe(true);
+    await page.waitForTimeout(250);
+    const after = await look();
+    expect(after.turn, 'a hit keeps the turn').toBe(0);
+    expect(after.kind).toBe('fire');
+    expect(after.header, 'the header says to fire again').toContain('go again');
+    if (hit === 1) await page.screenshot({ path: path.join(OUT, 'seabattle-hit-again.png') });
+  }
+  // A miss hands the turn to the bot.
+  await fire((await look()).water!);
+  await expect.poll(async () => (await look()).turn, { timeout: 3000 }).toBe(1);
+  // The bot's turn ends with a miss too, and the next person turn starts plain.
+  await myTurn();
+  const back = await look();
+  expect(back.again).toBe(0);
+  expect(back.header).not.toContain('go again');
+  expect(errors).toEqual([]);
+});
+
 test("four in a row: the bot's newest disc keeps a ring until you move", async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);

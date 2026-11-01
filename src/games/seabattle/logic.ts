@@ -18,6 +18,8 @@ export const RULES = {
   airstrikeLen: 5,
   /** Extra shot every N of your turns, by assist 0..3 (0 = never). */
   extraEvery: [0, 4, 3, 2],
+  /** Classic house rule: a shot that hits a ship lets you fire again (not an airstrike). */
+  hitAgain: true,
 };
 
 export type Ship = { len: number; x: number; y: number; horiz: boolean; hits: number };
@@ -47,6 +49,8 @@ export type Event =
   | { type: 'mine'; p: PlayerIndex; cell: number }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'turn'; p: PlayerIndex; shots: number }
+  /** A plain shot hit a ship, so the shooter fires again. */
+  | { type: 'again'; p: PlayerIndex }
   | { type: 'win'; p: PlayerIndex };
 
 export const cellsOf = (s: Pick<Ship, 'len' | 'x' | 'y' | 'horiz'>): number[] =>
@@ -263,6 +267,11 @@ export class SeaBattle {
       if (enemy.marks[m.cell] !== MARK.none) return false;
       this.shoot(a, m.cell);
       if (this.winner !== null) return true;
+      if (RULES.hitAgain && enemy.marks[m.cell] === MARK.hit) {
+        // Hit: same turn, same shots left. Free powers already used stay used.
+        this.events.push({ type: 'again', p: a });
+        return true;
+      }
     }
     this.shotsLeft--;
     if (this.shotsLeft <= 0) this.startTurn(d);

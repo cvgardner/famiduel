@@ -49,6 +49,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       on most holes. Now it shakes more (aim 0.3, power 0.42), sees fewer lines (12 angles,
       3 powers) and often goes for one of its 3 best-looking lines rather than the best:
       +0.8 over par (3.67), 7 aces. Normal (-0.5) and hard unchanged. Unit test pins it.
+- [x] 2026-11-01 (Chris's playtest): Sea Battle rules now match the ones kids know: a shot
+      that hits a ship fires again, until you miss. A sinking counts as a hit; a miss, a
+      mine or an Airstrike (already 5 shots) passes the turn, and a hit on a head-start
+      bonus turn keeps both shots. The header says "<name>, go again!" once the shell
+      lands ("Hit! <name> goes again…" for a bot), and the how-to line says "A hit fires
+      again." (`RULES.hitAgain`, an `again` event). Measured over 600 bot-vs-bot games a
+      level: seats stay even (player 2 wins 47-51%, first mover 48-52%), and a match
+      needs about a third fewer turns (hard 82 → 51, normal 95 → 63, easy 111 → 80), so
+      two people pass the phone a third less often. Unit tests pin the rule; a new playtest
+      hits twice against the bot, checks the turn stays and the header says so, then misses
+      and checks the turn passes (`seabattle-hit-again.png`).
 - [x] 2026-10-31: Sea Battle seat bias was noise: 2000 mirrored games per level give
       player 1 49% (easy), 49% (normal), 50% (hard); first mover 49-52%. A unit test now
       pins seat balance. The sim found a real problem instead: the easy bot ignored its own
@@ -422,3 +433,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       match Four in a Row.
 - [ ] Four in a Row's top player reads "Player 1's turn" in small grey text: the waiting
       side could say "Waiting…" like Tic-Tac-Toe, which reads quicker.
+
+## Ideas found 2026-11-01 (Sea Battle hit-again run)
+- [ ] Sea Battle: with hit-again, a bot can chain 4-5 hits on your fleet in one turn; the
+      bot-result beat shows the whole turn's total, but a kid may want each hit called out
+      ("hit 3 times!" is there; maybe a small count badge on each new hit).
+- [ ] Rules audit of the other classic games against the rules families know (Checkers
+      forced jumps and kings, Four in a Row, Ping Pong serve every 2 points, Penalty 5 each
+      then sudden death), listed in docs so a parent can check "is this the real rule?".
+
