@@ -562,6 +562,55 @@ test('sumo: a small kid with a full head start gets two rows of rope saves', asy
   expect(errors).toEqual([]);
 });
 
+test('tanks: a left-handed player gets FIRE on the left and the stick on the right', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  // Set it the way a parent would: the player sheet's Hand row.
+  await page.locator('.player-chip[data-p="0"]').tap();
+  await page.locator('#pHand button[data-v="left"]').tap();
+  await page.locator('#pDone').tap();
+  const saved = await page.evaluate(() => (JSON.parse(localStorage.getItem('famiduel.v1')!) as { profiles: { lefty?: boolean }[] }).profiles.map((p) => !!p.lefty));
+  expect(saved, 'only Player 1 is left-handed, and it is saved').toEqual([true, false]);
+  await setPlayers(page, [null, 'easy']);
+  await page.locator('.game-card[data-id="tanks"]').tap();
+  await expect(page.locator('.half.p0 .demo.lefty'), 'the ghost finger is mirrored for the lefty').toHaveCount(1);
+  await expect(page.locator('.half.p1 .demo.lefty')).toHaveCount(0);
+  await introAsPeople(page, [0]);
+  type TankHook = { runner: null | { game: { controls: { stickX: number; fireX: number }[]; game: { phase: string; tanks: { x: number; y: number; a: number }[]; shellsOf(p: number): number } } } };
+  const view = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: TankHook }).__famiduel.runner!.game;
+      return { controls: v.controls, phase: v.game.phase, shells: v.game.shellsOf(0), tank: { ...v.game.tanks[0] } };
+    });
+  expect((await view()).controls.map((c) => [c.stickX, c.fireX]), 'lefty seat mirrored, bot seat unchanged').toEqual([
+    [282, 72],
+    [78, 288],
+  ]);
+  await page.waitForTimeout(2200); // countdown
+  await expect.poll(async () => (await view()).phase, { timeout: 5000 }).toBe('play');
+  const box = await worldBox(page);
+  const at = (wx: number, wy: number) => ({ x: box.x + (wx / 360) * box.width, y: box.y + (wy / 640) * box.height });
+  const finger = (id: number, type: string, p: { x: number; y: number }) =>
+    page.evaluate(([i, t, x, y]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(i, t, x, y), [id, type, p.x, p.y] as const);
+  // A tap where right-handed players steer (bottom right) must not fire for the lefty...
+  const before = await view();
+  await finger(901, 'pointerdown', at(288, 584));
+  await finger(901, 'pointermove', at(288, 556));
+  await page.waitForTimeout(500);
+  await finger(901, 'pointerup', at(288, 556));
+  const steered = await view();
+  expect(steered.shells, 'no shell from the stick side').toBe(0);
+  const moved = Math.hypot(steered.tank.x - before.tank.x, steered.tank.y - before.tank.y) + Math.abs(steered.tank.a - before.tank.a);
+  expect(moved, 'the stick on the right drove the tank').toBeGreaterThan(1);
+  // ...and FIRE on the left fires.
+  await finger(902, 'pointerdown', at(72, 584));
+  await page.waitForTimeout(60);
+  await finger(902, 'pointerup', at(72, 584));
+  await expect.poll(async () => (await view()).shells, { timeout: 1000 }).toBeGreaterThan(0);
+  await page.screenshot({ path: path.join(OUT, 'tanks-left-handed.png') });
+  expect(errors).toEqual([]);
+});
+
 test('rock paper scissors: two people pick behind a look-away cover, one at a time', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);

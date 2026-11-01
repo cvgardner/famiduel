@@ -147,12 +147,15 @@ export class App {
       }).join('')}</div></div>
       <div class="field">Head start <small>help for younger players</small>
         <div class="seg" id="pHead">${[0, 1, 2, 3].map((n) => `<button data-v="${n}" class="${n === pr.headStart ? 'on' : ''}">${n ? '★'.repeat(n) : 'None'}</button>`).join('')}</div></div>
+      <div class="field">Hand <small>swaps the stick and FIRE in Tank Duel</small>
+        <div class="seg" id="pHand">${(['right', 'left'] as const).map((v) => `<button data-v="${v}" class="${(pr.lefty ? 'left' : 'right') === v ? 'on' : ''}">${v === 'right' ? 'Right-handed' : 'Left-handed'}</button>`).join('')}</div></div>
       <div class="field">Who plays
         <div class="seg" id="pBot">${(['human', 'easy', 'normal', 'hard'] as const).map((v) => `<button data-v="${v}" class="${(pr.bot ?? 'human') === v ? 'on' : ''}">${v === 'human' ? '🙂 Person' : '🤖 ' + v}</button>`).join('')}</div></div>
       <button id="pDone" class="btn primary">Done</button>
     </div>`;
     let color = pr.color;
     let head = pr.headStart;
+    let lefty = !!pr.lefty;
     let bot: BotLevel | null = pr.bot;
     for (const b of modal.querySelectorAll<HTMLElement>('.swatch')) b.addEventListener('click', () => {
       color = b.dataset.c!;
@@ -165,11 +168,14 @@ export class App {
       });
     };
     seg('pHead', (v) => (head = Number(v)));
+    seg('pHand', (v) => (lefty = v === 'left'));
     seg('pBot', (v) => (bot = v === 'human' ? null : (v as BotLevel)));
     $('#pDone', modal).addEventListener('click', () => {
       pr.name = ($<HTMLInputElement>('#pName', modal).value.trim() || `Player ${p + 1}`).slice(0, 12);
       pr.color = color;
       pr.headStart = head;
+      if (lefty) pr.lefty = true;
+      else delete pr.lefty;
       this.store.setBot(p, bot);
       this.store.save();
       modal.classList.add('hidden');
@@ -195,7 +201,7 @@ export class App {
       const bot = botFor(pr, id);
       return `<div class="half p${p}${bot ? ' bot' : ''}" style="--c:${pr.color}">
         <div class="half-inner">
-          <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${demo}</div>
+          <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${pr.lefty && !bot && meta.gesture === 'stick' ? demo.replace('class="demo ', 'class="demo lefty ') : demo}</div>
           <p class="howto">${meta.howTo}</p>
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>` : ''}
@@ -268,7 +274,7 @@ export class App {
     const def = GAMES[meta.id];
     const players = ([0, 1] as PlayerIndex[]).map((p): PlayerInfo => {
       const pr = this.store.data.profiles[p];
-      return { name: pr.name, color: pr.color, assist: this.assistFor(p), power: this.picks[p], bot: botFor(pr, meta.id) };
+      return { name: pr.name, color: pr.color, assist: this.assistFor(p), power: this.picks[p], bot: botFor(pr, meta.id), lefty: !!pr.lefty };
     }) as [PlayerInfo, PlayerInfo];
     const seed = this.fixedSeed !== null ? (this.fixedSeed + this.matchCount++) >>> 0 : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     const powersOn = this.store.data.settings.powers && !!this.picks[0] && !!this.picks[1];
