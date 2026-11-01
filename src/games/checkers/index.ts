@@ -431,7 +431,7 @@ class CheckersView implements GameInstance {
       circle(gx, x, H - 30 + 2, 7, 'rgba(0,0,0,0.3)');
       circle(gx, x, H - 30, 7, foe, shade(foe, -0.4), 1.5);
     }
-    if (n === 0) text(gx, 'Taken: none yet', 26, H - 30, { size: 12, align: 'left', color: COLORS.dim, weight: 600 });
+    if (n === 0) text(gx, 'Taken: none yet', 26, H - 30, { size: 13, align: 'left', color: COLORS.dim, weight: 600 });
   }
 }
 

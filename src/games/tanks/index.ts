@@ -516,9 +516,9 @@ class TankView implements GameInstance {
     // Bonks scored, or the clock near the end
     const sc = seat(p, HEARTS.x, HEARTS.y + 21);
     const leftT = RULES.timeCap - g.playTime;
-    if (g.sudden && !g.over) text(gx, 'Sudden bonk: next hit wins!', sc.x, sc.y, { size: 11, player: p, color: COLORS.gold });
-    else if (!g.over && leftT < 20) text(gx, `⏱ ${Math.ceil(leftT)} s`, sc.x, sc.y, { size: 12, player: p, color: leftT < 6 ? COLORS.gold : '#ffffff' });
-    else text(gx, `${g.score[p]} bonk${g.score[p] === 1 ? '' : 's'}`, sc.x, sc.y, { size: 11, player: p, color: COLORS.dim, weight: 700 });
+    if (g.sudden && !g.over) text(gx, 'Sudden bonk: next hit wins!', sc.x, sc.y, { size: 13, player: p, color: COLORS.gold });
+    else if (!g.over && leftT < 20) text(gx, `⏱ ${Math.ceil(leftT)} s`, sc.x, sc.y, { size: 13, player: p, color: leftT < 6 ? COLORS.gold : '#ffffff' });
+    else text(gx, `${g.score[p]} bonk${g.score[p] === 1 ? '' : 's'}`, sc.x, sc.y, { size: 13, player: p, color: COLORS.dim, weight: 700 });
   }
 
   private drawOverlay(gx: G): void {
@@ -531,7 +531,7 @@ class TankView implements GameInstance {
         const y = p === 0 ? MID + 56 : MID - 56;
         rrect(gx, W / 2 - 92, y - 24, 184, 48, 24, `rgba(42,33,80,${0.78 * a})`);
         text(gx, str, W / 2, y + (sub ? (p === 0 ? -6 : 6) : 0), { size: 20, player: p, color: this.banner.color, alpha: a });
-        if (sub) text(gx, sub, W / 2, y + (p === 0 ? 12 : -12), { size: 12, player: p, color: COLORS.dim, alpha: a, weight: 700 });
+        if (sub) text(gx, sub, W / 2, y + (p === 0 ? 12 : -12), { size: 13, player: p, color: COLORS.dim, alpha: a, weight: 700 });
       }
     }
   }

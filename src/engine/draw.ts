@@ -36,7 +36,25 @@ export type TextOpts = {
   alpha?: number;
 };
 
+/**
+ * Smallest size (world units) for words and numbers drawn on the canvas. The world is
+ * shrunk to fit the phone, by 0.89 on a 320 px wide one, so 13 units stays at or above
+ * Apple's 11 pt minimum there (and is ~14 px on a 390 px phone). Single symbols (★, x,
+ * eyes) are decoration and may be smaller. Unit test and playtest enforce it.
+ */
+export const MIN_TEXT = 13;
+
+/** Readable strings drawn below MIN_TEXT since the last clear (read by the playtest). */
+export const smallText = new Map<string, number>();
+
+/** Words and numbers someone has to read: two or more letters or digits. */
+export function readable(str: string): boolean {
+  return (str.match(/[\p{L}\p{N}]/gu) ?? []).length >= 2;
+}
+
 export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}): void {
+  const size = o.size ?? 20;
+  if (size < MIN_TEXT && readable(str)) smallText.set(str, size);
   facing(g, o.player ?? 0, x, y, () => {
     g.globalAlpha = o.alpha ?? 1;
     g.font = `${o.weight ?? 800} ${o.size ?? 20}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;

@@ -172,7 +172,7 @@ class PingPongView implements GameInstance {
       facing(gx, p, x, y, () => {
         rrect(gx, x - 30, y - 34, 60, 68, 14, alpha(c[p], 0.9), 'rgba(255,255,255,0.7)', 2);
         text(gx, String(g.score[p]), x, y - 6, { size: 36, color: '#fff', stroke: 'rgba(0,0,0,0.25)' });
-        text(gx, `vs ${g.score[other(p)]}`, x, y + 21, { size: 12, color: 'rgba(255,255,255,0.9)' });
+        text(gx, `vs ${g.score[other(p)]}`, x, y + 21, { size: 13, color: 'rgba(255,255,255,0.9)' });
       });
     }
     // Net: posts stick out over the rails, mesh band across the middle

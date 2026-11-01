@@ -75,7 +75,7 @@ class SnakeView implements GameInstance {
     for (const e of g.events) {
       if (e.type === 'turn') {
         sfx.play(e.auto ? 'pop' : 'click');
-        if (e.auto) fx.pop('assist!', cx(g.snakes[e.p].x), cy(g.snakes[e.p].y) + (e.p === 0 ? -14 : 14), COLORS.gold, e.p, 12);
+        if (e.auto) fx.pop('assist!', cx(g.snakes[e.p].x), cy(g.snakes[e.p].y) + (e.p === 0 ? -14 : 14), COLORS.gold, e.p, 13);
       } else if (e.type === 'move') {
         const s = g.snakes[e.p];
         if (s.boost > 0) fx.burst(cx(s.x), cy(s.y), COLORS.gold, 2, 60, 2);
@@ -222,8 +222,8 @@ class SnakeView implements GameInstance {
     });
     // Score line next to the arena edge, read from the player's seat.
     const sy = p === 0 ? OY + AH + 10 : OY - 10;
-    text(gx, `${g.score[p]} – ${g.score[other(p)]}`, p === 0 ? W - 30 : 30, sy, { size: 11, color: alpha('#ffffff', 0.6), player: p });
-    text(gx, `Round ${g.round}`, p === 0 ? 34 : W - 34, sy, { size: 11, color: alpha('#ffffff', 0.6), player: p });
+    text(gx, `${g.score[p]} – ${g.score[other(p)]}`, p === 0 ? W - 30 : 30, sy, { size: 13, color: alpha('#ffffff', 0.7), player: p });
+    text(gx, `Round ${g.round}`, p === 0 ? 34 : W - 34, sy, { size: 13, color: alpha('#ffffff', 0.7), player: p });
   }
 
   private drawBanner(gx: G): void {

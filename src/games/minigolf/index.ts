@@ -658,11 +658,11 @@ class MinigolfView implements GameInstance {
     text(gx, status, x0, y0 + 42, { size: 13, color: sc, align: 'left', weight: 700 });
     // Scores
     const hs = g.phase === 'card' || g.phase === 'over' || g.phase === 'intro' ? '–' : String(g.balls[p].strokes);
-    text(gx, 'HOLE', 268, y0 + 15, { size: 10, color: COLORS.dim });
-    text(gx, hs, 268, y0 + 38, { size: 24, color: '#ffffff' });
-    text(gx, 'TOTAL', 322, y0 + 15, { size: 10, color: COLORS.dim });
-    text(gx, String(g.total(p)), 322, y0 + 38, { size: 24, color: c });
-    if (g.bonus(p) > 0) text(gx, `★ −${g.bonus(p)} a hole`, 295, y0 + 55, { size: 9, color: COLORS.gold, weight: 700 });
+    text(gx, 'Hole', 268, y0 + 14, { size: 13, color: COLORS.dim });
+    text(gx, hs, 268, y0 + 36, { size: 24, color: '#ffffff' });
+    text(gx, 'Total', 322, y0 + 14, { size: 13, color: COLORS.dim });
+    text(gx, String(g.total(p)), 322, y0 + 36, { size: 24, color: c });
+    if (g.bonus(p) > 0) text(gx, `★ −${g.bonus(p)} a hole`, 295, y0 + 54, { size: 13, color: COLORS.gold, weight: 700 });
   }
 
   private drawBanner(gx: G, p: PlayerIndex): void {
@@ -714,7 +714,7 @@ class MinigolfView implements GameInstance {
     const colA = x0 + w - 116;
     const colB = x0 + w - 46;
     const hy = y0 + 46;
-    text(gx, 'Hole', colHole, hy, { size: 12, color: '#7a6f99', align: 'left' });
+    text(gx, 'Hole', colHole, hy, { size: 13, color: '#7a6f99', align: 'left' });
     text(gx, 'You', colA, hy, { size: 13, color: shade(this.ctx.players[p].color, -0.25) });
     text(gx, short(this.ctx.players[q].name), colB, hy, { size: 13, color: shade(this.ctx.players[q].color, -0.25) });
     line(gx, x0 + 10, hy + 13, x0 + w - 10, hy + 13, 'rgba(43,36,89,0.2)', 1.5);
@@ -724,7 +724,7 @@ class MinigolfView implements GameInstance {
       const latest = i === g.card.length - 1;
       if (latest) rrect(gx, x0 + 8, y - 14, w - 16, 28, 8, 'rgba(255,213,74,0.35)');
       text(gx, `${i + 1}. ${g.holes[i].name}`, colHole, y - 3, { size: 14, color: ink, align: 'left', weight: 700 });
-      text(gx, `Par ${g.holes[i].par}`, colHole, y + 11, { size: 10, color: '#7a6f99', align: 'left', weight: 600 });
+      text(gx, `Par ${g.holes[i].par}`, colHole, y + 11, { size: 13, color: '#7a6f99', align: 'left', weight: 600 });
       for (const [pl, x] of [[p, colA], [q, colB]] as [PlayerIndex, number][]) {
         if (!hs) {
           text(gx, '–', x, y, { size: 18, color: '#b0a8c8' });
@@ -733,7 +733,7 @@ class MinigolfView implements GameInstance {
         const win = hs.net[pl] < hs.net[other(pl)];
         if (win) circle(gx, x, y, 15, alpha(this.ctx.players[pl].color, 0.25));
         text(gx, String(hs.net[pl]), x, y, { size: 20, color: ink });
-        if (hs.bonus[pl]) text(gx, `★−${hs.bonus[pl]}`, x + 25, y - 6, { size: 10, color: '#b8860b', weight: 800 });
+        if (hs.bonus[pl]) text(gx, `★−${hs.bonus[pl]}`, x + 25, y - 6, { size: 13, color: '#b8860b', weight: 800 });
       }
     }
     const ty = hy + 30 + rows * 30 + 4;
@@ -748,7 +748,7 @@ class MinigolfView implements GameInstance {
       ? tp < tq ? 'You win! 🏆' : tq < tp ? `${this.ctx.players[q].name} wins!` : 'All square: a draw!'
       : tp < tq ? `You lead by ${tq - tp}` : tq < tp ? `${this.ctx.players[q].name} leads by ${tp - tq}` : 'All square!';
     text(gx, msg, W / 2, y0 + hgt + 20, { size: 18, color: '#ffffff', stroke: 'rgba(0,0,0,0.5)' });
-    text(gx, 'Lowest total wins', W / 2, y0 + hgt + 40, { size: 11, color: COLORS.dim, weight: 600 });
+    text(gx, 'Lowest total wins', W / 2, y0 + hgt + 40, { size: 13, color: COLORS.dim, weight: 600 });
   }
 }
 
