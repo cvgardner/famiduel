@@ -369,5 +369,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Sea Battle between two people: the 'after' beat (1.3 s) is also counted from the
       shot, not the landing, so the shooter sees their own result for about 0.9 s before
       "Now pass the phone"; check whether it needs the same landing-based timer.
-- [ ] Other turn-based games with a bot (Checkers, Four in a Row, Tic-Tac-Toe): check the
-      bot's move is highlighted long enough for a kid to see what changed.
+- [x] 2026-11-01: Four in a Row rings the newest disc. Checkers already tints the last
+      move's squares and Tic-Tac-Toe's 9 cells draw each mark in, but in Four in a Row a
+      bot's disc landed in 0.6 s among up to 41 others with nothing to say which was new.
+      Now the newest disc (a drop, a bomb's disc where it ends up, or the disc a flip
+      turned) wears a pulsing white ring once it lands, until the next move; a block
+      places no disc and leaves it. `FourInARow.last` is unit tested; the playtest plays a
+      normal bot, checks its disc is ringed for 3 s while the person thinks and that the
+      ring moves to the person's disc when they drop (`fourinarow-last-disc.png`).
+
+## Ideas found 2026-11-01 (newest disc run)
+- [ ] Tic-Tac-Toe and Checkers lose their "what changed" cue when a person looks away for
+      the bot's move in a later, fuller board; a faint ring on the newest TTT mark would
+      match Four in a Row.
+- [ ] Four in a Row's top player reads "Player 1's turn" in small grey text: the waiting
+      side could say "Waiting…" like Tic-Tac-Toe, which reads quicker.

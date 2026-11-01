@@ -152,6 +152,35 @@ describe('four in a row', () => {
     expect(g.turn).toBe(1); // flipping uses your turn
   });
 
+  it('remembers the newest disc (drop, bomb or flip) so the view can ring it', () => {
+    const g = new FourInARow([player({ power: power('fourinarow', 'bomb') }), player({ power: power('fourinarow', 'flip') })], true, makeRng(1));
+    g.turn = 0;
+    expect(g.last).toBeNull();
+    expect(g.apply({ kind: 'drop', col: 3 })).toBe(true);
+    expect(g.last).toEqual({ p: 0, cell: idx(3, 0) });
+    expect(g.apply({ kind: 'drop', col: 3 })).toBe(true);
+    expect(g.last).toEqual({ p: 1, cell: idx(3, 1) });
+    // A rejected move changes nothing.
+    expect(g.apply({ kind: 'drop', col: 9 })).toBe(false);
+    expect(g.last).toEqual({ p: 1, cell: idx(3, 1) });
+    // A bomb's disc is marked where it ends up, after the blast.
+    g.energy[0].value = 1;
+    expect(g.apply({ kind: 'drop', col: 3, bomb: true })).toBe(true);
+    expect(g.last).toEqual({ p: 0, cell: idx(3, height(g.board, 3) - 1) });
+    expect(g.board[g.last!.cell]).toBe(0);
+    // A flip marks the disc it turned.
+    expect(g.apply({ kind: 'drop', col: 0 })).toBe(true); // player 1
+    expect(g.apply({ kind: 'drop', col: 6 })).toBe(true); // player 0
+    g.energy[1].value = 1;
+    const target = g.flippable(1)[0];
+    expect(g.apply({ kind: 'flip', col: Math.floor(target / ROWS), row: target % ROWS })).toBe(true);
+    expect(g.last).toEqual({ p: 1, cell: target });
+    // A new game starts with nothing marked.
+    g.roundOver = { winner: 1, line: [] };
+    g.nextRound();
+    expect(g.last).toBeNull();
+  });
+
   it('block stops the opponent playing one column for their next turn only', () => {
     const g = new FourInARow([player({ power: power('fourinarow', 'block') }), player()], true, makeRng(1));
     g.turn = 0;

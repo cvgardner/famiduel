@@ -659,6 +659,58 @@ test('sea battle: where the bot hit your fleet stays on screen long enough to fi
   expect(errors).toEqual([]);
 });
 
+test("four in a row: the bot's newest disc keeps a ring until you move", async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, 'normal']);
+  await page.locator('.game-card[data-id="fourinarow"]').tap();
+  await introAsPeople(page, [0]);
+  await page.waitForTimeout(2200); // countdown
+  type FourHook = {
+    runner: null | { game: { ringCell(): number | null; busy: boolean; busyDiscs(): boolean; game: { turn: number; moves: number; last: { p: number; cell: number } | null; roundOver: unknown } } };
+  };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: FourHook }).__famiduel.runner!.game;
+      return { ring: v.ringCell(), last: v.game.last, turn: v.game.turn, moves: v.game.moves, still: !v.busy && !v.busyDiscs(), over: !!v.game.roundOver };
+    });
+  const box = await worldBox(page);
+  const drop = async (col: number) => {
+    const c = { x: box.x + ((48 + col * 43 + 21.5) / 360) * box.width, y: box.y + (520 / 640) * box.height };
+    for (const t of ['pointerdown', 'pointerup'])
+      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(88, tt, cx, cy), [t, c.x, c.y] as const);
+  };
+  // Nothing is ringed before the first disc.
+  let s = await look();
+  expect(s.last).toBeNull();
+  expect(s.ring).toBeNull();
+  // If the person starts, drop once and check their own disc gets the ring after it lands.
+  if (s.turn === 0) {
+    await drop(3);
+    await expect.poll(async () => (await look()).ring, { timeout: 2000 }).toBe(3 * 6); // idx(col 3, row 0), 6 rows a column
+  }
+  // Two bot turns: each newest bot disc is ringed once it lands and stays ringed while the
+  // person thinks (3 s here), then the ring moves to the person's disc when they drop.
+  for (const col of [0, 6]) {
+    await expect.poll(async () => { s = await look(); return s.turn === 0 && s.still && s.last?.p === 1; }, { timeout: 5000 }).toBe(true);
+    const botCell = s.last!.cell;
+    await expect.poll(async () => (await look()).ring, { timeout: 2000 }).toBe(botCell);
+    if (col === 0) await page.screenshot({ path: path.join(OUT, 'fourinarow-last-disc.png') });
+    await page.waitForTimeout(3000);
+    s = await look();
+    expect(s.ring, "the bot's disc is still ringed after 3 s").toBe(botCell);
+    expect(s.over).toBe(false);
+    // A column the person may play (the bot's Block power can close one).
+    const open = await page.evaluate(() => (window as unknown as { __famiduel: { runner: { game: { game: { legalCols(p: number): number[] } } } } }).__famiduel.runner.game.game.legalCols(0));
+    await drop(open.includes(col) ? col : open[0]);
+    await expect.poll(async () => (await look()).last?.p, { timeout: 1000 }).toBe(0);
+    s = await look();
+    expect(s.ring, 'the ring leaves the bot disc as soon as the person drops').not.toBe(botCell);
+    await expect.poll(async () => { const x = await look(); return x.ring !== null && x.ring === x.last?.cell && x.last?.p === 0; }, { timeout: 2000 }).toBe(true);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('rock paper scissors: two people pick behind a look-away cover, one at a time', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
