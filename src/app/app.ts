@@ -9,7 +9,7 @@ import { Sfx } from '../engine/sfx';
 import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
-import { demoHelpHtml, demoHtml, HelpMemory, isGesture, showsDemo } from './demo';
+import { demoHelpHtml, demoHtml, HelpMemory, howToHalfHtml, isGesture, showsDemo } from './demo';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
 import { BOT_LEVELS, PLAYER_COLORS, Store, botFor, easierOffer } from './store';
@@ -159,7 +159,7 @@ export class App {
     const pr = this.store.data.profiles[p];
     const other = this.store.data.profiles[p === 0 ? 1 : 0];
     const modal = $('#modal');
-    modal.classList.remove('hidden');
+    modal.classList.remove('hidden', 'help');
     modal.innerHTML = `<div class="sheet">
       <h2>Player ${p + 1}</h2>
       <label class="field">Name<input id="pName" maxlength="12" value="${esc(pr.name)}"/></label>
@@ -389,11 +389,17 @@ export class App {
     this.runner.paused = true;
     const modal = $('#modal');
     modal.classList.remove('hidden');
+    modal.classList.remove('help');
     modal.innerHTML = `<div class="sheet"><h2>Paused</h2>
       <button id="resumeBtn" class="btn primary">Resume</button>
+      <button id="howBtn" class="btn">❓ How to play</button>
       <button id="restartBtn" class="btn">Restart</button>
       <button id="quitBtn" class="btn ghost">Quit to games</button></div>`;
     const close = () => modal.classList.add('hidden');
+    $('#howBtn', modal).addEventListener('click', () => {
+      this.sfx.play('tap');
+      this.showHowTo();
+    });
     $('#resumeBtn', modal).addEventListener('click', () => {
       close();
       if (this.runner) this.runner.paused = false;
@@ -407,6 +413,32 @@ export class App {
       close();
       this.runner = null;
       this.showHome();
+    });
+  }
+
+  /**
+   * "How to play" from the pause menu: each player's half (facing them) shows the
+   * ghost finger, the how-to line and the power they picked. The match stays paused.
+   */
+  private showHowTo(): void {
+    const meta = this.current;
+    if (!meta || !this.runner) return;
+    const modal = $('#modal');
+    const players = this.runner.players;
+    const seat = (p: PlayerIndex) => {
+      const pl = players[p];
+      return howToHalfHtml({ p, name: pl.name, color: pl.color, bot: !!pl.bot, lefty: !!pl.lefty, power: pl.power }, meta);
+    };
+    modal.classList.add('help');
+    modal.innerHTML = `<div class="pause-help">${seat(1)}<div class="intro-mid"><button id="helpBack" class="link">← Menu</button><button id="helpResume" class="btn primary">Resume</button></div>${seat(0)}</div>`;
+    $('#helpBack', modal).addEventListener('click', () => {
+      if (this.runner) this.runner.paused = false;
+      this.pause();
+    });
+    $('#helpResume', modal).addEventListener('click', () => {
+      modal.classList.add('hidden');
+      modal.classList.remove('help');
+      if (this.runner) this.runner.paused = false;
     });
   }
 

@@ -325,8 +325,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       reopens the intro, checks the finger shows with no "?" in that half only
       (`demo-help-remembered.png`), finishes a match and checks the "?" is back, and that
       another person in the seat doesn't inherit it.
-- [ ] A "?" during a match (pause sheet) that replays the finger over that player's half,
-      for a kid who only realises mid-match they don't know the gesture.
+- [x] 2026-11-01: "How to play" mid-match. A kid who only realised during a match that they
+      didn't know the gesture, or forgot what their power does, had to quit to see the intro
+      again. The pause menu now has "❓ How to play": the match stays paused and each
+      person's half (facing them, like the intro) shows the ghost finger (mirrored stick for
+      a lefty), the how-to line and the power they picked ("Your power: Shield …"). A bot's
+      half shows no finger or rules. "← Menu" goes back to the pause menu, "Resume" plays on.
+      `howToHalfHtml()` in `src/app/demo.ts` (unit tested); a new playtest opens it in every
+      game on a 320×568 phone, checks both halves fit with finger, rules and power, that the
+      match stays paused and Resume resumes (`pause-help.png`, `pause-help-bot.png`), and the
+      44 px target check now covers that screen.
+- [ ] How to play mid-match could also show each power's charge state ("ready in 4 s") and
+      a short animation of the power, for kids who picked it without reading.
 - [ ] Penalty's demo shows only the shooter's swipe; the keeper's tap is in text only.
       Games with two roles could alternate both gestures.
 

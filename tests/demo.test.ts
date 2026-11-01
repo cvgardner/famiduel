@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import games from '../content/games.json';
-import { DEMO_MATCHES, demoHelpHtml, demoHtml, GESTURES, HelpMemory, isGesture, showsDemo } from '../src/app/demo';
+import { DEMO_MATCHES, demoHelpHtml, demoHtml, GESTURES, HelpMemory, howToHalfHtml, isGesture, showsDemo } from '../src/app/demo';
 
 describe('ghost finger demo', () => {
   it('every game names a known gesture', () => {
@@ -55,5 +55,41 @@ describe('ghost finger demo', () => {
     // Tapping "?" again brings it back again.
     m.mark('sumo', 0, 'Mia');
     expect(m.wants('sumo', 0, 'Mia')).toBe(true);
+  });
+});
+
+describe('how to play, from the pause menu', () => {
+  const tanks = games.games.find((g) => g.id === 'tanks')!;
+  const person = { p: 0, name: 'Mia', color: '#3fa9ff', bot: false };
+
+  it("shows a person the finger, the how-to line and their power, in their seat's half", () => {
+    const power = { icon: '⚡', name: 'Turbo', desc: 'Drive twice as fast for 3 s.' };
+    const html = howToHalfHtml({ ...person, p: 1, power }, tanks);
+    expect(html).toContain('class="half p1"');
+    expect(html).toContain('data-gesture="stick"');
+    expect(html).toContain(tanks.howTo);
+    expect(html).toContain('Your power: Turbo');
+    expect(html).toContain(power.desc);
+  });
+
+  it('mirrors the stick finger for a left-handed seat, and leaves out a power not picked', () => {
+    const html = howToHalfHtml({ ...person, lefty: true, power: null }, tanks);
+    expect(html).toContain('demo lefty g-stick');
+    expect(html).not.toContain('my-power');
+  });
+
+  it("gives a bot's half no finger and no how-to", () => {
+    const html = howToHalfHtml({ ...person, bot: true }, tanks);
+    expect(html).toContain('half p0 bot');
+    expect(html).not.toContain('class="demo');
+    expect(html).not.toContain(tanks.howTo);
+  });
+
+  it('escapes the player name', () => {
+    expect(howToHalfHtml({ ...person, name: '<b>Al' }, tanks)).toContain('&#60;b&#62;Al');
+  });
+
+  it('has a finger for every game', () => {
+    for (const g of games.games) expect(howToHalfHtml(person, g), g.id).toContain('class="demo');
   });
 });

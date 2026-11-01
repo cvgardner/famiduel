@@ -75,3 +75,32 @@ export class HelpMemory {
     this.wanted.delete(this.key(game, p, who));
   }
 }
+
+/** What one seat sees on the mid-match "How to play" screen. */
+export type HowToSeat = {
+  p: number;
+  name: string;
+  color: string;
+  bot: boolean;
+  lefty?: boolean;
+  power?: { icon: string; name: string; desc: string } | null;
+};
+
+const escHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+/**
+ * One half of the "How to play" screen opened from the pause menu. A kid who
+ * only realises mid-match that they don't know the gesture (or what their power
+ * does) gets the ghost finger, the how-to line and their picked power, facing
+ * them. A bot's half just says it is waiting.
+ */
+export function howToHalfHtml(seat: HowToSeat, game: { icon: string; name: string; howTo: string; gesture?: string }): string {
+  const g = isGesture(game.gesture) ? game.gesture : null;
+  const head = `<div class="intro-head"><div class="intro-title">${game.icon} ${game.name}</div>${g && !seat.bot ? demoHtml(g, !!seat.lefty) : ''}</div>`;
+  const body = seat.bot
+    ? `<p class="howto">🤖 Waiting for you</p>`
+    : `<p class="howto">${game.howTo}</p>${
+        seat.power ? `<p class="my-power"><span class="picon">${seat.power.icon}</span> <b>Your power: ${seat.power.name}</b> ${seat.power.desc}</p>` : ''
+      }`;
+  return `<div class="half p${seat.p}${seat.bot ? ' bot' : ''}" style="--c:${seat.color}"><div class="half-inner">${head}${body}<div class="who">${escHtml(seat.name)}${seat.bot ? ' 🤖' : ''}</div></div></div>`;
+}
