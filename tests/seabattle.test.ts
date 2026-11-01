@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel, PlayerIndex } from '../src/core/types';
+import { other } from '../src/core/types';
 import { cellsOf, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIPS, strikeCells } from '../src/games/seabattle/logic';
 import { player, power } from './helpers';
 
@@ -114,86 +115,85 @@ describe('sea battle', () => {
 
   it('extra shots: the assisted player gets 2 shots every N turns', () => {
     const g = setup({ assist: [3, 0] });
-    lineUp(g, 0);
-    lineUp(g, 1);
     start(g, 1);
     const shotsPerTurn: number[] = [];
     for (let t = 0; t < 8; t++) {
       const p = g.turn;
       let n = 0;
       while (g.turn === p && g.winner === null) {
-        // Only water (rows 5-9), so no hit earns a shot again.
-        g.apply({ kind: 'fire', cell: g.open(p).find((c) => c >= 5 * N)! });
+        // Fire at water: a hit would earn another shot and blur the bonus count.
+        const water = g.open(p).find((c) => g.seas[other(p)].occ[c] < 0)!;
+        g.apply({ kind: 'fire', cell: water });
         n++;
       }
       if (p === 0) shotsPerTurn.push(n);
     }
     expect(shotsPerTurn).toEqual([1, 2, 1, 2]); // every 2nd turn at assist 3
     const plain = setup();
-    lineUp(plain, 1);
     start(plain, 0);
-    plain.apply({ kind: 'fire', cell: 99 });
+    plain.apply({ kind: 'fire', cell: 0 });
     expect(plain.turn).toBe(1);
   });
 
-  it('hit = shoot again: hits keep the turn, the first miss ends it', () => {
-    const g = setup();
+  it('a hit fires again; a miss, a mine or an airstrike passes the turn', () => {
+    // Chris, 2026-11-01: rules must match the ones kids know, e.g. an extra shot on a hit.
+    const g = setup({ powers: ['airstrike', 'mine'] });
     lineUp(g, 1);
+    lineUp(g, 0);
     start(g, 0);
-    expect(g.apply({ kind: 'fire', cell: 0 })).toBe(true); // carrier
+    // Row 0 is player 1's carrier: hit, hit, hit and still player 0's turn.
+    for (const c of [0, 1, 2]) {
+      expect(g.apply({ kind: 'fire', cell: c })).toBe(true);
+      expect(g.events.some((e) => e.type === 'again')).toBe(true);
+      expect(g.turn).toBe(0);
+      expect(g.shotsLeft).toBe(1);
+    }
+    // Sinking a ship is a hit too: the patrol boat (row 4, x 0..1).
+    g.apply({ kind: 'fire', cell: 4 * N });
+    g.apply({ kind: 'fire', cell: 4 * N + 1 });
+    expect(g.score[0]).toBe(1);
     expect(g.turn).toBe(0);
-    expect(g.again).toBe(true);
-    expect(g.events.some((e) => e.type === 'again')).toBe(true);
-    g.apply({ kind: 'fire', cell: 1 });
-    expect(g.turn).toBe(0);
-    g.apply({ kind: 'fire', cell: 99 }); // water
+    // A miss ends the turn.
+    g.apply({ kind: 'fire', cell: 9 * N + 9 });
+    expect(g.events.some((e) => e.type === 'again')).toBe(false);
     expect(g.turn).toBe(1);
-    expect(g.again).toBe(false);
+    // A mine is not a ship: firing on one passes the turn (and hits back).
+    g.turn = 0;
+    g.shotsLeft = 1;
+    g.seas[1].mines.add(8 * N + 8);
+    g.apply({ kind: 'fire', cell: 8 * N + 8 });
+    expect(g.turn).toBe(1);
+    // An airstrike that hits still ends the turn (it is already 5 shots).
+    g.turn = 0;
+    g.shotsLeft = 1;
+    g.energy[0].value = 1;
+    expect(g.apply({ kind: 'airstrike', cell: 1 * N + 2 })).toBe(true);
+    expect(g.events.filter((e) => e.type === 'shot' && e.result === 'hit').length).toBeGreaterThan(0);
+    expect(g.turn).toBe(1);
   });
 
-  it('hit = shoot again even when it sinks a ship, and a whole fleet can go in one turn', () => {
-    const g = setup();
-    lineUp(g, 1);
-    start(g, 0);
-    const turns = [...g.turnNo];
-    for (const s of g.seas[1].ships)
-      for (const c of cellsOf(s)) {
-        expect(g.turn).toBe(0); // player 1 never gets a turn
-        g.apply({ kind: 'fire', cell: c });
-      }
-    expect(g.winner).toBe(0);
-    expect(g.turnNo).toEqual(turns);
-  });
-
-  it('a hit on the bonus shot still keeps the turn; the bonus is used on the miss', () => {
+  it('a hit keeps a bonus shot: hit on the first of 2 shots still leaves 2', () => {
     const g = setup({ assist: [3, 0] });
     lineUp(g, 1);
     start(g, 0);
     g.shotsLeft = 2;
-    g.apply({ kind: 'fire', cell: 0 }); // hit: free
+    g.apply({ kind: 'fire', cell: 0 }); // hit
     expect(g.shotsLeft).toBe(2);
-    g.apply({ kind: 'fire', cell: 99 }); // miss: 1 left
+    g.apply({ kind: 'fire', cell: 9 * N + 9 }); // miss
     expect(g.turn).toBe(0);
     expect(g.shotsLeft).toBe(1);
-    expect(g.again).toBe(false);
-    g.apply({ kind: 'fire', cell: 98 });
+    g.apply({ kind: 'fire', cell: 9 * N + 8 }); // miss
     expect(g.turn).toBe(1);
   });
 
-  it('an airstrike that hits still ends the turn, and firing into a mine is a miss', () => {
-    const g = setup({ powers: ['airstrike', 'mine'] });
-    lineUp(g, 0);
-    lineUp(g, 1);
-    start(g, 0);
-    g.energy[0].value = 1;
-    g.apply({ kind: 'airstrike', cell: 12 });
-    expect(g.turn).toBe(1);
-    g.energy[1].value = 1;
-    expect(g.apply({ kind: 'mine', cell: 99 })).toBe(true);
-    g.apply({ kind: 'fire', cell: 98 }); // player 1 misses
-    expect(g.turn).toBe(0);
-    g.apply({ kind: 'fire', cell: 99 }); // the mine
-    expect(g.turn).toBe(1);
+  it('bot vs bot with hit-again: shooters chain hits in every match', () => {
+    let chained = 0;
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
+      const { g } = play(['hard', 'hard'], 500 + seed);
+      expect(g.winner).not.toBeNull();
+      chained += g.turnNo[0] + g.turnNo[1] < g.shotsFired[0] + g.shotsFired[1] ? 1 : 0;
+    }
+    expect(chained).toBe(6);
   });
 
   it('sinking every ship wins; hits charge energy', () => {
