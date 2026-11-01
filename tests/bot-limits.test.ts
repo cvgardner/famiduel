@@ -17,6 +17,8 @@ import { DT, player, power } from './helpers';
 const LEVELS: BotLevel[] = ['easy', 'normal', 'hard'];
 const SEEDS = [1, 2, 3, 4];
 const MAX_T = 120;
+/** Whole bot-vs-bot matches at every level: slow on a shared CI runner. */
+const SLOW = 60_000;
 
 type Game = { over?: boolean; done?: boolean; step(dt: number, intents: [never, never]): void };
 type Bot = { think(game: never, dt: number): unknown };
@@ -119,7 +121,7 @@ describe('honest bots respect a person\'s limits', () => {
         }
       }
       expect(total).toBeGreaterThan(0);
-    });
+    }, SLOW);
   }
 
   it('the Quick Draw bot never draws faster than a quick person on a phone, at any level', () => {
@@ -149,7 +151,7 @@ describe('honest bots respect a person\'s limits', () => {
     expect(mean.hard).toBeGreaterThanOrEqual(0.26);
     expect(mean.normal).toBeGreaterThan(mean.hard);
     expect(mean.easy).toBeGreaterThan(mean.normal);
-  });
+  }, SLOW);
 
   it('the Tank Duel bot never fires the instant its gun is ready: its thumb follows the reload ring like a person', () => {
     for (const level of LEVELS) {
@@ -176,5 +178,5 @@ describe('honest bots respect a person\'s limits', () => {
       expect(shots).toBeGreaterThan(10);
       expect(fastest).toBeGreaterThanOrEqual(Math.max(HUMAN.reaction, TANK_BOT[level].trigger) - DT - 1e-6);
     }
-  });
+  }, SLOW);
 });
