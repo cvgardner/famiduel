@@ -111,26 +111,49 @@ describe('minigolf match', { timeout: 60_000 }, () => {
   });
 
   it('an easy bot plays over par, like a young kid, and a normal bot about par', () => {
-    // Strokes over par per hole, both seats, every hole, 2 seeds each.
+    // Strokes over par per hole, both seats, every hole, 3 seeds each.
     const overPar = (level: BotLevel) => {
+      const perHole = new Map<string, number>();
       let over = 0;
       let n = 0;
       for (const h of HOLES) {
-        for (let s = 0; s < 2; s++) {
+        let ho = 0;
+        let hn = 0;
+        for (let s = 0; s < 3; s++) {
           const { g } = play([level, level], 500 + s, { holes: [h.id] });
           for (const st of g.card[0].strokes) {
-            over += st - h.par;
-            n++;
+            ho += st - h.par;
+            hn++;
           }
         }
+        perHole.set(h.id, ho / hn);
+        over += ho;
+        n += hn;
       }
-      return over / n;
+      return { all: over / n, perHole };
     };
+    const easy = overPar('easy');
+    const normal = overPar('normal');
     // Measured (10 seeds): easy +0.8 over par, normal -0.5. Before this change easy was
     // -0.0 (under par on most holes, 22 aces in 160 holes), too strong for a 6-year-old.
     // Nov 2026, 22 holes and the forgiving cup (3 seeds): easy +0.76, normal -0.44, hard -1.39.
-    expect(overPar('easy')).toBeGreaterThanOrEqual(0.4);
-    expect(overPar('normal')).toBeLessThanOrEqual(0.1);
+    expect(easy.all).toBeGreaterThanOrEqual(0.4);
+    expect(normal.all).toBeLessThanOrEqual(0.1);
+    // Each hole's par sits between a grown-up and a young kid: a kid doesn't beat par on
+    // average (Crater was par 3 and the easy bot took 2.0), and a grown-up isn't stuck
+    // over it (Windmill was par 3 and the normal bot took 3.7). Re-measured Nov 2026 with
+    // 12 seeds: the closest holes are Crater (easy +0.04) and Pinball (normal +0.42).
+    for (const h of HOLES) {
+      expect(easy.perHole.get(h.id)!, `easy on ${h.id}`).toBeGreaterThanOrEqual(-0.5);
+      expect(normal.perHole.get(h.id)!, `normal on ${h.id}`).toBeLessThanOrEqual(0.5);
+    }
+  });
+
+  it('holes are listed easiest first: pars never go down along the list', () => {
+    const pars = HOLES.map((h) => h.par);
+    for (let i = 1; i < pars.length; i++) expect(pars[i], HOLES[i].id).toBeGreaterThanOrEqual(pars[i - 1]);
+    // Warm-Up Lane teaches the putt, so it stays first.
+    expect(HOLES[0].id).toBe('warmup');
   });
 
   it('players alternate shots and the shot is the shooter only', () => {
