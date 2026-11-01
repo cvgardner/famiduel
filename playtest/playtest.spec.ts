@@ -8,6 +8,7 @@ import { expect, test, type Page } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 import games from '../content/games.json' with { type: 'json' };
+import holes from '../content/minigolf-holes.json' with { type: 'json' };
 import { PLAYER_COLORS } from '../src/core/colors';
 import { installFingers, monkey, worldBox } from './monkey';
 import { checkersPerson, fourInARowPerson, rpsPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
@@ -711,6 +712,50 @@ test("four in a row: the bot's newest disc keeps a ring until you move", async (
   expect(errors).toEqual([]);
 });
 
+test('minigolf: every hole comes up in a match, fits the phone and can be finished', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, ['hard', 'hard']);
+  type GolfHook = {
+    openGame(id: string): void;
+    startMatch(): void;
+    runner: null | { fastForward(s: number): void; game: { game: { holes: { id: string }[]; holeIdx: number; finished: boolean; phase: string; card: unknown[]; balls: { x: number; y: number }[]; startHole(i: number): void } } };
+  };
+  for (const h of holes.holes) {
+    // Start matches until the seeded pick includes this hole, then jump to it.
+    const found = await page.evaluate((id) => {
+      const app = (window as unknown as { __famiduel: GolfHook }).__famiduel;
+      for (let tries = 0; tries < 80; tries++) {
+        app.openGame('minigolf');
+        app.startMatch();
+        const g = app.runner!.game.game;
+        const idx = g.holes.findIndex((x) => x.id === id);
+        if (idx < 0) continue;
+        g.startHole(idx);
+        app.runner!.fastForward(5); // countdown and the hole card
+        return { idx, tries, phase: g.phase };
+      }
+      return null;
+    }, h.id);
+    expect(found, `${h.id} is picked for some match`).not.toBeNull();
+    await page.waitForTimeout(150);
+    await page.screenshot({ path: path.join(OUT, `minigolf-hole-${h.id}.png`) });
+    const bars = await barMismatch(page);
+    expect(Math.max(bars.top, bars.bottom), `${h.id}: letterbox bars carry the game edge`).toBeLessThan(24);
+    // Two hard bots play it out in the real UI (game time, fast-forwarded).
+    const done = await page.evaluate((idx) => {
+      const app = (window as unknown as { __famiduel: GolfHook }).__famiduel;
+      const g = app.runner!.game.game;
+      for (let s = 0; s < 120 && g.holeIdx === idx && !g.finished; s++) app.runner!.fastForward(1);
+      return { left: g.holeIdx !== idx || g.finished, card: g.card.length };
+    }, found!.idx);
+    expect(done.left, `${h.id}: two hard bots finish the hole within 2 minutes`).toBe(true);
+    expect(done.card, `${h.id}: the hole is on the scorecard`).toBe(1);
+  }
+  await page.evaluate(() => (window as unknown as { __famiduel: { showHome(): void } }).__famiduel.showHome());
+  expect(errors).toEqual([]);
+});
+
 test('rock paper scissors: two people pick behind a look-away cover, one at a time', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
@@ -858,8 +903,11 @@ for (const g of games.games) {
     const tiny = await page.evaluate(() => [...(window as unknown as { __smallText: Map<string, number> }).__smallText]);
     expect(tiny.map(([str, size]) => `"${str}" at ${size}`), 'canvas text below the minimum size').toEqual([]);
     // Every label drawn while playing, against the pixels behind it (WCAG 1.4.3).
-    const seen = await page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, { best: number; need: number; size: number }> } }).__contrast.seen]);
-    row.faint = seen.filter(([, c]) => c.best < c.need).map(([str, c]) => `"${str}" ${c.best.toFixed(1)}:1 (needs ${c.need}:1 at ${c.size})`);
+    const seen = await page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, { best: number; need: number; size: number; rest: boolean }> } }).__contrast.seen]);
+    const faint = (c: { best: number; need: number }) => c.best < c.need;
+    row.faint = seen.filter(([, c]) => c.rest && faint(c)).map(([str, c]) => `"${str}" ${c.best.toFixed(1)}:1 (needs ${c.need}:1 at ${c.size})`);
+    // A label the match ended on mid-fade (never seen fully shown) is reported, not failed.
+    for (const [str] of seen.filter(([, c]) => !c.rest && faint(c))) row.warnings.push(`"${str}" was only seen fading in, contrast not judged`);
     expect(row.faint, 'canvas labels below WCAG contrast against what is behind them').toEqual([]);
     expect(errors).toEqual([]);
   });

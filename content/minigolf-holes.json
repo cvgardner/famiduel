@@ -46,6 +46,25 @@
       ]
     },
     {
+      "id": "river",
+      "name": "River Bridge",
+      "par": 3,
+      "tee": [110, 525],
+      "cup": [250, 128],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[60, 565], [300, 565], [300, 80], [60, 80]] },
+        { "kind": "inner", "closed": false, "pts": [[150, 296], [150, 354]] },
+        { "kind": "inner", "closed": false, "pts": [[210, 296], [210, 354]] },
+        { "kind": "inner", "closed": true, "pts": [[205, 222], [222, 242], [205, 262], [188, 242]] }
+      ],
+      "zones": [
+        { "type": "water", "poly": [[60, 300], [146, 300], [146, 350], [60, 350]] },
+        { "type": "water", "poly": [[214, 300], [300, 300], [300, 350], [214, 350]] },
+        { "type": "sand", "circle": [205, 175, 24] }
+      ],
+      "movers": []
+    },
+    {
       "id": "pond",
       "name": "Lily Pond",
       "par": 3,
@@ -92,6 +111,23 @@
       "zones": [
         { "type": "sand", "circle": [300, 515, 26] },
         { "type": "sand", "circle": [60, 200, 26] }
+      ],
+      "movers": []
+    },
+    {
+      "id": "castle",
+      "name": "Sand Castle",
+      "par": 4,
+      "tee": [180, 528],
+      "cup": [180, 135],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[40, 565], [320, 565], [320, 80], [40, 80]] },
+        { "kind": "inner", "closed": true, "pts": [[110, 230], [250, 230], [250, 410], [110, 410]] },
+        { "kind": "inner", "closed": false, "pts": [[250, 320], [290, 320]] }
+      ],
+      "zones": [
+        { "type": "sand", "poly": [[40, 250], [110, 250], [110, 390], [40, 390]] },
+        { "type": "slope", "poly": [[110, 180], [250, 180], [250, 230], [110, 230]], "accel": [0, -40] }
       ],
       "movers": []
     },

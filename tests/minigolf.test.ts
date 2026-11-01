@@ -42,8 +42,8 @@ function shoot(g: Minigolf, angle: number, power: number): void {
 }
 
 describe('minigolf holes', { timeout: 60_000 }, () => {
-  it('has at least 6 hand-made holes with tee and cup on dry grass inside the walls', () => {
-    expect(HOLES.length).toBeGreaterThanOrEqual(6);
+  it('has at least 10 hand-made holes with tee and cup on dry grass inside the walls', () => {
+    expect(HOLES.length).toBeGreaterThanOrEqual(10);
     for (const h of HOLES) {
       const c = compileCourse(h);
       for (const [x, y] of [h.tee, h.cup]) {

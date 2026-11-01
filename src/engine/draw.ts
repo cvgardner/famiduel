@@ -52,11 +52,13 @@ export const smallText = new Map<string, number>();
  * Contrast probe, switched on by the playtest. While on, each readable label is
  * checked against the pixels behind it (at most every 200 ms per label) and the
  * best contrast it ever had is kept: a pop fading in or out counts at its peak,
- * a label that is always faint shows up as faint.
+ * a label that is always faint shows up as faint. `rest` says the label was seen
+ * fully faded in at least once; until then only mid-fade samples exist (a hole
+ * card cut short by a pause), and the first at-rest sample replaces them.
  */
 export const contrastProbe = {
   on: false,
-  seen: new Map<string, { best: number; need: number; size: number }>(),
+  seen: new Map<string, { best: number; need: number; size: number; rest: boolean }>(),
   last: new Map<string, number>(),
 };
 
@@ -88,9 +90,21 @@ function probeContrast(g: G, str: string, x: number, y: number, o: TextOpts): vo
   for (let i = 0; i < px.length; i += 4) for (let k = 0; k < 3; k++) sum[k] += px[i + k];
   const n = px.length / 4;
   const bg = [sum[0] / n, sum[1] / n, sum[2] / n] as [number, number, number];
-  const ratio = labelContrast(fill, bg, o.alpha ?? 1, o.stroke ? parseColor(o.stroke) : null);
-  const prev = contrastProbe.seen.get(str);
-  if (!prev || ratio > prev.best) contrastProbe.seen.set(str, { best: ratio, need: contrastNeeded(size, o.weight ?? 800), size });
+  const a = o.alpha ?? 1;
+  const ratio = labelContrast(fill, bg, a, o.stroke ? parseColor(o.stroke) : null);
+  const rest = a >= 0.99;
+  if (keepSample(contrastProbe.seen.get(str), ratio, rest))
+    contrastProbe.seen.set(str, { best: ratio, need: contrastNeeded(size, o.weight ?? 800), size, rest });
+}
+
+/**
+ * Whether a new contrast sample replaces the kept one: the best at-rest sample
+ * wins; mid-fade samples only count until the label is first seen fully shown.
+ */
+export function keepSample(prev: { best: number; rest: boolean } | undefined, ratio: number, rest: boolean): boolean {
+  if (!prev) return true;
+  if (rest !== prev.rest) return rest;
+  return ratio > prev.best;
 }
 
 /** Words and numbers someone has to read: two or more letters or digits. */

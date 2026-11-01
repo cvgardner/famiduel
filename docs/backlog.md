@@ -135,7 +135,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 
 ## Content
 - [ ] Mini pool (first update).
-- [ ] More minigolf holes (target 18).
+- [ ] More minigolf holes (target 18). 10 so far.
+- [x] 2026-11-01: two new Minigolf holes, so a 3-hole match repeats less often (8 → 10 holes,
+      56 → 120 different courses). River Bridge (par 3): water across the middle with a
+      bridge, and a bumper past it that blocks the straight shot. Sand Castle (par 4): a
+      castle block in the middle, a short lane through a sand pit on one side and a longer
+      clean lane with a jutting wall on the other, and a slope that helps you round the top.
+      Measured with bots (20 seeds, both seats): River easy 3.75 / normal 2.90 / hard 2.33
+      strokes, no aces (it was 34 aces in 40 for hard before the bumper); Castle 4.50 / 2.75 /
+      2.17, close to Zig Zag. A new playtest opens every hole in a real match, saves
+      `minigolf-hole-<id>.png`, checks the letterbox bars and that two hard bots finish it.
+      Verify also caught the hole card's words (drawn at full opacity) popping in over the
+      bright grass before their dark card had faded in ("Dog Leg" 2.8:1 when a match ended
+      mid-fade). The card and the shot banner now fade their words with the card, and the
+      contrast probe judges a label at rest: a label only ever caught mid-fade is a report
+      warning, not a failure (`keepSample` in engine/draw.ts, unit tested).
 - [ ] More tank arenas, more Snack Snatch snack types.
 
 ## Ideas found 2026-10-31
@@ -191,6 +205,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       from the play area on tall phones) by exposing the visible world height to views.
 - [ ] Minigolf's top and bottom HUD strips are near-black, so its bars still read as black
       bands; a lighter HUD edge (or grass running under it) would make it fill the phone too.
+
+## Ideas found 2026-11-01 (minigolf holes run)
+- [ ] `text()` sets `globalAlpha` to its own `alpha`, so a caller's fade (`gx.globalAlpha = k`)
+      never reaches the words: disabled button labels (widgets.ts 0.35), Penalty's unusable
+      power, Tanks' fading banner and others draw their text at full opacity. Decide per call
+      whether that is wanted, then make text() multiply instead (and have the probe count it).
+- [ ] Minigolf: Bumper Bowl gives the hard bot 40 aces in 40 and normal 17; Lily Pond and Hill
+      Climb give normal ~14 aces in 40. Fine for kids, but a hole order by measured difficulty
+      (normal-bot strokes over par) would put them before Dog Leg.
 
 ## Ideas found 2026-10-31 (haptics run)
 - [ ] Store wrapper: plug a native haptics call (Capacitor Haptics, iOS Taptic) into
