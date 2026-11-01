@@ -195,8 +195,19 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Reviews of the leading app: a game where the first shooter wins if they score every
       shot (basketball). Check every turn-based game for a first-mover edge in sims (Penalty
       already alternates with sudden death; Minigolf's lead-off alternates).
-- [ ] Contrast: dim labels are white at 60% on dark panels; check every label against
-      WCAG 4.5:1 (smaller text needs it most).
+- [x] 2026-10-31: text contrast on the canvas. The playtest now checks every word drawn while each game is played against
+      the pixels behind it (WCAG 1.4.3: 4.5:1, or 3:1 for large bold text; the best
+      contrast a label ever had counts, so fading pops are judged at their peak) and fails
+      on any label below. Found 22 faint labels in 7 games, mostly white words on the
+      player colours (white on Mint is 1.6:1, on Blue 2.5:1): the pass-the-phone "Tap when
+      only … is looking" pill (Sea Battle, RPS), RPS "Pick in secret!", Ping Pong "vs 2" on
+      the score badge and Snack Snatch "TAP" on the critters now use `inkOn()` (dark ink on
+      light colours, white on dark), Sumo names and Ping Pong "SERVE" got a dark outline,
+      Quick Draw's brown words on sand ("Wait for it…" 2.6:1, scores, "You 312 ms") are
+      darker, Tanks' arena name brighter. Maths in `src/core/contrast.ts` (unit tested,
+      including an ink for every player colour); probe in `engine/draw.ts` (`__contrast`).
+      Limit: Purple is mid-bright, so its best ink is white at 4.4:1; pill labels are drawn
+      at 19 px bold (large text) so they pass, small badge text sits at 4.4.
 
 ## Ideas found 2026-10-31 (ghost finger run)
 - [ ] Ghost finger in play: show the same gesture once over each player's own half at the
@@ -305,3 +316,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the puck was 0.1-0.45 s ago). Fine and human-like; recheck if hard looks clumsy.
 - [ ] An idle-seat sim for every real-time game (this run's scratch script) could become a
       `npm run sim` table with the bot pace table idea above.
+
+## Ideas found 2026-10-31 (contrast run)
+- [ ] Chop Chop's "◀ chop / chop ▶" hints drop to 45% opacity once play starts (about
+      1.6:1 on the grass). The probe judges a label at its best, so it passes on the intro;
+      decide whether faint in-play hints are fine or give them a dark pill.
+- [ ] Menus (DOM) aren't contrast-checked yet; the same check over the intro and result
+      screens' text (computed colour vs the element's background) would cover them.
+- [ ] The playtest only plays Blue vs Pink; run the contrast pass once with Mint vs Orange
+      (the lightest pair) so labels drawn in a player's colour are checked at their worst.

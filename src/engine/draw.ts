@@ -1,6 +1,7 @@
 // Small canvas helpers. Everything is drawn in code with plain shapes, so the
 // prototype has no art assets.
 import { W, H } from './world';
+import { contrastNeeded, labelContrast, parseColor } from '../core/contrast';
 
 export type G = CanvasRenderingContext2D;
 
@@ -47,6 +48,51 @@ export const MIN_TEXT = 13;
 /** Readable strings drawn below MIN_TEXT since the last clear (read by the playtest). */
 export const smallText = new Map<string, number>();
 
+/**
+ * Contrast probe, switched on by the playtest. While on, each readable label is
+ * checked against the pixels behind it (at most every 200 ms per label) and the
+ * best contrast it ever had is kept: a pop fading in or out counts at its peak,
+ * a label that is always faint shows up as faint.
+ */
+export const contrastProbe = {
+  on: false,
+  seen: new Map<string, { best: number; need: number; size: number }>(),
+  last: new Map<string, number>(),
+};
+
+function probeContrast(g: G, str: string, x: number, y: number, o: TextOpts): void {
+  const now = performance.now();
+  if (now - (contrastProbe.last.get(str) ?? -1e9) < 200) return;
+  contrastProbe.last.set(str, now);
+  const fill = parseColor(o.color ?? COLORS.text);
+  if (!fill) return;
+  const size = o.size ?? 20;
+  const w = g.measureText(str).width;
+  const x0 = g.textAlign === 'center' ? x - w / 2 : g.textAlign === 'right' || g.textAlign === 'end' ? x - w : x;
+  const m = g.getTransform();
+  const pts = [
+    [x0, y - size / 2],
+    [x0 + w, y - size / 2],
+    [x0, y + size / 2],
+    [x0 + w, y + size / 2],
+  ].map(([px, py]) => [m.a * px + m.c * py + m.e, m.b * px + m.d * py + m.f]);
+  const cw = g.canvas.width;
+  const ch = g.canvas.height;
+  const left = Math.max(0, Math.floor(Math.min(...pts.map((p) => p[0]))));
+  const top = Math.max(0, Math.floor(Math.min(...pts.map((p) => p[1]))));
+  const right = Math.min(cw, Math.ceil(Math.max(...pts.map((p) => p[0]))));
+  const bottom = Math.min(ch, Math.ceil(Math.max(...pts.map((p) => p[1]))));
+  if (right - left < 2 || bottom - top < 2) return;
+  const px = g.getImageData(left, top, right - left, bottom - top).data;
+  const sum = [0, 0, 0];
+  for (let i = 0; i < px.length; i += 4) for (let k = 0; k < 3; k++) sum[k] += px[i + k];
+  const n = px.length / 4;
+  const bg = [sum[0] / n, sum[1] / n, sum[2] / n] as [number, number, number];
+  const ratio = labelContrast(fill, bg, o.alpha ?? 1, o.stroke ? parseColor(o.stroke) : null);
+  const prev = contrastProbe.seen.get(str);
+  if (!prev || ratio > prev.best) contrastProbe.seen.set(str, { best: ratio, need: contrastNeeded(size, o.weight ?? 800), size });
+}
+
 /** Words and numbers someone has to read: two or more letters or digits. */
 export function readable(str: string): boolean {
   return (str.match(/[\p{L}\p{N}]/gu) ?? []).length >= 2;
@@ -60,6 +106,7 @@ export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}):
     g.font = `${o.weight ?? 800} ${o.size ?? 20}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
     g.textAlign = o.align ?? 'center';
     g.textBaseline = 'middle';
+    if (contrastProbe.on && readable(str)) probeContrast(g, str, x, y, o);
     if (o.stroke) {
       g.lineWidth = Math.max(3, (o.size ?? 20) / 6);
       g.strokeStyle = o.stroke;

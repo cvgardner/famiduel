@@ -14,6 +14,7 @@
 import { other, type PlayerIndex } from '../core/types';
 import { COLORS, facing, rrect, shade, text, type G } from './draw';
 import { H, W } from './world';
+import { inkOn } from '../core/contrast';
 
 export type SecretStep = { kind: 'cover' | 'secret' | 'locked'; p: PlayerIndex; t: number };
 
@@ -100,8 +101,10 @@ export function drawCover(
   text(gx, picker.name, W / 2, 360, { size: 38, color: picker.color, stroke: 'rgba(0,0,0,0.4)' });
   const s = 1 + 0.05 * Math.sin(t * 5);
   rrect(gx, W / 2 - 140 * s, 410, 280 * s, 70, 35, picker.color, '#fff', 3);
-  text(gx, `Tap when only ${picker.name}`, W / 2, 432, { size: 18, color: '#fff', stroke: 'rgba(0,0,0,0.25)' });
-  text(gx, 'is looking 👀', W / 2, 458, { size: 18, color: '#fff', stroke: 'rgba(0,0,0,0.25)' });
+  // Words on the player's colour: dark ink on the light colours, white on the dark ones.
+  const ink = inkOn(picker.color);
+  text(gx, `Tap when only ${picker.name}`, W / 2, 432, { size: 19, color: ink });
+  text(gx, 'is looking 👀', W / 2, 458, { size: 19, color: ink });
   if (note) text(gx, note, W / 2, 530, { size: 16, color: COLORS.gold, weight: 700 });
 }
 

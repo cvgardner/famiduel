@@ -447,7 +447,7 @@ class SumoView implements GameInstance {
     const x = p === 0 ? W - 62 : 62;
     const y = p === 0 ? H - 42 : 42;
     facing(gx, p, x, y, () => {
-      text(gx, this.ctx.players[p].name, x, y - 22, { size: 13, color: alpha(c, 0.95), weight: 800 });
+      text(gx, this.ctx.players[p].name, x, y - 22, { size: 13, color: c, weight: 800, stroke: 'rgba(0,0,0,0.7)' });
       for (let i = 0; i < RULES.roundsToWin; i++) {
         const px = x - 14 + i * 28;
         const won = g.score[p] > i;

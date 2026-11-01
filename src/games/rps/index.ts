@@ -13,6 +13,7 @@ import { drawCover, lookAwayBanner, SecretTurns, toWorld } from '../../engine/se
 import { Button } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { CHOICES, ICONS, RULES, Rps, RpsBot, type Choice } from './logic';
+import { inkOn } from '../../core/contrast';
 
 const BEAT = 0.36;
 const SHAKE = BEAT * 3;
@@ -316,7 +317,7 @@ class RpsView implements GameInstance {
       glow(gx, c, 8 + 8 * pulse);
       rrect(gx, W / 2 - 110, py - 17, 220, 34, 17, c);
       noGlow(gx);
-      text(gx, this.bots[p] ? 'Choosing…' : 'Pick in secret!', W / 2, py, { size: 17, color: '#fff', stroke: 'rgba(0,0,0,0.25)' });
+      text(gx, this.bots[p] ? 'Choosing…' : 'Pick in secret!', W / 2, py, { size: 19, color: inkOn(c) });
     } else {
       rrect(gx, W / 2 - 110, py - 17, 220, 34, 17, 'rgba(255,255,255,0.07)', 'rgba(255,255,255,0.15)', 2);
       const msg = g.revealing ? (this.revealT < SHAKE ? 'Rock, paper, scissors…' : g.done ? (g.winner === p ? 'Champion!' : 'Good game') : 'Next round…') : 'Picked ✓ waiting…';

@@ -7,6 +7,7 @@ import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { PingPong, PingPongBot, RULES, type Intent } from './logic';
+import { inkOn } from '../../core/contrast';
 
 const TABLE = { x0: 22, x1: W - 22, y0: RULES.tableY0, y1: RULES.tableY1 };
 const TABLE_GREEN = '#1d7a52';
@@ -170,9 +171,9 @@ class PingPongView implements GameInstance {
       const x = p === 0 ? W - 58 : 58;
       const y = p === 0 ? MID + 62 : MID - 62;
       facing(gx, p, x, y, () => {
-        rrect(gx, x - 30, y - 34, 60, 68, 14, alpha(c[p], 0.9), 'rgba(255,255,255,0.7)', 2);
+        rrect(gx, x - 30, y - 34, 60, 68, 14, c[p], 'rgba(255,255,255,0.7)', 2);
         text(gx, String(g.score[p]), x, y - 6, { size: 36, color: '#fff', stroke: 'rgba(0,0,0,0.25)' });
-        text(gx, `vs ${g.score[other(p)]}`, x, y + 21, { size: 13, color: 'rgba(255,255,255,0.9)' });
+        text(gx, `vs ${g.score[other(p)]}`, x, y + 21, { size: 13, color: inkOn(c[p]) });
       });
     }
     // Net: posts stick out over the rails, mesh band across the middle
@@ -188,7 +189,7 @@ class PingPongView implements GameInstance {
     if (g.serving) {
       const p = g.server;
       const y = p === 0 ? RULES.paddleY[0] - 44 : RULES.paddleY[1] + 44;
-      text(gx, 'SERVE', g.paddles[p].x, y, { size: 14, color: alpha(c[p], 0.95), player: p, stroke: 'rgba(0,0,0,0.4)' });
+      text(gx, 'SERVE', g.paddles[p].x, y, { size: 14, color: c[p], player: p, stroke: 'rgba(0,0,0,0.75)' });
     }
     for (const p of PLAYERS) this.powerBtns[p]?.render(gx, g.energy[p], this.t);
     if (this.pointFlash > 0) {
