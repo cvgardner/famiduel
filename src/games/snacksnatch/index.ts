@@ -26,6 +26,7 @@ class SnackSnatchView implements GameInstance {
   ];
   private potKick = 0;
   private suddenBanner = 0;
+  private frenzyBanner = 0;
   private ended = false;
 
   constructor(private readonly ctx: GameContext) {
@@ -76,6 +77,7 @@ class SnackSnatchView implements GameInstance {
     }
     this.potKick = Math.max(0, this.potKick - dt * 5);
     this.suddenBanner = Math.max(0, this.suddenBanner - dt);
+    this.frenzyBanner = Math.max(0, this.frenzyBanner - dt);
     this.events();
   }
 
@@ -106,6 +108,11 @@ class SnackSnatchView implements GameInstance {
         } else sfx.play('click');
       } else if (e.type === 'tick') {
         sfx.play('count');
+      } else if (e.type === 'frenzy') {
+        sfx.play('go');
+        fx.flash('#ff5c7a', 0.15);
+        fx.shake(5, 0.25);
+        this.frenzyBanner = 1.6;
       } else if (e.type === 'sudden') {
         sfx.play('go');
         fx.flash(COLORS.gold, 0.2);
@@ -137,6 +144,12 @@ class SnackSnatchView implements GameInstance {
     for (const p of PLAYERS) for (const c of g.critters[p]) this.renderCritter(gx, c);
     for (const p of PLAYERS) this.renderScore(gx, p);
     for (const p of PLAYERS) this.powerBtns[p]?.render(gx, g.energy[p], this.t);
+    if (this.frenzyBanner > 0 && !g.sudden) {
+      for (const p of PLAYERS) {
+        text(gx, 'FRENZY!', W / 2, p === 0 ? MID + 64 : MID - 64, { size: 30, color: '#ff5c7a', stroke: 'rgba(40,0,10,0.75)', player: p, alpha: Math.min(1, this.frenzyBanner) });
+        text(gx, 'Faster snacks!', W / 2, p === 0 ? MID + 94 : MID - 94, { size: 14, color: '#fff', stroke: 'rgba(0,0,0,0.5)', player: p, alpha: Math.min(1, this.frenzyBanner) });
+      }
+    }
     if (this.suddenBanner > 0 || g.sudden) {
       const a = g.sudden ? 1 : this.suddenBanner;
       for (const p of PLAYERS) {

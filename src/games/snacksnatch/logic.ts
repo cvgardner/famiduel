@@ -2,6 +2,7 @@
 // A snack pot in the middle shoots snacks around a picnic blanket. Each player
 // has two round frog-like critters at their edge; a tap snaps one critter's
 // head forward and it gulps any snack it touches. Golden snacks are worth 3.
+// The last 10 seconds are a Frenzy: snacks pour out and move much faster.
 // Most points after 30 seconds wins; a tie goes to a "sudden snack".
 // Fairness: the pot always shoots mirrored pairs, one identical snack at each
 // player (same angle, speed and gold), so both get exactly the same supply.
@@ -43,8 +44,11 @@ export const RULES = {
   /** Seconds between mirrored pairs. */
   spawnMin: 1.0,
   spawnMax: 1.7,
-  /** The last seconds spawn faster. */
-  frenzyAt: 24,
+  /** Frenzy: the last third of the match. Pairs come faster, snacks fly faster, more fit on the blanket. */
+  frenzyAt: 20,
+  frenzySpawn: 0.4,
+  frenzySpeed: 1.5,
+  frenzyMaxSnacks: 14,
   speedMin: 200,
   speedMax: 300,
   minRoll: 120,
@@ -86,6 +90,7 @@ export type Event =
   | { type: 'bounce'; x: number; y: number }
   | { type: 'tick'; sec: number }
   | { type: 'sudden' }
+  | { type: 'frenzy' }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'win'; p: PlayerIndex | null };
 
@@ -108,6 +113,8 @@ export class SnackSnatch {
   /** Seconds left in regulation, then in sudden snack. */
   timeLeft = RULES.matchTime;
   sudden = false;
+  /** The last third of regulation: faster pairs, faster snacks. */
+  frenzy = false;
   winner: PlayerIndex | null = null;
   finished = false;
   events: Event[] = [];
@@ -249,15 +256,20 @@ export class SnackSnatch {
   private spawn(dt: number): void {
     if (this.sudden) return;
     this.spawnIn -= dt;
-    if (this.spawnIn > 0 || this.snacks.length + 2 > RULES.maxSnacks) return;
-    const frenzy = RULES.matchTime - this.timeLeft >= RULES.frenzyAt;
+    if (!this.frenzy && RULES.matchTime - this.timeLeft >= RULES.frenzyAt) {
+      this.frenzy = true;
+      this.spawnIn = 0;
+      this.events.push({ type: 'frenzy' });
+    }
+    const frenzy = this.frenzy;
+    if (this.spawnIn > 0 || this.snacks.length + 2 > (frenzy ? RULES.frenzyMaxSnacks : RULES.maxSnacks)) return;
     if (this.opening > 0) {
       this.opening--;
       this.spawnIn = 0.25;
     } else {
-      this.spawnIn = this.rng.range(RULES.spawnMin, RULES.spawnMax) * (frenzy ? 0.6 : 1);
+      this.spawnIn = this.rng.range(RULES.spawnMin, RULES.spawnMax) * (frenzy ? RULES.frenzySpawn : 1);
     }
-    this.launchPair(this.rng.chance(RULES.goldChance) || (frenzy && this.rng.chance(0.15)));
+    this.launchPair(this.rng.chance(RULES.goldChance) || (frenzy && this.rng.chance(0.15)), frenzy ? this.rng.range(RULES.speedMin, RULES.speedMax) * RULES.frenzySpeed : undefined);
   }
 
   /**
@@ -371,7 +383,9 @@ export class SnackSnatch {
     }
     const sp = Math.hypot(sn.vx, sn.vy);
     // Snacks keep rolling (slowly in honey), and never get too fast.
-    const min = sticky ? RULES.stickyRoll : RULES.minRoll;
+    const fast = this.frenzy && !this.sudden ? RULES.frenzySpeed : 1;
+    const min = sticky ? RULES.stickyRoll : RULES.minRoll * fast;
+    const max = RULES.maxRoll * fast;
     if (sp < min) {
       if (sp < 1e-6) {
         sn.vx = min;
@@ -379,9 +393,9 @@ export class SnackSnatch {
         sn.vx *= min / sp;
         sn.vy *= min / sp;
       }
-    } else if (sp > RULES.maxRoll) {
-      sn.vx *= RULES.maxRoll / sp;
-      sn.vy *= RULES.maxRoll / sp;
+    } else if (sp > max) {
+      sn.vx *= max / sp;
+      sn.vy *= max / sp;
     }
   }
 

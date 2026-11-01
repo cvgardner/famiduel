@@ -194,6 +194,31 @@ describe('snack snatch', () => {
     expect(wins(3)).toBeGreaterThan(wins(0) + 10);
   });
 
+  it('the last third is a Frenzy: pairs come faster and snacks fly faster', () => {
+    const g = new SnackSnatch([player(), player()], false, makeRng(4));
+    const launches: { t: number; speed: number }[] = [];
+    let frenzyAt = -1;
+    const seen = new Set<number>();
+    for (let i = 0; i < RULES.matchTime / DT && !g.finished; i++) {
+      g.step(DT, [idle, idle]);
+      if (g.events.some((e) => e.type === 'frenzy')) frenzyAt = g.t;
+      for (const s of g.snacks)
+        if (!seen.has(s.id)) {
+          seen.add(s.id);
+          launches.push({ t: g.t, speed: Math.hypot(s.vx, s.vy) });
+        }
+      // Keep the blanket from filling up so spawn timing is what we measure.
+      if (g.snacks.length >= 8) g.snacks = [];
+    }
+    expect(frenzyAt).toBeCloseTo(RULES.frenzyAt, 1);
+    const before = launches.filter((l) => l.t > 3 && l.t < RULES.frenzyAt);
+    const during = launches.filter((l) => l.t > RULES.frenzyAt);
+    const rate = (ls: typeof launches, span: number) => ls.length / span;
+    expect(rate(during, RULES.matchTime - RULES.frenzyAt)).toBeGreaterThan(2 * rate(before, RULES.frenzyAt - 3));
+    const avg = (ls: typeof launches) => ls.reduce((a, l) => a + l.speed, 0) / ls.length;
+    expect(avg(during)).toBeGreaterThan(1.3 * avg(before));
+  });
+
   it('equal bots split wins evenly between the seats', () => {
     let bottom = 0;
     const N = 120;
