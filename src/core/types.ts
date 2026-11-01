@@ -24,6 +24,8 @@ export type PlayerInfo = {
   /** The power picked for this match, or null in classic mode / games without powers. */
   power: PowerDef | null;
   bot: BotLevel | null;
+  /** Left-handed: games with two thumb controls (Tank Duel) swap them for this seat. */
+  lefty?: boolean;
 };
 
 export type GameResult = {

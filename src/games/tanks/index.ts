@@ -5,14 +5,13 @@ import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../e
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
+import { CONTROLS_Y, controlsFor, FIRE_R, STICK_R, type Controls } from './controls';
 import { COLS, LAYOUTS, ROWS } from './mazes';
 import { ARENA, CELL, IDLE, RULES, TankBot, TankDuel, type Intent, type Tank } from './logic';
 
 /** Mirror a bottom-strip position into player 1's top strip (180° turn). */
 const seat = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
 
-const STICK = { x: 78, y: 584, r: 40 };
-const FIRE = { x: 288, y: 584, r: 34 };
 const POWER = { x: 183, y: 606 };
 const HEARTS = { x: 183, y: 548 };
 
@@ -29,6 +28,8 @@ class TankView implements GameInstance {
     { x: 0, y: 0 },
   ];
   private fireHeld = [0, 0];
+  /** Stick and FIRE per seat, swapped for a left-handed player. */
+  private readonly controls: Controls[];
   private tracks: Track[] = [];
   private trackDist = [0, 0];
   private trails = new Map<number, Trail>();
@@ -40,6 +41,7 @@ class TankView implements GameInstance {
 
   constructor(private readonly ctx: GameContext) {
     this.game = new TankDuel(ctx.players, ctx.powersOn, ctx.rng);
+    this.controls = PLAYERS.map((p) => controlsFor(!!ctx.players[p].lefty));
     this.bots = PLAYERS.map((p) => (ctx.players[p].bot ? new TankBot(p, ctx.players[p].bot!, ctx.rng) : null));
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;
@@ -52,19 +54,20 @@ class TankView implements GameInstance {
   private humanIntent(p: PlayerIndex, input: Input): Intent {
     const btn = this.powerBtns[p];
     const power = btn ? btn.update(input, this.game.energy[p], KEYS[p].power) : false;
-    const base = seat(p, STICK.x, STICK.y);
-    const fireAt = seat(p, FIRE.x, FIRE.y);
+    const cs = this.controls[p];
+    const base = seat(p, cs.stickX, CONTROLS_Y);
+    const fireAt = seat(p, cs.fireX, CONTROLS_Y);
     let fire = false;
     for (const f of input.of(p)) {
       if (!f.pressed) continue;
       if (btn && btn.button.hit(f.x, f.y)) continue;
-      // Generous zones: the outer third of your strip fires, the rest of your half steers.
+      // Generous zones: the outer part of your strip on the FIRE side fires, the other side steers.
       const fx = p === 0 ? f.x : W - f.x;
       const inStrip = p === 0 ? f.y > ARENA.y + ARENA.h - 10 : f.y < ARENA.y + 10;
-      if (Math.hypot(f.x - fireAt.x, f.y - fireAt.y) < FIRE.r + 16 || (inStrip && fx > 236)) {
+      if (Math.hypot(f.x - fireAt.x, f.y - fireAt.y) < FIRE_R + 16 || (inStrip && cs.fireSide(fx))) {
         fire = true;
         this.fireHeld[p] = 0.12;
-      } else if (this.stickFinger[p] === null && (Math.hypot(f.x - base.x, f.y - base.y) < STICK.r + 40 || (inStrip && fx < 150))) {
+      } else if (this.stickFinger[p] === null && (Math.hypot(f.x - base.x, f.y - base.y) < STICK_R + 40 || (inStrip && cs.stickSide(fx)))) {
         this.stickFinger[p] = f.id;
       }
     }
@@ -74,8 +77,8 @@ class TankView implements GameInstance {
     if (id !== null) {
       const f = input.pointers.get(id);
       if (f && f.down) {
-        vx = (f.x - base.x) / STICK.r;
-        vy = (f.y - base.y) / STICK.r;
+        vx = (f.x - base.x) / STICK_R;
+        vy = (f.y - base.y) / STICK_R;
         const m = Math.hypot(vx, vy);
         if (m > 1) {
           vx /= m;
@@ -466,27 +469,28 @@ class TankView implements GameInstance {
     const c = this.ctx.players[p].color;
     const live = !g.over && g.phase === 'play';
     // Stick
-    const b = seat(p, STICK.x, STICK.y);
-    circle(gx, b.x, b.y, STICK.r + 4, 'rgba(0,0,0,0.3)');
-    circle(gx, b.x, b.y, STICK.r, alpha(c, 0.18), alpha(c, 0.6), 3);
+    const cs = this.controls[p];
+    const b = seat(p, cs.stickX, CONTROLS_Y);
+    circle(gx, b.x, b.y, STICK_R + 4, 'rgba(0,0,0,0.3)');
+    circle(gx, b.x, b.y, STICK_R, alpha(c, 0.18), alpha(c, 0.6), 3);
     for (let i = 0; i < 4; i++) {
       const a = (i * Math.PI) / 2;
-      const tx = b.x + Math.cos(a) * (STICK.r - 9);
-      const ty = b.y + Math.sin(a) * (STICK.r - 9);
+      const tx = b.x + Math.cos(a) * (STICK_R - 9);
+      const ty = b.y + Math.sin(a) * (STICK_R - 9);
       circle(gx, tx, ty, 2.5, alpha('#ffffff', 0.35));
     }
     const v = this.stickVec[p];
-    const kx = b.x + v.x * STICK.r * 0.75;
-    const ky = b.y + v.y * STICK.r * 0.75;
+    const kx = b.x + v.x * STICK_R * 0.75;
+    const ky = b.y + v.y * STICK_R * 0.75;
     circle(gx, kx, ky + 3, 20, 'rgba(0,0,0,0.3)');
     circle(gx, kx, ky, 20, c, shade(c, -0.35), 3);
     circle(gx, kx - 5, ky - 5, 6, alpha('#ffffff', 0.35));
     // Fire button, with a reload ring and ammo pips
-    const f = seat(p, FIRE.x, FIRE.y);
+    const f = seat(p, cs.fireX, CONTROLS_Y);
     const tk = g.tanks[p];
     const ready = live && g.canFire(p);
     const press = this.fireHeld[p] > 0;
-    const r = press ? FIRE.r * 0.9 : FIRE.r;
+    const r = press ? FIRE_R * 0.9 : FIRE_R;
     circle(gx, f.x, f.y + 4, r, 'rgba(0,0,0,0.35)');
     if (tk.bouncy > 0) glow(gx, COLORS.gold, 14);
     circle(gx, f.x, f.y, r, ready ? '#ff5c5c' : '#8a5560', 'rgba(255,255,255,0.6)', 3);
@@ -502,7 +506,7 @@ class TankView implements GameInstance {
     text(gx, 'FIRE', f.x, f.y, { size: 17, player: p, color: '#ffffff', stroke: 'rgba(0,0,0,0.35)' });
     const left = RULES.maxShells - g.shellsOf(p);
     for (let i = 0; i < RULES.maxShells; i++) {
-      const o = seat(p, FIRE.x - 16 + i * 16, FIRE.y - FIRE.r - 13);
+      const o = seat(p, cs.fireX - 16 + i * 16, CONTROLS_Y - FIRE_R - 13);
       circle(gx, o.x, o.y, 5, i < left ? (tk.bouncy > 0 ? COLORS.gold : '#ffffff') : 'rgba(255,255,255,0.18)', 'rgba(0,0,0,0.3)', 1.5);
     }
     // Hearts (armor left), readable from either side

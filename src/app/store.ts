@@ -8,7 +8,7 @@ import type { BotLevel, GameResult, PlayerIndex } from '../core/types';
  * `botLevels` holds a level picked for one game on that game's intro, which
  * wins there (a parent may want an easy Checkers bot but a normal Air Hockey one).
  */
-export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null; botLevels?: Record<string, BotLevel> };
+export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null; botLevels?: Record<string, BotLevel>; /** Swaps two-thumb controls (stick and FIRE); older saves are right-handed. */ lefty?: boolean };
 
 export const BOT_LEVELS: readonly BotLevel[] = ['easy', 'normal', 'hard'];
 

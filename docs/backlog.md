@@ -93,7 +93,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       playtest opens every intro with a bot on a 320×568 phone (fits, 44 px targets), turns
       the Checkers bot to Easy, checks the match uses it and that it survives a reload while
       Air Hockey stays Normal (`bot-level-intro.png`).
-- [ ] Settings: left-handed button mirroring.
+- [x] 2026-11-01: left-handed controls. Tank Duel is the only game with two thumb
+      controls (stick on the left, FIRE on the right), so a left-handed kid steered with
+      their weak thumb. The player sheet now has a Hand row (Right-handed / Left-handed,
+      saved per player, older saves stay right-handed); a left-handed seat gets FIRE on the
+      left and the stick on the right, including the generous strip zones, the ammo pips and
+      the intro's ghost finger. Layout in `src/games/tanks/controls.ts` (unit tested: exact
+      mirror, zones never overlap, both on screen). The playtest sets it through the sheet,
+      checks a steer on the right drives without firing and a tap on the left fires
+      (`tanks-left-handed.png`). Corner power buttons were left alone: Minigolf and others
+      keep scores in the opposite corner.
 - [x] 2026-10-31 (research run): colour-blind safe player colours. About 1 in 12 boys has
       red-green colour blindness, and the player colour is how two kids tell whose paddle,
       snake or score is whose. Ran the six old colours through the Machado 2009 simulation
@@ -341,3 +350,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Purple player's colour ("they used …" in Snake/Tanks) is below 4.5:1; the playtest
       only plays Blue vs Pink. Run one pass with Purple and Mint and give player-colour
       pops a lighter tint or a larger size.
+
+## Ideas found 2026-11-01 (left-handed run)
+- [ ] Left-handed power buttons: most games put the power button in the player's left
+      corner (free hand for a right-hander). Mirroring it for a lefty needs each game's
+      opposite corner cleared first (Minigolf's Hole/Total, Air Hockey's score).
+- [ ] Tank Duel: both FIRE buttons are the same red for both players; a player-coloured
+      rim would make "whose button" clearer when kids sit close.
