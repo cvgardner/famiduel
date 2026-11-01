@@ -557,8 +557,22 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       jump, replay the last move's hops once (slow) when the person taps a ghost ring.
 
 ## Ideas found 2026-11-01 (rematch starter run)
-- [ ] Say who starts: a short "Your turn to start!" pop on the starter's side at the first
-      move of a rematch, so kids see the swap is on purpose (today only the turn line shows).
+- [x] 2026-11-01: The countdown says who goes first. Rematches swap the starter, but the
+      only sign was each game's small turn line, so a kid who went second could think the
+      app picked the other player again. Now, in every turn game that knows its first mover
+      at the start (Four in a Row, Checkers, Tic-Tac-Toe, Penalty, Minigolf), the 3-2-1
+      countdown shows "You go first!" on the starter's side and "<name> goes first" on the
+      other, each upright for its reader (`starterLines()` in `app/starter.ts`, unit tested;
+      long names are shortened). The rematch playtest reads both lines during each countdown
+      and checks they match the game's first mover (`rematch-starter-countdown.png`).
+- [x] 2026-11-01: The Checkers double-jump playtest failed about half its serial runs (main
+      was red in `npm run verify`): it tapped the piece and its target with the same finger
+      id back to back, and when both landed inside one frame the second replaced the first.
+      It now waits to see the piece picked up before tapping where it goes, like a person.
+- [ ] Other playtests that tap twice in a row with one finger id (`__finger(77, …)` and
+      friends) could hit the same race; a shared `tapThenWait` helper would cover them.
+- [ ] Sea Battle picks its first shooter after placement, so its countdown says nothing; its
+      "fire" phase could open with the same "You go first!" line on the shooter's side.
 - [ ] Reviews also ask to pick their colour when playing a bot and complain hard bots feel
       like they "never lose" (RPS, Mini Golf) or copy your moves (Snake); check our hard RPS
       bot stays near 1/3 per throw against a patterned kid, and that the hard Snake bot never

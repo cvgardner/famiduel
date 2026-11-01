@@ -1,13 +1,14 @@
 // Runs one match: countdown, fixed-step updates, then hands the result back.
 import { makeRng } from '../core/rng';
 import type { GameResult, PlayerIndex, PlayerInfo } from '../core/types';
-import { text, type G } from '../engine/draw';
+import { rrect, text, type G } from '../engine/draw';
 import { Fx } from '../engine/fx';
 import type { GameDef, GameInstance } from '../engine/game';
 import type { Sfx } from '../engine/sfx';
 import type { Stage } from '../engine/stage';
 import { STEP } from '../engine/stage';
 import { H, MID, W } from '../engine/world';
+import { starterLines } from './starter';
 
 const COUNT_STEP = 0.6;
 const OUTRO = 1.6;
@@ -86,7 +87,25 @@ export class Runner {
       const size = 70 + 40 * k;
       text(g, String(n), W / 2, MID + 120, { size, color: '#fff', stroke: 'rgba(0,0,0,0.5)', player: 0 });
       text(g, String(n), W / 2, MID - 120, { size, color: '#fff', stroke: 'rgba(0,0,0,0.5)', player: 1 });
+      // Turn games: say who goes first, on both sides, so a rematch's swap reads as on purpose.
+      const lines = this.starterLines();
+      for (const p of [0, 1] as const) {
+        const line = lines[p];
+        if (!line) continue;
+        const mine = line === 'You go first!';
+        const y = p === 0 ? MID + 200 : MID - 200;
+        // A solid pill, so the game's own turn line underneath doesn't show through.
+        const starter = this.game.firstMover?.();
+        const ring = starter === 0 || starter === 1 ? this.players[starter].color : '#fff';
+        rrect(g, W / 2 - 130, y - 22, 260, 44, 22, '#1b1638', ring, 3);
+        text(g, line, W / 2, y, { size: mine ? 26 : 20, color: mine ? '#fff' : '#d6d2f0', stroke: 'rgba(0,0,0,0.6)', player: p });
+      }
     }
+  }
+
+  /** What each seat reads under the countdown (null: nothing, e.g. a game with no first mover). */
+  starterLines(): [string | null, string | null] {
+    return starterLines(this.game.firstMover?.(), [this.players[0].name, this.players[1].name]);
   }
 
   /** Test hook: run the match headlessly for up to `seconds` of game time. */

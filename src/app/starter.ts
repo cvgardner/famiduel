@@ -20,3 +20,19 @@ export class StarterLog {
     if (first === 0 || first === 1) this.last.set(gameId, first);
   }
 }
+
+/**
+ * What each seat reads under the countdown in a turn game: the starter is told it goes
+ * first, the other seat is told who does. Without it a rematch's swap was only visible in
+ * the game's small turn line, so a kid could think the app had picked the other player
+ * again. Null for a seat (or both) when the game has no first mover yet (Sea Battle picks
+ * after placement).
+ */
+export function starterLines(first: PlayerIndex | null | undefined, names: [string, string]): [string | null, string | null] {
+  if (first !== 0 && first !== 1) return [null, null];
+  const short = (n: string) => (n.length > 12 ? `${n.slice(0, 11)}…` : n);
+  const lines: [string | null, string | null] = [null, null];
+  lines[first] = 'You go first!';
+  lines[other(first)] = `${short(names[first])} goes first`;
+  return lines;
+}

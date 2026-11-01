@@ -1021,6 +1021,11 @@ test("checkers: a bot's double jump stays traced on the board until you move", a
       await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, x, y] as const);
   };
   await tapSq(56);
+  // Like a person, wait to see the piece picked up before tapping where it goes: two taps
+  // from the same finger inside one frame would replace each other (flaky in the serial run).
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __famiduel: { runner: { game: { sel: { from: number } | null } } } }).__famiduel.runner.game.sel?.from ?? null), { timeout: 2000 })
+    .toBe(56);
   await tapSq(49);
   await expect.poll(async () => (await look())?.mover, { timeout: 2000 }).toBe(0);
   m = await look();
@@ -1082,15 +1087,23 @@ test('rematch: whoever went second last match starts the rematch', async ({ page
   const errors: string[] = [];
   await boot(page, errors);
   await setPlayers(page, [null, null]);
-  type StartHook = { runner: null | { game: { firstMover?(): number | null }; result: unknown } };
+  type StartHook = { runner: null | { game: { firstMover?(): number | null }; result: unknown; starterLines(): (string | null)[] } };
   const first = () => page.evaluate(() => (window as unknown as { __famiduel: StartHook }).__famiduel.runner!.game.firstMover?.() ?? null);
   for (const id of ['fourinarow', 'checkers', 'tictactoe', 'penalty', 'minigolf']) {
     await page.locator(`.game-card[data-id="${id}"]`).tap();
     const seen: (number | null)[] = [];
     for (let m = 0; m < 3; m++) {
       await introAsPeople(page, [0, 1]);
-      await page.waitForTimeout(2200); // countdown
-      seen.push(await first());
+      // During the countdown both sides read who goes first (the starter: "You go first!").
+      await page.waitForTimeout(500);
+      const lines = await page.evaluate(() => (window as unknown as { __famiduel: StartHook }).__famiduel.runner!.starterLines());
+      if (id === 'fourinarow' && m === 1) await page.screenshot({ path: path.join(OUT, 'rematch-starter-countdown.png') });
+      await page.waitForTimeout(1700); // rest of the countdown
+      const f = await first();
+      seen.push(f);
+      expect(f === 0 || f === 1, `${id} knows its first mover`).toBe(true);
+      expect(lines[f!], `${id}: the starter is told it goes first`).toBe('You go first!');
+      expect(lines[1 - f!], `${id}: the other seat is told who does`).toMatch(/goes first$/);
       if (id === 'fourinarow' && m === 1) await page.screenshot({ path: path.join(OUT, 'rematch-starter.png') });
       // End the match, then take the result screen's Rematch.
       await page.evaluate(() => {
