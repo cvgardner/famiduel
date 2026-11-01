@@ -131,6 +131,18 @@ class TicTacToeView implements GameInstance {
     this.ctx.end({ winner: w, score, summary: `${score[0]} – ${score[1]} in games` });
   }
 
+  /**
+   * The cell whose newest mark is highlighted: once it has drawn in, until the next mark.
+   * Off between games, where the winning line takes over.
+   */
+  ringCell(): number | null {
+    const g = this.game;
+    const last = g.last;
+    if (!last || g.between || g.done) return null;
+    const at = this.markAt[last.cell];
+    return at >= 0 && this.t - at >= MARK_T ? last.cell : null;
+  }
+
   // ---------- Drawing ----------
 
   render(gx: G): void {
@@ -160,6 +172,14 @@ class TicTacToeView implements GameInstance {
     // Ghost mark under the cursor-less phone: show whose mark goes next faintly in empty cells.
     if (!g.between && !g.done && !this.bots[g.turn]) {
       for (let i = 0; i < 9; i++) if (g.board[i] < 0) circle(gx, ccx(i), ccy(i), 5 + Math.sin(this.t * 4 + i) * 1.5, alpha(this.color(g.turn), 0.35));
+    }
+    // The newest mark sits on a tile of its player's colour until the next mark, so a kid
+    // looking back after the bot's quick move can see what changed (like Four in a Row's ring).
+    const ring = this.ringCell();
+    if (ring !== null) {
+      const rc = this.color(g.board[ring] as PlayerIndex);
+      const pulse = 0.5 + 0.5 * Math.sin(this.t * 5);
+      rrect(gx, GX + (ring % 3) * CELL + 7, GY + Math.floor(ring / 3) * CELL + 7, CELL - 14, CELL - 14, 14, alpha(rc, 0.16 + 0.06 * pulse), alpha(rc, 0.75), 3);
     }
     for (let i = 0; i < 9; i++) {
       const v = g.board[i];

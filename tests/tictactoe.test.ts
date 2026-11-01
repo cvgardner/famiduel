@@ -97,4 +97,20 @@ describe('tic-tac-toe', () => {
       }
     }
   });
+
+  it('remembers the newest mark of the current game, and forgets it when a game starts', () => {
+    const g = new TicTacToe([player(), player()], makeRng(3));
+    expect(g.last).toBeNull();
+    const a = g.turn;
+    g.apply(4);
+    expect(g.last).toEqual({ p: a, cell: 4 });
+    g.apply(4); // refused: the newest mark stays
+    expect(g.last).toEqual({ p: a, cell: 4 });
+    g.apply(0);
+    expect(g.last).toEqual({ p: other(a), cell: 0 });
+    while (!g.between) g.apply(g.legal()[0]);
+    expect(g.last).not.toBeNull(); // the game's final mark
+    g.next();
+    expect(g.last).toBeNull();
+  });
 });

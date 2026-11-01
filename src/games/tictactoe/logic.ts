@@ -46,6 +46,8 @@ export class TicTacToe {
   between = false;
   winLine: [number, number, number] | null = null;
   lastGameWinner: PlayerIndex | null = null;
+  /** The newest mark of the current game (who and where), null before the first one. */
+  last: { p: PlayerIndex; cell: number } | null = null;
   winner: PlayerIndex | null = null;
   done = false;
   events: Event[] = [];
@@ -80,6 +82,7 @@ export class TicTacToe {
     this.starters.push(this.turn);
     this.between = false;
     this.winLine = null;
+    this.last = null;
   }
 
   /** X always goes first, so the starter of the current game plays X. */
@@ -102,6 +105,7 @@ export class TicTacToe {
     if (this.between || this.done || cell < 0 || cell > 8 || this.board[cell] >= 0) return false;
     const p = this.turn;
     this.board[cell] = p;
+    this.last = { p, cell };
     this.events.push({ type: 'mark', p, cell });
     const w = lineWinner(this.board);
     if (w) {

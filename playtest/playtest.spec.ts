@@ -862,6 +862,55 @@ test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) =
   expect(errors).toEqual([]);
 });
 
+test("tic-tac-toe: the bot's newest mark sits on a tile until you move", async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, 'normal']);
+  await page.locator('.game-card[data-id="tictactoe"]').tap();
+  await introAsPeople(page, [0]);
+  await page.waitForTimeout(2200); // countdown
+  type TttHook = {
+    runner: null | { game: { ringCell(): number | null; game: { turn: number; board: number[]; between: boolean; done: boolean; last: { p: number; cell: number } | null } } };
+  };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: TttHook }).__famiduel.runner!.game;
+      return { ring: v.ringCell(), last: v.game.last, turn: v.game.turn, board: [...v.game.board], between: v.game.between, done: v.game.done };
+    });
+  const box = await worldBox(page);
+  const tap = async (cell: number) => {
+    const c = { x: box.x + ((45 + (cell % 3) * 90 + 45) / 360) * box.width, y: box.y + ((185 + Math.floor(cell / 3) * 90 + 45) / 640) * box.height };
+    for (const t of ['pointerdown', 'pointerup'])
+      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, c.x, c.y] as const);
+  };
+  let s = await look();
+  expect(s.last).toBeNull();
+  expect(s.ring).toBeNull();
+  // If the person starts, mark the centre and check their own mark gets the tile once drawn.
+  if (s.turn === 0) {
+    await tap(4);
+    await expect.poll(async () => (await look()).ring, { timeout: 2000 }).toBe(4);
+  }
+  // A bot turn: its newest mark is tiled and stays tiled while the person thinks (3 s),
+  // then the tile moves to the person's mark as soon as it is drawn.
+  await expect.poll(async () => { s = await look(); return s.turn === 0 && s.last?.p === 1 && !s.between; }, { timeout: 5000 }).toBe(true);
+  const botCell = s.last!.cell;
+  await expect.poll(async () => (await look()).ring, { timeout: 2000 }).toBe(botCell);
+  await page.screenshot({ path: path.join(OUT, 'tictactoe-last-mark.png') });
+  await page.waitForTimeout(3000);
+  s = await look();
+  expect(s.ring, "the bot's mark is still tiled after 3 s").toBe(botCell);
+  const free = s.board.findIndex((v) => v < 0);
+  await tap(free);
+  await expect.poll(async () => (await look()).last?.p, { timeout: 1000 }).toBe(0);
+  s = await look();
+  expect(s.ring, 'the tile leaves the bot mark as soon as the person marks').not.toBe(botCell);
+  // Unless that mark ended the game (the winning line takes over), the tile moves to it.
+  if (!s.between) await expect.poll(async () => (await look()).ring, { timeout: 2000 }).toBe(free);
+  else expect(s.ring).toBeNull();
+  expect(errors).toEqual([]);
+});
+
 test("four in a row: the bot's newest disc keeps a ring until you move", async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);

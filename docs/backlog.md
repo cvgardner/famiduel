@@ -471,9 +471,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       ring moves to the person's disc when they drop (`fourinarow-last-disc.png`).
 
 ## Ideas found 2026-11-01 (newest disc run)
-- [ ] Tic-Tac-Toe and Checkers lose their "what changed" cue when a person looks away for
-      the bot's move in a later, fuller board; a faint ring on the newest TTT mark would
-      match Four in a Row.
+- [x] 2026-11-01: Tic-Tac-Toe shows the newest mark. The bot marks 0.5-0.7 s after you, so
+      in a fuller board a kid looking back had nothing to say which mark was new. Now the
+      newest mark sits on a soft tile of its player's colour (a white ring like Four in a
+      Row's would vanish on the cream paper) once it has drawn in, until the next mark; off
+      between games, where the winning line takes over. `TicTacToe.last` is unit tested; the
+      playtest plays a normal bot, checks its mark stays tiled for 3 s and that the tile
+      moves to the person's mark (`tictactoe-last-mark.png`).
+- [ ] Checkers already tints the last move's squares; check that tint still reads after a
+      multi-jump (only the final hop's squares, or the whole path?).
 - [ ] Four in a Row's top player reads "Player 1's turn" in small grey text: the waiting
       side could say "Waiting…" like Tic-Tac-Toe, which reads quicker.
 
@@ -519,3 +525,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Snack Snatch's power buttons, and Quick Draw's two DRAW pads, if kids mix them up.
 - [ ] Tank Duel's FIRE button could flash its band gold while a bouncy shell is loaded
       (the glow does this today, faintly on a light rim like Mint).
+
+## Ideas found 2026-11-01 (newest mark run)
+- [ ] A shared "newest move" look across the board games (Four in a Row ring, Tic-Tac-Toe
+      tile, Checkers tint, Sea Battle's last shot) so a kid learns one cue for "what changed".
+- [ ] Tic-Tac-Toe's ghost dots in empty cells only show for a person's turn; during the
+      bot's think a faint "🤖 thinking" over the board would explain the pause to small kids.
