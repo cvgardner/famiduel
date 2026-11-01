@@ -47,3 +47,31 @@ export function demoHtml(g: Gesture, lefty = false): string {
 export function demoHelpHtml(p: number): string {
   return `<button class="demo-help" data-p="${p}" aria-label="Show me how to play"><span>?</span></button>`;
 }
+
+/**
+ * A kid who needed the "?" once probably needs it twice. When a seat taps "?", that
+ * game's next intro shows the finger in that half again by itself (for the same person
+ * only), until a match of it is played to the end. Kept for this session only.
+ */
+export class HelpMemory {
+  private readonly wanted = new Set<string>();
+
+  private key(game: string, p: number, who: string): string {
+    return `${game}\u0000${p}\u0000${who}`;
+  }
+
+  /** The seat tapped "?" in this game's intro. */
+  mark(game: string, p: number, who: string): void {
+    this.wanted.add(this.key(game, p, who));
+  }
+
+  /** Should this game's intro show the finger again for this seat? */
+  wants(game: string, p: number, who: string): boolean {
+    return this.wanted.has(this.key(game, p, who));
+  }
+
+  /** A match was played to the end with the finger shown again: back to the "?". */
+  played(game: string, p: number, who: string): void {
+    this.wanted.delete(this.key(game, p, who));
+  }
+}

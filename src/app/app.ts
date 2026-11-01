@@ -9,7 +9,7 @@ import { Sfx } from '../engine/sfx';
 import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
-import { demoHelpHtml, demoHtml, isGesture, showsDemo } from './demo';
+import { demoHelpHtml, demoHtml, HelpMemory, isGesture, showsDemo } from './demo';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
 import { BOT_LEVELS, PLAYER_COLORS, Store, botFor, easierOffer } from './store';
@@ -36,6 +36,10 @@ export class App {
   runner: Runner | null = null;
   private current: GameMeta | null = null;
   private picks: [PowerDef | null, PowerDef | null] = [null, null];
+  /** Seats that tapped "?" get the finger again next time (see HelpMemory). */
+  private readonly help = new HelpMemory();
+  /** Seats whose finger came back by itself in this intro (who sat there). */
+  private helpShown: { p: PlayerIndex; who: string }[] = [];
   /** Seed override from ?seed= (tests and the daily course). */
   private fixedSeed: number | null;
   private matchCount = 0;
@@ -215,13 +219,16 @@ export class App {
     // After that, a person's half gets a "?" that brings it back.
     const gesture = isGesture(meta.gesture) ? meta.gesture : null;
     const firstMatches = showsDemo(this.store.data.history, id);
+    this.helpShown = [];
     const half = (p: PlayerIndex) => {
       const pr = this.store.data.profiles[p];
       const assist = this.assistFor(p);
       const bot = botFor(pr, id);
+      const again = !!gesture && !firstMatches && !bot && this.help.wants(id, p, pr.name);
+      if (again) this.helpShown.push({ p, who: pr.name });
       return `<div class="half p${p}${bot ? ' bot' : ''}" style="--c:${pr.color}">
         <div class="half-inner">
-          <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${!gesture ? '' : firstMatches ? demoHtml(gesture, !!pr.lefty && !bot) : bot ? '' : demoHelpHtml(p)}</div>
+          <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${!gesture ? '' : firstMatches || again ? demoHtml(gesture, !!pr.lefty && !bot) : bot ? '' : demoHelpHtml(p)}</div>
           <p class="howto">${meta.howTo}</p>
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>` : ''}
@@ -237,6 +244,7 @@ export class App {
         if (!gesture) return;
         const p = Number(b.dataset.p) as PlayerIndex;
         b.outerHTML = demoHtml(gesture, !!this.store.data.profiles[p].lefty);
+        this.help.mark(id, p, this.store.data.profiles[p].name);
         this.sfx.play('tap');
       });
     }
@@ -412,6 +420,8 @@ export class App {
     const meta = this.current!;
     const seats = this.runner?.players;
     this.starters.record(meta.id, this.runner?.game.firstMover?.());
+    for (const h of this.helpShown) this.help.played(meta.id, h.p, h.who);
+    this.helpShown = [];
     this.store.record(
       meta.id,
       r,

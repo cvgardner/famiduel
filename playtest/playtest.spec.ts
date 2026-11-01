@@ -301,6 +301,36 @@ test('ghost finger: a "?" brings it back after the first matches, on a small pho
   expect(await page.locator('.half.p0 .demo').count(), 'finger back after "?"').toBe(1);
   expect(await page.locator('.half.p1 .demo-help').count(), 'other half keeps its "?"').toBe(1);
   await page.screenshot({ path: path.join(OUT, 'demo-help-tapped.png') });
+  // A kid who needed it once gets it again: back out and reopen, and that half shows the
+  // finger by itself (no "?"), the other half still has its "?"...
+  await page.locator('#introBack').tap();
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
+  expect(await page.locator('.half.p0 .demo').count(), 'finger again next time after a "?"').toBe(1);
+  expect(await page.locator('.half.p0 .demo-help').count(), 'no "?" while it shows by itself').toBe(0);
+  expect(await page.locator('.half.p1 .demo-help').count(), 'other half still has its "?"').toBe(1);
+  await page.screenshot({ path: path.join(OUT, 'demo-help-remembered.png') });
+  // ...until a match of it is played to the end; then the "?" is back.
+  await introAsPeople(page, [0, 1]);
+  await page.evaluate(() => {
+    const r = (window as unknown as { __famiduel: Hook }).__famiduel.runner!;
+    if (!r.result) r.result = { winner: null, score: [0, 0] };
+  });
+  await expect(page.locator('#result')).toBeVisible({ timeout: 5000 });
+  await page.locator('#rematchBtn').tap();
+  expect(await page.locator('.half.p0 .demo-help').count(), '"?" back after the match').toBe(1);
+  expect(await page.locator('.half.p0 .demo').count(), 'finger gone again after the match').toBe(0);
+  // A different person in that seat doesn't inherit it.
+  await page.locator('.half.p0 .demo-help').tap();
+  await page.locator('#introBack').tap();
+  await page.evaluate(() => {
+    const h = (window as unknown as { __famiduel: { store: { data: { profiles: { name: string }[] } } } }).__famiduel;
+    h.store.data.profiles[0].name = 'Grandpa';
+  });
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
+  expect(await page.locator('.half.p0 .demo-help').count(), 'a new person in the seat gets the "?"').toBe(1);
+  await page.evaluate((n) => {
+    (window as unknown as { __famiduel: { store: { data: { profiles: { name: string }[] } } } }).__famiduel.store.data.profiles[0].name = n;
+  }, 'Player 1');
   // A bot's half never gets a "?".
   await setPlayers(page, [null, 'easy']);
   await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
