@@ -1375,11 +1375,16 @@ test('penalty: a swiped pick waits for the clock, and the kick always lands on z
   const at = (wx: number, wy: number) => ({ x: box.x + (wx / 360) * box.width, y: box.y + (wy / 640) * box.height });
   const finger = (type: string, p: { x: number; y: number }) =>
     page.evaluate(([t, x, y]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(61, t, x, y), [type, p.x, p.y] as const);
-  await finger('pointerdown', at(180, 560));
-  for (let i = 1; i <= 4; i++) await finger('pointermove', at(180 + 9 * i, 560 - 40 * i));
-  await finger('pointerup', at(216, 400));
+  // Frame by frame, like a finger: the game samples the swipe each frame.
+  await finger('pointerdown', at(180, 520)); // above the dive buttons
+  for (let i = 1; i <= 4; i++) {
+    await page.waitForTimeout(20);
+    await finger('pointermove', at(180 + 9 * i, 520 - 40 * i));
+  }
+  await page.waitForTimeout(20);
+  await finger('pointerup', at(216, 360));
+  await expect.poll(async () => (await state()).picks, { timeout: 1000, intervals: [20], message: 'the swipe picked a shot' }).toBe(1);
   const picked = await state();
-  expect(picked.picks, 'the swipe picked a shot').toBe(1);
   expect(picked.phase, 'the ball is not kicked on the swipe').toBe('aim');
   const aimStart = picked.t - picked.phaseT;
   await expect.poll(async () => (await seen()).includes('Shot picked! Swipe again to change'), { timeout: 2000 }).toBe(true);
