@@ -101,7 +101,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       nearest new colour (teal/green → Mint, and a clash moves Player 2). The playtest checks
       the picker and saves air hockey as protan / deutan / tritan players see it
       (`colours-airhockey-*.png`).
-- [x] 2026-11-01 (research run): readable text everywhere. Store reviews of the leading
+- [x] 2026-10-31 (research run): readable text everywhere. Store reviews of the leading
       2-player app complain the screen is cramped on small iPhones; kids' typography guidance
       (Cantuni, "Typography in digital products for kids": early readers need a bigger
       x-height than adults, sentence case over ALL CAPS) and Apple's 11 pt minimum vs our
@@ -191,7 +191,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Guided Access / screen pinning tip on the home screen for parents of toddlers (the
       OS-level way to stop a kid leaving the app), behind the parental gate.
 
-## Ideas found 2026-11-01 (text size run)
+## Ideas found 2026-10-31 (text size run)
 - [ ] Reviews of the leading app: a game where the first shooter wins if they score every
       shot (basketball). Check every turn-based game for a first-mover edge in sims (Penalty
       already alternates with sudden death; Minigolf's lead-off alternates).
