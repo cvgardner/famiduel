@@ -1,6 +1,7 @@
 // Checkers view: tap a piece, tap where it goes. Bots and the hint use the same search.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { waitingLine } from '../../core/turnline';
+import { alpha, circle, COLORS, facing, fitSize, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
 import type { GameContext, GameDef, GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button } from '../../engine/widgets';
@@ -451,7 +452,8 @@ class CheckersView implements GameInstance {
       text(gx, msg, W / 2, py, { size: 20, color: '#fff', stroke: alpha('#000000', 0.25) });
     } else {
       rrect(gx, W / 2 - pw / 2, py - 20, pw, 40, 20, 'rgba(255,255,255,0.07)', 'rgba(255,255,255,0.15)', 2);
-      text(gx, g.done ? (g.winner === p ? 'Winner!' : g.winner === null ? 'Draw' : 'Good game') : 'Waiting…', W / 2, py, { size: 17, color: COLORS.dim, weight: 700 });
+      const msg = g.done ? (g.winner === p ? 'Winner!' : g.winner === null ? 'Draw' : 'Good game') : waitingLine(this.ctx.players[g.turn]);
+      text(gx, msg, W / 2, py, { size: fitSize(gx, msg, pw - 24, 17, 700), color: COLORS.dim, weight: 700 });
     }
     // Pieces this player has taken.
     const n = g.score[p];

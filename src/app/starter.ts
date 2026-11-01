@@ -4,6 +4,7 @@
 // now takes turns: each game remembers who started its last finished match on this phone
 // session, and the rematch hands the start to the other seat. The first match of a game
 // is still the game's own seeded coin toss.
+import { shortName } from '../core/turnline';
 import { other, type PlayerIndex } from '../core/types';
 
 export class StarterLog {
@@ -30,9 +31,8 @@ export class StarterLog {
  */
 export function starterLines(first: PlayerIndex | null | undefined, names: [string, string]): [string | null, string | null] {
   if (first !== 0 && first !== 1) return [null, null];
-  const short = (n: string) => (n.length > 12 ? `${n.slice(0, 11)}…` : n);
   const lines: [string | null, string | null] = [null, null];
   lines[first] = 'You go first!';
-  lines[other(first)] = `${short(names[first])} goes first`;
+  lines[other(first)] = `${shortName(names[first])} goes first`;
   return lines;
 }
