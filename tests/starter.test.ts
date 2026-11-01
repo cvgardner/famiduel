@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { StarterLog } from '../src/app/starter';
+import { StarterLog, starterLines } from '../src/app/starter';
 import { makeRng } from '../src/core/rng';
 import type { PlayerIndex, PlayerInfo } from '../src/core/types';
 import { Checkers } from '../src/games/checkers/logic';
@@ -73,6 +73,31 @@ describe('starting takes turns', () => {
       const a = new Minigolf(two(), false, makeRng(seed));
       const b = new Minigolf(two(), false, makeRng(seed), undefined, a.firstLeadOff);
       expect(b.holes.map((h) => h.id)).toEqual(a.holes.map((h) => h.id));
+    }
+  });
+});
+
+describe('the countdown says who goes first', () => {
+  it('tells the starter it goes first and the other seat who does, by name', () => {
+    expect(starterLines(0, ['Mia', 'Dad'])).toEqual(['You go first!', 'Mia goes first']);
+    expect(starterLines(1, ['Mia', 'Dad'])).toEqual(['Dad goes first', 'You go first!']);
+  });
+
+  it('says nothing when the game has no first mover (yet)', () => {
+    expect(starterLines(null, ['Mia', 'Dad'])).toEqual([null, null]);
+    expect(starterLines(undefined, ['Mia', 'Dad'])).toEqual([null, null]);
+  });
+
+  it('shortens a long name so the line fits across the phone', () => {
+    const [, line] = starterLines(0, ['Grandma Josephine', 'Dad']);
+    expect(line).toBe('Grandma Jos… goes first');
+    expect(line!.length).toBeLessThanOrEqual(23);
+  });
+
+  it('every turn game gives the countdown a starter once it is built (Sea Battle after placement)', () => {
+    for (const [id, make] of Object.entries(GAMES)) {
+      const [a, b] = starterLines(make(7), ['A', 'B']);
+      expect([a, b].filter((l) => l === 'You go first!'), id).toHaveLength(1);
     }
   });
 });
