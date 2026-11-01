@@ -15,7 +15,7 @@ import { checkersPerson, fourInARowPerson, rpsPerson, seaBattlePerson, ticTacToe
 const OUT = path.resolve('playtest-report');
 const SECONDS = Number(process.env.PLAYTEST_SECONDS ?? 8);
 
-type Row = { id: string; name: string; shots: string[]; fps: number; gestures: number; /** Moves the playtest person made per seat (turn-based games). */ moves: number[]; haptics: number; pauseTaps: number; warnings: string[]; errors: string[]; finished: boolean };
+type Row = { id: string; name: string; shots: string[]; fps: number; gestures: number; /** Moves the playtest person made per seat (turn-based games). */ moves: number[]; haptics: number; pauseTaps: number; /** Canvas labels below their WCAG contrast, best seen. */ faint: string[]; warnings: string[]; errors: string[]; finished: boolean };
 const rows: Row[] = [];
 
 type Hook = {
@@ -637,9 +637,10 @@ for (const g of games.games) {
   test(`play like a person: ${g.id}`, async ({ page }) => {
     test.skip(built.length > 0 && !built.includes(g.id), 'not built yet');
     const errors: string[] = [];
-    const row: Row = { id: g.id, name: g.name, shots: [], fps: 0, gestures: 0, moves: [0, 0], haptics: 0, pauseTaps: 0, warnings: [], errors, finished: false };
+    const row: Row = { id: g.id, name: g.name, shots: [], fps: 0, gestures: 0, moves: [0, 0], haptics: 0, pauseTaps: 0, faint: [], warnings: [], errors, finished: false };
     rows.push(row);
     await boot(page, errors);
+    await page.evaluate(() => ((window as unknown as { __contrast: { on: boolean } }).__contrast.on = true));
     const ready = await page.locator(`.game-card[data-id="${g.id}"]`).getAttribute('data-ready');
     test.skip(ready !== '1', 'not built yet');
     const shot = async (label: string) => {
@@ -707,6 +708,10 @@ for (const g of games.games) {
     // Every word drawn on the canvas during all three matches, at a readable size.
     const tiny = await page.evaluate(() => [...(window as unknown as { __smallText: Map<string, number> }).__smallText]);
     expect(tiny.map(([str, size]) => `"${str}" at ${size}`), 'canvas text below the minimum size').toEqual([]);
+    // Every label drawn while playing, against the pixels behind it (WCAG 1.4.3).
+    const seen = await page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, { best: number; need: number; size: number }> } }).__contrast.seen]);
+    row.faint = seen.filter(([, c]) => c.best < c.need).map(([str, c]) => `"${str}" ${c.best.toFixed(1)}:1 (needs ${c.need}:1 at ${c.size})`);
+    expect(row.faint, 'canvas labels below WCAG contrast against what is behind them').toEqual([]);
     expect(errors).toEqual([]);
   });
 }

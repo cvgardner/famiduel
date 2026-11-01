@@ -7,6 +7,7 @@ import type { Input } from '../../engine/input';
 import { Button, PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { fwd, RULES, SnackSnatch, SnackSnatchBot, type Critter, type Intent, type Snack } from './logic';
+import { inkOn } from '../../core/contrast';
 
 /** Snack looks: cookie, donut, berry, cracker. */
 const KINDS = ['#d9a066', '#ff8fc2', '#ff5c7a', '#f4c96b'];
@@ -366,7 +367,7 @@ class SnackSnatchView implements GameInstance {
         gx.lineCap = 'round';
         gx.stroke();
       }
-      text(gx, 'TAP', c.x, by + 14 + press, { size: 14, color: 'rgba(255,255,255,0.85)' });
+      text(gx, 'TAP', c.x, by + 14 + press, { size: 14, color: inkOn(col) });
     });
   }
 

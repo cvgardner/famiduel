@@ -8,6 +8,7 @@ import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { clamp, H, W } from '../../engine/world';
 import { cellsOf, isSunk, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIP_NAMES, SHIPS, strikeCells, type Move } from './logic';
+import { inkOn } from '../../core/contrast';
 
 // Layout, in the viewer's frame (the viewer sits at the bottom).
 const C = 27;
@@ -461,9 +462,9 @@ class SeaBattleView implements GameInstance {
     text(gx, m.next === 'place' ? 'Hide your fleet' : 'Your turn to fire', W / 2, 300, { size: 22, color: '#fff', weight: 700 });
     text(gx, pl.name, W / 2, 344, { size: 40, color: pl.color, stroke: 'rgba(0,0,0,0.4)' });
     const s = 1 + 0.05 * Math.sin(this.t * 5);
-    rrect(gx, W / 2 - 140 * s, 410, 280 * s, 70, 35, alpha(pl.color, 0.95), '#fff', 3);
-    text(gx, `Tap when only ${pl.name}`, W / 2, 432, { size: 18, color: '#fff' });
-    text(gx, 'is looking 👀', W / 2, 458, { size: 18, color: '#fff' });
+    rrect(gx, W / 2 - 140 * s, 410, 280 * s, 70, 35, pl.color, '#fff', 3);
+    text(gx, `Tap when only ${pl.name}`, W / 2, 432, { size: 19, color: inkOn(pl.color) });
+    text(gx, 'is looking 👀', W / 2, 458, { size: 19, color: inkOn(pl.color) });
     const n = this.notice[m.p];
     if (m.next === 'fire' && this.game.turnNo[o] > 0) {
       const lg = this.turnLog[o];

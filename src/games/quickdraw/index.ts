@@ -201,7 +201,7 @@ class QuickDrawView implements GameInstance {
       const k = 0.5 + 0.5 * Math.sin(this.t * 22);
       gx.fillStyle = alpha(COLORS.gold, 0.12 + 0.12 * k);
       gx.fillRect(0, MID, W, MID);
-      text(gx, '⏳ get ready…', W / 2, L.signalY + 44, { size: 18, color: '#7a4a00' });
+      text(gx, '⏳ get ready…', W / 2, L.signalY + 44, { size: 18, color: '#5a3400' });
     }
     this.drawSignal(gx, p);
     this.drawCowboy(gx, p, c);
@@ -212,12 +212,12 @@ class QuickDrawView implements GameInstance {
       const y = L.cowboyY - 34 + i * 26;
       star(gx, x, y, 10, i < g.score[p] ? COLORS.gold : 'rgba(80,50,20,0.25)');
     }
-    text(gx, `${g.score[p]} – ${g.score[other(p)]}`, W / 2 + 116, L.cowboyY + 52, { size: 13, color: 'rgba(80,50,20,0.8)' });
+    text(gx, `${g.score[p]} – ${g.score[other(p)]}`, W / 2 + 116, L.cowboyY + 52, { size: 13, color: '#4a2c0c' });
     // Power badges
     const badges: string[] = [];
     if (g.shots[p] > 0) badges.push(`🎯 x${g.shots[p]}`);
     if (g.focus[p]) badges.push('⏳ armed');
-    if (badges.length) text(gx, badges.join('  '), W / 2 - 110, L.cowboyY + 52, { size: 13, color: '#7a4a00' });
+    if (badges.length) text(gx, badges.join('  '), W / 2 - 110, L.cowboyY + 52, { size: 13, color: '#5a3400' });
   }
 
   private drawSignal(gx: G, p: PlayerIndex): void {
@@ -234,8 +234,8 @@ class QuickDrawView implements GameInstance {
         rrect(gx, 24, y - 34, W - 48, 68, 16, 'rgba(255,248,230,0.95)', '#c0392b', 3);
         text(gx, a, W / 2, y - 12, { size: 26 * pop, color: '#c0392b', weight: 900 });
         text(gx, b, W / 2, y + 16, { size: 20 * pop, color: '#5b3412' });
-        if (f.by === p) text(gx, '(your fake-out 🎭)', W / 2, y + 48, { size: 13, color: '#7a4a00' });
-      } else text(gx, 'Wait for it…', W / 2, y, { size: 20, color: 'rgba(80,50,20,0.55)' });
+        if (f.by === p) text(gx, '(your fake-out 🎭)', W / 2, y + 48, { size: 13, color: '#5a3400' });
+      } else text(gx, 'Wait for it…', W / 2, y, { size: 20, color: 'rgba(70,40,12,0.8)' });
     } else if (g.phase === 'draw') {
       const k = Math.min(1, g.phaseT / 0.06);
       glow(gx, '#ff3b2f', 22);
@@ -259,12 +259,12 @@ class QuickDrawView implements GameInstance {
       text(gx, title, W / 2, y - 14, { size: 22, color });
       const mine = r.times[p];
       const theirs = r.times[other(p)];
-      text(gx, `You ${ms(mine)}`, W / 2 - 74, y + 16, { size: 17, color: shade(this.ctx.players[p].color, -0.3) });
-      text(gx, `Them ${ms(theirs)}`, W / 2 + 74, y + 16, { size: 17, color: shade(this.ctx.players[other(p)].color, -0.3) });
+      text(gx, `You ${ms(mine)}`, W / 2 - 74, y + 16, { size: 17, color: shade(this.ctx.players[p].color, -0.65) });
+      text(gx, `Them ${ms(theirs)}`, W / 2 + 74, y + 16, { size: 17, color: shade(this.ctx.players[other(p)].color, -0.65) });
       const pen = r.penalty[p];
-      if (pen > 0.001 && mine !== null) text(gx, `+${Math.round(pen * 1000)} ms handicap`, W / 2 - 74, y + 32, { size: 13, color: 'rgba(80,50,20,0.7)' });
+      if (pen > 0.001 && mine !== null) text(gx, `+${Math.round(pen * 1000)} ms handicap`, W / 2 - 74, y + 32, { size: 13, color: '#4a2c0c' });
       const penO = r.penalty[other(p)];
-      if (penO > 0.001 && theirs !== null) text(gx, `+${Math.round(penO * 1000)} ms handicap`, W / 2 + 74, y + 32, { size: 13, color: 'rgba(80,50,20,0.7)' });
+      if (penO > 0.001 && theirs !== null) text(gx, `+${Math.round(penO * 1000)} ms handicap`, W / 2 + 74, y + 32, { size: 13, color: '#4a2c0c' });
     }
   }
 

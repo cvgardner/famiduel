@@ -531,7 +531,7 @@ class TankView implements GameInstance {
         const y = p === 0 ? MID + 56 : MID - 56;
         rrect(gx, W / 2 - 92, y - 24, 184, 48, 24, `rgba(42,33,80,${0.78 * a})`);
         text(gx, str, W / 2, y + (sub ? (p === 0 ? -6 : 6) : 0), { size: 20, player: p, color: this.banner.color, alpha: a });
-        if (sub) text(gx, sub, W / 2, y + (p === 0 ? 12 : -12), { size: 13, player: p, color: COLORS.dim, alpha: a, weight: 700 });
+        if (sub) text(gx, sub, W / 2, y + (p === 0 ? 12 : -12), { size: 13, player: p, color: 'rgba(255,255,255,0.85)', alpha: a, weight: 700 });
       }
     }
   }
