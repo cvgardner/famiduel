@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel, PlayerInfo } from '../src/core/types';
 import { HOLES, Minigolf, MinigolfBot, NO_INTENT, RULES, type Intent } from '../src/games/minigolf/logic';
-import { compileCourse, inZone, NO_MODS, PHYS, pointInPoly, rollFrame, simulate, startRoll } from '../src/games/minigolf/physics';
+import { compileCourse, inZone, NO_MODS, pathDist, PHYS, pointInPoly, rollFrame, simulate, startRoll } from '../src/games/minigolf/physics';
 import { DT, player, power } from './helpers';
 
 function play(levels: [BotLevel, BotLevel], seed: number, opts: { powers?: [string, string]; assist?: [number, number]; holes?: string[] } = {}) {
@@ -42,8 +42,9 @@ function shoot(g: Minigolf, angle: number, power: number): void {
 }
 
 describe('minigolf holes', { timeout: 60_000 }, () => {
-  it('has at least 10 hand-made holes with tee and cup on dry grass inside the walls', () => {
-    expect(HOLES.length).toBeGreaterThanOrEqual(10);
+  it('has at least 20 hand-made holes with tee and cup on dry grass inside the walls', () => {
+    expect(HOLES.length).toBeGreaterThanOrEqual(20);
+    expect(new Set(HOLES.map((h) => h.id)).size).toBe(HOLES.length);
     for (const h of HOLES) {
       const c = compileCourse(h);
       for (const [x, y] of [h.tee, h.cup]) {
@@ -65,8 +66,14 @@ describe('minigolf holes', { timeout: 60_000 }, () => {
     const idx = a.holes.map((h) => HOLES.indexOf(h));
     expect([...idx].sort((x, y) => x - y)).toEqual(idx);
     const seen = new Set<string>();
-    for (let s = 0; s < 20; s++) for (const h of new Minigolf([player(), player()], false, makeRng(s)).holes) seen.add(h.id);
+    for (let s = 0; s < 60; s++) for (const h of new Minigolf([player(), player()], false, makeRng(s)).holes) seen.add(h.id);
     expect(seen.size).toBe(HOLES.length);
+  });
+
+  it("the bot's distance map reaches the tee on every hole", () => {
+    // A float32 rounding slip once stopped the map spreading past the first wall,
+    // so bots misjudged most of the course on holes like Zig Zag.
+    for (const h of HOLES) expect(pathDist(compileCourse(h), h.tee[0], h.tee[1]), h.id).toBeLessThan(9999);
   });
 
   it('every hole is playable: a hard bot holes out under the stroke cap', () => {
@@ -121,6 +128,7 @@ describe('minigolf match', { timeout: 60_000 }, () => {
     };
     // Measured (10 seeds): easy +0.8 over par, normal -0.5. Before this change easy was
     // -0.0 (under par on most holes, 22 aces in 160 holes), too strong for a 6-year-old.
+    // Nov 2026, 22 holes and the forgiving cup (3 seeds): easy +0.76, normal -0.44, hard -1.39.
     expect(overPar('easy')).toBeGreaterThanOrEqual(0.4);
     expect(overPar('normal')).toBeLessThanOrEqual(0.1);
   });
@@ -175,6 +183,35 @@ describe('minigolf match', { timeout: 60_000 }, () => {
       if (r.y < 130 - PHYS.cupR - 2) passed = true;
     }
     expect(passed).toBe(true);
+  });
+
+  it('the cup is forgiving: a firm putt that reaches the hole drops', () => {
+    // Chris (Nov 2026): players expect a ball that reaches the hole to go in.
+    // From 150 units out, every power that gets there drops, up to a firm hit.
+    const c = compileCourse(HOLES.find((h) => h.id === 'warmup')!);
+    let reached = 0;
+    for (let k = 0; k <= 10; k++) {
+      const power = 0.35 + k * 0.03;
+      const r = simulate(c, 180, 280, -Math.PI / 2, power, 0, NO_MODS, DT).roll;
+      if (r.status === 'sunk') reached++;
+    }
+    expect(reached).toBe(11);
+  });
+
+  it('a ball too fast to drop rattles over the cup and is slowed', () => {
+    const c = compileCourse(HOLES.find((h) => h.id === 'warmup')!);
+    const r = startRoll(180, 170, -Math.PI / 2, 1, 0, NO_MODS);
+    let before = 0;
+    let after = 0;
+    let was = false;
+    for (let i = 0; i < 30 && r.status === 'roll'; i++) {
+      const sp = Math.hypot(r.vx, r.vy);
+      rollFrame(c, r, DT, NO_MODS);
+      if (r.onLip) was = true;
+      else if (was && !before) [before, after] = [sp, Math.hypot(r.vx, r.vy)];
+    }
+    expect(before).toBeGreaterThan(PHYS.captureSpeed);
+    expect(after).toBeLessThan(before * 0.7);
   });
 
   it('moving obstacles depend on game time: same timing, same shot', () => {

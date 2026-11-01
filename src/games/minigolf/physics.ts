@@ -36,11 +36,17 @@ export const PHYS = {
   sand: { decel: 520, drag: 2.6 },
   restitution: 0.78,
   moverRestitution: 0.6,
-  /** Ball must be slower than this to drop in the cup. */
-  captureSpeed: 250,
+  /**
+   * Ball must be slower than this to drop in the cup. Generous on purpose
+   * (Chris, Nov 2026: players expect a ball that reaches the hole to drop):
+   * anything but a hard-hit ball drops. Was 250.
+   */
+  captureSpeed: 420,
+  /** A ball too fast to drop rattles over the cup and keeps only this much speed. */
+  lipKeep: 0.55,
   /** Inside the cup lip the ball is pulled to the centre. */
   lipPull: 1400,
-  magnet: { radius: 64, pull: 520, captureSpeed: 480 },
+  magnet: { radius: 64, pull: 520, captureSpeed: 600 },
   stopSpeed: 5,
   substeps: 4,
   maxRoll: 10,
@@ -164,6 +170,8 @@ export type Roll = {
   /** The object the ghost is passing through (ignored for the rest of the shot). */
   ghostObj: number;
   inSand: boolean;
+  /** Over the cup right now, too fast to drop (slowed as it rolls out). */
+  onLip: boolean;
   status: 'roll' | 'stop' | 'sunk' | 'water' | 'out';
 };
 
@@ -175,7 +183,7 @@ export type RollEvent =
 
 export function startRoll(x: number, y: number, angle: number, power: number, t: number, mods: Mods): Roll {
   const sp = Math.max(0, Math.min(1, power)) * PHYS.maxSpeed;
-  return { x, y, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp, t, rollT: 0, restT: 0, ghost: mods.ghost, ghostObj: -1, inSand: false, status: 'roll' };
+  return { x, y, vx: Math.cos(angle) * sp, vy: Math.sin(angle) * sp, t, rollT: 0, restT: 0, ghost: mods.ghost, ghostObj: -1, inSand: false, onLip: false, status: 'roll' };
 }
 
 /** Advance one 1/60 s frame (in fixed substeps). Pushes events when given an array. */
@@ -271,7 +279,15 @@ export function rollFrame(c: Course, r: Roll, dt: number, mods: Mods, events?: R
       r.vx = r.vy = 0;
       return;
     }
-    if (cd2 < capR && sp >= capV && events && !events.some((e) => e.type === 'lip')) events.push({ type: 'lip', x: r.x, y: r.y });
+    if (cd2 < capR && sp >= capV && !r.onLip) {
+      r.onLip = true;
+      if (events && !events.some((e) => e.type === 'lip')) events.push({ type: 'lip', x: r.x, y: r.y });
+    } else if (cd2 >= capR && r.onLip) {
+      // It rattled over the cup and lips out, slowed, so it often stops close.
+      r.onLip = false;
+      r.vx *= PHYS.lipKeep;
+      r.vy *= PHYS.lipKeep;
+    }
     // --- rest
     r.rollT += h;
     if (sp < PHYS.stopSpeed && (!slope || touching)) {
@@ -494,7 +510,10 @@ function buildDistance(c: Course): void {
       const nd = d + w * GRID * k;
       if (nd < dist[nidx]) {
         dist[nidx] = nd;
-        push(nd, nidx);
+        // Queue the stored (float32) value: queueing the float64 `nd` made the
+        // `d > dist[idx]` check above skip most cells, so the field stopped
+        // spreading and bots misjudged whole regions of a hole.
+        push(dist[nidx], nidx);
       }
     }
   }
