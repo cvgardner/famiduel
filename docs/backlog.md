@@ -315,8 +315,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and the lefty mirror; a new playtest opens every intro on a 320×568 phone after 3
       matches, checks both halves have a 44 px "?" that fits, taps one and checks only that
       half shows the finger (`demo-help.png`, `demo-help-tapped.png`).
-- [ ] Remember a "?" tap: if a seat taps it, show that game's finger again for its next
-      match too (a kid who needed help once probably needs it twice).
+- [x] 2026-11-01: Remember a "?" tap. A kid who needed the ghost finger once usually
+      needs it again, but the "?" came back every intro, so they had to remember to ask.
+      Now a seat that taps "?" gets that game's finger again by itself in its next intro
+      (Rematch, or picking the game again), only in their half and only for the same person
+      (a new name in the seat gets the plain "?"), until a match of that game is played to
+      the end; then it is back to the "?". Backing out of the intro keeps it. Session only,
+      nothing saved. `HelpMemory` in `src/app/demo.ts` (unit tested); the "?" playtest now
+      reopens the intro, checks the finger shows with no "?" in that half only
+      (`demo-help-remembered.png`), finishes a match and checks the "?" is back, and that
+      another person in the seat doesn't inherit it.
+- [ ] A "?" during a match (pause sheet) that replays the finger over that player's half,
+      for a kid who only realises mid-match they don't know the gesture.
 - [ ] Penalty's demo shows only the shooter's swipe; the keeper's tap is in text only.
       Games with two roles could alternate both gestures.
 

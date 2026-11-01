@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import games from '../content/games.json';
-import { DEMO_MATCHES, demoHelpHtml, demoHtml, GESTURES, isGesture, showsDemo } from '../src/app/demo';
+import { DEMO_MATCHES, demoHelpHtml, demoHtml, GESTURES, HelpMemory, isGesture, showsDemo } from '../src/app/demo';
 
 describe('ghost finger demo', () => {
   it('every game names a known gesture', () => {
@@ -37,5 +37,23 @@ describe('ghost finger demo', () => {
     expect(html).toMatch(/^<button class="demo-help"/);
     expect(html).toContain('data-p="1"');
     expect(html).toContain('aria-label="Show me how to play"');
+  });
+
+  it('remembers a "?" tap for that game, seat and person until a match is played', () => {
+    const m = new HelpMemory();
+    expect(m.wants('sumo', 0, 'Mia')).toBe(false);
+    m.mark('sumo', 0, 'Mia');
+    expect(m.wants('sumo', 0, 'Mia')).toBe(true);
+    // Only that game, that seat, that person.
+    expect(m.wants('minigolf', 0, 'Mia')).toBe(false);
+    expect(m.wants('sumo', 1, 'Mia')).toBe(false);
+    expect(m.wants('sumo', 0, 'Dad')).toBe(false);
+    // Still wanted until a match of it is finished (backing out of the intro keeps it).
+    expect(m.wants('sumo', 0, 'Mia')).toBe(true);
+    m.played('sumo', 0, 'Mia');
+    expect(m.wants('sumo', 0, 'Mia')).toBe(false);
+    // Tapping "?" again brings it back again.
+    m.mark('sumo', 0, 'Mia');
+    expect(m.wants('sumo', 0, 'Mia')).toBe(true);
   });
 });
