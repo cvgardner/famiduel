@@ -1,9 +1,11 @@
 /**
  * The home grid in labelled groups, so a parent scrolling a small phone can tell where the
- * lively games end and the calm, take-turns board games begin. The order inside each group
+ * lively games end and the calm, take-turns games begin. With the board games hidden
+ * (Chris, 1 Nov 2026) the strategy games and the extras share one "Take turns" group, so
+ * no group is left with a single card. The order inside each group
  * (and of the groups) is the order of content/games.json: action games first.
  */
-export type HomeGroupId = 'action' | 'board' | 'extra';
+export type HomeGroupId = 'action' | 'turns';
 
 export interface HomeGroup<T> {
   id: HomeGroupId;
@@ -13,14 +15,12 @@ export interface HomeGroup<T> {
 
 export const GROUP_TITLES: Record<HomeGroupId, string> = {
   action: '⚡ Action games',
-  board: '🧩 Board games · take turns',
-  extra: '🎁 Free extras',
+  turns: '🎲 Take turns',
 };
 
 /** Which group a game's `kind` puts it in. */
 export function groupOf(kind: string): HomeGroupId {
-  if (kind === 'Extra') return 'extra';
-  if (kind.startsWith('Strategy')) return 'board';
+  if (kind === 'Extra' || kind.startsWith('Strategy')) return 'turns';
   return 'action';
 }
 
