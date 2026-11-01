@@ -27,7 +27,7 @@ class PenaltyView implements GameInstance {
   private poof: { x: number; y: number; t: number } | null = null;
 
   constructor(private readonly ctx: GameContext) {
-    this.game = new Penalty(ctx.players, ctx.powersOn, ctx.rng);
+    this.game = new Penalty(ctx.players, ctx.powersOn, ctx.rng, ctx.starter);
     this.bots = PLAYERS.map((p) => (ctx.players[p].bot ? new PenaltyBot(p, ctx.players[p].bot!, ctx.rng) : null));
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;
@@ -40,6 +40,10 @@ class PenaltyView implements GameInstance {
 
   private toward(): -1 | 1 {
     return this.game.shooter === 0 ? -1 : 1;
+  }
+
+  firstMover(): PlayerIndex | null {
+    return this.game.first;
   }
 
   update(dt: number, input: Input): void {

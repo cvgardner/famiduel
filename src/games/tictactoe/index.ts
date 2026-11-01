@@ -30,7 +30,7 @@ class TicTacToeView implements GameInstance {
   private banner: { str: string; t: number } | null = null;
 
   constructor(private readonly ctx: GameContext) {
-    this.game = new TicTacToe(ctx.players, ctx.rng);
+    this.game = new TicTacToe(ctx.players, ctx.rng, ctx.starter);
     this.bots = PLAYERS.map((p) => (ctx.players[p].bot ? new TicTacToeBot(p, ctx.players[p].bot!, ctx.rng) : null));
     this.announceStart();
   }
@@ -42,6 +42,10 @@ class TicTacToeView implements GameInstance {
   private announceStart(): void {
     const g = this.game;
     this.banner = { str: `Game ${g.games + 1}`, t: this.t };
+  }
+
+  firstMover(): PlayerIndex | null {
+    return this.game.starters[0];
   }
 
   update(dt: number, input: Input): void {

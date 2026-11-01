@@ -56,8 +56,10 @@ export class TicTacToe {
   constructor(
     readonly players: [PlayerInfo, PlayerInfo],
     rng: Rng,
+    starter?: PlayerIndex,
   ) {
-    this.firstStarter = rng.chance(0.5) ? 0 : 1;
+    const coin: PlayerIndex = rng.chance(0.5) ? 0 : 1;
+    this.firstStarter = starter ?? coin;
     this.startGame();
   }
 

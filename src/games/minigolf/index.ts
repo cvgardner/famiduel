@@ -43,7 +43,7 @@ class MinigolfView implements GameInstance {
   private ended = false;
 
   constructor(private readonly ctx: GameContext) {
-    this.game = new Minigolf(ctx.players, ctx.powersOn, ctx.rng);
+    this.game = new Minigolf(ctx.players, ctx.powersOn, ctx.rng, undefined, ctx.starter);
     this.bots = PLAYERS.map((p) => (ctx.players[p].bot ? new MinigolfBot(p, ctx.players[p].bot!, ctx.rng) : null));
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;
@@ -83,6 +83,10 @@ class MinigolfView implements GameInstance {
   }
 
   // ---------- update ----------
+  firstMover(): PlayerIndex | null {
+    return this.game.firstLeadOff;
+  }
+
   update(dt: number, input: Input): void {
     this.t += dt;
     const g = this.game;

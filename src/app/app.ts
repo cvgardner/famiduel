@@ -11,6 +11,7 @@ import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
 import { demoHelpHtml, demoHtml, isGesture, showsDemo } from './demo';
 import { Runner } from './runner';
+import { StarterLog } from './starter';
 import { BOT_LEVELS, PLAYER_COLORS, Store, botFor, easierOffer } from './store';
 
 export type GameMeta = (typeof gamesJson.games)[number];
@@ -38,6 +39,8 @@ export class App {
   /** Seed override from ?seed= (tests and the daily course). */
   private fixedSeed: number | null;
   private matchCount = 0;
+  /** Starting takes turns: a rematch hands the first move to the other seat. */
+  private readonly starters = new StarterLog();
 
   constructor(private readonly root: HTMLElement) {
     root.innerHTML = `
@@ -289,7 +292,7 @@ export class App {
     const seed = this.fixedSeed !== null ? (this.fixedSeed + this.matchCount++) >>> 0 : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     const powersOn = this.store.data.settings.powers && !!this.picks[0] && !!this.picks[1];
     this.show('play');
-    this.runner = new Runner(this.stage, def, seed, players, powersOn, this.sfx, (r) => this.finish(r));
+    this.runner = new Runner(this.stage, def, seed, players, powersOn, this.sfx, (r) => this.finish(r), false, this.starters.next(meta.id));
     this.stage.start();
   }
 
@@ -392,6 +395,7 @@ export class App {
   private finish(r: GameResult): void {
     const meta = this.current!;
     const seats = this.runner?.players;
+    this.starters.record(meta.id, this.runner?.game.firstMover?.());
     this.store.record(
       meta.id,
       r,

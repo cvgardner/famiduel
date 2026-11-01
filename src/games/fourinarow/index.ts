@@ -42,7 +42,7 @@ class FourInARowView implements GameInstance {
   private lastTurn: PlayerIndex;
 
   constructor(private readonly ctx: GameContext) {
-    this.game = new FourInARow(ctx.players, ctx.powersOn, ctx.rng);
+    this.game = new FourInARow(ctx.players, ctx.powersOn, ctx.rng, ctx.starter);
     this.bots = PLAYERS.map((p) => (ctx.players[p].bot ? new FourInARowBot(p, ctx.players[p].bot!, ctx.rng) : null));
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;
@@ -56,6 +56,10 @@ class FourInARowView implements GameInstance {
     if (this.hold || this.roundPending || this.roundShow > 0) return true;
     for (const d of this.discs.values()) if (!d.settled) return true;
     return false;
+  }
+
+  firstMover(): PlayerIndex | null {
+    return this.game.firstStarter;
   }
 
   update(dt: number, input: Input): void {

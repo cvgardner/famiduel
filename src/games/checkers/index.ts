@@ -40,7 +40,7 @@ class CheckersView implements GameInstance {
   private warn = 0;
 
   constructor(private readonly ctx: GameContext) {
-    this.game = new Checkers(ctx.players, ctx.rng);
+    this.game = new Checkers(ctx.players, ctx.rng, ctx.starter);
     this.bots = PLAYERS.map((p) => (ctx.players[p].bot ? new CheckersBot(p, ctx.players[p].bot!, ctx.rng) : null));
     this.undoBtns = PLAYERS.map((p) => {
       if (ctx.players[p].bot || this.game.undos[p] <= 0) return null;
@@ -50,6 +50,10 @@ class CheckersView implements GameInstance {
 
   private color(p: PlayerIndex): string {
     return this.ctx.players[p].color;
+  }
+
+  firstMover(): PlayerIndex | null {
+    return this.game.starter;
   }
 
   update(dt: number, input: Input): void {

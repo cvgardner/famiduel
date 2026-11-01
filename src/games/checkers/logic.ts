@@ -171,14 +171,19 @@ export class Checkers {
   /** Undo uses left for each player (= assist level). */
   undos: [number, number];
   lastMove: Move | null = null;
+  /** Who moved first this match. */
+  readonly starter: PlayerIndex;
   private history: Snapshot[] = [];
   private moves: Move[] | null = null;
 
   constructor(
     readonly players: [PlayerInfo, PlayerInfo],
     rng: Rng,
+    starter?: PlayerIndex,
   ) {
-    this.turn = rng.chance(0.5) ? 0 : 1;
+    const coin: PlayerIndex = rng.chance(0.5) ? 0 : 1;
+    this.turn = starter ?? coin;
+    this.starter = this.turn;
     this.undos = [Math.round(lerpAssist(players[0].assist, 0, 3)), Math.round(lerpAssist(players[1].assist, 0, 3))];
   }
 

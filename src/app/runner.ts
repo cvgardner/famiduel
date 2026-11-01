@@ -1,6 +1,6 @@
 // Runs one match: countdown, fixed-step updates, then hands the result back.
 import { makeRng } from '../core/rng';
-import type { GameResult, PlayerInfo } from '../core/types';
+import type { GameResult, PlayerIndex, PlayerInfo } from '../core/types';
 import { text, type G } from '../engine/draw';
 import { Fx } from '../engine/fx';
 import type { GameDef, GameInstance } from '../engine/game';
@@ -31,6 +31,7 @@ export class Runner {
     private readonly sfx: Sfx,
     private readonly onDone: (r: GameResult) => void,
     skipCountdown = false,
+    starter?: PlayerIndex,
   ) {
     if (skipCountdown) this.countdown = 0;
     this.game = def.create({
@@ -40,6 +41,7 @@ export class Runner {
       powersOn,
       sfx,
       fx: this.fx,
+      starter,
       end: (r) => {
         if (!this.result) this.result = r;
       },

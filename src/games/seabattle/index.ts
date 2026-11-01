@@ -65,7 +65,7 @@ class SeaBattleView implements GameInstance {
   private t = 0;
 
   constructor(private readonly ctx: GameContext) {
-    this.game = new SeaBattle(ctx.players, ctx.powersOn, ctx.rng);
+    this.game = new SeaBattle(ctx.players, ctx.powersOn, ctx.rng, ctx.starter);
     this.bots = PLAYERS.map((p) => (ctx.players[p].bot ? new SeaBattleBot(p, ctx.players[p].bot!, ctx.rng) : null));
     this.humans = PLAYERS.filter((p) => !this.bots[p]);
     for (const p of PLAYERS) this.bots[p]?.place(this.game);
@@ -157,6 +157,10 @@ class SeaBattleView implements GameInstance {
   }
 
   // ---------- update ----------
+
+  firstMover(): PlayerIndex | null {
+    return this.game.firstShooter;
+  }
 
   update(dt: number, input: Input): void {
     this.t += dt;
