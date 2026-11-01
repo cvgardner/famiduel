@@ -72,6 +72,12 @@ shooter. Every other game is fully open.
   `energy.spend(duration)` when fired, `energy.tick(dt)` each step. Effects must be visible
   and counterable (telegraph with a glow / banner). A full bar takes roughly 15–25 s of play.
 - Matches should last about 1–3 minutes. Turn-based games: keep a time cap per bot move.
+- **Who goes first** (turn games): take `ctx.starter` as an optional last constructor
+  argument. Still draw your own coin from the rng (`const coin = rng.chance(0.5) ? 0 : 1`)
+  so the rest of the seeded match is unchanged, then use `starter ?? coin`. Give the view a
+  `firstMover()` that returns who moved first: the app (`src/app/starter.ts`) hands the
+  next rematch of that game to the other seat, so starting takes turns. A handicap rule may
+  still override it (Tic-Tac-Toe lets a trailing player start more often).
 - Call `ctx.end({ winner, score, summary })` exactly once from the view when the logic
   reports a winner. A draw is `winner: null`.
 

@@ -96,6 +96,8 @@ export class SeaBattle {
   seas: [Sea, Sea] = [emptySea(), emptySea()];
   ready: [boolean, boolean] = [false, false];
   turn: PlayerIndex = 0;
+  /** Who fired first this match (null while fleets are being placed). */
+  firstShooter: PlayerIndex | null = null;
   shotsLeft = 1;
   /** Turns started per player (for the extra-shot handicap). */
   turnNo: [number, number] = [0, 0];
@@ -114,6 +116,8 @@ export class SeaBattle {
     readonly players: [PlayerInfo, PlayerInfo],
     readonly powersOn: boolean,
     private readonly rng: Rng,
+    /** Who fires first once both fleets are ready; undefined = coin toss. */
+    private readonly starter?: PlayerIndex,
   ) {
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     this.placeRandom(0);
@@ -195,7 +199,9 @@ export class SeaBattle {
     this.ready[p] = true;
     if (this.ready[0] && this.ready[1]) {
       this.phase = 'fire';
-      this.startTurn(this.rng.chance(0.5) ? 0 : 1);
+      const coin: PlayerIndex = this.rng.chance(0.5) ? 0 : 1;
+      this.firstShooter = this.starter ?? coin;
+      this.startTurn(this.firstShooter);
     }
   }
 

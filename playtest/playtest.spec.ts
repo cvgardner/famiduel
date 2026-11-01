@@ -1075,6 +1075,40 @@ test('minigolf: every hole comes up in a match, fits the phone and can be finish
   expect(errors).toEqual([]);
 });
 
+test('rematch: whoever went second last match starts the rematch', async ({ page }) => {
+  // A coin toss every match could leave a kid going second rematch after rematch. Play
+  // three matches in a row of each turn game (two people, through the real result screen's
+  // Rematch button) and check the first move swaps seats every time.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  type StartHook = { runner: null | { game: { firstMover?(): number | null }; result: unknown } };
+  const first = () => page.evaluate(() => (window as unknown as { __famiduel: StartHook }).__famiduel.runner!.game.firstMover?.() ?? null);
+  for (const id of ['fourinarow', 'checkers', 'tictactoe', 'penalty', 'minigolf']) {
+    await page.locator(`.game-card[data-id="${id}"]`).tap();
+    const seen: (number | null)[] = [];
+    for (let m = 0; m < 3; m++) {
+      await introAsPeople(page, [0, 1]);
+      await page.waitForTimeout(2200); // countdown
+      seen.push(await first());
+      if (id === 'fourinarow' && m === 1) await page.screenshot({ path: path.join(OUT, 'rematch-starter.png') });
+      // End the match, then take the result screen's Rematch.
+      await page.evaluate(() => {
+        const r = (window as unknown as { __famiduel: StartHook }).__famiduel.runner!;
+        // A draw, so the night's auto head start (which lets a trailing player start in Tic-Tac-Toe) stays out of it.
+        if (!r.result) r.result = { winner: null, score: [0, 0] };
+      });
+      await expect(page.locator('#result')).toBeVisible({ timeout: 5000 });
+      if (m < 2) await page.locator('#rematchBtn').tap();
+    }
+    expect(seen.every((s) => s === 0 || s === 1), `${id} reports who went first`).toBe(true);
+    expect(seen[1], `${id}: the rematch starts with the other seat`).not.toBe(seen[0]);
+    expect(seen[2], `${id}: and swaps back the time after`).not.toBe(seen[1]);
+    await page.click('#homeBtn');
+  }
+  expect(errors).toEqual([]);
+});
+
 test('rock paper scissors: two people pick behind a look-away cover, one at a time', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);

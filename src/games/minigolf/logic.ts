@@ -90,6 +90,8 @@ export class Minigolf {
   t = 0;
   /** Who tees off on the current (or next) hole. */
   leadOff: PlayerIndex;
+  /** Who teed off on the first hole. */
+  readonly firstLeadOff: PlayerIndex;
   private rollEvents: RollEvent[] = [];
 
   constructor(
@@ -98,6 +100,8 @@ export class Minigolf {
     private readonly rng: Rng,
     /** Optional fixed hole list (tests); otherwise 3 picked with the seeded rng. */
     holeIds?: string[],
+    /** Who tees off on the first hole; undefined = coin toss. */
+    starter?: PlayerIndex,
   ) {
     let picked: number[];
     if (holeIds) picked = holeIds.map((id) => HOLES.findIndex((h) => h.id === id));
@@ -110,7 +114,9 @@ export class Minigolf {
     this.holes = picked.map((i) => HOLES[i]);
     this.courses = this.holes.map(compileCourse);
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
-    this.leadOff = rng.chance(0.5) ? 0 : 1;
+    const coin: PlayerIndex = rng.chance(0.5) ? 0 : 1;
+    this.leadOff = starter ?? coin;
+    this.firstLeadOff = this.leadOff;
     this.balls = [this.newBall(), this.newBall()];
     this.startHole(0);
   }

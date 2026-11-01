@@ -171,6 +171,8 @@ export class FourInARow {
   turn: PlayerIndex;
   /** Who started the current game. */
   starter: PlayerIndex;
+  /** Who dropped first in the match's first game. */
+  readonly firstStarter: PlayerIndex;
   /** Games won so far. */
   score: [number, number] = [0, 0];
   gamesPlayed = 0;
@@ -198,9 +200,12 @@ export class FourInARow {
     readonly players: [PlayerInfo, PlayerInfo],
     readonly powersOn: boolean,
     rng: Rng,
+    starter?: PlayerIndex,
   ) {
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
-    this.starter = rng.chance(0.5) ? 0 : 1;
+    const coin: PlayerIndex = rng.chance(0.5) ? 0 : 1;
+    this.starter = starter ?? coin;
+    this.firstStarter = this.starter;
     this.turn = this.starter;
   }
 

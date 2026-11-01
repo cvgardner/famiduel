@@ -275,9 +275,20 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       OS-level way to stop a kid leaving the app), behind the parental gate.
 
 ## Ideas found 2026-10-31 (text size run)
-- [ ] Reviews of the leading app: a game where the first shooter wins if they score every
-      shot (basketball). Check every turn-based game for a first-mover edge in sims (Penalty
-      already alternates with sudden death; Minigolf's lead-off alternates).
+- [x] 2026-11-01 (research run): rematches take turns starting. Store reviews of the
+      leading 2-player app (justuseapp.com review digest) complain that "the first player
+      has an advantage" (basketball) and ask for "a second shot for the other player". Ours
+      tossed a fresh coin every match, so a kid could go second rematch after rematch in
+      Four in a Row, Checkers, Tic-Tac-Toe, Penalty (first kicker), Minigolf (first tee) or
+      Sea Battle (first shot). Now each game remembers who started its last finished match
+      this session and the Rematch (or picking the game again) hands the start to the other
+      seat, like families do at a table. The first match is still the seeded coin toss (the
+      coin is still drawn, so seeded matches are unchanged), Tic-Tac-Toe's head-start rule
+      still lets a trailing player start more, and a quit match doesn't count. Games take
+      `ctx.starter`, views report `firstMover()`, the rule is `StarterLog` in
+      `src/app/starter.ts` (unit tested for all six games); the playtest plays three matches
+      of five turn games through the real Rematch button and checks the start swaps each
+      time (`rematch-starter.png`). Contract noted in docs/adding-a-game.md.
 - [x] 2026-10-31: text contrast on the canvas. The playtest now checks every word drawn while each game is played against
       the pixels behind it (WCAG 1.4.3: 4.5:1, or 3:1 for large bold text; the best
       contrast a label ever had counts, so fading pops are judged at their peak) and fails
@@ -544,3 +555,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       discs (like captured pieces beside a real board), so a kid can count them at a glance.
 - [ ] Checkers: the jump trail line is thin on a 320 px phone; if kids still miss a bot's
       jump, replay the last move's hops once (slow) when the person taps a ghost ring.
+
+## Ideas found 2026-11-01 (rematch starter run)
+- [ ] Say who starts: a short "Your turn to start!" pop on the starter's side at the first
+      move of a rematch, so kids see the swap is on purpose (today only the turn line shows).
+- [ ] Reviews also ask to pick their colour when playing a bot and complain hard bots feel
+      like they "never lose" (RPS, Mini Golf) or copy your moves (Snake); check our hard RPS
+      bot stays near 1/3 per throw against a patterned kid, and that the hard Snake bot never
+      mirrors a player's path.
+- [ ] Reviews: "hard to tell whether the ball has landed yet" (Ping Pong). Ours has a bounce
+      ring and a shadow; check the ring reads on a sunny phone (it lasts 0.5 s).

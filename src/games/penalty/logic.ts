@@ -109,9 +109,11 @@ export class Penalty {
     readonly players: [PlayerInfo, PlayerInfo],
     readonly powersOn: boolean,
     private readonly rng: Rng,
+    starter?: PlayerIndex,
   ) {
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
-    this.first = rng.chance(0.5) ? 0 : 1;
+    const coin: PlayerIndex = rng.chance(0.5) ? 0 : 1;
+    this.first = starter ?? coin;
     this.placeBall();
   }
 
