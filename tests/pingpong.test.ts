@@ -255,7 +255,7 @@ describe('ping pong', () => {
     expect(Math.hypot(g.ball.vx, g.ball.vy)).toBeLessThan(before);
   });
 
-  it('swiping sideways through the ball curves it the way you swiped', () => {
+  it('swiping sideways through the ball hooks it: dragged the way you swiped, then bent back the other way', () => {
     for (const dir of [1, -1]) {
       const g = new PingPong([player(), player()], false, makeRng(14));
       rallyToward(g, 0);
@@ -264,8 +264,13 @@ describe('ping pong', () => {
         // Sweep across the ball: start on one side, move through at full speed.
         return { tx: timeLeft < 4 * DT ? g.paddles[0].x + dir * 100 : 180 - dir * 30, power: false };
       });
-      expect(Math.sign(e.spin)).toBe(dir);
+      expect(Math.sign(e.spin)).toBe(-dir);
+      expect(Math.sign(g.ball.ax)).toBe(-dir);
       expect(Math.abs(g.ball.ax)).toBeGreaterThan(100);
+      // The brush drags it off toward the swipe first (on top of where it met the paddle).
+      const off = Math.max(-1, Math.min(1, (e.x - (g.paddles[0].x - g.paddles[0].vx / 60)) / (g.paddles[0].w / 2)));
+      const flat = Math.sin(off * RULES.maxAngle) * e.speed;
+      expect((g.ball.vx - flat) * dir).toBeGreaterThan(0);
     }
   });
 
