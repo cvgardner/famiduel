@@ -113,6 +113,62 @@ describe('air hockey', () => {
       expect(g.score).toEqual([0, 0]);
     });
 
+    it('a split puck left with a walked-away player still gets blown back, so the match ends', () => {
+      // The stall rule used to watch only a single puck: after the bot's Split Puck, two
+      // pucks resting on the idle side (or one on each side) stalled the match forever
+      // (the playtest's fastForward(600) found it; ~4 in 5 split matches in a sim).
+      for (const level of ['easy', 'normal', 'hard'] as BotLevel[]) {
+        for (let seed = 1; seed <= 12; seed++) {
+          const rng = makeRng(seed * 31 + 7);
+          const g = new AirHockey([player(), player({ bot: level, power: power('airhockey', 'split') })], true, rng);
+          const bot = new AirHockeyBot(1, level, rng);
+          let t = 0;
+          while (g.winner === null && t < 600) {
+            g.step(DT, [{ tx: 180, ty: 560, power: false }, bot.think(g, DT)]);
+            t += DT;
+          }
+          expect(g.winner, `${level} seed ${seed}`).not.toBeNull();
+        }
+      }
+    });
+
+    it('bot vs bot with Split Puck always reaches a result', () => {
+      // The e2e "bot vs bot" match failed ~1 in 5 on this: after a split, a second puck
+      // resting where neither bot chased it was never blown back (5-6 of 60 sims stuck).
+      for (const [a, b] of [['normal', 'hard'], ['normal', 'normal']] as [BotLevel, BotLevel][]) {
+        for (let seed = 1; seed <= 30; seed++) {
+          const rng = makeRng(seed * 13 + 5);
+          const pw = power('airhockey', 'split');
+          const g = new AirHockey([player({ bot: a, power: pw }), player({ bot: b, power: pw })], true, rng);
+          const bots = [new AirHockeyBot(0, a, rng), new AirHockeyBot(1, b, rng)];
+          let t = 0;
+          while (g.winner === null && t < 900) {
+            g.step(DT, [bots[0].think(g, DT), bots[1].think(g, DT)]);
+            t += DT;
+          }
+          expect(g.winner, `${a} v ${b} seed ${seed}`).not.toBeNull();
+        }
+      }
+    });
+
+    it('two pucks both resting in one half are each blown back', () => {
+      const g = new AirHockey([player(), player()], false, makeRng(1));
+      g.serve = 0;
+      g.pucks = [
+        { x: 100, y: 500, vx: 0, vy: 0, alive: true },
+        { x: 260, y: 520, vx: 0, vy: 0, alive: true },
+      ];
+      const still = { tx: 180, ty: 600, power: false };
+      const drifts: number[] = [];
+      for (let t = 0; t < RULES.driftAfter + 0.1; t += DT) {
+        g.step(DT, [still, { tx: 180, ty: 60, power: false }]);
+        for (const e of g.events) if (e.type === 'drift') drifts.push(e.p);
+      }
+      expect(drifts).toEqual([0, 0]);
+      for (let t = 0; t < 5; t += DT) g.step(DT, [still, { tx: 180, ty: 60, power: false }]);
+      for (const pk of g.pucks) expect(pk.y).toBeLessThan(320);
+    });
+
     it('a match against a bot ends even if the person never moves', () => {
       let botWins = 0;
       for (const seed of [1, 2, 3, 4]) {
