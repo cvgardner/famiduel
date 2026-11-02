@@ -246,6 +246,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (n=100, normal bots: smash 63%, slow-mo 44%, curve 49%; `npm run swipes` unchanged).
 - [ ] Quick Draw Slow Time wins 74%; Ping Pong Smash 71% (Slow-mo 34%); Tanks Shield 68%;
       Air Hockey Split 33% (loses to None 40/60).
+- [x] 2026-11-02 (PR #77): Air Hockey Split won 33% because the bot split pucks that were coming
+      at its own goal (two to stop). It now splits just after a hit, while the puck heads at
+      the other goal, as a person would: split 56% at normal (easy 59%, hard 63%), n=60.
 - [x] 2026-10-31: Playtest: Sea Battle never got past fleet placement in real-time play
       (random touches almost never hit Ready, and firing needs the same square tapped twice),
       so it reported 0 buzzes. Turn-based games can now have a "person" in the playtest
