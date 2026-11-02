@@ -36,6 +36,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       float32 rounding slip in the Dijkstra), so bots misread most of Zig Zag-like holes.
       Bot noise retuned for the new cup: easy +0.76, normal -0.44, hard -1.39 per hole.
 
+- [x] 2026-11-01 (Chris): 7-game tournament. Home button "7-game tournament" picks 7
+      different action/aim games by seed; first to 4 wins, a draw adds a game; the lineup
+      screen shows who won each one; quit games wait; result screen says "Next game".
+      Unit tests (tests/tournament.test.ts) and an e2e bot-vs-bot run to a champion.
+
 ## Feel and fairness
 - [x] 2026-10-31: Sumo: the normal bot beat a mashing player 2-0 in under 8 s. Measured:
       the bot level made no difference; a masher fell off the ring *on their own* in about
@@ -669,3 +674,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       phone.
 - [ ] The home screen (DOM) is still not contrast-checked; the headings use `--dim` (62%
       white on #14112b, about 7:1), but a probe over all menu text would catch a regression.
+## 2026-11-01 Air Hockey bot motion (Chris: "super spazzy")
+- [x] Measured first (`src/core/motion.ts`): every level flipped direction ~9×/s and
+      twitched ~7×/s, snapped harder than a finger on ~30% of frames, wobbled ~45% of the
+      time. Causes: the paddle teleported toward a target that changed every frame (mode
+      ping-pong between behind/push/around/aside, noise re-rolled every 0.4 s into the aim,
+      defend tracking every wall bounce). Fix: a hand (`HAND` in logic.ts: eased target,
+      acceleration-limited finger, same speed cap as a person), a committed shot (one aim per
+      approach, run-up, push, short recover), latched sides for walking round / stepping
+      aside, and a goalie that moves to where the puck will cross instead of shadowing it.
+      Now ~2 flips/s, ~0.3 twitches/s, no harsh snaps. Levels are more clearly ordered
+      (hard beats normal ~4 in 5) and own goals vs a still player fell; matches run longer
+      (blocks are softer, so more stall-rule drifts against an idle player).
+- [ ] Run the motion check on the other real-time bots (Sumo, Ping Pong, Tanks, Snake).
+- [ ] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
+      fine for a kid's opponent, but watch it in playtests.
