@@ -705,6 +705,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Now ~2 flips/s, ~0.3 twitches/s, no harsh snaps. Levels are more clearly ordered
       (hard beats normal ~4 in 5) and own goals vs a still player fell; matches run longer
       (blocks are softer, so more stall-rule drifts against an idle player).
-- [ ] Run the motion check on the other real-time bots (Sumo, Ping Pong, Tanks, Snake).
+- [x] 2026-11-01: Ping Pong bot motion. The motion check found few flips or twitches but
+      8-9% harsh frames at every level: the paddle jumped from still to full speed, or
+      reversed, in one frame each time the ball changed direction, because the bot steered
+      straight at each new target. It now moves a virtual finger (`HAND` in
+      pingpong/logic.ts): keeps pace with a planned swing, brakes as it arrives, accelerates
+      no harder than 12000 u/s² (22000 snapping into a drive or smash). Harsh frames 0.4-1.7%,
+      flips 0.9-1.7/s, wobble 6-12%. Strength unchanged over 200 bot-vs-bot matches (easy beats
+      normal 8% (was 2%), normal vs hard 0%, smashes and drives as often). Unit tests in
+      tests/pingpong-motion.test.ts; `npm run motion` prints both games.
+- [ ] Run the motion check on the other real-time bots (Sumo, Tanks, Snake). Snake and Tanks
+      move on a grid or a stick, so they may need their own "spazzy" measure (turns per second).
 - [ ] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
       fine for a kid's opponent, but watch it in playtests.
