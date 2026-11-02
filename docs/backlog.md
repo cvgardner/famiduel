@@ -796,8 +796,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 
 ## Found 2026-11-01 23:21 PT run
 - [x] 2026-11-02 (PR #76): The "ping pong: where the ball landed stays" playtest failed main's
-      verify once with two verifies running (no landing survived its 150 ms look three times
-      running; it passes alone). It now watches up to 8 landings until three were seen holding.
+      verify, and 2 runs in 3 on its own: a fast ball's last stretch after the bounce is shorter
+      than the test's 150 ms look, so no landing got checked. It now samples every frame in the
+      page for 8 s and checks each landing from the frame it appears until the hit back or the
+      point ends (held, in place, fully showing after its 0.08 s pop-in).
       Same PR: the air hockey "never moves, at any level" unit test (~5 s alone) timed out at
       vitest's 5 s default with two verifies running; it now has the 60 s whole-match timeout.
 - [ ] Power balance with people in mind: the bots almost never jump the gun or bonk, so
