@@ -2,17 +2,20 @@
 // each other at every level pairing, seats swapped half the time, powers off so the
 // numbers are about the bots. Prints win rates (for the first-named level), draws,
 // unfinished matches and the average match length, so difficulty tuning across games
-// starts from numbers. Options: `npm run sim -- --n 40 --game sumo --powers`.
-import type { BotLevel } from '../src/core/types';
-import { pairing, SPECS } from './simlib';
+// starts from numbers. The kid rows show whether a mashing small kid, with no head start
+// and with the full one, ever beats the easy bot. Options: `npm run sim -- --n 40 --game sumo --powers`.
+import { pairing, type SimLevel, SPECS } from './simlib';
 
-const PAIRS: [BotLevel, BotLevel][] = [
+// "kid" is a small kid who just mashes (scripts/simlib.ts Masher); "kid+3" has the full head start.
+const PAIRS: [SimLevel, SimLevel][] = [
   ['easy', 'easy'],
   ['normal', 'normal'],
   ['hard', 'hard'],
   ['normal', 'easy'],
   ['hard', 'normal'],
   ['hard', 'easy'],
+  ['kid', 'easy'],
+  ['kid+3', 'easy'],
 ];
 
 function main() {

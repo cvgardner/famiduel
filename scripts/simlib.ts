@@ -1,5 +1,6 @@
 // Shared by `npm run sim` and `npm run sim:powers`: bot-vs-bot matches of the real-time action games.
 import { makeRng, type Rng } from '../src/core/rng';
+import { H, MID, W } from '../src/engine/world';
 import powers from '../content/powers.json';
 import type { BotLevel, PlayerIndex, PlayerInfo, PowerDef } from '../src/core/types';
 import { AirHockey, AirHockeyBot } from '../src/games/airhockey/logic';
@@ -22,20 +23,68 @@ export type Spec = {
   bot(p: PlayerIndex, level: BotLevel, rng: Rng): Bot;
   /** Games without an over/done/finished flag end when a winner is set. */
   endsOnWinner?: boolean;
+  /** This game's intent from the masher kid's thumb (see Masher). */
+  kid(m: Masher, p: PlayerIndex): unknown;
 };
 
+/**
+ * A small kid who doesn't follow the game yet (the unit tests' sumo masher, for every
+ * game): presses in bursts of 0.08-0.6 s with 0.05-0.5 s gaps, and drags a finger to a
+ * random spot on their own half every 0.3-1 s. Never uses a power.
+ */
+export class Masher {
+  press = false;
+  side: -1 | 1 = 1;
+  x = W / 2;
+  y = 0;
+  private left = 0;
+  private moveIn = 0;
+
+  constructor(readonly p: PlayerIndex, private readonly rng: Rng) {
+    this.y = p === 0 ? H * 0.8 : H * 0.2;
+  }
+
+  tick(dt: number): void {
+    this.left -= dt;
+    if (this.left <= 0) {
+      this.press = !this.press;
+      this.left = this.press ? this.rng.range(0.08, 0.6) : this.rng.range(0.05, 0.5);
+      if (this.press) this.side = this.rng.chance(0.5) ? -1 : 1;
+    }
+    this.moveIn -= dt;
+    if (this.moveIn <= 0) {
+      this.moveIn = this.rng.range(0.3, 1);
+      this.x = this.rng.range(30, W - 30);
+      this.y = this.p === 0 ? this.rng.range(MID + 30, H - 30) : this.rng.range(30, MID - 30);
+    }
+  }
+
+  /** A tap: true only on the first frame of a press. */
+  private was = false;
+  tap(): boolean {
+    const t = this.press && !this.was;
+    this.was = this.press;
+    return t;
+  }
+}
+
+/** Seat levels the sims play: the three bot levels, or the masher kid with no head start / a full one. */
+export type SimLevel = BotLevel | 'kid' | 'kid+3';
+
 export const SPECS: Spec[] = [
-  { id: 'airhockey', make: (pl, pw, r) => new AirHockey(pl, pw, r) as unknown as Game, bot: (p, l, r) => new AirHockeyBot(p, l, r) as unknown as Bot, endsOnWinner: true },
-  { id: 'pingpong', make: (pl, pw, r) => new PingPong(pl, pw, r) as unknown as Game, bot: (p, l, r) => new PingPongBot(p, l, r) as unknown as Bot, endsOnWinner: true },
-  { id: 'sumo', make: (pl, pw, r) => new Sumo(pl, pw, r) as unknown as Game, bot: (p, l, r) => new SumoBot(p, l, r) as unknown as Bot },
-  { id: 'snacksnatch', make: (pl, pw, r) => new SnackSnatch(pl, pw, r) as unknown as Game, bot: (p, l, r) => new SnackSnatchBot(p, l, r) as unknown as Bot },
-  { id: 'snake', make: (pl, pw, r) => new SnakeDuel(pl, pw, r) as unknown as Game, bot: (p, l, r) => new SnakeBot(p, l, r) as unknown as Bot },
-  { id: 'quickdraw', make: (pl, pw, r) => new QuickDraw(pl, pw, r) as unknown as Game, bot: (p, l, r) => new QuickDrawBot(p, l, r) as unknown as Bot },
-  { id: 'tanks', make: (pl, pw, r) => new TankDuel(pl, pw, r) as unknown as Game, bot: (p, l, r) => new TankBot(p, l, r) as unknown as Bot },
-  { id: 'chopchop', make: (pl, pw, r) => new ChopChop(pl, pw, r) as unknown as Game, bot: (p, l, r) => new ChopBot(p, l, r) as unknown as Bot },
+  { id: 'airhockey', make: (pl, pw, r) => new AirHockey(pl, pw, r) as unknown as Game, bot: (p, l, r) => new AirHockeyBot(p, l, r) as unknown as Bot, endsOnWinner: true, kid: (m) => ({ tx: m.x, ty: m.y, power: false }) },
+  { id: 'pingpong', make: (pl, pw, r) => new PingPong(pl, pw, r) as unknown as Game, bot: (p, l, r) => new PingPongBot(p, l, r) as unknown as Bot, endsOnWinner: true, kid: (m) => ({ tx: m.x, ty: m.y, power: false }) },
+  { id: 'sumo', make: (pl, pw, r) => new Sumo(pl, pw, r) as unknown as Game, bot: (p, l, r) => new SumoBot(p, l, r) as unknown as Bot, kid: (m) => ({ hold: m.press, power: false }) },
+  { id: 'snacksnatch', make: (pl, pw, r) => new SnackSnatch(pl, pw, r) as unknown as Game, bot: (p, l, r) => new SnackSnatchBot(p, l, r) as unknown as Bot, kid: (m) => { const t = m.tap(); return { snap: [t && m.side < 0, t && m.side > 0], power: false }; } },
+  { id: 'snake', make: (pl, pw, r) => new SnakeDuel(pl, pw, r) as unknown as Game, bot: (p, l, r) => new SnakeBot(p, l, r) as unknown as Bot, kid: (m) => ({ turn: m.tap() ? m.side : 0, power: false }) },
+  { id: 'quickdraw', make: (pl, pw, r) => new QuickDraw(pl, pw, r) as unknown as Game, bot: (p, l, r) => new QuickDrawBot(p, l, r) as unknown as Bot, kid: (m) => ({ tap: m.tap(), power: false }) },
+  { id: 'tanks', make: (pl, pw, r) => new TankDuel(pl, pw, r) as unknown as Game, bot: (p, l, r) => new TankBot(p, l, r) as unknown as Bot, kid: (m, p) => ({ mx: (m.x - W / 2) / (W / 2), my: (m.y - (p === 0 ? H * 0.75 : H * 0.25)) / (H / 4), fire: m.tap(), power: false }) },
+  { id: 'chopchop', make: (pl, pw, r) => new ChopChop(pl, pw, r) as unknown as Game, bot: (p, l, r) => new ChopBot(p, l, r) as unknown as Bot, kid: (m) => ({ chop: m.tap() ? m.side : 0, power: false }) },
 ];
 
-const seat = (bot: BotLevel, pw: PowerDef | null = null): PlayerInfo => ({ name: bot, color: '#3fa9ff', assist: 0, power: pw, bot });
+const isKid = (l: SimLevel): l is 'kid' | 'kid+3' => l === 'kid' || l === 'kid+3';
+const seat = (l: SimLevel, pw: PowerDef | null = null): PlayerInfo =>
+  isKid(l) ? { name: l, color: '#3fa9ff', assist: l === 'kid+3' ? 3 : 0, power: pw, bot: null } : { name: l, color: '#3fa9ff', assist: 0, power: pw, bot: l };
 
 /** A game's powers from content/powers.json. */
 export function powersOf(game: string): PowerDef[] {
@@ -44,10 +93,17 @@ export function powersOf(game: string): PowerDef[] {
 
 export type Result = { winner: PlayerIndex | null; t: number; finished: boolean };
 
-export function playMatch(spec: Spec, levels: [BotLevel, BotLevel], seed: number, powersOn = false, picks: [PowerDef | null, PowerDef | null] = [null, null]): Result {
+export function playMatch(spec: Spec, levels: [SimLevel, SimLevel], seed: number, powersOn = false, picks: [PowerDef | null, PowerDef | null] = [null, null]): Result {
   const rng = makeRng(seed);
   const g = spec.make([seat(levels[0], picks[0]), seat(levels[1], picks[1])], powersOn, rng);
-  const bots = [spec.bot(0, levels[0], rng), spec.bot(1, levels[1], rng)];
+  const kidRng = makeRng(seed + 7919);
+  const player = (p: PlayerIndex): Bot => {
+    const l = levels[p];
+    if (!isKid(l)) return spec.bot(p, l, rng);
+    const m = new Masher(p, kidRng);
+    return { think: (_g: never, dt: number) => (m.tick(dt), spec.kid(m, p)) };
+  };
+  const bots = [player(0), player(1)];
   const ended = () => g.over === true || g.done === true || g.finished === true || g.phase === 'done' || (!!spec.endsOnWinner && g.winner != null);
   let t = 0;
   for (; !ended() && t < MAX_T; t += DT) {
@@ -58,7 +114,7 @@ export function playMatch(spec: Spec, levels: [BotLevel, BotLevel], seed: number
 }
 
 /** Win share of levels[0] over n matches, with the seats swapped every other match. */
-export function pairing(spec: Spec, levels: [BotLevel, BotLevel], n: number, powersOn = false, picks: [PowerDef | null, PowerDef | null] = [null, null]) {
+export function pairing(spec: Spec, levels: [SimLevel, SimLevel], n: number, powersOn = false, picks: [PowerDef | null, PowerDef | null] = [null, null]) {
   let wins = 0, seat0Wins = 0, draws = 0, unfinished = 0, time = 0;
   for (let i = 0; i < n; i++) {
     const swap = i % 2 === 1;
