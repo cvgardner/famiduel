@@ -1492,8 +1492,11 @@ test('ping pong: where the ball landed stays on the table until it is hit back',
       const v = (window as unknown as { __famiduel: PongHook }).__famiduel.runner!.game;
       return { spot: v.bounceSpot(), hits: v.game.hits };
     });
+  // A landing that a bot returns within the 150 ms look can't be checked; on a busy
+  // machine that can happen three times running, so keep watching landings (up to 8)
+  // until three were seen holding.
   let checked = 0;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 8 && checked < 3; i++) {
     let s = await look();
     // Wait for a fresh landing (a held spot with the ball not yet hit back).
     await expect.poll(async () => { s = await look(); return !!s.spot?.held; }, { timeout: 8000 }).toBe(true);

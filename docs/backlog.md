@@ -797,3 +797,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       order (A, B, B, A...) is the known fix in real shootouts; measure before changing.
 - [ ] Air Hockey has no landing problem, but Snack Snatch's thrown snacks could show a
       short ground shadow too if kids misjudge where they come down.
+
+## Found 2026-11-01 23:21 PT run
+- [x] 2026-11-02 (PR #76): The "ping pong: where the ball landed stays" playtest failed main's
+      verify once with two verifies running (no landing survived its 150 ms look three times
+      running; it passes alone). It now watches up to 8 landings until three were seen holding.
+- [ ] Power balance with people in mind: the bots almost never jump the gun or bonk, so
+      `npm run sim:powers` undervalues forgiving powers (Quick Draw Double Shot / Fake-out,
+      the old Chop Chop shield). A human false-start / mistake rate per bot level would make
+      the table closer to what families feel.
