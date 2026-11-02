@@ -714,7 +714,22 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       flips 0.9-1.7/s, wobble 6-12%. Strength unchanged over 200 bot-vs-bot matches (easy beats
       normal 8% (was 2%), normal vs hard 0%, smashes and drives as often). Unit tests in
       tests/pingpong-motion.test.ts; `npm run motion` prints both games.
-- [ ] Run the motion check on the other real-time bots (Sumo, Tanks, Snake). Snake and Tanks
-      move on a grid or a stick, so they may need their own "spazzy" measure (turns per second).
+- [x] 2026-11-01: Tank Duel bot motion. A tank turns at a capped rate, so it can't snap like a
+      paddle; the stick-game measure is a *wag*: turning one way, then straight back within
+      0.35 s (`src/games/tanks/motion.ts`, in `npm run motion`). The bot wagged 0.43 (easy),
+      0.72 (normal) and 1.13 (hard) times a second, mostly while lining up a shot (it re-rolled
+      its aim wobble on every look, every 0.2 s for hard) and after each shot (it turned away
+      to drive, then turned back for the next shot 0.2-0.6 s later). Now it keeps one wobble
+      per shot and holds its aim after firing until its next look: wags 0.22 / 0.22 / 0.33 per
+      second, turn reversals 1.7-2.4 → 1.2-1.4 per second. Strength over 100 mirrored-seat
+      matches each: normal beats easy 98 (was 99), hard beats normal 87 (was 94), hard beats
+      easy 100 (100); matches ~20% longer (normal vs normal 62 s, was 50).
+      `tests/tanks-motion.test.ts` holds every level under 0.45 wags/s (fails on the old bot).
+- [ ] Sumo is one button with dash physics (tap gaps already capped in bot-limits), so the
+      motion check doesn't apply; Snake moves on a grid (turn gap = tapGap). Snake could get a
+      "turns per second" check if a kid calls it twitchy.
+- [ ] Tank Duel bot still re-plans its route each look and the 8-way grid route can switch
+      between equal paths (most remaining wags are "new path" ones); a route that prefers the
+      current heading on ties would smooth driving further.
 - [ ] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
       fine for a kid's opponent, but watch it in playtests.

@@ -14,3 +14,11 @@ for (const [game, measure] of [['airhockey', airhockey], ['pingpong', pingpong]]
     );
   }
 }
+
+// Tank Duel steers a capped-turn tank with a stick, so it is measured by wags instead.
+import { measureSteerLevel, STEER } from '../src/games/tanks/motion';
+console.log('tanks steer', STEER);
+for (const level of ['easy', 'normal', 'hard'] as const) {
+  const r = measureSteerLevel(level);
+  console.log('tanks'.padEnd(10), level.padEnd(6), `turn reversals ${r.reversalsPerSec.toFixed(2)}/s  wags ${r.wagsPerSec.toFixed(2)}/s  (${r.seconds.toFixed(0)} s)`);
+}

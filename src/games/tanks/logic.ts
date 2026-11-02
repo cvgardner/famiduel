@@ -599,6 +599,8 @@ export const BOT = {
 } satisfies Record<BotLevel, { react: number; noise: number; depth: number; angles: number; trigger: number }>;
 
 type Mode = 'aim' | 'move' | 'dodge';
+/** A new shot within this angle of the one being lined up is the same shot (keeps its wobble). */
+const AIM_KEEP = 0.12;
 
 export class TankBot {
   private timer = 0;
@@ -611,6 +613,9 @@ export class TankBot {
   /** Seconds the gun has been ready (as the bot sees it), and since its last FIRE tap. */
   private readyFor = 0;
   private sinceTap = 9;
+  /** The shot being lined up and its committed aim wobble (see replan). */
+  private aimShot: number | null = null;
+  private aimNoise = 0;
 
   constructor(
     readonly p: PlayerIndex,
@@ -645,7 +650,10 @@ export class TankBot {
       const thumb = this.readyFor >= BOT[this.level].trigger && this.sinceTap >= HUMAN.tapGap;
       const fire = off < 0.035 && game.canFire(this.p) && thumb;
       if (fire) {
-        this.mode = 'move';
+        // Keep the thumb where it is until the next look: dropping straight back to
+        // driving and then turning back for the next shot made the tank wag after
+        // every shot. A fresh shot after this one gets a fresh wobble.
+        this.aimShot = null;
         this.sinceTap = 0;
       }
       return { mx: Math.cos(this.aimAngle) * 0.22, my: Math.sin(this.aimAngle) * 0.22, fire, power };
@@ -698,14 +706,21 @@ export class TankBot {
     if (game.shellsOf(this.p) < RULES.maxShells) {
       const shot = this.findShot(game, cfg.depth, cfg.angles);
       if (shot !== null) {
+        // Commit to an aim like a thumb does: keep the same wobble while the shot
+        // hasn't really changed, instead of re-rolling it every look (that made the
+        // tank shake left and right while it lined up).
+        const same = this.mode === 'aim' && this.aimShot !== null && Math.abs(wrapAngle(shot - this.aimShot)) < AIM_KEEP;
+        if (!same) this.aimNoise = this.rng.range(-cfg.noise, cfg.noise);
         this.mode = 'aim';
-        this.aimAngle = shot + this.rng.range(-cfg.noise, cfg.noise);
+        this.aimShot = shot;
+        this.aimAngle = shot + this.aimNoise;
         if (ready && powerId === 'bouncy') this.wantPower = true;
         return;
       }
     }
     // 3. Drive toward the other tank.
     this.mode = 'move';
+    this.aimShot = null;
     this.path = this.route(game, me, foe);
     this.pathI = 1;
     const dist = Math.hypot(foe.x - me.x, foe.y - me.y);
