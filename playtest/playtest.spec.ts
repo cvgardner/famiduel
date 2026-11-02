@@ -1419,6 +1419,46 @@ test('air hockey: the bot paddle moves like a hand in real time, not a twitch', 
   expect(errors).toEqual([]);
 });
 
+test('ping pong: where the ball landed stays on the table until it is hit back', async ({ page }) => {
+  // Store reviews of other 2-player apps: Ping Pong is "hard to tell whether the ball has
+  // landed yet". Watch two bots rally in real time: every landing leaves a spot that is
+  // still fully showing a moment later (unless the ball was already hit back), then goes.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, ['normal', 'normal']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('pingpong'));
+  await expect(page.locator('#play')).toBeVisible();
+  await page.waitForTimeout(2200); // countdown
+  type Spot = { x: number; y: number; held: boolean; alpha: number } | null;
+  type PongHook = { runner: { game: { bounceSpot(): Spot; game: { hits: number } } } | null };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: PongHook }).__famiduel.runner!.game;
+      return { spot: v.bounceSpot(), hits: v.game.hits };
+    });
+  let checked = 0;
+  for (let i = 0; i < 3; i++) {
+    let s = await look();
+    // Wait for a fresh landing (a held spot with the ball not yet hit back).
+    await expect.poll(async () => { s = await look(); return !!s.spot?.held; }, { timeout: 8000 }).toBe(true);
+    const at = s.spot!;
+    const hits = s.hits;
+    if (i === 0) await page.screenshot({ path: path.join(OUT, 'pingpong-bounce-spot.png') });
+    await page.waitForTimeout(150);
+    const later = await look();
+    if (later.hits === hits && later.spot && later.spot.x === at.x && later.spot.y === at.y) {
+      expect(later.spot.held, 'the spot holds until the ball is hit back').toBe(true);
+      expect(later.spot.alpha, 'the spot is fully showing while it holds').toBe(1);
+      checked++;
+    }
+    // Once the ball is hit back (or the point ends), the old spot goes.
+    await expect.poll(async () => { const x = await look(); return !x.spot || !x.spot.held || x.spot.x !== at.x || x.spot.y !== at.y; }, { timeout: 8000 }).toBe(true);
+    await expect.poll(async () => { const x = await look(); return !x.spot || x.spot.x !== at.x || x.spot.y !== at.y; }, { timeout: 2000 }).toBe(true);
+  }
+  expect(checked, 'at least one landing was seen holding').toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});
+
 test('rematch: whoever went second last match starts the rematch', async ({ page }) => {
   // A coin toss every match could leave a kid going second rematch after rematch. Play
   // three matches in a row of each turn game (two people, through the real result screen's
