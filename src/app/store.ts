@@ -1,6 +1,7 @@
 // Player profiles, settings, the current match night and the match history,
 // all kept on the device (localStorage). Nothing leaves the phone.
 import { PLAYER_COLORS, safePair } from '../core/colors';
+import { newTournament, recordGame, type Tournament } from '../core/tournament';
 import type { BotLevel, GameResult, PlayerIndex } from '../core/types';
 
 /**
@@ -84,7 +85,15 @@ const HISTORY_CAP = 2000;
  * their own tally in `soloNight`, so a kid's practice never lands on the family
  * scoreboard or tips the auto handicap between two people.
  */
-type Saved = { profiles: [Profile, Profile]; settings: Settings; night: Night; soloNight?: Night; history: MatchRecord[] };
+type Saved = {
+  profiles: [Profile, Profile];
+  settings: Settings;
+  night: Night;
+  soloNight?: Night;
+  history: MatchRecord[];
+  /** The 7-game tournament in progress (or just won), kept so a quit or a closed app can carry on. */
+  tournament?: Tournament | null;
+};
 
 const freshNight = (): Night => ({ started: Date.now(), wins: [0, 0], games: [] });
 
@@ -199,6 +208,26 @@ export class Store {
         pr.bot = null;
       }
     }
+    this.save();
+  }
+
+  /** Start a new 7-game tournament from these games (replaces any old one). */
+  startTournament(pool: readonly string[], seed: number): Tournament {
+    this.data.tournament = newTournament(pool, seed);
+    this.save();
+    return this.data.tournament;
+  }
+
+  /** A tournament game finished. Ignored when it is not the game the tournament is on. */
+  recordTournament(game: string, winner: PlayerIndex | null): void {
+    const t = this.data.tournament;
+    if (!t) return;
+    recordGame(t, game, winner);
+    this.save();
+  }
+
+  endTournament(): void {
+    this.data.tournament = null;
     this.save();
   }
 
