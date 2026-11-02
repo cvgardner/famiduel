@@ -11,6 +11,7 @@ import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
 import { demoHelpHtml, demoHtml, HelpMemory, howToHalfHtml, isGesture, showsDemo } from './demo';
+import { shownGames } from './catalog';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
 import { homeGroups } from './homegroups';
@@ -18,6 +19,7 @@ import { BOT_LEVELS, BOT_NAME, PLAYER_COLORS, Store, botFor, easierOffer, seatNa
 
 export type GameMeta = (typeof gamesJson.games)[number];
 export const META: GameMeta[] = gamesJson.games;
+const SHOW_ALL = typeof location !== 'undefined' && new URLSearchParams(location.search).has('all');
 const POWERS = powersJson.games as Record<string, PowerDef[]>;
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string, root: ParentNode = document) => root.querySelector(sel) as T;
@@ -102,7 +104,7 @@ export class App {
       </section>
       ${this.tourneyButton()}
       <div class="games">
-        ${homeGroups(META).map((g) => `<section class="group" data-group="${g.id}" aria-labelledby="grp-${g.id}">
+        ${homeGroups(shownGames(SHOW_ALL)).map((g) => `<section class="group" data-group="${g.id}" aria-labelledby="grp-${g.id}">
           <h2 class="group-title" id="grp-${g.id}">${g.title}</h2>
           <div class="grid">${g.games.map((m) => this.card(m)).join('')}</div>
         </section>`).join('')}
@@ -152,9 +154,9 @@ export class App {
   }
 
   // ---------- Tournament: best of 7 across different games ----------
-  /** Games the tournament can pick: action and aim games that are built. */
+  /** Games the tournament can pick: shown action and aim games that are built. */
   tournamentPool(): string[] {
-    return tournamentPool(META, (id) => id in GAMES);
+    return tournamentPool(shownGames(SHOW_ALL), (id) => id in GAMES);
   }
 
   private tourneyButton(): string {

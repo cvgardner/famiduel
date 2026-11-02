@@ -43,6 +43,16 @@ async function boot(page: Page, errors: string[]) {
   await installFingers(page);
 }
 
+/**
+ * Open a game the way a player does: tap its home card. Hidden games (content/games.json
+ * "hidden") have no card but stay built, so their checks open them directly instead.
+ */
+async function openFromHome(page: Page, id: string) {
+  const card = page.locator(`.game-card[data-id="${id}"]`);
+  if (await card.count()) await card.tap();
+  else await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+}
+
 async function setPlayers(page: Page, bots: [string | null, string | null]) {
   await page.evaluate((b) => {
     const app = (window as unknown as { __famiduel: Hook }).__famiduel;
@@ -155,9 +165,9 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(overflow, 'home scrolls sideways at 320px').toBe(false);
   for (const card of await page.locator('.game-card[data-ready="1"]').all()) built.push((await card.getAttribute('data-id'))!);
-  // The home grid follows content/games.json: action games first, slow turn games last.
+  // The home grid follows content/games.json (hidden games left out): action games first, slow turn games last.
   const shown = await page.locator('.game-card').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.id));
-  expect(shown, 'home grid order').toEqual(games.games.map((g) => g.id));
+  expect(shown, 'home grid order').toEqual(games.games.filter((g) => !g.hidden).map((g) => g.id));
   await page.screenshot({ path: path.join(OUT, 'home-small-phone.png') });
   // The grid is split into labelled groups so a parent can find a calm game: each heading
   // shows, sits right above its own cards, and the groups come in the list's order.
@@ -170,14 +180,14 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
       return { id: (g as HTMLElement).dataset.group, title: h.textContent, h: hr.height, gap: cr.top - hr.bottom, cards: g.querySelectorAll('.game-card').length };
     }),
   );
-  expect(groups.map((g) => g.id), 'home groups').toEqual(['action', 'board', 'extra']);
+  expect(groups.map((g) => g.id), 'home groups').toEqual(['action', 'turns']);
   for (const g of groups) {
     expect(g.h, `${g.id} heading visible`).toBeGreaterThan(10);
     expect(g.gap, `${g.id} heading sits above its cards`).toBeGreaterThanOrEqual(0);
     expect(g.gap, `${g.id} heading sits right above its cards`).toBeLessThan(16);
   }
-  expect(groups.reduce((n, g) => n + g.cards, 0)).toBe(games.games.length);
-  await page.locator('.group[data-group="board"] .group-title').scrollIntoViewIfNeeded();
+  expect(groups.reduce((n, g) => n + g.cards, 0)).toBe(shown.length);
+  await page.locator('.group[data-group="turns"] .group-title').scrollIntoViewIfNeeded();
   await page.screenshot({ path: path.join(OUT, 'home-groups.png') });
   await page.evaluate(() => window.scrollTo(0, 0));
   const clipped: string[] = [];
@@ -510,18 +520,18 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
     }
   }
   expect(problems).toEqual([]);
-  // A parent turns the Checkers bot down to Easy right on the intro.
+  // A parent turns the Sea Battle bot down to Easy right on the intro.
   await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
-  await page.locator('.game-card[data-id="checkers"]').tap();
+  await page.locator('.game-card[data-id="seabattle"]').tap();
   await page.locator('.botlvl[data-p="1"] button[data-v="easy"]').tap();
   await expect(page.locator('.botlvl[data-p="1"] button[data-v="easy"]')).toHaveClass(/on/);
   await page.screenshot({ path: path.join(OUT, 'bot-level-intro.png') });
   await introAsPeople(page, [0]);
   expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players[1].bot), 'the match uses the picked level').toBe('easy');
   await leaveMatch(page);
-  // Remembered for Checkers after a reload; other games keep the sheet's level.
+  // Remembered for Sea Battle after a reload; other games keep the sheet's level.
   await page.reload();
-  await page.locator('.game-card[data-id="checkers"]').tap();
+  await page.locator('.game-card[data-id="seabattle"]').tap();
   await expect(page.locator('.botlvl[data-p="1"] button.on')).toHaveAttribute('data-v', 'easy');
   await page.locator('#introBack').tap();
   await page.locator('.game-card[data-id="airhockey"]').tap();
@@ -1110,7 +1120,7 @@ test("tic-tac-toe: the bot's newest mark sits on a tile until you move", async (
   const errors: string[] = [];
   await boot(page, errors);
   await setPlayers(page, [null, 'normal']);
-  await page.locator('.game-card[data-id="tictactoe"]').tap();
+  await openFromHome(page, 'tictactoe');
   await introAsPeople(page, [0]);
   await page.waitForTimeout(2200); // countdown
   type TttHook = {
@@ -1159,7 +1169,7 @@ test("four in a row: the bot's newest disc keeps a ring until you move", async (
   const errors: string[] = [];
   await boot(page, errors);
   await setPlayers(page, [null, 'normal']);
-  await page.locator('.game-card[data-id="fourinarow"]').tap();
+  await openFromHome(page, 'fourinarow');
   await introAsPeople(page, [0]);
   await page.waitForTimeout(2200); // countdown
   type FourHook = {
@@ -1211,7 +1221,7 @@ test("checkers: a bot's double jump stays traced on the board until you move", a
   const errors: string[] = [];
   await boot(page, errors);
   await setPlayers(page, [null, 'normal']);
-  await page.locator('.game-card[data-id="checkers"]').tap();
+  await openFromHome(page, 'checkers');
   await introAsPeople(page, [0]);
   type Marks = { trail: number[]; taken: number[]; mover: number } | null;
   type CheckersHook = { runner: null | { game: { lastMarks(): Marks; game: { cells: Int8Array; turn: number; done: boolean } } } };
@@ -1411,7 +1421,7 @@ test('rematch: whoever went second last match starts the rematch', async ({ page
   type StartHook = { runner: null | { game: { firstMover?(): number | null }; result: unknown; starterLines(): (string | null)[] } };
   const first = () => page.evaluate(() => (window as unknown as { __famiduel: StartHook }).__famiduel.runner!.game.firstMover?.() ?? null);
   for (const id of ['fourinarow', 'checkers', 'tictactoe', 'penalty', 'minigolf']) {
-    await page.locator(`.game-card[data-id="${id}"]`).tap();
+    await openFromHome(page, id);
     const seen: (number | null)[] = [];
     for (let m = 0; m < 3; m++) {
       await introAsPeople(page, [0, 1]);
@@ -1580,7 +1590,7 @@ for (const [id, person] of boardPersons) {
     await boot(page, errors);
     await page.evaluate(() => ((window as unknown as { __contrast: { on: boolean } }).__contrast.on = true));
     await setPlayers(page, [null, 'normal']);
-    await page.locator(`.game-card[data-id="${id}"]`).tap();
+    await openFromHome(page, id);
     await introAsPeople(page, [0]);
     await page.waitForTimeout(2200); // countdown
     const botLine = '🤖 Bot is thinking…';
@@ -1606,7 +1616,8 @@ for (const [id, person] of boardPersons) {
   });
 }
 
-for (const g of games.games) {
+// Hidden games (content/games.json) have no home card; their own checks above still run.
+for (const g of games.games.filter((x) => !x.hidden)) {
   test(`play like a person: ${g.id}`, async ({ page }) => {
     test.skip(built.length > 0 && !built.includes(g.id), 'not built yet');
     const errors: string[] = [];

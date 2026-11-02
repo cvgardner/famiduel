@@ -5,6 +5,8 @@ import { hashSeed, makeRng } from '../src/core/rng';
 import games from '../content/games.json';
 import { groupOf, homeGroups } from '../src/app/homegroups';
 import powers from '../content/powers.json';
+import { shownGames } from '../src/app/catalog';
+import { GAMES } from '../src/games/registry';
 import { Store, botFor, easierOffer, seatName } from '../src/app/store';
 
 describe('rng', () => {
@@ -59,7 +61,7 @@ describe('content', () => {
   it('home grid: minigolf (the hero) first, the free trio on the top row, action games before slow turn games', () => {
     // Chris's playtest (1 Nov 2026): the action games are the most fun, so they are the
     // stars of the home screen. Strategy board games and the free extras come last.
-    const list = games.games;
+    const list = shownGames();
     expect(list[0].id).toBe('minigolf');
     expect(list.slice(0, 3).every((g) => g.free)).toBe(true);
     const slow = (k: string) => k.startsWith('Strategy') || k === 'Extra';
@@ -67,20 +69,32 @@ describe('content', () => {
     expect(firstSlow).toBeGreaterThan(0);
     expect(list.slice(firstSlow).every((g) => slow(g.kind))).toBe(true);
     // Extras sit at the very end.
-    expect(list.slice(-2).every((g) => g.kind === 'Extra')).toBe(true);
+    expect(list.at(-1)!.kind).toBe('Extra');
   });
 
-  it('home groups: action, then board games, then extras, each once, in list order', () => {
-    const groups = homeGroups(games.games);
-    expect(groups.map((g) => g.id)).toEqual(['action', 'board', 'extra']);
-    // Flattened, the groups are exactly the list (nothing dropped, nothing reordered).
-    expect(groups.flatMap((g) => g.games.map((m) => m.id))).toEqual(games.games.map((g) => g.id));
+  it('board games families already own are hidden, not deleted: still built, just no home card', () => {
+    // Chris, 1 Nov 2026: other apps and the family cupboard cover these. Bring one back by
+    // deleting its "hidden" flag in content/games.json.
+    const hidden = games.games.filter((g) => g.hidden).map((g) => g.id);
+    expect(hidden.sort()).toEqual(['checkers', 'fourinarow', 'tictactoe']);
+    for (const id of hidden) expect(GAMES[id], id).toBeDefined();
+    expect(shownGames().map((g) => g.id)).not.toContain('checkers');
+    expect(shownGames(true)).toHaveLength(games.games.length);
+  });
+
+  it('home groups: action games, then the take-turns games, each once, in list order', () => {
+    const shown = shownGames();
+    const groups = homeGroups(shown);
+    expect(groups.map((g) => g.id)).toEqual(['action', 'turns']);
+    // Flattened, the groups are exactly the shown list (nothing dropped, nothing reordered).
+    expect(groups.flatMap((g) => g.games.map((m) => m.id))).toEqual(shown.map((g) => g.id));
     expect(groups[0].games[0].id).toBe('minigolf');
-    expect(groups[1].games.map((g) => g.id)).toEqual(['seabattle', 'fourinarow', 'checkers']);
+    expect(groups[1].games.map((g) => g.id)).toEqual(['seabattle', 'rps']);
     expect(groupOf('Aim · turns')).toBe('action');
-    expect(groupOf('Strategy · turns')).toBe('board');
-    expect(groupOf('Extra')).toBe('extra');
-    // A list that interleaves kinds would split a group in two; the content never does.
+    expect(groupOf('Strategy · turns')).toBe('turns');
+    expect(groupOf('Extra')).toBe('turns');
+    // Bringing the hidden board games back lands them in the same group, still one each.
+    expect(homeGroups(shownGames(true)).map((g) => g.id)).toEqual(['action', 'turns']);
     expect(new Set(groups.map((g) => g.id)).size).toBe(groups.length);
   });
 });
