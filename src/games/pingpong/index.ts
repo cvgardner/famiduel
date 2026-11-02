@@ -11,11 +11,11 @@ import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { FingerPaddle, fwdSign, PingPong, PingPongBot, RULES, type Intent, type Shot } from './logic';
 import { inkOn } from '../../core/contrast';
+import { BounceMark, type Spot } from './bouncemark';
 
 const TABLE = { x0: 22, x1: W - 22, y0: RULES.tableY0, y1: RULES.tableY1 };
 const TABLE_GREEN = '#1d7a52';
 
-type Ring = { x: number; y: number; t: number; color: string };
 type Trail = { x: number; y: number; color: string };
 
 /** Trail and glow colour for each kind of shot. */
@@ -32,7 +32,8 @@ class PingPongView implements GameInstance {
   private fingers = [new FingerPaddle(0), new FingerPaddle(1)];
   private spinAngle = 0;
   private trail: Trail[] = [];
-  private rings: Ring[] = [];
+  /** Where the ball last landed; stays until it is hit back. */
+  private mark = new BounceMark();
   private t = 0;
   private pointFlash = 0;
   private lastScorer: PlayerIndex = 0;
@@ -72,12 +73,12 @@ class PingPongView implements GameInstance {
     }) as [Intent, Intent];
     g.step(dt, intents);
     this.pointFlash = Math.max(0, this.pointFlash - dt);
-    for (const r of this.rings) r.t += dt;
-    this.rings = this.rings.filter((r) => r.t < 0.5);
+    this.mark.tick(dt);
     const { sfx, fx } = this.ctx;
     const col = (p: PlayerIndex) => this.ctx.players[p].color;
     for (const e of g.events) {
       if (e.type === 'hit') {
+        this.mark.release();
         const big = e.shot === 'smash';
         sfx.play(big ? 'thud' : 'hit');
         fx.burst(e.x, e.y, col(e.p), big ? 22 : e.shot === 'drive' ? 12 : 8, big ? 320 : 150, big ? 4 : 2.5);
@@ -96,7 +97,7 @@ class PingPongView implements GameInstance {
         if (e.hits >= 10) fx.shake(3, 0.15);
       } else if (e.type === 'table') {
         sfx.play('tap');
-        this.rings.push({ x: e.x, y: e.y, t: 0, color: e.top > 0.3 ? '#ffd54a' : e.top < -0.3 ? '#6ad1ff' : '#ffffff' });
+        this.mark.land(e.x, e.y, e.top > 0.3 ? '#ffd54a' : e.top < -0.3 ? '#6ad1ff' : '#ffffff');
       } else if (e.type === 'wall') {
         sfx.play('bounce');
         this.curving = false;
@@ -104,6 +105,7 @@ class PingPongView implements GameInstance {
       } else if (e.type === 'serve') {
         sfx.play('click');
       } else if (e.type === 'point') {
+        this.mark.clear();
         sfx.play('score');
         this.lastScorer = e.scorer;
         this.pointFlash = 0.8;
@@ -195,11 +197,10 @@ class PingPongView implements GameInstance {
       line(gx, TABLE.x0 + 10, y, TABLE.x1 - 10, y, alpha(c[p], 0.45), 2);
       gx.setLineDash([]);
     }
-    // Bounce rings, tinted by spin
-    for (const r of this.rings) {
-      const k = r.t / 0.5;
-      circle(gx, r.x, r.y, 6 + 18 * k, undefined, alpha(r.color, 0.75 * (1 - k)), 2);
-    }
+    // Where the ball landed: a ring bursts out, and a spot (tinted by spin) stays on the
+    // table until the ball is hit back. Both get a dark edge so they read on the green.
+    const spot = this.mark.spot;
+    if (spot) this.renderMark(gx, spot, this.mark.alpha(), this.mark.ring());
     // Scores, each on its owner's side of the net, readable from that seat
     for (const p of PLAYERS) {
       const x = p === 0 ? W - 58 : 58;
@@ -248,6 +249,26 @@ class PingPongView implements GameInstance {
       rrect(gx, 0, this.lastScorer === 0 ? MID : 0, W, MID, 0, c[this.lastScorer]);
       gx.globalAlpha = 1;
     }
+  }
+
+  private renderMark(gx: G, s: Spot, a: number, ring: number | null): void {
+    if (ring !== null) {
+      const r = 7 + 20 * ring;
+      const k = 1 - ring;
+      circle(gx, s.x, s.y, r, undefined, `rgba(0,0,0,${0.45 * k})`, 5);
+      circle(gx, s.x, s.y, r, undefined, alpha(s.color, 0.95 * k), 2.5);
+    }
+    gx.globalAlpha = a;
+    circle(gx, s.x, s.y, 7, 'rgba(0,0,0,0.4)');
+    circle(gx, s.x, s.y, 5, undefined, alpha(s.color, 0.95), 2);
+    circle(gx, s.x, s.y, 1.8, alpha(s.color, 0.95));
+    gx.globalAlpha = 1;
+  }
+
+  /** For the playtest: where the ball's landing spot is, if one shows. */
+  bounceSpot(): { x: number; y: number; held: boolean; alpha: number } | null {
+    const s = this.mark.spot;
+    return s ? { x: s.x, y: s.y, held: s.fade === null, alpha: this.mark.alpha() } : null;
   }
 
   private renderBall(gx: G): void {
