@@ -174,6 +174,38 @@ describe('tank duel', () => {
     expect(g.shellsOf(0)).toBeLessThanOrEqual(RULES.maxShells);
   });
 
+  it('keeps a FIRE tap made just before the reload ends, and drops one made too early', () => {
+    const fire: Intent = { ...IDLE, fire: true };
+    const g = fresh();
+    g.step(DT, [fire, IDLE]);
+    expect(g.shellsOf(0)).toBe(1);
+    // Wait until the reload is nearly done, tap once, let go: the shot still goes out.
+    while (g.tanks[0].reload > RULES.fireBuffer * 0.5) g.step(DT, idle2);
+    g.step(DT, [fire, IDLE]);
+    expect(g.shellsOf(0)).toBe(1);
+    for (let i = 0; i < Math.ceil(RULES.fireBuffer / DT); i++) g.step(DT, idle2);
+    expect(g.shellsOf(0)).toBe(2);
+    // A tap long before the reload ends is just a missed tap.
+    g.step(DT, idle2);
+    g.step(DT, [fire, IDLE]);
+    for (let i = 0; i < Math.ceil(RULES.reload / DT) + 2; i++) g.step(DT, idle2);
+    expect(g.shellsOf(0)).toBe(2);
+  });
+
+  it('a person tapping fast gets the same fire rate as the gun allows (one shot per reload)', () => {
+    const g = fresh();
+    let shots = 0;
+    let t = 0;
+    // Tap 7 times a second, with no idea where the reload ring is.
+    for (let i = 0; i < 60 * 3; i++, t += DT) {
+      const tap = Math.floor((t + DT) * 7) !== Math.floor(t * 7);
+      g.step(DT, [{ ...IDLE, fire: tap }, IDLE]);
+      for (const e of g.events) if (e.type === 'fire' || e.type === 'dud') shots++;
+      for (const s of g.shells) s.alive = false; // keep the shell cap out of it
+    }
+    expect(shots).toBeGreaterThanOrEqual(Math.floor(3 / (RULES.reload + DT)) - 1);
+  });
+
   it('first to knock out all armor wins; each bonk restarts in a new arena', () => {
     const g = fresh();
     g.tanks[1].hits = RULES.armor - 1;
