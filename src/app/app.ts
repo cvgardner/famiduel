@@ -582,7 +582,13 @@ export class App {
         <div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>
         <div class="who">${esc(seatName(profiles, p))}${won ? ' 🏆' : ''}</div>
         <div class="res-night">${tw ? `🏆 ${champ === p ? 'Tournament champion!' : 'Tournament:'} ${tw[p]} – ${tw[p === 0 ? 1 : 0]}` : `${solo ? (botHalf ? 'Bot' : 'You vs the bot') : 'Match night'}: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}`}</div>
-        ${offer?.person === p ? `<button class="btn easier" id="easierBtn" data-v="${offer.to}" aria-label="Make the bot easier: ${level(offer.from)} to ${level(offer.to)}">🤖 Make the bot easier?</button>` : ''}
+        ${
+          offer?.person === p
+            ? offer.headStart
+              ? `<button class="btn easier" id="easierBtn" data-head="${offer.headStart}" aria-label="Give yourself a head start: ${offer.headStart} of 3 stars">⭐ Want a head start?</button>`
+              : `<button class="btn easier" id="easierBtn" data-v="${offer.to}" aria-label="Make the bot easier: ${level(offer.from)} to ${level(offer.to)}">🤖 Make the bot easier?</button>`
+            : ''
+        }
       </div></div>`;
     };
     const res = $('#result');
@@ -600,8 +606,13 @@ export class App {
     const easier = res.querySelector<HTMLButtonElement>('#easierBtn');
     if (offer && easier) {
       easier.addEventListener('click', () => {
-        this.store.setBotLevel(offer.bot, meta.id, offer.to);
-        easier.textContent = `🤖 Bot is ${level(offer.to)} now ✓`;
+        if (offer.headStart) {
+          this.store.setHeadStart(offer.person, offer.headStart);
+          easier.textContent = `⭐ Head start ${'★'.repeat(offer.headStart)} ✓`;
+        } else {
+          this.store.setBotLevel(offer.bot, meta.id, offer.to);
+          easier.textContent = `🤖 Bot is ${level(offer.to)} now ✓`;
+        }
         easier.removeAttribute('aria-label');
         easier.disabled = true;
         easier.classList.add('on');

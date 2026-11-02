@@ -300,16 +300,38 @@ describe('make the bot easier offer', () => {
     lose(s);
     expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).not.toBeNull();
   });
-  it('never below Easy, and lowering the level starts the count again', () => {
+  it('never below Easy: against Easy it offers a head start star, and each change starts the count again', () => {
     const s = new Store(mem());
     s.setBot(1, 'normal');
-    lose(s);
-    lose(s);
-    s.setBotLevel(1, 'checkers', 'easy');
-    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).toBeNull();
-    lose(s);
-    lose(s);
-    expect(easierOffer(s.data.history, 'checkers', s.data.profiles)).toBeNull();
+    lose(s, 'sumo');
+    lose(s, 'sumo');
+    s.setBotLevel(1, 'sumo', 'easy');
+    expect(easierOffer(s.data.history, 'sumo', s.data.profiles)).toBeNull();
+    lose(s, 'sumo');
+    lose(s, 'sumo');
+    expect(easierOffer(s.data.history, 'sumo', s.data.profiles)).toEqual({ bot: 1, person: 0, from: 'easy', to: 'easy', headStart: 1 });
+    // Taking the star starts the count again; two more losses offer the next one.
+    s.setHeadStart(0, 1);
+    expect(easierOffer(s.data.history, 'sumo', s.data.profiles)).toBeNull();
+    lose(s, 'sumo');
+    expect(easierOffer(s.data.history, 'sumo', s.data.profiles)).toBeNull();
+    lose(s, 'sumo');
+    expect(easierOffer(s.data.history, 'sumo', s.data.profiles)?.headStart).toBe(2);
+    // A full head start (★★★) is the most there is: no more offers.
+    s.setHeadStart(0, 3);
+    lose(s, 'sumo');
+    lose(s, 'sumo');
+    expect(easierOffer(s.data.history, 'sumo', s.data.profiles)).toBeNull();
+    expect(s.data.profiles[0].headStart).toBe(3);
+  });
+  it('records each seat\'s head start, and old records without it count as none', () => {
+    const s = new Store(mem());
+    s.setBot(1, 'easy');
+    s.setHeadStart(0, 2);
+    expect(lose(s, 'sumo').heads).toEqual([2, 0]);
+    s.setHeadStart(0, 0);
+    s.data.history.push({ ...lose(s, 'sumo'), heads: undefined }, { ...lose(s, 'sumo'), heads: undefined });
+    expect(easierOffer(s.data.history, 'sumo', s.data.profiles)?.headStart).toBe(1);
   });
   it('never for two people, two bots, or old records without bot levels', () => {
     const s = new Store(mem());

@@ -39,14 +39,20 @@ export function botFor(pr: Profile, game: string): BotLevel | null {
 /** How many losses in a row to the same bot, in one game, before we offer an easier one. */
 export const LOSSES_BEFORE_OFFER = 2;
 
-export type EasierOffer = { bot: PlayerIndex; person: PlayerIndex; from: BotLevel; to: BotLevel };
+/** headStart set: the bot is already Easy, so the offer is one more head start star (to that many). */
+export type EasierOffer = { bot: PlayerIndex; person: PlayerIndex; from: BotLevel; to: BotLevel; headStart?: number };
+
+/** Most head start stars a seat can have (the player sheet's ★★★). */
+export const MAX_HEAD_START = 3;
 
 /**
  * After a person loses LOSSES_BEFORE_OFFER matches of one game in a row to a
  * bot at the same level, the result screen offers that game's bot one level
  * easier. Only for a person against a bot (two bots or two people get nothing),
  * never below Easy, and a draw or a win breaks the run. Lowering the level
- * starts the count again, because older records carry the old level.
+ * starts the count again, because older records carry the old level. Against an
+ * Easy bot it offers the person one more head start star instead (up to
+ * MAX_HEAD_START); records carry the stars, so a new star starts the count again.
  */
 export function easierOffer(history: readonly MatchRecord[], game: string, profiles: readonly [Profile, Profile]): EasierOffer | null {
   const levels = [botFor(profiles[0], game), botFor(profiles[1], game)] as const;
@@ -55,11 +61,17 @@ export function easierOffer(history: readonly MatchRecord[], game: string, profi
   const person: PlayerIndex = bot === 0 ? 1 : 0;
   const from = levels[bot]!;
   const i = BOT_LEVELS.indexOf(from);
-  if (i <= 0) return null;
+  if (i < 0) return null;
+  // Already Easy: a small kid who still loses gets a head start star instead.
+  const head = profiles[person].headStart ?? 0;
+  if (i === 0 && head >= MAX_HEAD_START) return null;
   const mine = history.filter((r) => r.game === game).slice(-LOSSES_BEFORE_OFFER);
   if (mine.length < LOSSES_BEFORE_OFFER) return null;
-  const lost = mine.every((r) => r.winner === bot && r.bots?.[bot] === from && r.bots?.[person] === null);
-  return lost ? { bot, person, from, to: BOT_LEVELS[i - 1] } : null;
+  const lost = mine.every(
+    (r) => r.winner === bot && r.bots?.[bot] === from && r.bots?.[person] === null && (i > 0 || (r.heads?.[person] ?? 0) === head),
+  );
+  if (!lost) return null;
+  return i > 0 ? { bot, person, from, to: BOT_LEVELS[i - 1] } : { bot, person, from, to: from, headStart: head + 1 };
 }
 
 export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean; haptics: boolean };
@@ -72,6 +84,8 @@ export type MatchRecord = {
   powers: [string | null, string | null];
   /** Each seat's bot level in this match (null = a person). Older records lack it. */
   bots?: [BotLevel | null, BotLevel | null];
+  /** Each seat's head start stars from the player sheet in this match. Older records lack it (0). */
+  heads?: [number, number];
 };
 export type Night = { started: number; wins: [number, number]; games: MatchRecord[] };
 
@@ -171,6 +185,7 @@ export class Store {
       score: result.score,
       powers,
       bots,
+      heads: [this.data.profiles[0].headStart ?? 0, this.data.profiles[1].headStart ?? 0],
     };
     const night = this.night;
     if (result.winner !== null) night.wins[result.winner]++;
@@ -185,6 +200,12 @@ export class Store {
   setBotLevel(p: PlayerIndex, game: string, level: BotLevel): void {
     const pr = this.data.profiles[p];
     pr.botLevels = { ...pr.botLevels, [game]: level };
+    this.save();
+  }
+
+  /** One seat's head start stars (0 to MAX_HEAD_START), as on the player sheet. */
+  setHeadStart(p: PlayerIndex, stars: number): void {
+    this.data.profiles[p].headStart = Math.max(0, Math.min(MAX_HEAD_START, Math.round(stars)));
     this.save();
   }
 
