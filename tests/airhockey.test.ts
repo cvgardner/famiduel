@@ -132,6 +132,25 @@ describe('air hockey', () => {
       }
     });
 
+    it('bot vs bot with Split Puck always reaches a result', () => {
+      // The e2e "bot vs bot" match failed ~1 in 5 on this: after a split, a second puck
+      // resting where neither bot chased it was never blown back (5-6 of 60 sims stuck).
+      for (const [a, b] of [['normal', 'hard'], ['normal', 'normal']] as [BotLevel, BotLevel][]) {
+        for (let seed = 1; seed <= 30; seed++) {
+          const rng = makeRng(seed * 13 + 5);
+          const pw = power('airhockey', 'split');
+          const g = new AirHockey([player({ bot: a, power: pw }), player({ bot: b, power: pw })], true, rng);
+          const bots = [new AirHockeyBot(0, a, rng), new AirHockeyBot(1, b, rng)];
+          let t = 0;
+          while (g.winner === null && t < 900) {
+            g.step(DT, [bots[0].think(g, DT), bots[1].think(g, DT)]);
+            t += DT;
+          }
+          expect(g.winner, `${a} v ${b} seed ${seed}`).not.toBeNull();
+        }
+      }
+    });
+
     it('two pucks both resting in one half are each blown back', () => {
       const g = new AirHockey([player(), player()], false, makeRng(1));
       g.serve = 0;
