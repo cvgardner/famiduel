@@ -215,10 +215,12 @@ class ChopView implements GameInstance {
     text(gx, `them: ${o.chops}`, bx - 4, L.barY + 30, { size: 13, color: 'rgba(30,40,60,0.75)', align: 'left' });
     // Power status
     if (c.double > 0) text(gx, '✌️ x2', W / 2 + 96, L.barY + 54, { size: 16, color: COLORS.gold, stroke: 'rgba(0,0,0,0.4)' });
-    // Tap hints near the player's edge
-    const hintA = g.phase === 'intro' ? 1 : 0.45;
-    text(gx, '◀ chop', 58, H - 34, { size: 16, color: '#ffffff', alpha: hintA, stroke: 'rgba(0,0,0,0.35)' });
-    text(gx, 'chop ▶', W - 58, H - 34, { size: 16, color: '#ffffff', alpha: hintA, stroke: 'rgba(0,0,0,0.35)' });
+    // Tap hints near the player's edge, on a dark pill so they stay readable over the
+    // grass during play too (they used to fade to 45% once play started: about 1.6:1).
+    for (const [hx, label] of [[58, '◀ chop'], [W - 58, 'chop ▶']] as const) {
+      rrect(gx, hx - 36, H - 46, 72, 24, 12, 'rgba(20,20,40,0.6)');
+      text(gx, label, hx, H - 34, { size: 16, color: '#ffffff', stroke: 'rgba(0,0,0,0.35)' });
+    }
     this.drawBanner(gx, p);
   }
 
