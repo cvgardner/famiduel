@@ -793,3 +793,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       order (A, B, B, A...) is the known fix in real shootouts; measure before changing.
 - [ ] Air Hockey has no landing problem, but Snack Snatch's thrown snacks could show a
       short ground shadow too if kids misjudge where they come down.
+- [x] 2026-11-02 (PR #78): `npm run sim` has "kid v easy" and "kid+3 v easy" rows for every action
+      game: a small kid who just mashes (`Masher` in scripts/simlib.ts, the sumo test's masher
+      for every game), with no head start and with the full one. First read (n=20): with the
+      full head start the kid beats easy only in Air Hockey 40%, Sumo 35%, Snack Snatch 15%,
+      Snake 5%; 0% in Ping Pong, Quick Draw, Tanks and Chop Chop (no head start: 0-5%).
+- [ ] Head start for a mashing kid: Ping Pong, Quick Draw, Tanks and Chop Chop give a mashing
+      kid with the full head start 0% against the easy bot (`npm run sim`). Decide per game
+      whether that is fine (a kid who plays at all does better) or the head start should
+      cover mashing too (e.g. Quick Draw forgives early taps at assist 3).
