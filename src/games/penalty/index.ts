@@ -1,5 +1,7 @@
 // Penalty Shootout view: the pitch from above, a goal at each end. Each kick
-// uses the keeper's goal. The shooter swipes; the keeper taps a dive button.
+// uses the keeper's goal. The shooter swipes to pick a shot before the clock
+// runs out; the ball is struck on zero, so the keeper always knows when it
+// comes. The keeper taps a dive button.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
@@ -11,7 +13,7 @@ import { Penalty, PenaltyBot, RULES, shotFromSwipe, type Dive, type Flight, type
 const DIVE_X = [104, 180, 256];
 const DIVE_Y = [H - 52, 52];
 const DIVES: Dive[] = [-1, 0, 1];
-/** Kick as soon as the finger has travelled this far toward the goal. */
+/** Lock in the pick as soon as the finger has travelled this far toward the goal. */
 const AUTO_KICK = 150;
 
 class PenaltyView implements GameInstance {
@@ -25,6 +27,8 @@ class PenaltyView implements GameInstance {
   private flash = 0;
   private flashColor = '#fff';
   private poof: { x: number; y: number; t: number } | null = null;
+  /** Seconds since the shooter's last pick, for the "Shot picked" pulse. */
+  private pickedT = 9;
 
   constructor(private readonly ctx: GameContext) {
     this.game = new Penalty(ctx.players, ctx.powersOn, ctx.rng, ctx.starter);
@@ -72,6 +76,7 @@ class PenaltyView implements GameInstance {
     }) as [Intent, Intent];
     g.step(dt, intents);
     this.flash = Math.max(0, this.flash - dt);
+    this.pickedT += dt;
     if (this.poof) {
       this.poof.t += dt;
       if (this.poof.t > 0.5) this.poof = null;
@@ -79,7 +84,7 @@ class PenaltyView implements GameInstance {
     this.handleEvents();
   }
 
-  /** Swipe from anywhere in your half toward the goal. Keys: left/right aim, action kicks. */
+  /** Swipe from anywhere in your half toward the goal to pick (again to change). Keys: left/right aim, action picks. */
   private shooterInput(p: PlayerIndex, input: Input, btn: PowerButton | null): Shot | null {
     const g = this.game;
     const k = KEYS[p];
@@ -134,6 +139,13 @@ class PenaltyView implements GameInstance {
         sfx.play('click');
         this.keyAim = W / 2;
         this.announce();
+      } else if (e.type === 'pick') {
+        sfx.play('tap');
+        this.pickedT = 0;
+      } else if (e.type === 'tick') {
+        sfx.play('count');
+      } else if (e.type === 'runup') {
+        sfx.play('go');
       } else if (e.type === 'kick') {
         sfx.play('thud');
         sfx.play('whoosh');
@@ -304,25 +316,20 @@ class PenaltyView implements GameInstance {
     const s = g.shooter;
     if (g.phase === 'done') return;
     const col = this.ctx.players[s].color;
-    const sy = g.spotY() + (s === 0 ? 26 : -26);
-    const run = g.phase === 'flight' || g.phase === 'result' ? 12 : 0;
-    const y = sy + (s === 0 ? -run : run);
+    const back = s === 0 ? 1 : -1; // away from the goal, behind the ball
+    // Waits a few steps back, runs in over the run-up and strikes the ball on zero.
+    let dist = 38;
+    if (g.runningUp) dist = 14 + 24 * (g.kickIn() / RULES.runUp);
+    else if (g.phase === 'flight' || g.phase === 'result') dist = 4;
+    const y = g.spotY() + back * dist;
     circle(gx, W / 2 + 3, y + 4, 13, 'rgba(0,0,0,0.25)');
     circle(gx, W / 2, y, 13, col, shade(col, -0.4), 2);
     circle(gx, W / 2, y, 6, '#f3c9a0');
-    // Aim clock: a ring around the ball that runs down
+    if (g.phase === 'ready' || g.phase === 'aim') this.renderKickClock(gx);
     if (g.phase === 'aim') {
-      const left = 1 - g.phaseT / g.aimTime();
-      gx.beginPath();
-      gx.lineWidth = 4;
-      gx.lineCap = 'round';
-      gx.strokeStyle = left < 0.3 ? COLORS.bad : alpha(col, 0.95);
-      const a0 = s === 0 ? -Math.PI / 2 : Math.PI / 2;
-      gx.arc(W / 2, g.spotY(), 22, a0, a0 + Math.PI * 2 * left);
-      gx.stroke();
-      const arrowY = g.spotY() + this.toward() * (34 + 6 * Math.sin(this.t * 6));
       const human = !this.bots[s];
-      if (human) {
+      if (human && !g.runningUp) {
+        const arrowY = g.spotY() + this.toward() * (34 + 6 * Math.sin(this.t * 6));
         facing(gx, s, W / 2, arrowY, () => {
           gx.fillStyle = 'rgba(255,255,255,0.8)';
           gx.beginPath();
@@ -331,15 +338,59 @@ class PenaltyView implements GameInstance {
           gx.lineTo(W / 2 + 9, arrowY + 4);
           gx.fill();
         });
-        text(gx, 'Swipe to shoot!', W / 2, g.spotY() - this.toward() * 62, { size: 16, player: s, color: '#fff', stroke: 'rgba(0,0,0,0.4)' });
+      }
+      if (human) {
+        // Says that a shot is picked, never where: the keeper can read this side too.
+        const msg = g.picked ? (g.runningUp ? 'Shot locked!' : 'Shot picked! Swipe again to change') : g.runningUp ? 'Quick, swipe!' : 'Swipe to pick your shot!';
+        const pulse = g.picked && this.pickedT < 0.3 ? 1 + 0.25 * (1 - this.pickedT / 0.3) : 1;
+        text(gx, msg, W / 2, g.spotY() + back * 70, { size: Math.round((g.picked && !g.runningUp ? 14 : 16) * pulse), player: s, color: g.picked ? COLORS.gold : '#fff', stroke: 'rgba(0,0,0,0.45)' });
       }
       if (g.armed[s]) {
         const pw = this.ctx.players[s].power!;
-        text(gx, `${pw.icon} ${pw.name} ready`, W / 2, g.spotY() - this.toward() * 86, { size: 14, player: s, color: COLORS.gold, stroke: 'rgba(0,0,0,0.5)' });
+        text(gx, `${pw.icon} ${pw.name} ready`, W / 2, g.spotY() + back * 92, { size: 14, player: s, color: COLORS.gold, stroke: 'rgba(0,0,0,0.5)' });
         // The keeper sees it coming too.
         const k = g.keeper;
-        text(gx, `${pw.icon} ${pw.name} coming!`, W / 2, RULES.goalY[k] + (k === 1 ? 62 : -62), { size: 14, player: k, color: COLORS.gold, stroke: 'rgba(0,0,0,0.5)' });
+        text(gx, `${pw.icon} ${pw.name} coming!`, W / 2, RULES.goalY[k] + (k === 1 ? 98 : -98), { size: 14, player: k, color: COLORS.gold, stroke: 'rgba(0,0,0,0.5)' });
       }
+    }
+  }
+
+  /**
+   * The kick clock both players read: a ring around the ball that runs down to
+   * the strike, the seconds left in it, and a "Kick in 3" line facing the
+   * keeper. On the run-up it turns gold and closes in on the ball.
+   */
+  private renderKickClock(gx: G): void {
+    const g = this.game;
+    const s = g.shooter;
+    const k = g.keeper;
+    const col = this.ctx.players[s].color;
+    const total = g.aimTime();
+    const left = g.phase === 'ready' ? total : g.kickIn();
+    const frac = left / total;
+    const bx = W / 2;
+    const by = g.spotY();
+    const a0 = s === 0 ? -Math.PI / 2 : Math.PI / 2;
+    circle(gx, bx, by, 24, undefined, 'rgba(0,0,0,0.25)', 5);
+    gx.beginPath();
+    gx.lineWidth = 5;
+    gx.lineCap = 'round';
+    gx.strokeStyle = g.runningUp ? COLORS.gold : alpha(col, 0.95);
+    gx.arc(bx, by, 24, a0, a0 + Math.PI * 2 * frac);
+    gx.stroke();
+    if (g.runningUp) {
+      // A closing ring that lands on the ball exactly at the strike.
+      const r = 12 + 40 * (left / RULES.runUp);
+      circle(gx, bx, by, r, undefined, alpha(COLORS.gold, 0.85), 3);
+    }
+    const secs = Math.max(1, Math.ceil(left - 1e-6));
+    const kgy = RULES.goalY[k] + (k === 1 ? 74 : -74);
+    const kickLine = g.runningUp ? 'Here it comes!' : g.phase === 'ready' ? `Kick in ${Math.ceil(total)}` : `Kick in ${secs}`;
+    text(gx, kickLine, W / 2, kgy, { size: g.runningUp ? 20 : 17, player: k, color: g.runningUp ? COLORS.gold : '#fff', stroke: 'rgba(0,0,0,0.5)' });
+    // Big seconds beside the ball, for the shooter (the keeper reads their own line).
+    if (!g.runningUp && g.phase === 'aim') {
+      const sx = W / 2 + (s === 0 ? 44 : -44);
+      text(gx, String(secs), sx, by, { size: 20, player: s, color: left < 1.5 ? COLORS.gold : '#fff', stroke: 'rgba(0,0,0,0.5)' });
     }
   }
 
