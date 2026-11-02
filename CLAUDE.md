@@ -65,5 +65,10 @@ All 13 launch games plus Tic-Tac-Toe and RPS are playable, each with an honest b
 handicap knob and (except Checkers, TTT, RPS) three powers. Known follow-ups:
 - Sea Battle easy-vs-easy showed a mild seat bias (116/200 for player 1) in sims; unexplained.
 - Minigolf easy bot may still be too strong for small kids (2–5 strokes a hole).
+- 7-game tournament (Chris, 1 Nov 2026): best of 7 across different action/aim games
+  (board games stay out), first to 4, a draw adds a game. Rules in `src/core/tournament.ts`,
+  saved in the store so a quit game or closed app carries on.
+- Retention direction (Chris, 1 Nov 2026): no new minigame every two weeks (bloat). Lean on
+  super powers instead: new powers and/or a rotation keep the app fresh.
 - Not built yet: ads / remove-ads unlock, highlight clips, rivalry cards, daily course,
   Family Wrapped, store wrapper (Capacitor), mini pool.

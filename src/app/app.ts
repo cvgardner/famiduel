@@ -4,6 +4,7 @@ import gamesJson from '../../content/games.json';
 import powersJson from '../../content/powers.json';
 import { effectiveAssist } from '../core/handicap';
 import { hashSeed } from '../core/rng';
+import { TOURNAMENT_LENGTH, WINS_NEEDED, champion, lineupSlots, nextGame, tournamentPool, tournamentWins } from '../core/tournament';
 import type { BotLevel, GameResult, PlayerIndex, PlayerInfo, PowerDef } from '../core/types';
 import { Sfx } from '../engine/sfx';
 import { HoldGate } from '../engine/hold';
@@ -48,10 +49,13 @@ export class App {
   private matchCount = 0;
   /** Starting takes turns: a rematch hands the first move to the other seat. */
   private readonly starters = new StarterLog();
+  /** The match on screen was started from the tournament screen. */
+  private tourneyMatch = false;
 
   constructor(private readonly root: HTMLElement) {
     root.innerHTML = `
       <section id="home" class="screen"></section>
+      <section id="tourney" class="screen hidden"></section>
       <section id="intro" class="screen hidden"></section>
       <section id="play" class="screen hidden">
         <canvas id="stage" aria-label="Game"></canvas>
@@ -98,6 +102,7 @@ export class App {
         <div class="night-score"><b style="color:${profiles[0].color}">${night.wins[0]}</b><span>${solo ? 'You vs the bot' : 'Match night'} · ${played} game${played === 1 ? '' : 's'}</span><b style="color:${profiles[1].color}">${night.wins[1]}</b></div>
         ${played ? `<button id="newNightBtn" class="link">${solo ? 'Start over' : 'New night'}</button>` : ''}
       </section>
+      ${this.tourneyButton()}
       <div class="games">
         ${homeGroups(shownGames(SHOW_ALL)).map((g) => `<section class="group" data-group="${g.id}" aria-labelledby="grp-${g.id}">
           <h2 class="group-title" id="grp-${g.id}">${g.title}</h2>
@@ -112,8 +117,15 @@ export class App {
       </section>
       <footer class="foot">Prototype · no ads, no accounts · everything stays on this device</footer>`;
     for (const el of document.querySelectorAll<HTMLElement>('.game-card[data-ready="1"]')) {
-      el.addEventListener('click', () => this.openGame(el.dataset.id!));
+      el.addEventListener('click', () => {
+        this.tourneyMatch = false;
+        this.openGame(el.dataset.id!);
+      });
     }
+    $('#tourneyBtn')?.addEventListener('click', () => {
+      this.sfx.play('tap');
+      this.showTournament();
+    });
     for (const el of document.querySelectorAll<HTMLElement>('#modeSeg button')) {
       el.addEventListener('click', () => {
         const on = el.dataset.v === 'solo';
@@ -137,6 +149,71 @@ export class App {
     }
     document.querySelector('#newNightBtn')?.addEventListener('click', () => {
       this.store.newNight();
+      this.showHome();
+    });
+  }
+
+  // ---------- Tournament: best of 7 across different games ----------
+  /** Games the tournament can pick: action and aim games that are built. */
+  tournamentPool(): string[] {
+    return tournamentPool(META, (id) => id in GAMES);
+  }
+
+  private tourneyButton(): string {
+    const t = this.store.data.tournament;
+    const live = t && champion(t) === null && t.played.length > 0;
+    const w = t ? tournamentWins(t) : [0, 0];
+    const label = live ? `🏆 Tournament ${w[0]} – ${w[1]} · Continue` : `🏆 7-game tournament`;
+    return `<button id="tourneyBtn" class="btn tourney-btn">${label}<small>${live ? `Game ${t!.played.length + 1}` : `Best of ${TOURNAMENT_LENGTH} across different games`}</small></button>`;
+  }
+
+  showTournament(): void {
+    let t = this.store.data.tournament;
+    if (!t || (champion(t) !== null && !this.tourneyMatch)) {
+      const seed = this.fixedSeed !== null ? (this.fixedSeed ^ 0x7e57) >>> 0 : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
+      t = this.store.startTournament(this.tournamentPool(), seed);
+    }
+    this.tourneyMatch = false;
+    this.show('tourney');
+    const { profiles } = this.store.data;
+    const w = tournamentWins(t);
+    const champ = champion(t);
+    const next = nextGame(t);
+    const nextMeta = META.find((m) => m.id === next);
+    const name = (p: PlayerIndex) => esc(seatName(profiles, p));
+    const slots = lineupSlots(t)
+      .map((s, i) => {
+        const m = META.find((x) => x.id === s.game)!;
+        const color = s.winner === null ? '' : `style="--w:${profiles[s.winner].color}"`;
+        const tag = s.state === 'done' ? (s.winner === null ? 'Draw' : name(s.winner)) : s.state === 'next' ? 'Next' : `Game ${i + 1}`;
+        return `<li class="slot ${s.state}${s.state === 'done' && s.winner !== null ? ' won' : ''}" ${color}><span class="gicon">${m.icon}</span><span class="sname">${m.name}</span><span class="stag">${tag}</span></li>`;
+      })
+      .join('');
+    const head = champ !== null
+      ? `<h2 class="tourney-title">🏆 ${name(champ)} wins the tournament!</h2>`
+      : `<h2 class="tourney-title">Tournament</h2><p class="tourney-sub">First to ${WINS_NEEDED} wins. A draw adds a game.</p>`;
+    $('#tourney').innerHTML = `
+      <div class="tourney">
+        ${head}
+        <div class="night-score tourney-score"><b style="color:${profiles[0].color}">${w[0]}</b><span>${name(0)} vs ${name(1)}</span><b style="color:${profiles[1].color}">${w[1]}</b></div>
+        <ol class="lineup" aria-label="Tournament games">${slots}</ol>
+        ${nextMeta ? `<button id="tourneyPlay" class="btn primary">Play ${nextMeta.icon} ${nextMeta.name}</button>` : `<button id="tourneyAgain" class="btn primary">New tournament</button>`}
+        <div class="tourney-foot">
+          <button id="tourneyHome" class="link">← Games</button>
+          ${nextMeta && t.played.length ? `<button id="tourneyEnd" class="link">End tournament</button>` : ''}
+        </div>
+      </div>`;
+    $('#tourneyHome').addEventListener('click', () => this.showHome());
+    $('#tourneyPlay')?.addEventListener('click', () => {
+      this.tourneyMatch = true;
+      this.openGame(next!);
+    });
+    $('#tourneyAgain')?.addEventListener('click', () => {
+      this.store.endTournament();
+      this.showTournament();
+    });
+    $('#tourneyEnd')?.addEventListener('click', () => {
+      this.store.endTournament();
       this.showHome();
     });
   }
@@ -254,8 +331,10 @@ export class App {
         </div>
       </div>`;
     };
-    intro.innerHTML = `${half(1)}<div class="intro-mid"><button id="introBack" class="link">← Back</button><span>${meta.blurb}</span></div>${half(0)}`;
-    $('#introBack', intro).addEventListener('click', () => this.showHome());
+    const t = this.tourneyMatch ? this.store.data.tournament : null;
+    const tag = t ? `<b class="tourney-tag">🏆 Game ${t.played.length + 1}</b> ` : '';
+    intro.innerHTML = `${half(1)}<div class="intro-mid"><button id="introBack" class="link">← Back</button><span>${tag}${meta.blurb}</span></div>${half(0)}`;
+    $('#introBack', intro).addEventListener('click', () => (this.tourneyMatch ? this.showTournament() : this.showHome()));
     for (const b of intro.querySelectorAll<HTMLElement>('.demo-help')) {
       b.addEventListener('click', () => {
         if (!gesture) return;
@@ -429,7 +508,9 @@ export class App {
     $('#quitBtn', modal).addEventListener('click', () => {
       close();
       this.runner = null;
-      this.showHome();
+      // A quit tournament game counts for nobody; the tournament waits on that game.
+      if (this.tourneyMatch) this.showTournament();
+      else this.showHome();
     });
   }
 
@@ -477,6 +558,11 @@ export class App {
       [this.picks[0]?.id ?? null, this.picks[1]?.id ?? null],
       seats ? [seats[0].bot, seats[1].bot] : undefined,
     );
+    const inTourney = this.tourneyMatch && !!this.store.data.tournament && nextGame(this.store.data.tournament) === meta.id;
+    if (inTourney) this.store.recordTournament(meta.id, r.winner);
+    const tourney = inTourney ? this.store.data.tournament! : null;
+    const tw = tourney ? tournamentWins(tourney) : null;
+    const champ = tourney ? champion(tourney) : null;
     this.stage.stop();
     this.sfx.play('win');
     const { profiles, history } = this.store.data;
@@ -495,18 +581,22 @@ export class App {
         <div class="res-title">${title}</div>
         <div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>
         <div class="who">${esc(seatName(profiles, p))}${won ? ' 🏆' : ''}</div>
-        <div class="res-night">${solo ? (botHalf ? 'Bot' : 'You vs the bot') : 'Match night'}: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}</div>
+        <div class="res-night">${tw ? `🏆 ${champ === p ? 'Tournament champion!' : 'Tournament:'} ${tw[p]} – ${tw[p === 0 ? 1 : 0]}` : `${solo ? (botHalf ? 'Bot' : 'You vs the bot') : 'Match night'}: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}`}</div>
         ${offer?.person === p ? `<button class="btn easier" id="easierBtn" data-v="${offer.to}" aria-label="Make the bot easier: ${level(offer.from)} to ${level(offer.to)}">🤖 Make the bot easier?</button>` : ''}
       </div></div>`;
     };
     const res = $('#result');
     res.innerHTML = `${half(1)}<div class="intro-mid">
         <button id="homeBtn" class="btn ghost">Games</button>
-        <button id="rematchBtn" class="btn primary">Rematch</button>
+        ${tourney ? `<button id="tourneyNextBtn" class="btn primary">${champ !== null ? '🏆 Champion' : 'Next game'}</button>` : `<button id="rematchBtn" class="btn primary">Rematch</button>`}
       </div>${half(0)}`;
     this.show('result');
-    $('#homeBtn', res).addEventListener('click', () => this.showHome());
-    $('#rematchBtn', res).addEventListener('click', () => this.openGame(meta.id));
+    $('#homeBtn', res).addEventListener('click', () => {
+      this.tourneyMatch = false;
+      this.showHome();
+    });
+    res.querySelector('#rematchBtn')?.addEventListener('click', () => this.openGame(meta.id));
+    res.querySelector('#tourneyNextBtn')?.addEventListener('click', () => this.showTournament());
     const easier = res.querySelector<HTMLButtonElement>('#easierBtn');
     if (offer && easier) {
       easier.addEventListener('click', () => {

@@ -22,6 +22,17 @@ in order, and stops at the first failure:
    It writes `playtest-report/index.html` (screenshots of every step for every game) and
    `playtest-report/summary.json`. **Look at the screenshots** after any visual change.
 
+## Bot motion (does a bot look like a person?)
+
+`src/core/motion.ts` scores a traced path the way a person would see it: direction
+flips per second, twitches (a flip that undoes the last one within 0.18 s), harsh snaps
+(faster than a finger can accelerate) and wobble (moving a lot without getting anywhere).
+`tests/airhockey-motion.test.ts` holds every Air Hockey bot level to limits the old
+"spazzy" bot failed (~9 flips/s and ~7 twitches/s before; ~2 and ~0.3 now), and the
+playtest traces the bot paddle in real time and saves `airhockey-bot-path.png` plus
+`airhockey-bot-motion.json`. `npm run motion` prints the numbers per level. Reuse it for
+any other real-time bot (Sumo, Ping Pong, Tanks) by recording that bot's position.
+
 In the cloud container set `PW_CHROMIUM=/opt/pw-browsers/chromium`. `PORT=<n>` picks the
 preview port so several checkouts can run at once. `PLAYTEST_SECONDS` (default 8) sets the
 real-time play per scenario.
