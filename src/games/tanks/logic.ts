@@ -599,6 +599,7 @@ export const BOT = {
 } satisfies Record<BotLevel, { react: number; noise: number; depth: number; angles: number; trigger: number }>;
 
 type Mode = 'aim' | 'move' | 'dodge';
+const ROUTE_STEPS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]] as const;
 /** A new shot within this angle of the one being lined up is the same shot (keeps its wobble). */
 const AIM_KEEP = 0.12;
 
@@ -616,6 +617,8 @@ export class TankBot {
   /** The shot being lined up and its committed aim wobble (see replan). */
   private aimShot: number | null = null;
   private aimNoise = 0;
+  /** Looks in a row that found no shot while still lined up on the last one. */
+  private lostShot = 0;
 
   constructor(
     readonly p: PlayerIndex,
@@ -712,13 +715,22 @@ export class TankBot {
         const same = this.mode === 'aim' && this.aimShot !== null && Math.abs(wrapAngle(shot - this.aimShot)) < AIM_KEEP;
         if (!same) this.aimNoise = this.rng.range(-cfg.noise, cfg.noise);
         this.mode = 'aim';
+        this.lostShot = 0;
         this.aimShot = shot;
         this.aimAngle = shot + this.aimNoise;
         if (ready && powerId === 'bouncy') this.wantPower = true;
         return;
       }
     }
+    // A shot that slips out of view for one look (the other tank edged past a block
+    // corner) usually comes back on the next: hold the aim once instead of turning
+    // away to drive and straight back to shoot, which read as a wag.
+    if (this.mode === 'aim' && this.lostShot < 1) {
+      this.lostShot++;
+      return;
+    }
     // 3. Drive toward the other tank.
+    this.lostShot = 0;
     this.mode = 'move';
     this.aimShot = null;
     this.path = this.route(game, me, foe);
@@ -759,7 +771,14 @@ export class TankBot {
     return best;
   }
 
-  /** Breadth-first route over open cells (mines count as blocked), as cell indices. */
+  /**
+   * Shortest route over open cells (mines count as blocked), as cell indices.
+   * Diagonal steps cost √2, so routes run straight instead of zig-zagging. Most
+   * arenas have several equally short routes; picking a different one on each look
+   * made the tank turn toward one gap and then back toward another, so among equal
+   * routes the bot keeps the one it is already driving, then the one that needs
+   * the least turning from where it's facing.
+   */
   private route(game: TankDuel, from: Tank, to: Tank): number[] {
     const [sc, sr] = game.arena.cellOf(from.x, from.y);
     const [gc, gr] = game.arena.cellOf(to.x, to.y);
@@ -770,28 +789,49 @@ export class TankBot {
     }
     const start = sr * COLS + sc;
     const goal = gr * COLS + gc;
-    const prev = new Map<number, number>([[start, -1]]);
-    const queue = [start];
     const open = (c: number, r: number) => !game.arena.solidCell(c, r) && !blocked.has(r * COLS + c);
-    while (queue.length) {
-      const cur = queue.shift()!;
-      if (cur === goal) break;
+    const steps = (cur: number) => {
       const c = cur % COLS;
       const r = Math.floor(cur / COLS);
-      for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+      const out: { id: number; dc: number; dr: number; cost: number }[] = [];
+      for (const [dc, dr] of ROUTE_STEPS) {
         const nc = c + dc;
         const nr = r + dr;
         if (!open(nc, nr)) continue;
         if (dc && dr && (!open(c + dc, r) || !open(c, r + dr))) continue;
-        const id = nr * COLS + nc;
-        if (prev.has(id)) continue;
-        prev.set(id, cur);
-        queue.push(id);
+        out.push({ id: nr * COLS + nc, dc, dr, cost: dc && dr ? Math.SQRT2 : 1 });
       }
+      return out;
+    };
+    // Distance to the goal from every cell (moves are symmetric, so search from the goal).
+    const dist = new Float64Array(COLS * ROWS).fill(Infinity);
+    const done = new Uint8Array(COLS * ROWS);
+    dist[goal] = 0;
+    for (;;) {
+      let cur = -1;
+      for (let i = 0; i < dist.length; i++) if (!done[i] && dist[i] < Infinity && (cur < 0 || dist[i] < dist[cur])) cur = i;
+      if (cur < 0 || cur === start) break;
+      done[cur] = 1;
+      // The goal cell may hold the other tank on a mine; still search out from it.
+      for (const n of steps(cur)) if (dist[cur] + n.cost < dist[n.id]) dist[n.id] = dist[cur] + n.cost;
     }
-    if (!prev.has(goal)) return [];
-    const path: number[] = [];
-    for (let cur = goal; cur !== -1; cur = prev.get(cur)!) path.unshift(cur);
+    if (dist[start] === Infinity) return [];
+    const keep = new Set(this.path.slice(Math.max(0, this.pathI - 1)));
+    const path = [start];
+    let heading = from.a;
+    for (let cur = start; cur !== goal; ) {
+      let best: { id: number; score: number; a: number } | null = null;
+      for (const n of steps(cur)) {
+        if (Math.abs(dist[n.id] + n.cost - dist[cur]) > 1e-6) continue;
+        const a = Math.atan2(n.dr, n.dc);
+        const score = (keep.has(n.id) ? 0 : 10) + Math.abs(wrapAngle(a - heading));
+        if (!best || score < best.score) best = { id: n.id, score, a };
+      }
+      if (!best) return [];
+      path.push(best.id);
+      heading = best.a;
+      cur = best.id;
+    }
     return path;
   }
 }
