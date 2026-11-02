@@ -214,8 +214,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       par sits between the bots (easy no more than 0.5 under, normal no more than 0.5 over)
       and that pars never drop along the list; the hole playtest checks each match's pars
       ramp up. (Replaces the "lip on the bowl" idea: the bowl is fine, its par was wrong.)
-- [ ] Bot pace table: a sim script printing every game's easy/normal/hard win rates and
-      match lengths, so difficulty tuning across games has numbers (like this run's).
+- [x] 2026-11-01 (PR #70): Bot pace table: `npm run sim` (scripts/sim.ts) plays the 8 real-time
+      action games' bots at every level pairing, seats swapped, powers off (`--powers` on,
+      `--game <id>`, `--n <matches>`), and prints win share, draws, unfinished and match length.
+      First read (n=10–40): the higher level wins 80–100% everywhere, so the levels are real
+      steps. Follow-ups below.
+- [ ] Air Hockey bottom seat won only 35–45% of mirror bot matches (n=40 per level) and ~3% of
+      normal/hard matches ran past 5 minutes; check for a seat asymmetry and a stall with
+      `npm run sim -- --game airhockey --n 200`.
+- [ ] Add the masher model (tests/sumo.test.ts) as a "kid" row to `npm run sim` for every game.
 - [ ] Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
       the sloppy easy bot spends more turns targeting, when it never radars. Fine for now;
       recheck if kids pick radar and lose.
