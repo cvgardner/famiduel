@@ -151,6 +151,20 @@ async function barMismatch(page: Page): Promise<{ top: number; bottom: number; b
   });
 }
 
+/**
+ * The brightest colour channel of the outermost bar pixel, top and bottom.
+ * A near-black band peaks around 25; a bar carrying a player's colour is far
+ * brighter.
+ */
+async function barPeak(page: Page): Promise<{ top: number; bottom: number }> {
+  return page.evaluate(() => {
+    const c = document.getElementById('stage') as HTMLCanvasElement;
+    const g = c.getContext('2d')!;
+    const peak = (y: number) => Math.max(...Array.from(g.getImageData(c.width >> 1, y, 1, 1).data.slice(0, 3)));
+    return { top: peak(0), bottom: peak(c.height - 1) };
+  });
+}
+
 /** Tap through the intro like a person: pick a power if offered, then Ready. */
 async function introAsPeople(page: Page, players: (0 | 1)[]) {
   await expect(page.locator('#intro')).toBeVisible();
@@ -1328,6 +1342,10 @@ test('minigolf: every hole comes up in a match, fits the phone and can be finish
     await page.screenshot({ path: path.join(OUT, `minigolf-hole-${h.id}.png`) });
     const bars = await barMismatch(page);
     expect(Math.max(bars.top, bars.bottom), `${h.id}: letterbox bars carry the game edge`).toBeLessThan(24);
+    // Minigolf's HUD strips are dark; their coloured outer edge makes each
+    // player's bar glow in their colour instead of reading as a black band.
+    const peak = await barPeak(page);
+    expect(Math.min(peak.top, peak.bottom), `${h.id}: bars show each player's colour, not black`).toBeGreaterThan(55);
     // Two hard bots play it out in the real UI (game time, fast-forwarded).
     const done = await page.evaluate((idx) => {
       const app = (window as unknown as { __famiduel: GolfHook }).__famiduel;

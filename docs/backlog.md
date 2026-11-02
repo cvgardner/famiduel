@@ -249,8 +249,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       warns if a playing hand ever paused a match. Logic in `engine/hold.ts`, unit tested.
 - [ ] Letterbox: games could use the bars for real (e.g. score or power buttons further
       from the play area on tall phones) by exposing the visible world height to views.
-- [ ] Minigolf's top and bottom HUD strips are near-black, so its bars still read as black
-      bands; a lighter HUD edge (or grass running under it) would make it fill the phone too.
+- [x] 2026-11-01: Minigolf's top and bottom HUD strips are near-black, so on tall phones
+      its letterbox bars still read as black bands (a 390×844 phone has ~100 px of them).
+      Each strip now ends in a 3-unit edge in that player's colour (pulsing brighter on their
+      shot), which the stage stretches into the bar: each end of the phone glows in its
+      player's colour and shows whose shot it is from across the table. The hole playtest
+      now fails if either bar's brightest channel is under 55 (black bands peak near 25).
+- [ ] Other games whose world edge is dark (Sea Battle's deep water, Quick Draw at night?)
+      could check their bars the same way; `barPeak` in the playtest measures it.
 
 ## Ideas found 2026-11-01 (minigolf holes run)
 - [x] 2026-11-01: `text()` set `globalAlpha` to its own `alpha`, so a caller's fade never
