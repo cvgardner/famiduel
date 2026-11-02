@@ -93,7 +93,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .power-card b { font-size: 13px; }
 .power-card small { font-size: 12px; color: var(--dim); line-height: 1.2; }
 .btn.ready { min-width: 180px; background: var(--c); color: #fff; }
-.btn.ready.on { background: var(--good, #4ade80); color: #14112b; }
+.btn.ready.on { background: var(--good, #5eead4); color: #14112b; }
 .who { font-weight: 800; color: var(--c); }
 /* A bot's level row sits where a person's Ready button would, at the same height. */
 .botlvl { flex-wrap: nowrap; width: 100%; max-width: 300px; }

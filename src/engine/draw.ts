@@ -12,7 +12,8 @@ export const COLORS = {
   text: '#ffffff',
   dim: 'rgba(255,255,255,0.6)',
   gold: '#ffd54a',
-  good: '#4ade80',
+  // Teal, not green: green vs COLORS.bad collapses for red-green colour blindness (deutan).
+  good: '#5eead4',
   bad: '#ff5c7a',
 };
 
