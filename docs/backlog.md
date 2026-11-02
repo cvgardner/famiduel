@@ -392,8 +392,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Rock Paper Scissors could get a person too, so the report counts throws per seat.
 
 ## Ideas found 2026-10-31 (colour-blind run)
-- [ ] COLORS.good (#4ade80) and COLORS.bad (#ff5c7a) are a red/green pair (0.09 for deutan);
-      anywhere they carry meaning alone (hit/miss, right/wrong) add a shape or word too.
+- [x] 2026-11-01 (PR #68): COLORS.good (#4ade80) and COLORS.bad (#ff5c7a) were a red/green pair
+      (0.09 for deutan). Good is now teal #5eead4 (0.16 apart for every vision, tested in
+      tests/colors.test.ts); Penalty's saved/miss dots already add an X / dash.
 - [ ] Game cards' own colours (`content/games.json` `color`) aren't checked; fine since the
       name and icon carry them, but a game that colours pieces by card colour would need it.
 - [ ] A shape per seat (e.g. a small ring vs dot on paddles, snakes, pieces) would make
