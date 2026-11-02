@@ -14,6 +14,8 @@ export type PowerDef = {
   desc: string;
   /** Seconds the effect lasts, when it lasts. */
   duration?: number;
+  /** How many actions the effect covers, when it counts down per action instead of per second. */
+  count?: number;
 };
 
 export type PlayerInfo = {

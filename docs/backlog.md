@@ -230,8 +230,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       code in scripts/simlib.ts) plays each power against each other power and "none" with
       the same bot level on both seats, seats swapped, and flags powers averaging outside
       35–65%. First read (n=40, normal bots), bot use only, so check with people before tuning:
-- [ ] Chop Chop Double wins 95% (beats every power 93–98%) and None only 14%: Double is far
-      too strong, or the other two too weak for a bot.
+- [x] 2026-11-02 (PR #73): Chop Chop Double won 95% (beat every power 93–98%). Double now covers
+      the next 4 chops instead of 4 seconds (a slow tapper gets as much from it as a fast one),
+      and Branch Shield lasts 2 seconds instead of one branch, so you can mash one side; the bot
+      mashes too under it (1.5x its rate, never past HUMAN.tapGap). Normal bots: shield 53% /
+      freeze 63% / double 64% (was 28 / 57 / 92). Hard mirror bots still favour Freeze (76%):
+      one second of a fast tapper is a lot, but hard-vs-hard is near-deterministic.
 - [ ] Snack Snatch Sticky wins 77% (88% vs Double and vs None).
 - [ ] Snake Boost wins 25% and loses to None (23%): the bot probably boosts into trouble;
       check the bot's Boost use before changing the power.
