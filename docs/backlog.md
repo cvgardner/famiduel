@@ -232,7 +232,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       35–65%. First read (n=40, normal bots), bot use only, so check with people before tuning:
 - [ ] Chop Chop Double wins 95% (beats every power 93–98%) and None only 14%: Double is far
       too strong, or the other two too weak for a bot.
-- [ ] Snack Snatch Sticky wins 77% (88% vs Double and vs None).
+- [x] 2026-11-02 (PR #74): Snack Snatch Sticky won 77% (88% vs Double and vs None). It now lasts
+      3 seconds instead of 5: normal bots, n=80: sticky 62%, magnet 49%, double 51% (4 s was
+      still 74%). Sticky still beats Double (~75%) one on one; recheck with people.
 - [ ] Snake Boost wins 25% and loses to None (23%): the bot probably boosts into trouble;
       check the bot's Boost use before changing the power.
 - [ ] Quick Draw Slow Time wins 74%; Ping Pong Smash 71% (Slow-mo 34%); Tanks Shield 68%;
