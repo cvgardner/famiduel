@@ -4,7 +4,9 @@ import { boot, botMatch, holdPause } from './helpers';
 
 test('home shows the games and both players', async ({ page }) => {
   const errors = await boot(page);
-  await expect(page.locator('.game-card')).toHaveCount(games.games.length);
+  await expect(page.locator('.game-card')).toHaveCount(games.games.filter((g) => !g.hidden).length);
+  // Hidden games (board games families already own) have no card.
+  for (const g of games.games.filter((x) => x.hidden)) await expect(page.locator(`.game-card[data-id="${g.id}"]`)).toHaveCount(0);
   await expect(page.locator('.player-chip')).toHaveCount(2);
   await expect(page.locator('.game-card[data-ready="1"]').first()).toBeVisible();
   expect(errors).toEqual([]);
@@ -83,8 +85,11 @@ test('pause needs a press and hold: a quick tap only shows a hint', async ({ pag
 for (const g of games.games) {
   test(`bot vs bot: ${g.id} plays to a result`, async ({ page }) => {
     const errors = await boot(page);
-    const ready = await page.locator(`.game-card[data-id="${g.id}"]`).getAttribute('data-ready');
-    test.skip(ready !== '1', 'not built yet');
+    // Hidden games have no card but stay built and playable, so they keep this check.
+    if (!g.hidden) {
+      const ready = await page.locator(`.game-card[data-id="${g.id}"]`).getAttribute('data-ready');
+      test.skip(ready !== '1', 'not built yet');
+    }
     await botMatch(page, g.id);
     await expect(page.locator('.res-title').first()).toBeVisible();
     await expect(page.locator('.night-score, .res-night').first()).toContainText(/1|0/);

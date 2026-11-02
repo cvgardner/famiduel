@@ -556,6 +556,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Between two people a whole turn of hits ends on a miss; a short "3 hits!" pop over the
       sea at the hand-over would make a strong turn feel as good as it was.
 
+## Hidden games (Chris, 2026-11-01)
+- [x] Checkers, Four in a Row and Tic-Tac-Toe are **hidden**, not deleted: board and thought
+      games families already own, or have dedicated apps for, add little. They keep `"hidden":
+      true` in content/games.json, so they have no home card but their code, logic tests,
+      e2e bot-vs-bot run and their own playtest checks still run. Bring one back by deleting
+      the flag; `/?all` shows every game for a quick look. With them gone the home groups are
+      "⚡ Action games" and "🎲 Take turns" (Sea Battle, Rock Paper Scissors).
+      **Don't spend improvement runs on hidden games, and don't add new board/thought games.**
+      Ideas below that only touch hidden games are parked.
+
 ## Ideas found 2026-11-01 (home order run)
 - [x] 2026-11-01: Home grid in labelled groups. On a 320 px phone only the first rows show,
       and the 15 cards were one unbroken grid, so a parent looking for a calm game had to read

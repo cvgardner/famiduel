@@ -25,6 +25,10 @@ the Challenge"); the plan and market research are in the GameDev project's
   friends-first leaderboard (Game Center / Play Games), Family Wrapped each December.
   NOT "design for being filmed". Sharing sits behind a parental gate; no accounts, no chat,
   names stay on the device.
+- **Hidden for now (1 Nov 2026):** Checkers, Four in a Row, Tic-Tac-Toe (board/thought games
+  families already own). `"hidden": true` in `content/games.json` removes the home card and
+  keeps everything else; delete the flag to bring one back, `/?all` shows all. Focus new
+  games and polish on action games; no new board/thought games.
 - **Never use** trademarked names (Hungry Hippos, etc.). Don't put the SupaSmak slam in here.
 
 ## Tech
