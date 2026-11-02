@@ -226,8 +226,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
       the sloppy easy bot spends more turns targeting, when it never radars. Fine for now;
       recheck if kids pick radar and lose.
-- [ ] Power balance sim per game (each power vs each, mirrored seats, per bot level), like
-      the Sea Battle one in this run, to catch powers a bot can't use.
+- [x] 2026-11-01 (PR #72): Power balance sim: `npm run sim:powers` (scripts/powers-sim.ts, shared
+      code in scripts/simlib.ts) plays each power against each other power and "none" with
+      the same bot level on both seats, seats swapped, and flags powers averaging outside
+      35–65%. First read (n=40, normal bots), bot use only, so check with people before tuning:
+- [ ] Chop Chop Double wins 95% (beats every power 93–98%) and None only 14%: Double is far
+      too strong, or the other two too weak for a bot.
+- [ ] Snack Snatch Sticky wins 77% (88% vs Double and vs None).
+- [ ] Snake Boost wins 25% and loses to None (23%): the bot probably boosts into trouble;
+      check the bot's Boost use before changing the power.
+- [ ] Quick Draw Slow Time wins 74%; Ping Pong Smash 71% (Slow-mo 34%); Tanks Shield 68%;
+      Air Hockey Split 33% (loses to None 40/60).
 - [x] 2026-10-31: Playtest: Sea Battle never got past fleet placement in real-time play
       (random touches almost never hit Ready, and firing needs the same square tapped twice),
       so it reported 0 buzzes. Turn-based games can now have a "person" in the playtest
