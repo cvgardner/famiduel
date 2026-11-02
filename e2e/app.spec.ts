@@ -23,6 +23,26 @@ test('edit a player: name and head start', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('a fresh install plays classic: powers and auto handicap off, no power cards', async ({ page }) => {
+  const errors = await boot(page, 'E2E', false);
+  await expect(page.locator('.settings input[data-k="powers"]')).not.toBeChecked();
+  await expect(page.locator('.settings input[data-k="autoHandicap"]')).not.toBeChecked();
+  await page.locator('.game-card[data-id="airhockey"]').click();
+  await expect(page.locator('#intro')).toBeVisible();
+  await expect(page.locator('.power-card')).toHaveCount(0);
+  await expect(page.locator('#ready0')).toBeEnabled();
+  await page.click('#ready0');
+  await page.click('#ready1');
+  await expect(page.locator('#play')).toBeVisible();
+  // Turning powers on from home brings the power cards back.
+  await holdPause(page);
+  await page.click('#quitBtn');
+  await page.locator('.settings input[data-k="powers"]').check();
+  await page.locator('.game-card[data-id="airhockey"]').click();
+  await expect(page.locator('.power-card[data-p="0"]').first()).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('two people pick powers, play air hockey, and see the result', async ({ page }) => {
   const errors = await boot(page);
   await page.locator('.game-card[data-id="airhockey"]').click();

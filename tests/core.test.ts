@@ -113,6 +113,29 @@ describe('store', () => {
   });
 });
 
+describe('settings defaults', () => {
+  const mem = () => {
+    const m = new Map<string, string>();
+    return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) } as Storage;
+  };
+  it('a fresh install plays classic: super powers and auto handicap are off', () => {
+    const s = new Store(mem());
+    expect(s.data.settings.powers).toBe(false);
+    expect(s.data.settings.autoHandicap).toBe(false);
+    expect(s.data.settings.sound).toBe(true);
+  });
+  it('an older save (when they were on by default) moves to off once, then keeps the choice', () => {
+    const storage = mem();
+    storage.setItem('famiduel.v1', JSON.stringify({ settings: { powers: true, autoHandicap: true, sound: false, haptics: true } }));
+    const s = new Store(storage);
+    expect(s.data.settings).toMatchObject({ powers: false, autoHandicap: false, sound: false });
+    s.data.settings.powers = true;
+    s.data.settings.autoHandicap = true;
+    s.save();
+    expect(new Store(storage).data.settings).toMatchObject({ powers: true, autoHandicap: true });
+  });
+});
+
 describe('bot level per game', () => {
   const mem = () => {
     const m = new Map<string, string>();

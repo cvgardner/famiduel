@@ -77,7 +77,7 @@ describe('store settings migration', () => {
       getItem: (k: string) => mem.get(k) ?? null,
       setItem: (k: string, v: string) => void mem.set(k, v),
     } as unknown as Storage;
-    mem.set('famiduel.v1', JSON.stringify({ settings: { powers: false, autoHandicap: true, sound: false } }));
+    mem.set('famiduel.v1', JSON.stringify({ settings: { powers: false, autoHandicap: true, sound: false }, settingsVersion: 2 }));
     const s = new Store(storage);
     expect(s.data.settings).toEqual({ powers: false, autoHandicap: true, sound: false, haptics: true });
   });
