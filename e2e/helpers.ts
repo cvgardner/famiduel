@@ -7,13 +7,25 @@ type Hook = {
   runner: { fastForward(s: number): void; result: unknown } | null;
 };
 
-export async function boot(page: Page, seed = 'E2E') {
+/**
+ * A fresh install. Super powers are off by default (classic rules); most checks turn them on
+ * so the power cards stay covered. Pass powers = false to see what a new family sees.
+ */
+export async function boot(page: Page, seed = 'E2E', powers = true) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto(`/?seed=${seed}`);
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await expect(page.locator('.logo')).toContainText('Fami');
+  if (powers) {
+    await page.evaluate(() => {
+      const app = (window as unknown as { __famiduel: Hook }).__famiduel;
+      app.store.data.settings.powers = true;
+      app.store.save();
+      app.showHome();
+    });
+  }
   return errors;
 }
 
