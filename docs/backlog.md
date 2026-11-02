@@ -798,6 +798,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-02 (PR #76): The "ping pong: where the ball landed stays" playtest failed main's
       verify once with two verifies running (no landing survived its 150 ms look three times
       running; it passes alone). It now watches up to 8 landings until three were seen holding.
+      Same PR: the air hockey "never moves, at any level" unit test (~5 s alone) timed out at
+      vitest's 5 s default with two verifies running; it now has the 60 s whole-match timeout.
 - [ ] Power balance with people in mind: the bots almost never jump the gun or bonk, so
       `npm run sim:powers` undervalues forgiving powers (Quick Draw Double Shot / Fake-out,
       the old Chop Chop shield). A human false-start / mistake rate per bot level would make
