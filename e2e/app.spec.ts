@@ -125,3 +125,43 @@ test.describe('a flat phone that flips to landscape', () => {
     expect(errors).toEqual([]);
   });
 });
+
+test('7-game tournament: bots play it through to a champion, and a quit game waits', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: { store: { data: { profiles: { bot: string | null }[] }; save(): void }; showHome(): void } }).__famiduel;
+    app.store.data.profiles[0].bot = 'normal';
+    app.store.data.profiles[1].bot = 'normal';
+    app.store.save();
+    app.showHome();
+  });
+  await page.click('#tourneyBtn');
+  await expect(page.locator('#tourney')).toBeVisible();
+  await expect(page.locator('.lineup .slot')).toHaveCount(7);
+  await expect(page.locator('.slot.next')).toHaveCount(1);
+  // Quitting the first game leaves it next in line.
+  const first = await page.locator('#tourneyPlay').textContent();
+  await page.click('#tourneyPlay');
+  await expect(page.locator('#play')).toBeVisible();
+  await expect(page.locator('.tourney-tag')).toHaveCount(1);
+  await holdPause(page);
+  await page.click('#quitBtn');
+  await expect(page.locator('#tourney')).toBeVisible();
+  await expect(page.locator('#tourneyPlay')).toHaveText(first!);
+  for (let i = 0; i < 20; i++) {
+    if (!(await page.locator('#tourneyPlay').count())) break;
+    await page.click('#tourneyPlay');
+    await expect(page.locator('#play')).toBeVisible();
+    await page.evaluate(() => (window as unknown as { __famiduel: { runner: { fastForward(s: number): void } } }).__famiduel.runner.fastForward(900));
+    await expect(page.locator('#result')).toBeVisible();
+    await expect(page.locator('.res-night').first()).toContainText('Tournament');
+    await page.click('#tourneyNextBtn');
+    await expect(page.locator('#tourney')).toBeVisible();
+  }
+  await expect(page.locator('.tourney-title')).toContainText('wins the tournament');
+  await expect(page.locator('#tourneyAgain')).toBeVisible();
+  // Home offers a fresh tournament again.
+  await page.click('#tourneyHome');
+  await expect(page.locator('#tourneyBtn')).toContainText('7-game tournament');
+  expect(errors).toEqual([]);
+});

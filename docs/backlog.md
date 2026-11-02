@@ -36,6 +36,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       float32 rounding slip in the Dijkstra), so bots misread most of Zig Zag-like holes.
       Bot noise retuned for the new cup: easy +0.76, normal -0.44, hard -1.39 per hole.
 
+- [x] 2026-11-01 (Chris): 7-game tournament. Home button "7-game tournament" picks 7
+      different action/aim games by seed; first to 4 wins, a draw adds a game; the lineup
+      screen shows who won each one; quit games wait; result screen says "Next game".
+      Unit tests (tests/tournament.test.ts) and an e2e bot-vs-bot run to a champion.
+
 ## Feel and fairness
 - [x] 2026-10-31: Sumo: the normal bot beat a mashing player 2-0 in under 8 s. Measured:
       the bot level made no difference; a masher fell off the ring *on their own* in about

@@ -13,7 +13,7 @@
       "blurb": "First to 7, win by 2. Rallies heat up.", "howTo": "Slide to move your paddle. Push it toward the net as you hit to drive; flick hard and straight to SMASH. Swipe sideways or at an angle through the ball to curve it.",
       "handicap": "Bigger paddle, slower ball toward you" },
     { "id": "snacksnatch", "gesture": "sides", "name": "Snack Snatch", "icon": "🐸", "kind": "Frantic", "free": false, "color": "#b06cff",
-      "blurb": "Most points in 30 seconds. Gold snacks are worth 3.", "howTo": "Tap the left or right of your side to snap that critter at the snacks. A miss makes it dizzy for a moment.",
+      "blurb": "Most points in 30 seconds. Gold snacks are worth 3.", "howTo": "Tap the left or right of your side to snap that critter at the snacks. A miss makes it dizzy for a moment. The last 10 seconds are a Frenzy: more snacks, flying faster.",
       "handicap": "Longer reach" },
     { "id": "tanks", "gesture": "stick", "name": "Tank Duel", "icon": "🛡️", "kind": "Action", "free": false, "color": "#8bc34a",
       "blurb": "Five bonks wins.", "howTo": "Push your stick to turn and drive (a little push just turns). Tap FIRE. Shells bounce off blocks, so watch out for your own!",
