@@ -348,8 +348,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       44 px target check now covers that screen.
 - [ ] How to play mid-match could also show each power's charge state ("ready in 4 s") and
       a short animation of the power, for kids who picked it without reading.
-- [ ] Penalty's demo shows only the shooter's swipe; the keeper's tap is in text only.
-      Games with two roles could alternate both gestures.
+- [x] 2026-11-01 (PR #69): Penalty's demo showed only the shooter's swipe. New `kick` gesture
+      loops both roles: swipe the ball, then the keeper's tap on a dive button.
 
 ## Ideas found 2026-10-31 (Sumo head start run)
 - [x] 2026-11-01 (PR #71): Sumo with no head start: a masher still loses every match (self-outs).
