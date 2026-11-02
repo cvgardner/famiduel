@@ -449,9 +449,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       `npm run sim` table with the bot pace table idea above.
 
 ## Ideas found 2026-10-31 (contrast run)
-- [ ] Chop Chop's "◀ chop / chop ▶" hints drop to 45% opacity once play starts (about
-      1.6:1 on the grass). The probe judges a label at its best, so it passes on the intro;
-      decide whether faint in-play hints are fine or give them a dark pill.
+- [x] 2026-11-01: Chop Chop's "◀ chop / chop ▶" hints faded to 45% opacity once play
+      started (about 1.6:1 on the grass), right where a kid looks for which side to tap. They
+      now sit on a small dark pill at full opacity the whole match (white on the pill is well
+      over 4.5:1 on every grass shade). A unit test reads the hints from the source and checks
+      them on the lightest grass, since the playtest's probe only judges a label at its best.
 - [ ] Menus (DOM) aren't contrast-checked yet; the same check over the intro and result
       screens' text (computed colour vs the element's background) would cover them.
 - [ ] The playtest only plays Blue vs Pink; run the contrast pass once with Mint vs Orange
@@ -669,3 +671,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       phone.
 - [ ] The home screen (DOM) is still not contrast-checked; the headings use `--dim` (62%
       white on #14112b, about 7:1), but a probe over all menu text would catch a regression.
+
+## Ideas found 2026-11-01 (Chop Chop hints run)
+- [ ] The contrast probe keeps a label's best at-rest sample and treats any alpha below 0.99
+      as a fade, so a label drawn at a steady low opacity during play is never judged. A
+      "steady" rule (same alpha for ~1 s counts as at rest) would catch the next one; check
+      it doesn't flag real fades (Ping Pong tips, Snack Snatch banners) first.
