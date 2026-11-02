@@ -3,6 +3,7 @@
 // every chop refills it. Both trees share one seeded branch pattern per round.
 import { Energy } from '../../core/energy';
 import { lerpAssist } from '../../core/handicap';
+import { HUMAN } from '../../core/human';
 import type { Rng } from '../../core/rng';
 import type { BotLevel, PlayerIndex, PlayerInfo } from '../../core/types';
 import { other } from '../../core/types';
@@ -21,8 +22,11 @@ export const RULES = {
   /** Drain multiplier at assist 3. */
   assistDrain: 0.6,
   refill: 0.1,
-  doubleChop: 4,
+  /** Double Chop covers this many chops (a count, not seconds, so a slow tapper gets as much from it). */
+  doubleChop: 8,
   freeze: 1,
+  /** Seconds Branch Shield keeps branches off you. */
+  shield: 2,
   energyPerChop: 0.02,
   energyLose: 0.35,
 };
@@ -39,8 +43,10 @@ export type Chopper = {
   timer: number;
   out: boolean;
   outReason: 'bonk' | 'time' | null;
-  shield: boolean;
+  /** Seconds left in which branches break instead of bonking. */
+  shield: number;
   frozen: number;
+  /** Chops left that count twice. */
   double: number;
   drainMul: number;
   /** Pattern indices whose branch this chopper broke off with a shield. */
@@ -85,7 +91,7 @@ export class ChopChop {
   ) {
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     const mk = (p: PlayerIndex): Chopper => ({
-      side: -1, idx: 0, chops: 0, timer: RULES.timerStart, out: false, outReason: null, shield: false, frozen: 0, double: 0,
+      side: -1, idx: 0, chops: 0, timer: RULES.timerStart, out: false, outReason: null, shield: 0, frozen: 0, double: 0,
       drainMul: lerpAssist(players[p].assist, 1, RULES.assistDrain), broken: new Set(),
     });
     this.choppers = [mk(0), mk(1)];
@@ -105,7 +111,7 @@ export class ChopChop {
     }
     this.pattern = pat;
     for (const c of this.choppers) {
-      Object.assign(c, { side: -1, idx: 0, chops: 0, timer: RULES.timerStart, out: false, outReason: null, frozen: 0, double: 0 });
+      Object.assign(c, { side: -1, idx: 0, chops: 0, timer: RULES.timerStart, out: false, outReason: null, shield: 0, frozen: 0, double: 0 });
       c.broken = new Set();
     }
     this.phase = 'intro';
@@ -131,7 +137,7 @@ export class ChopChop {
       this.energy[p].tick(dt);
       const c = this.choppers[p];
       c.frozen = Math.max(0, c.frozen - dt);
-      c.double = Math.max(0, c.double - dt);
+      if (this.phase === 'play') c.shield = Math.max(0, c.shield - dt);
     }
     if (this.phase === 'intro') {
       this.phaseT -= dt;
@@ -177,8 +183,7 @@ export class ChopChop {
   private hit(p: PlayerIndex, i: number, side: Side): boolean {
     const c = this.choppers[p];
     if (this.branch(p, i) !== side) return true;
-    if (c.shield) {
-      c.shield = false;
+    if (c.shield > 0) {
       c.broken.add(i);
       this.events.push({ type: 'shieldBreak', p, side });
       return true;
@@ -201,6 +206,7 @@ export class ChopChop {
     c.side = side;
     c.idx++;
     const n = c.double > 0 ? 2 : 1;
+    if (c.double > 0) c.double--;
     c.chops += n;
     c.timer = Math.min(1, c.timer + RULES.refill);
     this.energy[p].charge(RULES.energyPerChop, c.chops < this.choppers[other(p)].chops);
@@ -213,11 +219,11 @@ export class ChopChop {
     const power = this.players[p].power;
     const c = this.choppers[p];
     if (!power || c.out) return;
-    if (power.id === 'shield' && c.shield) return;
+    if (power.id === 'shield' && c.shield > 0) return;
     if (!this.energy[p].spend(power.duration ?? 0)) return;
-    if (power.id === 'shield') c.shield = true;
+    if (power.id === 'shield') c.shield = power.duration ?? RULES.shield;
     else if (power.id === 'freeze') this.choppers[other(p)].frozen = power.duration ?? RULES.freeze;
-    else if (power.id === 'double') c.double = power.duration ?? RULES.doubleChop;
+    else if (power.id === 'double') c.double = power.count ?? RULES.doubleChop;
     this.events.push({ type: 'power', p, id: power.id });
   }
 
@@ -247,6 +253,9 @@ const BOT = {
   hard: { rate: 4.7, jitter: 0.15, mistake: 0.002, react: 0.25 },
 } satisfies Record<BotLevel, { rate: number; jitter: number; mistake: number; react: number }>;
 
+/** How much faster a bot taps when a shield means it doesn't have to read the branches. */
+const BOT_MASH = 1.5;
+
 export class ChopBot {
   private wait = 0;
   private wasPlaying = false;
@@ -267,9 +276,14 @@ export class ChopBot {
     if (!playing) return { chop: 0, power: false };
     this.wait -= dt;
     if (this.wait > 0) return { chop: 0, power };
-    this.wait = (1 / cfg.rate) * (1 + this.rng.range(-cfg.jitter, cfg.jitter));
+    // Under a shield there's nothing to look at, so it mashes one side, the way a person
+    // does, but no faster than a thumb can tap.
+    const shielded = c.shield > 0;
+    const rate = shielded ? Math.min(cfg.rate * BOT_MASH, 1 / HUMAN.tapGap) : cfg.rate;
+    this.wait = Math.max(HUMAN.tapGap, (1 / rate) * (1 + this.rng.range(-cfg.jitter, cfg.jitter)));
     if (c.frozen > 0) return { chop: 0, power };
     const safe = (s: -1 | 1) => game.branch(this.p, c.idx) !== s && game.branch(this.p, c.idx + 1) !== s;
+    if (shielded) return { chop: c.side, power };
     let side: -1 | 1 = safe(c.side) ? c.side : (-c.side as -1 | 1);
     if (this.rng.chance(cfg.mistake)) side = -side as -1 | 1;
     return { chop: side, power };

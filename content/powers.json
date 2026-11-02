@@ -116,7 +116,8 @@
         "id": "shield",
         "name": "Branch Shield",
         "icon": "🛡️",
-        "desc": "The next branch that would bonk you breaks instead."
+        "desc": "For 2 seconds, branches break instead of bonking you: mash away!",
+        "duration": 2
       },
       {
         "id": "freeze",
@@ -129,8 +130,8 @@
         "id": "double",
         "name": "Double Chop",
         "icon": "✌️",
-        "desc": "Every chop counts twice for 4 seconds.",
-        "duration": 4
+        "desc": "Your next 4 chops count twice.",
+        "count": 4
       }
     ],
     "sumo": [
