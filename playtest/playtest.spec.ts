@@ -1366,6 +1366,61 @@ test('rematch: whoever went second last match starts the rematch', async ({ page
   expect(errors).toEqual([]);
 });
 
+test('penalty: a swiped pick waits for the clock, and the kick always lands on zero', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await page.evaluate(() => ((window as unknown as { __contrast: { on: boolean } }).__contrast.on = true));
+  await setPlayers(page, [null, 'normal']);
+  await page.locator('.game-card[data-id="penalty"]').tap();
+  await introAsPeople(page, [0]);
+  await page.waitForTimeout(2200); // countdown
+  type PK = { shooter: number; phase: string; phaseT: number; t: number; flightT: number; kickT: number; picks: number; picked: unknown; runningUp: boolean; aimTime(): number; kickIn(): number };
+  type PenHook = { runner: null | { game: { game: PK } } };
+  const state = () =>
+    page.evaluate(() => {
+      const g = (window as unknown as { __famiduel: PenHook }).__famiduel.runner!.game.game;
+      return { shooter: g.shooter, phase: g.phase, phaseT: g.phaseT, t: g.t, flightT: g.flightT, kickT: g.kickT, picks: g.picks, picked: g.picked !== null, runningUp: g.runningUp, aim: g.aimTime(), kickIn: g.kickIn() };
+    });
+  const seen = () => page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, unknown> } }).__contrast.seen.keys()]);
+  // Wait for the person's kick (the bot may shoot first), early in its pick clock.
+  await expect
+    .poll(async () => { const s = await state(); return s.shooter === 0 && s.phase === 'aim' && s.phaseT < 1.2; }, { timeout: 12000, intervals: [50] })
+    .toBe(true);
+  const words0 = await seen();
+  expect(words0, 'the shooter is told to pick').toContain('Swipe to pick your shot!');
+  expect(words0.some((w) => /^Kick in \d$/.test(w)), 'the keeper reads when the kick comes').toBe(true);
+  await page.screenshot({ path: path.join(OUT, 'penalty-pick-clock.png') });
+  // A quick swipe toward the goal, up and to the right.
+  const box = await worldBox(page);
+  const at = (wx: number, wy: number) => ({ x: box.x + (wx / 360) * box.width, y: box.y + (wy / 640) * box.height });
+  const finger = (type: string, p: { x: number; y: number }) =>
+    page.evaluate(([t, x, y]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(61, t, x, y), [type, p.x, p.y] as const);
+  // Frame by frame, like a finger: the game samples the swipe each frame.
+  await finger('pointerdown', at(180, 520)); // above the dive buttons
+  for (let i = 1; i <= 4; i++) {
+    await page.waitForTimeout(20);
+    await finger('pointermove', at(180 + 9 * i, 520 - 40 * i));
+  }
+  await page.waitForTimeout(20);
+  await finger('pointerup', at(216, 360));
+  await expect.poll(async () => (await state()).picks, { timeout: 1000, intervals: [20], message: 'the swipe picked a shot' }).toBe(1);
+  const picked = await state();
+  expect(picked.phase, 'the ball is not kicked on the swipe').toBe('aim');
+  const aimStart = picked.t - picked.phaseT;
+  await expect.poll(async () => (await seen()).includes('Shot picked! Swipe again to change'), { timeout: 2000 }).toBe(true);
+  await page.screenshot({ path: path.join(OUT, 'penalty-shot-picked.png') });
+  // The run-up comes, gold, before the strike.
+  await expect.poll(async () => (await state()).runningUp, { timeout: 5000, intervals: [30] }).toBe(true);
+  await page.screenshot({ path: path.join(OUT, 'penalty-run-up.png') });
+  await expect.poll(async () => (await seen()).includes('Here it comes!'), { timeout: 1000 }).toBe(true);
+  // Struck when the clock hit zero, not when the swipe ended.
+  await expect.poll(async () => (await state()).phase, { timeout: 3000, intervals: [30] }).not.toBe('aim');
+  const after = await state();
+  expect(Math.abs(after.kickT - aimStart - after.aim), 'kick lands on zero').toBeLessThan(0.05);
+  expect(errors).toEqual([]);
+});
+
 test('rock paper scissors: two people pick behind a look-away cover, one at a time', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
