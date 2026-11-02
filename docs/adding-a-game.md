@@ -64,6 +64,11 @@ shooter. Every other game is fully open.
   changes only reaction delay, aim noise and look-ahead, never physics or extra info
   (no peeking at hidden ships, no knowing the Quick Draw time in advance).
   hard should beat easy most of the time; a bot-vs-bot match must always end.
+  Bots also stay inside a person's thumb limits (`src/core/human.ts`): no reacting faster
+  than `HUMAN.reaction` (e.g. tapping FIRE the frame a reload ends) and no two presses of
+  one button closer than `HUMAN.tapGap`. Add a button game to `tests/bot-limits.test.ts`,
+  which plays every level bot-vs-bot and checks the presses. If a rule like a reload
+  throws away early taps, buffer them briefly so a mashing person isn't slower than a bot.
 - **Handicap:** `players[p].assist` is 0..3. Map it to the game's knob from games.json with
   `lerpAssist(assist, valueAt0, valueAt3)`. Keep it gentle: the better player should still
   usually win at assist 1.
