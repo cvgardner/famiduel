@@ -728,8 +728,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Sumo is one button with dash physics (tap gaps already capped in bot-limits), so the
       motion check doesn't apply; Snake moves on a grid (turn gap = tapGap). Snake could get a
       "turns per second" check if a kid calls it twitchy.
-- [ ] Tank Duel bot still re-plans its route each look and the 8-way grid route can switch
-      between equal paths (most remaining wags are "new path" ones); a route that prefers the
-      current heading on ties would smooth driving further.
+- [x] 2026-11-01 (19:00 run): Tank Duel bot routes. The route was a breadth-first search
+      where a diagonal step cost the same as a side step, so of the many equally short
+      routes it took whichever the search order found, a different one from each spot, and
+      zig-zagged across open floor. Now diagonals cost √2 (routes run straight with one
+      bend), and among equally short routes the bot keeps the one it is already driving,
+      then the one that needs the least turning from where it faces. It also holds its aim
+      for one look when a shot blinks out of view (the other tank edging past a block
+      corner) instead of turning away to drive and straight back. Over 30 seeds a level:
+      wags 0.19 → 0.16 (easy), 0.21 → 0.20 (normal), 0.32 → 0.30 (hard) a second; turn
+      reversals down ~5%. Strength over 100 mirrored-seat matches: normal beats easy 98
+      (was 99), hard beats normal 91 (88), hard beats easy 100 (98), normal vs normal 50.
+      `tests/tanks-route.test.ts`.
+- [ ] Most of the hard bot's remaining wags (~0.3/s) come from switching between aiming
+      and dodging or driving: it turns 90° to sidestep a shell and back to shoot. A person
+      does that too; only worth softening if a kid calls the hard tank twitchy. Picking the
+      dodge side that needs less turning was tried and made no measurable difference.
 - [ ] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
       fine for a kid's opponent, but watch it in playtests.
