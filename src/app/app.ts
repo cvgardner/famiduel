@@ -154,9 +154,9 @@ export class App {
   }
 
   // ---------- Tournament: best of 7 across different games ----------
-  /** Games the tournament can pick: action and aim games that are built. */
+  /** Games the tournament can pick: shown action and aim games that are built. */
   tournamentPool(): string[] {
-    return tournamentPool(META, (id) => id in GAMES);
+    return tournamentPool(shownGames(SHOW_ALL), (id) => id in GAMES);
   }
 
   private tourneyButton(): string {
