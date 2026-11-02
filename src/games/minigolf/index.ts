@@ -14,6 +14,8 @@ const MAX_PULL = 120;
 const MIN_PULL = 14;
 const TURN_ANIM = 0.6;
 const STRIP = 62;
+/** Height of the coloured outer edge of each player's strip (see drawStrip). */
+const EDGE = 3;
 
 type Aim = { id: number; sx: number; sy: number; x: number; y: number };
 
@@ -642,6 +644,12 @@ class MinigolfView implements GameInstance {
     if (myTurn) gx.fillRect(0, y0 + 4, W, STRIP - 4);
     gx.fillStyle = c;
     gx.fillRect(0, y0, W, myTurn ? 4 : 2);
+    // The strip's outer edge in the player's colour. On tall phones the stage
+    // stretches this row into the letterbox bar, so each player's end of the
+    // phone glows in their colour (brighter on their shot) instead of reading
+    // as a black band.
+    gx.fillStyle = myTurn ? alpha(c, 0.8 + 0.2 * Math.sin(this.t * 5)) : shade(c, -0.15);
+    gx.fillRect(0, H - EDGE, W, EDGE);
     const btn = this.powerBtns[p];
     const x0 = btn ? 74 : 54;
     const name = this.ctx.players[p].name;
