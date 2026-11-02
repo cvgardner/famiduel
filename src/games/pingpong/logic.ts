@@ -46,6 +46,8 @@ export const RULES = {
   spinDead: 80,
   spinK: 0.6,
   maxSpin: 300,
+  /** The brush also drags the ball sideways the way you swiped (× sidespin, units/s). */
+  brushDrag: 0.3,
   /** Sidespin (units/s²) that counts as a curve shot: called out and drawn purple. */
   curveCall: 110,
   /**
@@ -414,9 +416,12 @@ export class PingPong {
     b.smash = shot === 'smash';
     b.shot = shot;
     b.top = top;
-    // Brushing sideways through the ball puts curve on it, in the direction of the swipe.
+    // Brushing sideways through the ball puts sidespin on it, like a real hook: the brush
+    // drags the ball off a little the way you swiped, then the spin bends it back the
+    // other way through the air (the Magnus effect).
     const side = Math.abs(sideSwing) > RULES.spinDead ? clamp((sideSwing - Math.sign(sideSwing) * RULES.spinDead) * RULES.spinK, -RULES.maxSpin, RULES.maxSpin) : 0;
-    b.ax = side;
+    b.vx += side * RULES.brushDrag;
+    b.ax = 0 - side; // (no -0 for a still paddle)
     const curve = pd.curve;
     if (curve) {
       pd.curve = false;
@@ -585,7 +590,8 @@ export class PingPongBot {
       if (slow && r < cfg.smash * 0.5) this.plan = { fwd: RULES.smashFwd + 60, side: 0 };
       else if (r < cfg.drive) this.plan = { fwd: this.rng.range(150, 380), side: 0 };
       else this.plan = { fwd: 0, side: 0 };
-      if (this.rng.chance(cfg.curve)) this.plan.side = away * this.rng.range(300, 520);
+      // Sidespin bends the ball against the swipe, so swipe toward the foe to bend it away.
+      if (this.rng.chance(cfg.curve)) this.plan.side = -away * this.rng.range(300, 520);
     }
     let tx = W / 2;
     let ty: number = home;
