@@ -2,6 +2,7 @@
 // Two toy tanks in a small block maze. Shells bounce off blocks and can bonk
 // their own tank. Every bonk restarts the round in a fresh arena; knock out
 // the other tank's armor (5 hits, more with handicap help) to win.
+import { HUMAN } from '../../core/human';
 import { Energy } from '../../core/energy';
 import { lerpAssist } from '../../core/handicap';
 import type { Rng } from '../../core/rng';
@@ -31,6 +32,12 @@ export const RULES = {
   shellLife: 7,
   maxShells: 3,
   reload: 0.5,
+  /**
+   * A FIRE tap this close to the end of a reload (or while all shells are out)
+   * is kept and fires the moment the gun is ready, so a person tapping fast
+   * gets the full fire rate instead of losing taps to the reload ring.
+   */
+  fireBuffer: 0.15,
   /** A tank's own shell can bonk it once this old (or after its first bounce). */
   selfArm: 0.12,
   mineR: 9,
@@ -58,6 +65,8 @@ export type Tank = {
   bouncy: number;
   /** Seconds since last shot, for the recoil animation. */
   fired: number;
+  /** Seconds left on a buffered FIRE tap (see RULES.fireBuffer). */
+  queued: number;
   speed: number;
 };
 
@@ -243,7 +252,7 @@ export class TankDuel {
 
   private newTank(p: PlayerIndex): Tank {
     const s = spawnOf(p);
-    return { x: s.x, y: s.y, a: s.a, hits: 0, armor: armorFor(this.players[p].assist), reload: 0, shield: 0, bouncy: 0, fired: 9, speed: 0 };
+    return { x: s.x, y: s.y, a: s.a, hits: 0, armor: armorFor(this.players[p].assist), reload: 0, shield: 0, bouncy: 0, fired: 9, speed: 0, queued: 0 };
   }
 
   /** Bonks a tank can still take. */
@@ -296,11 +305,16 @@ export class TankDuel {
       tk.shield = Math.max(0, tk.shield - dt);
       tk.bouncy = Math.max(0, tk.bouncy - dt);
       tk.fired += dt;
+      tk.queued = Math.max(0, tk.queued - dt);
       if (this.powersOn && intents[p].power) this.firePower(p);
       this.drive(p, intents[p], dt);
     }
     this.separateTanks();
-    for (const p of PLAYERS) if (intents[p].fire) this.fire(p);
+    for (const p of PLAYERS) {
+      const tk = this.tanks[p];
+      if (intents[p].fire && !this.canFire(p)) tk.queued = RULES.fireBuffer;
+      else if (intents[p].fire || (tk.queued > 0 && this.canFire(p))) this.fire(p);
+    }
     const victims = new Map<PlayerIndex, { by: PlayerIndex | null; x: number; y: number; mine: boolean }>();
     this.moveShells(dt, victims);
     this.updateMines(dt, victims);
@@ -348,6 +362,7 @@ export class TankDuel {
   private fire(p: PlayerIndex): void {
     if (!this.canFire(p)) return;
     const tk = this.tanks[p];
+    tk.queued = 0;
     tk.reload = RULES.reload;
     tk.fired = 0;
     const m = this.muzzle(p);
@@ -515,7 +530,7 @@ export class TankDuel {
     for (const p of PLAYERS) {
       const tk = this.tanks[p];
       const s = spawnOf(p);
-      Object.assign(tk, { x: s.x, y: s.y, a: s.a, reload: 0, shield: 0, bouncy: 0, fired: 9, speed: 0 });
+      Object.assign(tk, { x: s.x, y: s.y, a: s.a, reload: 0, shield: 0, bouncy: 0, fired: 9, speed: 0, queued: 0 });
       this.energy[p].active = 0;
     }
     this.shells = [];
@@ -572,13 +587,16 @@ export function traceShot(game: TankDuel, p: PlayerIndex, a: number, maxT = 2.4)
 
 // ---------- Honest bot ----------
 // Same speed, turn rate, reload and shell cap as a person; it steers with the
-// same stick intent. Skill only changes how often it looks at the arena
-// (reaction), how far off its aim is, and how many bounces it thinks ahead.
-const BOT = {
-  easy: { react: 0.6, noise: 0.16, depth: 0, angles: 48 },
-  normal: { react: 0.35, noise: 0.085, depth: 1, angles: 72 },
-  hard: { react: 0.2, noise: 0.045, depth: 2, angles: 96 },
-} satisfies Record<BotLevel, { react: number; noise: number; depth: number; angles: number }>;
+// same stick intent and taps the same FIRE button. Skill only changes how often
+// it looks at the arena (react), how far off its aim is, how many bounces it
+// thinks ahead, and how quickly its thumb follows the reload ring (trigger).
+// Like a person, it can't tap the moment the gun is ready: it waits at least
+// HUMAN.reaction after the ring fills, and never taps faster than HUMAN.tapGap.
+export const BOT = {
+  easy: { react: 0.6, noise: 0.16, depth: 0, angles: 48, trigger: 0.32 },
+  normal: { react: 0.35, noise: 0.085, depth: 1, angles: 72, trigger: 0.26 },
+  hard: { react: 0.2, noise: 0.045, depth: 2, angles: 96, trigger: HUMAN.reaction },
+} satisfies Record<BotLevel, { react: number; noise: number; depth: number; angles: number; trigger: number }>;
 
 type Mode = 'aim' | 'move' | 'dodge';
 
@@ -590,6 +608,9 @@ export class TankBot {
   private pathI = 0;
   private dodge = { x: 0, y: 0, t: 0 };
   private wantPower = false;
+  /** Seconds the gun has been ready (as the bot sees it), and since its last FIRE tap. */
+  private readyFor = 0;
+  private sinceTap = 9;
 
   constructor(
     readonly p: PlayerIndex,
@@ -601,8 +622,11 @@ export class TankBot {
     if (game.phase !== 'play') {
       this.timer = Math.min(this.timer, BOT[this.level].react * 0.5);
       this.path = [];
+      this.readyFor = 0;
       return IDLE;
     }
+    this.sinceTap += dt;
+    this.readyFor = game.canFire(this.p) ? this.readyFor + dt : 0;
     this.timer -= dt;
     if (this.timer <= 0) {
       this.timer = BOT[this.level].react * this.rng.range(0.8, 1.2);
@@ -618,8 +642,12 @@ export class TankBot {
     }
     if (this.mode === 'aim') {
       const off = Math.abs(wrapAngle(this.aimAngle - tk.a));
-      const fire = off < 0.035 && game.canFire(this.p);
-      if (fire) this.mode = 'move';
+      const thumb = this.readyFor >= BOT[this.level].trigger && this.sinceTap >= HUMAN.tapGap;
+      const fire = off < 0.035 && game.canFire(this.p) && thumb;
+      if (fire) {
+        this.mode = 'move';
+        this.sinceTap = 0;
+      }
       return { mx: Math.cos(this.aimAngle) * 0.22, my: Math.sin(this.aimAngle) * 0.22, fire, power };
     }
     // Follow the path toward the other tank.
