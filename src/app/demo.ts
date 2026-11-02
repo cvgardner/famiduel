@@ -4,7 +4,7 @@
 // content/games.json; the animations themselves are CSS (`.demo` in style.css).
 // It shows for a game's first few matches on this phone, then gets out of the way.
 
-export const GESTURES = ['tap', 'tap2', 'sides', 'hold', 'pull', 'swipe', 'slide', 'drag', 'move', 'drop', 'stick'] as const;
+export const GESTURES = ['tap', 'tap2', 'sides', 'hold', 'pull', 'swipe', 'slide', 'drag', 'move', 'drop', 'stick', 'kick'] as const;
 export type Gesture = (typeof GESTURES)[number];
 
 /** Matches of a game after which its intro stops showing the ghost finger. */
@@ -34,6 +34,8 @@ const PROPS: Record<Gesture, string> = {
   move: '<i class="p"></i><i class="cell"></i>',
   drop: '<i class="p"></i>',
   stick: '<i class="base"></i><i class="fire"></i>',
+  // Two roles: the shooter's ball, then the keeper's dive button.
+  kick: '<i class="p"></i><i class="cell"></i>',
 };
 
 export function demoHtml(g: Gesture, lefty = false): string {
