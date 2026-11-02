@@ -40,6 +40,14 @@ async function boot(page: Page, errors: string[]) {
   await page.goto('/?seed=playtest');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
+  // Powers are off on a fresh install (classic rules); the playtest turns them on so every
+  // power card, button and help line is still played. e2e checks the classic default.
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: Hook }).__famiduel;
+    app.store.data.settings.powers = true;
+    app.store.save();
+    app.showHome();
+  });
   await installFingers(page);
 }
 

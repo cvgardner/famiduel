@@ -93,7 +93,14 @@ type Saved = {
   history: MatchRecord[];
   /** The 7-game tournament in progress (or just won), kept so a quit or a closed app can carry on. */
   tournament?: Tournament | null;
+  /**
+   * Bumped when a default changes for everyone. 2 (Nov 2026, Chris): super powers and the
+   * auto handicap start OFF; saves from before had them on only because that was the default.
+   */
+  settingsVersion?: number;
 };
+
+const SETTINGS_VERSION = 2;
 
 const freshNight = (): Night => ({ started: Date.now(), wins: [0, 0], games: [] });
 
@@ -108,9 +115,11 @@ function defaults(): Saved {
       { name: 'Player 1', color: PLAYER_COLORS[0].hex, headStart: 0, bot: null },
       { name: 'Player 2', color: PLAYER_COLORS[1].hex, headStart: 0, bot: null },
     ],
-    settings: { powers: true, autoHandicap: true, sound: true, haptics: true },
+    // Classic rules out of the box (Chris, Nov 2026): powers and the auto handicap are opt-in.
+    settings: { powers: false, autoHandicap: false, sound: true, haptics: true },
     night: freshNight(),
     history: [],
+    settingsVersion: SETTINGS_VERSION,
   };
 }
 
@@ -125,6 +134,12 @@ export class Store {
         const saved = JSON.parse(raw) as Partial<Saved>;
         // Settings merge key by key, so a setting added later keeps its default.
         this.data = { ...this.data, ...saved, settings: { ...this.data.settings, ...saved.settings } };
+        // Saves from before powers and the auto handicap went opt-in move to the new default once.
+        if ((saved.settingsVersion ?? 1) < 2) {
+          this.data.settings.powers = false;
+          this.data.settings.autoHandicap = false;
+        }
+        this.data.settingsVersion = SETTINGS_VERSION;
         // Colours from an older palette (or two look-alike colours) move to safe ones.
         const [a, b] = this.data.profiles;
         [a.color, b.color] = safePair(a.color, b.color);
