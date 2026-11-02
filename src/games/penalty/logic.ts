@@ -1,6 +1,11 @@
 // Penalty Shootout rules: players swap shooter / keeper every kick. Five kicks
 // each, then sudden death. Pure and deterministic so tests can play whole
 // shootouts.
+//
+// Kick timing is fixed, like a real penalty: the shooter has a short pick
+// clock to swipe a shot (a new swipe replaces the old one) and the ball is
+// struck exactly when the clock hits zero, after a run-up both players can
+// see. The keeper always knows when the kick comes; only where is a secret.
 import { Energy } from '../../core/energy';
 import { lerpAssist } from '../../core/handicap';
 import type { Rng } from '../../core/rng';
@@ -31,8 +36,11 @@ export const RULES = {
   /** Ball bow (units at mid-flight) for a full-bend swipe, and Curve Shot's extra. */
   bow: 70,
   curveShotBow: 95,
-  aimTime: 5,
-  aimTimeMax: 8,
+  /** Pick clock: the shot is struck when it runs out (a head start gets longer). */
+  aimTime: 3,
+  aimTimeMax: 4.5,
+  /** The shooter's run-up fills the last part of the pick clock, so the kick lands on zero. */
+  runUp: 0.7,
   readyTime: 0.9,
   resultTime: 1.7,
   keeperHalf: 20,
@@ -68,6 +76,9 @@ export type Flight = Shot & {
 
 export type Event =
   | { type: 'ready'; shooter: PlayerIndex }
+  | { type: 'pick'; p: PlayerIndex; n: number }
+  | { type: 'tick'; left: number }
+  | { type: 'runup'; p: PlayerIndex }
   | { type: 'kick'; p: PlayerIndex; power: number; timeout: boolean }
   | { type: 'dive'; p: PlayerIndex; dir: Dive; early: boolean }
   | { type: 'result'; shooter: PlayerIndex; result: KickResult; why: 'goal' | 'saved' | 'wide' | 'over' | 'post'; x: number; y: number }
@@ -91,9 +102,15 @@ export class Penalty {
   /** Powers fired and waiting for this kick. */
   armed: [boolean, boolean] = [false, false];
   flight: Flight | null = null;
+  /** The shooter's current pick (hidden; struck when the clock runs out). */
+  picked: Shot | null = null;
+  /** How many times the shooter has picked this kick (2+ = changed their mind). */
+  picks = 0;
   decoy: Flight | null = null;
   /** Seconds since the kick. */
   flightT = 0;
+  /** Match time (t) when the ball was last struck. */
+  kickT = -1;
   dive: Dive | null = null;
   diveT = 0;
   divedEarly = false;
@@ -139,6 +156,18 @@ export class Penalty {
 
   aimTime(shooter: PlayerIndex = this.shooter): number {
     return lerpAssist(this.players[shooter].assist, RULES.aimTime, RULES.aimTimeMax);
+  }
+
+  /** Seconds until the ball is struck (0 once it has been). */
+  kickIn(): number {
+    if (this.phase === 'ready') return RULES.readyTime - this.phaseT + this.aimTime();
+    if (this.phase === 'aim') return Math.max(0, this.aimTime() - this.phaseT);
+    return 0;
+  }
+
+  /** Is the shooter on the run-up (the last stretch before the fixed kick)? */
+  get runningUp(): boolean {
+    return this.phase === 'aim' && this.kickIn() <= RULES.runUp;
   }
 
   goalLineY(): number {
@@ -192,11 +221,20 @@ export class Penalty {
       if (this.phaseT >= RULES.readyTime) this.setPhase('aim');
     } else if (this.phase === 'aim') {
       this.keeperInput(intents[k].dive);
+      const before = this.aimTime() - (this.phaseT - dt);
       const shot = intents[s].shot;
-      if (shot) this.kick(shot, false);
-      else if (this.phaseT >= this.aimTime()) {
-        // Shot clock ran out: a soft tap down the middle.
-        this.kick({ aimX: W / 2 + this.rng.range(-20, 20), power: 0.2, bow: 0 }, true);
+      if (shot) {
+        this.picked = shot;
+        this.picks++;
+        this.events.push({ type: 'pick', p: s, n: this.picks });
+      }
+      const left = this.kickIn();
+      if (left > 0 && Math.ceil(left) < Math.ceil(before)) this.events.push({ type: 'tick', left: Math.ceil(left) });
+      if (before > RULES.runUp && left <= RULES.runUp) this.events.push({ type: 'runup', p: s });
+      if (left <= 0) {
+        // The clock hit zero: strike the pick, or a soft tap down the middle if there isn't one.
+        if (this.picked) this.kick(this.picked, false);
+        else this.kick({ aimX: W / 2 + this.rng.range(-20, 20), power: 0.2, bow: 0 }, true);
       }
     } else if (this.phase === 'flight') {
       this.keeperInput(intents[k].dive);
@@ -266,6 +304,7 @@ export class Penalty {
       this.decoy = { ...this.flight, aimX: mirror, bow: -bow, over: false };
     }
     this.flightT = 0;
+    this.kickT = this.t;
     this.setPhase('flight');
     this.events.push({ type: 'kick', p: s, power, timeout });
   }
@@ -349,6 +388,8 @@ export class Penalty {
     }
     this.current = this.kicks.length;
     this.flight = null;
+    this.picked = null;
+    this.picks = 0;
     this.decoy = null;
     this.dive = null;
     this.diveT = 0;
@@ -402,18 +443,22 @@ export function shotFromSwipe(pts: SwipePoint[], toward: -1 | 1): Shot | null {
 }
 
 // ---------- Honest bots ----------
-// The shooter picks a spot with aim and power noise; it can see a keeper who
-// dived early. The keeper reacts to the ball's flight after a reaction delay
-// and never sees the shooter's target before the kick.
+// The shooter picks a spot with aim and power noise, sometimes changes its
+// mind once, and can see a keeper who dived early (while it can still re-pick).
+// The keeper knows when the kick comes (the clock is public), sometimes guesses
+// right at the kick, and otherwise reacts to the ball's flight after a
+// reaction delay. It never sees the shooter's pick.
 const BOT = {
-  easy: { react: 0.36, keepNoise: 34, guess: 0.3, aimNoise: 30, power: 0.55, powerVar: 0.3, curve: 0 },
-  normal: { react: 0.24, keepNoise: 20, guess: 0.12, aimNoise: 18, power: 0.72, powerVar: 0.2, curve: 0.15 },
-  hard: { react: 0.15, keepNoise: 10, guess: 0, aimNoise: 10, power: 0.8, powerVar: 0.12, curve: 0.3 },
+  easy: { react: 0.36, keepNoise: 34, guess: 0.3, early: 0.6, aimNoise: 30, power: 0.55, powerVar: 0.3, curve: 0, rethink: 0 },
+  normal: { react: 0.24, keepNoise: 20, guess: 0.12, early: 0.3, aimNoise: 18, power: 0.72, powerVar: 0.2, curve: 0.15, rethink: 0.25 },
+  hard: { react: 0.15, keepNoise: 10, guess: 0.08, early: 0, aimNoise: 10, power: 0.8, powerVar: 0.12, curve: 0.3, rethink: 0.4 },
 } satisfies Record<BotLevel, Record<string, number>>;
 
 export class PenaltyBot {
   private kickNo = -1;
   private shootAt = 0;
+  private rethinkAt = -1;
+  private sawDive = false;
   private guessAt = -1;
   private track: 'real' | 'decoy' = 'real';
   private seen: { t: number; x: number; y: number }[] = [];
@@ -428,15 +473,28 @@ export class PenaltyBot {
     const cfg = BOT[this.level];
     if (this.kickNo !== game.current) {
       this.kickNo = game.current;
-      this.shootAt = this.rng.range(0.7, Math.min(1.8, game.aimTime() - 0.5));
-      this.guessAt = this.rng.chance(cfg.guess) ? this.rng.range(0.3, 2.5) : -1;
+      const T = game.aimTime();
+      this.shootAt = this.rng.range(0.6, T - 0.9);
+      this.rethinkAt = this.rng.chance(cfg.rethink) ? this.rng.range(this.shootAt + 0.3, T - 0.25) : -1;
+      this.sawDive = false;
+      // A guess lands right on the kick; an easy keeper sometimes jumps the gun during the run-up or before.
+      this.guessAt = this.rng.chance(cfg.guess) ? (this.rng.chance(cfg.early) ? this.rng.range(T - 1.4, T - 0.1) : T + this.rng.range(0, 0.06)) : -1;
       this.track = this.rng.chance(0.5) ? 'real' : 'decoy';
       this.seen = [];
     }
     const power = this.wantsPower(game);
     if (game.shooter === this.p) {
-      if (game.phase !== 'aim' || game.phaseT < this.shootAt) return { shot: null, dive: null, power };
-      return { shot: this.pickShot(game), dive: null, power };
+      if (game.phase !== 'aim') return { shot: null, dive: null, power };
+      const t = game.phaseT;
+      let pick = false;
+      if (game.picks === 0 && t >= this.shootAt) pick = true;
+      else if (game.picks === 1 && this.rethinkAt >= 0 && t >= this.rethinkAt) pick = true;
+      // A keeper who commits while there is still time to switch gets punished.
+      if (game.dive !== null && !this.sawDive && game.kickIn() > 0.15) {
+        this.sawDive = true;
+        pick = true;
+      }
+      return { shot: pick ? this.pickShot(game) : null, dive: null, power };
     }
     return { shot: null, dive: this.keep(game, dt), power };
   }
@@ -461,8 +519,9 @@ export class PenaltyBot {
   private keep(game: Penalty, dt: number): Dive | null {
     const cfg = BOT[this.level];
     if (game.dive !== null) return null;
-    if (game.phase === 'aim' && this.guessAt >= 0 && game.phaseT >= this.guessAt) return this.rng.pick([-1, 0, 1] as const);
+    if (this.guessAt >= 0 && game.phase === 'aim' && game.phaseT >= this.guessAt) return this.rng.pick([-1, 0, 1] as const);
     if (game.phase !== 'flight') return null;
+    if (this.guessAt >= 0 && game.flightT >= this.guessAt - game.aimTime()) return this.rng.pick([-1, 0, 1] as const);
     const f = this.track === 'decoy' && game.decoy ? game.decoy : game.flight!;
     const pos = Penalty.at(f, game.flightT);
     this.seen.push({ t: game.flightT, x: pos.x, y: pos.y });
