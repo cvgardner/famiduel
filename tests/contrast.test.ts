@@ -80,6 +80,26 @@ describe('pop-up words', () => {
     }
     expect(faint).toEqual([]);
   });
+  it("Chop Chop's tap hints stay readable on the grass during play, not just on the intro", async () => {
+    // The probe keeps a label's best at-rest sample, so hints that faded to 45% once play
+    // started (about 1.6:1 on the grass) still passed on the intro. Now they sit on a dark
+    // pill at full opacity the whole match, and this reads them on the lightest grass.
+    const fs = await import('node:fs');
+    const { over } = await import('../src/core/contrast');
+    const src = fs.readFileSync('src/games/chopchop/index.ts', 'utf8');
+    const hint = src.match(/text\(gx, label, hx, H - 34, \{([^}]*)\}\);/);
+    expect(hint, 'hint label call').not.toBeNull();
+    expect(hint![1]).not.toMatch(/alpha/);
+    const pill = src.match(/rrect\(gx, hx - \d+, H - \d+, \d+, \d+, \d+, '(rgba\([^']*\))'\);/);
+    expect(pill, 'dark pill behind each hint').not.toBeNull();
+    const pillFill = parseColor(pill![1])!;
+    for (const grass of ['#7cc96b', '#4f9e45', '#a9dca0']) {
+      const bg = over(pillFill, rgb(grass));
+      const r = labelContrast(parseColor('#ffffff')!, bg, 1, parseColor('rgba(0,0,0,0.35)'));
+      expect(r, `hint on ${grass}`).toBeGreaterThanOrEqual(contrastNeeded(16, 800));
+    }
+  });
+
   it('the probe judges a label at rest; mid-fade samples only stand in until then', async () => {
     const { keepSample } = await import('../src/engine/draw');
     expect(keepSample(undefined, 2, false)).toBe(true);
