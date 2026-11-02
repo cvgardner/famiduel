@@ -235,6 +235,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Snack Snatch Sticky wins 77% (88% vs Double and vs None).
 - [ ] Snake Boost wins 25% and loses to None (23%): the bot probably boosts into trouble;
       check the bot's Boost use before changing the power.
+- [x] 2026-11-02 (PR #75): Ping Pong Smash won 71-74%: the power sent the ball at the top smash
+      speed (980) every time. It now returns at 780, or faster if your own flick was harder
+      (n=100, normal bots: smash 63%, slow-mo 44%, curve 49%; `npm run swipes` unchanged).
 - [ ] Quick Draw Slow Time wins 74%; Ping Pong Smash 71% (Slow-mo 34%); Tanks Shield 68%;
       Air Hockey Split 33% (loses to None 40/60).
 - [x] 2026-10-31: Playtest: Sea Battle never got past fleet placement in real-time play
