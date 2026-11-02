@@ -1,5 +1,6 @@
 // Snake Duel rules: two light-cycle snakes on a grid, each leaving a solid trail.
 // Pure and deterministic: the same seed and the same intents replay the same match.
+import { HUMAN } from '../../core/human';
 import { Energy } from '../../core/energy';
 import { lerpAssist } from '../../core/handicap';
 import type { Rng } from '../../core/rng';
@@ -321,7 +322,7 @@ export class SnakeDuel {
 const BOT = {
   easy: { depth: 14, react: 0.3, slip: 0.07, noise: 0.5, avoidHead: false, territory: false },
   normal: { depth: 80, react: 0.15, slip: 0.015, noise: 0.5, avoidHead: true, territory: false },
-  hard: { depth: 600, react: 0.06, slip: 0, noise: 0.5, avoidHead: true, territory: true },
+  hard: { depth: 600, react: HUMAN.tapGap, slip: 0, noise: 0.5, avoidHead: true, territory: true },
 } satisfies Record<BotLevel, { depth: number; react: number; slip: number; noise: number; avoidHead: boolean; territory: boolean }>;
 
 export class SnakeBot {
