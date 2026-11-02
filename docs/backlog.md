@@ -643,8 +643,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       like they "never lose" (RPS, Mini Golf) or copy your moves (Snake); check our hard RPS
       bot stays near 1/3 per throw against a patterned kid, and that the hard Snake bot never
       mirrors a player's path.
-- [ ] Reviews: "hard to tell whether the ball has landed yet" (Ping Pong). Ours has a bounce
-      ring and a shadow; check the ring reads on a sunny phone (it lasts 0.5 s).
+- [x] 2026-11-01 (20:00 research run): Ping Pong shows where the ball landed. Reviews of
+      another 2-player app still say "hard to tell whether the ball has landed yet"; ours
+      only had a thin ring that faded as it grew for 0.5 s. Now each bounce leaves a spot on
+      the table (tinted by spin: gold topspin, blue backspin, white flat) that stays until
+      the ball is hit back, then fades in 0.3 s, and the landing ring is thicker with a dark
+      edge so both read on the green (`pingpong/bouncemark.ts`). Unit tests play bot rallies
+      and check every spot sits on the side that hits it back and is fully showing until
+      then; a playtest watches a real-time rally and checks the same (`pingpong-bounce-spot.png`).
+- [x] 2026-11-01 (same run): checked two more review complaints against our bots. "On Hard
+      the snake mimics my actions": over 200 matches of a turning kid vs each bot level, the
+      bot turned the mirrored way within 0.45 s of the kid on 12-15% of its turns (no level
+      above Easy) and its head was near the kid's mirrored spot 3% of the time, so ours
+      doesn't copy (separate start lanes already break the mirror). "Whoever goes first
+      wins": in Penalty the first shooter wins 51% (easy), 54% (normal), 54% (hard) of 600
+      mirrored bot matches; a small edge, like real shootouts, so no change.
 
 ## Ideas found 2026-11-01 (thinking pill run)
 - [ ] Sea Battle's header already names the aiming bot; Penalty and Minigolf (bot's shot)
@@ -746,3 +759,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       dodge side that needs less turning was tried and made no measurable difference.
 - [ ] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
       fine for a kid's opponent, but watch it in playtests.
+
+## Ideas found 2026-11-01 (ping pong landing spot run)
+- [ ] Hard Snake turns about 3× as often as Easy/Normal (it re-plans territory every cell);
+      fine for strength, but if a kid calls it twitchy, a "turns per second" motion check
+      like Tanks' wag measure would show it.
+- [ ] Penalty's first shooter wins ~54% between equal bots. If families feel it, an ABBA
+      order (A, B, B, A...) is the known fix in real shootouts; measure before changing.
+- [ ] Air Hockey has no landing problem, but Snack Snatch's thrown snacks could show a
+      short ground shadow too if kids misjudge where they come down.
