@@ -793,3 +793,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       order (A, B, B, A...) is the known fix in real shootouts; measure before changing.
 - [ ] Air Hockey has no landing problem, but Snack Snatch's thrown snacks could show a
       short ground shadow too if kids misjudge where they come down.
+
+## Found 2026-11-01 23:21 PT run
+- [x] 2026-11-02 (PR #76): The "ping pong: where the ball landed stays" playtest failed main's
+      verify, and 2 runs in 3 on its own: a fast ball's last stretch after the bounce is shorter
+      than the test's 150 ms look, so no landing got checked. It now samples every frame in the
+      page for 8 s and checks each landing from the frame it appears until the hit back or the
+      point ends (held, in place, fully showing after its 0.08 s pop-in).
+      Same PR: the air hockey "never moves, at any level" unit test (~5 s alone) timed out at
+      vitest's 5 s default with two verifies running; it now has the 60 s whole-match timeout.
+- [ ] Power balance with people in mind: the bots almost never jump the gun or bonk, so
+      `npm run sim:powers` undervalues forgiving powers (Quick Draw Double Shot / Fake-out,
+      the old Chop Chop shield). A human false-start / mistake rate per bot level would make
+      the table closer to what families feel.
