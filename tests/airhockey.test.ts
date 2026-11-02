@@ -219,7 +219,7 @@ describe('air hockey', () => {
         // Own goals (the idle seat never touches the puck on purpose) stay well under the bot's goals.
         expect(own / scored, level).toBeLessThan(level === 'easy' ? 0.7 : 0.35);
       }
-    });
+    }, 60_000); // several whole matches: about 5 s alone, more on a busy machine
 
     it('a bot in front of the puck goes around it instead of pushing it at its own goal', () => {
       for (const level of ['easy', 'normal', 'hard'] as BotLevel[]) {
@@ -273,5 +273,22 @@ describe('air hockey', () => {
       expect(g2.held).toMatchObject({ p: 1 });
       expect(g2.held!.t).toBeLessThan(0.1);
     });
+  });
+  it('the bot splits the puck only when it is heading at the other goal', () => {
+    const split = power('airhockey', 'split');
+    const asks = (vy: number) => {
+      const g = new AirHockey([player({ bot: 'normal', power: split }), player({ bot: 'normal', power: split })], true, makeRng(4));
+      const bot = new AirHockeyBot(0, 'normal', makeRng(5));
+      g.energy[0].value = 1;
+      const pk = g.pucks[0];
+      let asked = 0;
+      for (let i = 0; i < 120; i++) {
+        Object.assign(pk, { x: 180, y: H * 0.7, vx: 0, vy });
+        if (bot.think(g, DT).power) asked++;
+      }
+      return asked;
+    };
+    expect(asks(-400)).toBeGreaterThan(0); // just hit away from us, toward seat 1's goal
+    expect(asks(400)).toBe(0); // coming at our own goal
   });
 });

@@ -1486,31 +1486,58 @@ test('ping pong: where the ball landed stays on the table until it is hit back',
   await expect(page.locator('#play')).toBeVisible();
   await page.waitForTimeout(2200); // countdown
   type Spot = { x: number; y: number; held: boolean; alpha: number } | null;
-  type PongHook = { runner: { game: { bounceSpot(): Spot; game: { hits: number } } } | null };
+  type PongHook = { runner: { game: { bounceSpot(): Spot; game: { hits: number; pointT: number } } } | null };
   const look = () =>
     page.evaluate(() => {
       const v = (window as unknown as { __famiduel: PongHook }).__famiduel.runner!.game;
       return { spot: v.bounceSpot(), hits: v.game.hits };
     });
+  // Sample every frame inside the page (a look from the test runner takes longer than a
+  // fast ball's last stretch, so the old 150 ms look missed most landings): from the
+  // frame a spot appears until the ball is hit back it must stay put, held and fully
+  // showing (after its 0.08 s pop-in); after the hit it fades and goes.
+  type Frame = { spot: Spot; hits: number; t: number; live: boolean };
+  const frames: Frame[] = await page.evaluate(
+    (ms) =>
+      new Promise<Frame[]>((done) => {
+        const v = (window as unknown as { __famiduel: PongHook }).__famiduel.runner!.game;
+        const out: Frame[] = [];
+        const t0 = performance.now();
+        const tick = () => {
+          out.push({ spot: v.bounceSpot(), hits: v.game.hits, t: performance.now(), live: v.game.pointT <= 0 });
+          if (performance.now() - t0 < ms) requestAnimationFrame(tick);
+          else done(out);
+        };
+        requestAnimationFrame(tick);
+      }),
+    8000,
+  );
+  await page.screenshot({ path: path.join(OUT, 'pingpong-bounce-spot.png') });
   let checked = 0;
-  for (let i = 0; i < 3; i++) {
-    let s = await look();
-    // Wait for a fresh landing (a held spot with the ball not yet hit back).
-    await expect.poll(async () => { s = await look(); return !!s.spot?.held; }, { timeout: 8000 }).toBe(true);
-    const at = s.spot!;
-    const hits = s.hits;
-    if (i === 0) await page.screenshot({ path: path.join(OUT, 'pingpong-bounce-spot.png') });
-    await page.waitForTimeout(150);
-    const later = await look();
-    if (later.hits === hits && later.spot && later.spot.x === at.x && later.spot.y === at.y) {
-      expect(later.spot.held, 'the spot holds until the ball is hit back').toBe(true);
-      expect(later.spot.alpha, 'the spot is fully showing while it holds').toBe(1);
-      checked++;
+  for (let i = 1; i < frames.length; i++) {
+    const prev = frames[i - 1];
+    const cur = frames[i];
+    const fresh = cur.spot?.held && (!prev.spot || prev.spot.x !== cur.spot.x || prev.spot.y !== cur.spot.y);
+    if (!fresh) continue;
+    const at = cur.spot!;
+    let held = 0;
+    // Until the hit back, or the point ending (a miss: the spot is cleared with the ball).
+    for (let k = i; k < frames.length && frames[k].hits === cur.hits && frames[k].live; k++) {
+      const f = frames[k];
+      expect(f.spot, 'the spot stays until the ball is hit back').not.toBeNull();
+      expect([f.spot!.x, f.spot!.y], 'the spot stays put').toEqual([at.x, at.y]);
+      expect(f.spot!.held, 'the spot holds until the ball is hit back').toBe(true);
+      // It pops in over 0.08 s, then shows fully until the hit.
+      if (f.t - cur.t >= 100) {
+        expect(f.spot!.alpha, 'the spot is fully showing while it holds').toBe(1);
+        held++;
+      }
     }
-    // Once the ball is hit back (or the point ends), the old spot goes.
-    await expect.poll(async () => { const x = await look(); return !x.spot || !x.spot.held || x.spot.x !== at.x || x.spot.y !== at.y; }, { timeout: 8000 }).toBe(true);
-    await expect.poll(async () => { const x = await look(); return !x.spot || x.spot.x !== at.x || x.spot.y !== at.y; }, { timeout: 2000 }).toBe(true);
+    if (held >= 1) checked++;
   }
+  // Once hit back (or the point ends), an old spot fades and goes within ~2 s.
+  const last = frames[frames.length - 1].spot;
+  if (last && !last.held) await expect.poll(async () => { const x = await look(); return !x.spot || x.spot.x !== last.x || x.spot.y !== last.y; }, { timeout: 3000 }).toBe(true);
   expect(checked, 'at least one landing was seen holding').toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
