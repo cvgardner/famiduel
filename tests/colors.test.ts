@@ -29,6 +29,10 @@ describe('colour-blind safe player colours', () => {
     for (const c of PLAYER_COLORS) expect(lookAlikeFor(c.hex, HIGHLIGHT_GOLD), c.name).toEqual([]);
   });
 
+  it('the good / bad colours (right/wrong, goal/save) stay apart for every kind of vision', () => {
+    expect(lookAlikeFor(COLORS.good, COLORS.bad)).toEqual([]);
+  });
+
   it('every colour has a name for screen readers', () => {
     expect(new Set(PLAYER_COLORS.map((c) => c.name)).size).toBe(PLAYER_COLORS.length);
   });
