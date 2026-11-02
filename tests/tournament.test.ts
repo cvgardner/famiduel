@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import gamesJson from '../content/games.json';
+import { groupOf } from '../src/app/homegroups';
 import { GAMES } from '../src/games/registry';
 import {
   TOURNAMENT_LENGTH,
@@ -21,6 +22,8 @@ describe('7-game tournament', () => {
     for (const id of ['checkers', 'fourinarow', 'tictactoe', 'seabattle', 'rps']) expect(pool).not.toContain(id);
     expect(pool).toContain('airhockey');
     expect(pool).toContain('minigolf');
+    // The same games the home screen lists under "Action games".
+    expect(pool).toEqual(gamesJson.games.filter((g) => groupOf(g.kind) === 'action' && g.id in GAMES).map((g) => g.id));
   });
 
   it('a seed gives the same lineup, the 7 games are all different, and seeds vary it', () => {
