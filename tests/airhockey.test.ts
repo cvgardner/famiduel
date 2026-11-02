@@ -219,7 +219,7 @@ describe('air hockey', () => {
         // Own goals (the idle seat never touches the puck on purpose) stay well under the bot's goals.
         expect(own / scored, level).toBeLessThan(level === 'easy' ? 0.7 : 0.35);
       }
-    });
+    }, 60_000); // several whole matches: about 5 s alone, more on a busy machine
 
     it('a bot in front of the puck goes around it instead of pushing it at its own goal', () => {
       for (const level of ['easy', 'normal', 'hard'] as BotLevel[]) {
