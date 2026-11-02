@@ -612,6 +612,9 @@ export class AirHockeyBot {
     const inMyHalf = this.p === 0 ? pk.y > MID : pk.y < MID;
     if (id === 'freeze') return inMyHalf; // freeze them right before we strike
     if (id === 'giant') return !inMyHalf;
-    return inMyHalf && this.rng.next() < 0.02;
+    // Split right after a hit, while the puck is heading at their goal: splitting a puck
+    // that is coming at you only gives you two to stop.
+    const towardFoe = this.p === 0 ? pk.vy < -150 : pk.vy > 150;
+    return towardFoe && this.rng.next() < 0.15;
   }
 }

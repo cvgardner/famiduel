@@ -274,4 +274,21 @@ describe('air hockey', () => {
       expect(g2.held!.t).toBeLessThan(0.1);
     });
   });
+  it('the bot splits the puck only when it is heading at the other goal', () => {
+    const split = power('airhockey', 'split');
+    const asks = (vy: number) => {
+      const g = new AirHockey([player({ bot: 'normal', power: split }), player({ bot: 'normal', power: split })], true, makeRng(4));
+      const bot = new AirHockeyBot(0, 'normal', makeRng(5));
+      g.energy[0].value = 1;
+      const pk = g.pucks[0];
+      let asked = 0;
+      for (let i = 0; i < 120; i++) {
+        Object.assign(pk, { x: 180, y: H * 0.7, vx: 0, vy });
+        if (bot.think(g, DT).power) asked++;
+      }
+      return asked;
+    };
+    expect(asks(-400)).toBeGreaterThan(0); // just hit away from us, toward seat 1's goal
+    expect(asks(400)).toBe(0); // coming at our own goal
+  });
 });
