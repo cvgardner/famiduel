@@ -668,6 +668,44 @@ test('make the bot easier: offered after losing twice in a row to a bot', async 
   expect(errors).toEqual([]);
 });
 
+test('head start offer: losing twice to an Easy bot offers a head start star instead', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type H = Hook & { runner: { fastForward(s: number): void; result: { winner: number | null } | null; players: { assist: number }[] } | null };
+  await setPlayers(page, [null, 'easy']);
+  const loseOne = async () => {
+    await page.locator('.game-card[data-id="snake"]').tap();
+    await introAsPeople(page, [0]);
+    const winner = await page.evaluate(() => {
+      const r = (window as unknown as { __famiduel: H }).__famiduel.runner!;
+      r.fastForward(900);
+      return r.result?.winner ?? null;
+    });
+    expect(winner, 'the easy bot beats a snake that never turns').toBe(1);
+    await expect(page.locator('#result')).toBeVisible();
+  };
+  await loseOne();
+  await expect(page.locator('#easierBtn'), 'no offer after one loss').toHaveCount(0);
+  await page.click('#homeBtn');
+  await loseOne();
+  const btn = page.locator('#result .half.p0 #easierBtn');
+  await expect(btn, 'offered on the person\'s half after two losses').toBeVisible();
+  await expect(btn).toHaveText(/head start/);
+  await expect(btn).toHaveAttribute('aria-label', /1 of 3 stars/);
+  expect(await smallTargets(page, 'result with head start offer')).toEqual([]);
+  await page.screenshot({ path: path.join(OUT, 'headstart-offer.png') });
+  await btn.tap();
+  await expect(btn).toHaveText(/★ ✓/);
+  await expect(btn).toBeDisabled();
+  // Rematch: the person's half shows the help, and the match gives it.
+  await page.click('#rematchBtn');
+  await expect(page.locator('#intro .half.p0 .assist')).toContainText('★');
+  await introAsPeople(page, [0]);
+  expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players[0].assist)).toBeGreaterThanOrEqual(1);
+  expect(errors).toEqual([]);
+});
+
 test('air hockey: a person who walks away gets a nudge, and the match still ends', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });

@@ -368,9 +368,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       loops both roles: swipe the ball, then the keeper's tap on a dive button.
 
 ## Ideas found 2026-10-31 (Sumo head start run)
-- [ ] Sumo with no head start: a masher still loses every match (self-outs). Auto handicap
-      only adds help after a lost match in the night; for a first match against a bot, a
-      head start suggestion on the intro ("Little one? Give a head start") could help.
+- [x] 2026-11-01 (PR #71): Sumo with no head start: a masher still loses every match (self-outs).
+      Now, after two losses in a row to an Easy bot (any game), the result screen offers the
+      person "⭐ Want a head start?", one star per offer up to ★★★ (where a masher beats the
+      easy Sumo bot 25–60% of the time). See the easier-offer item below.
 - [ ] The playtest monkey and the unit-test "masher" are two models of a mashing kid;
       share one masher model (tests/helpers) and reuse it for other one-button games
       (Chop Chop, Quick Draw) to measure whether a masher can ever win there.
@@ -428,8 +429,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       short of the goal, two idle players (no goals), and that an idle person vs any bot
       level always reaches a result. The playtest leaves the puck on a person's side and
       checks the nudge, the drift and the result (`airhockey-nudge.png`).
-- [ ] The easier offer could also suggest the head start when the bot is already Easy
-      (Sumo, Minigolf), pointing at the player sheet behind a tap.
+- [x] 2026-11-01 (PR #71): The easier offer suggests a head start star when the bot is already
+      Easy. One tap sets the person's player-sheet stars; records carry each seat's stars
+      (`heads`), so taking a star starts the two-loss count again.
 
 ## Ideas found 2026-10-31 (bot level run)
 - [x] 2026-10-31: "Make the bot easier?" After a person loses 2 matches of one game in a
