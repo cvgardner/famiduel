@@ -230,11 +230,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       code in scripts/simlib.ts) plays each power against each other power and "none" with
       the same bot level on both seats, seats swapped, and flags powers averaging outside
       35–65%. First read (n=40, normal bots), bot use only, so check with people before tuning:
-- [ ] Chop Chop Double wins 95% (beats every power 93–98%) and None only 14%: Double is far
-      too strong, or the other two too weak for a bot.
 - [x] 2026-11-02 (PR #74): Snack Snatch Sticky won 77% (88% vs Double and vs None). It now lasts
       3 seconds instead of 5: normal bots, n=80: sticky 62%, magnet 49%, double 51% (4 s was
       still 74%). Sticky still beats Double (~75%) one on one; recheck with people.
+- [x] 2026-11-02 (PR #73): Chop Chop Double won 95% (beat every power 93–98%). Double now covers
+      the next 4 chops instead of 4 seconds (a slow tapper gets as much from it as a fast one),
+      and Branch Shield lasts 2 seconds instead of one branch, so you can mash one side; the bot
+      mashes too under it (1.5x its rate, never past HUMAN.tapGap). Normal bots: shield 53% /
+      freeze 63% / double 64% (was 28 / 57 / 92). Hard mirror bots still favour Freeze (76%):
+      one second of a fast tapper is a lot, but hard-vs-hard is near-deterministic.
 - [ ] Snake Boost wins 25% and loses to None (23%): the bot probably boosts into trouble;
       check the bot's Boost use before changing the power.
 - [ ] Quick Draw Slow Time wins 74%; Ping Pong Smash 71% (Slow-mo 34%); Tanks Shield 68%;
@@ -798,8 +802,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 
 ## Found 2026-11-01 23:21 PT run
 - [x] 2026-11-02 (PR #76): The "ping pong: where the ball landed stays" playtest failed main's
-      verify once with two verifies running (no landing survived its 150 ms look three times
-      running; it passes alone). It now watches up to 8 landings until three were seen holding.
+      verify, and 2 runs in 3 on its own: a fast ball's last stretch after the bounce is shorter
+      than the test's 150 ms look, so no landing got checked. It now samples every frame in the
+      page for 8 s and checks each landing from the frame it appears until the hit back or the
+      point ends (held, in place, fully showing after its 0.08 s pop-in).
+      Same PR: the air hockey "never moves, at any level" unit test (~5 s alone) timed out at
+      vitest's 5 s default with two verifies running; it now has the 60 s whole-match timeout.
 - [ ] Power balance with people in mind: the bots almost never jump the gun or bonk, so
       `npm run sim:powers` undervalues forgiving powers (Quick Draw Double Shot / Fake-out,
       the old Chop Chop shield). A human false-start / mistake rate per bot level would make
