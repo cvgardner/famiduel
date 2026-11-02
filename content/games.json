@@ -21,7 +21,7 @@
     { "id": "snake", "gesture": "sides", "name": "Snake Duel", "icon": "🐍", "kind": "Action", "free": false, "color": "#26d0ce",
       "blurb": "Don't crash. Best of 5.", "howTo": "Tap your left or right button to turn your snake. Walls and trails crash you. Make the other snake crash first!",
       "handicap": "Slower snake, turn assist near walls" },
-    { "id": "penalty", "gesture": "swipe", "name": "Penalty Shootout", "icon": "⚽", "kind": "Aim · turns", "free": false, "color": "#2ecc71",
+    { "id": "penalty", "gesture": "kick", "name": "Penalty Shootout", "icon": "⚽", "kind": "Aim · turns", "free": false, "color": "#2ecc71",
       "blurb": "Five kicks each, then sudden death.", "howTo": "Swipe at the goal before the clock hits zero (swipe again to change). The kick is always on zero. Keeper: tap a dive button. Dive too soon and the shooter can switch.",
       "handicap": "Bigger goal and keeper, longer clock" },
     { "id": "quickdraw", "gesture": "tap", "name": "Quick Draw", "icon": "🤠", "kind": "Reaction", "free": false, "color": "#f6c945",
