@@ -36,7 +36,8 @@ export const RULES = {
   driftPast: 90,
 };
 
-export type Puck = { x: number; y: number; vx: number; vy: number; alive: boolean };
+/** `held`: which half the puck is resting in and for how long (the stall rule). */
+export type Puck = { x: number; y: number; vx: number; vy: number; alive: boolean; held?: { p: PlayerIndex; t: number; nudged: boolean } };
 export type Paddle = { x: number; y: number; vx: number; vy: number; r: number; frozen: number; giant: number };
 
 export type Event =
@@ -64,7 +65,6 @@ export class AirHockey {
   t = 0;
   /** Whose half the puck is resting in, and for how long (the stall rule). */
   held: { p: PlayerIndex; t: number } | null = null;
-  private nudged = false;
   private lastHit: [number, number] = [-1, -1];
 
   constructor(
@@ -125,35 +125,37 @@ export class AirHockey {
   }
 
   private stallRule(dt: number): void {
-    const pk = this.pucks[0];
-    if (this.pucks.length !== 1 || !pk) {
-      this.held = null;
-      return;
-    }
-    const p = AirHockey.halfOf(pk.y);
-    if (!this.held || this.held.p !== p) {
-      this.held = { p, t: 0 };
-      this.nudged = false;
-    }
-    this.held.t += dt;
-    if (!this.nudged && this.held.t >= RULES.nudgeAfter) {
-      this.nudged = true;
-      this.events.push({ type: 'nudge', p });
-    }
-    if (this.held.t >= RULES.driftAfter) {
-      // Slide to a spot just past the centre line: friction stops it there.
-      const tx = W / 2;
-      const ty = p === 0 ? MID - RULES.driftPast : MID + RULES.driftPast;
-      const dx = tx - pk.x;
-      const dy = ty - pk.y;
-      const d = Math.hypot(dx, dy) || 1;
-      const v = d * -Math.log(1 - RULES.friction);
-      pk.vx = (dx / d) * v;
-      pk.vy = (dy / d) * v;
-      this.held.t = RULES.driftAfter - RULES.driftRetry;
-      this.events.push({ type: 'drift', p, x: pk.x, y: pk.y });
-    }
+    // Every puck has its own clock (a split puck makes two). Before, the rule only
+    // watched a single puck, so two pucks left with a walked-away player stalled the
+    // match for good. `held` mirrors the first puck, for the view's nudge ring.
+    this.pucks.forEach((pk, i) => {
+      const p = AirHockey.halfOf(pk.y);
+      if (!pk.held || pk.held.p !== p) pk.held = { p, t: 0, nudged: false };
+      const h = pk.held;
+      h.t += dt;
+      if (!h.nudged && h.t >= RULES.nudgeAfter) {
+        h.nudged = true;
+        this.events.push({ type: 'nudge', p });
+      }
+      if (h.t >= RULES.driftAfter) {
+        // Slide to a spot just past the centre line: friction stops it there.
+        const tx = W / 2 + (this.pucks.length > 1 ? (i === 0 ? -50 : 50) : 0);
+        const ty = p === 0 ? MID - RULES.driftPast : MID + RULES.driftPast;
+        const dx = tx - pk.x;
+        const dy = ty - pk.y;
+        const d = Math.hypot(dx, dy) || 1;
+        const v = d * -Math.log(1 - RULES.friction);
+        pk.vx = (dx / d) * v;
+        pk.vy = (dy / d) * v;
+        h.t = RULES.driftAfter - RULES.driftRetry;
+        this.events.push({ type: 'drift', p, x: pk.x, y: pk.y });
+      }
+    });
+    const first = this.pucks[0]?.held;
+    this.held = first ? { p: first.p, t: first.t } : null;
   }
+
+
 
   private firePower(p: PlayerIndex): void {
     const power = this.players[p].power;
