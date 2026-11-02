@@ -93,7 +93,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .power-card b { font-size: 13px; }
 .power-card small { font-size: 12px; color: var(--dim); line-height: 1.2; }
 .btn.ready { min-width: 180px; background: var(--c); color: #fff; }
-.btn.ready.on { background: var(--good, #4ade80); color: #14112b; }
+.btn.ready.on { background: var(--good, #5eead4); color: #14112b; }
 .who { font-weight: 800; color: var(--c); }
 /* A bot's level row sits where a person's Ready button would, at the same height. */
 .botlvl { flex-wrap: nowrap; width: 100%; max-width: 300px; }
@@ -205,6 +205,14 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .g-swipe .f { animation-name: d-swipe-f; } .g-swipe .p { animation-name: d-swipe-p; }
 @keyframes d-swipe-f { 0% { left: 46%; top: 88%; opacity: 0; scale: 1.4; } 12% { left: 46%; top: 88%; opacity: 1; scale: 1; } 18% { left: 46%; top: 88%; scale: 0.75; } 32% { left: 62%; top: 12%; scale: 0.75; opacity: 1; } 44%, 100% { left: 66%; top: 0%; opacity: 0; scale: 1; } }
 @keyframes d-swipe-p { 0%, 22% { left: 46%; top: 70%; opacity: 1; } 40% { left: 66%; top: -20%; opacity: 1; } 41%, 80% { opacity: 0; top: -20%; } 100% { left: 46%; top: 70%; opacity: 1; } }
+/* Penalty: two roles, so the loop shows the shooter's swipe, then the keeper's tap on a dive button. */
+.g-kick i { animation-duration: 5.2s; }
+.g-kick .f { animation-name: d-kick-f; } .g-kick .p { animation-name: d-kick-p; }
+.g-kick .cell { left: 20%; top: 50%; animation-name: d-kick-c; } .g-kick .r { left: 20%; top: 50%; animation-name: d-kick-r; }
+@keyframes d-kick-f { 0% { left: 46%; top: 88%; opacity: 0; scale: 1.4; } 6% { left: 46%; top: 88%; opacity: 1; scale: 1; } 9% { left: 46%; top: 88%; scale: 0.75; } 16% { left: 62%; top: 12%; scale: 0.75; opacity: 1; } 22%, 49% { left: 66%; top: 0%; opacity: 0; scale: 1; } 50% { left: 20%; top: 50%; opacity: 0; scale: 1.4; } 58% { left: 20%; top: 50%; opacity: 1; scale: 1; } 63% { left: 20%; top: 50%; scale: 0.75; } 68% { left: 20%; top: 50%; scale: 1; } 85% { left: 20%; top: 50%; opacity: 1; } 92%, 100% { left: 20%; top: 50%; opacity: 0; } }
+@keyframes d-kick-p { 0%, 11% { left: 46%; top: 70%; opacity: 1; } 20% { left: 66%; top: -20%; opacity: 1; } 21%, 90% { opacity: 0; top: -20%; } 100% { left: 46%; top: 70%; opacity: 1; } }
+@keyframes d-kick-c { 0%, 45% { opacity: 0; } 50%, 62% { opacity: 1; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.45); } 63%, 88% { opacity: 1; box-shadow: inset 0 0 0 2.5px var(--gold); } 95%, 100% { opacity: 0; } }
+@keyframes d-kick-r { 0%, 62% { opacity: 0; scale: 0.5; } 64% { opacity: 0.9; scale: 0.6; } 80%, 100% { opacity: 0; scale: 2.2; } }
 
 /* slide: slide along your end, the paddle follows (Ping Pong) */
 .g-slide .f { top: 60%; animation-name: d-slide-f; } .g-slide .p { top: 84%; width: 20px; height: 5px; border-radius: 3px; background: var(--c); animation-name: d-slide-p; }

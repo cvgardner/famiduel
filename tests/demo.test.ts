@@ -26,6 +26,13 @@ describe('ghost finger demo', () => {
     }
   });
 
+  it('Penalty shows both roles: the shooter swipes the ball, then the keeper taps a dive button', () => {
+    expect((games.games.find((g) => g.id === 'penalty') as { gesture?: string }).gesture).toBe('kick');
+    const html = demoHtml('kick');
+    expect(html).toContain('class="p"');
+    expect(html).toContain('class="cell"');
+  });
+
   it('mirrors only the stick for a left-handed player', () => {
     expect(demoHtml('stick', true)).toContain('class="demo lefty g-stick"');
     expect(demoHtml('tap', true)).not.toContain('lefty');
