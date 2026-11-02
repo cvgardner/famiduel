@@ -171,7 +171,7 @@ describe('ping pong', () => {
     g.step(DT, [{ tx: 180, power: true }, still()]);
     expect(g.paddles[0].smash).toBe(true);
     for (let i = 0; i < 200 && g.ball.vy > 0; i++) g.step(DT, [still(), still()]);
-    expect(Math.hypot(g.ball.vx, g.ball.vy)).toBeCloseTo(RULES.smashSpeed, 3);
+    expect(Math.hypot(g.ball.vx, g.ball.vy)).toBeCloseTo(RULES.powerSmash, 3);
     expect(g.ball.smash).toBe(true);
     expect(g.paddles[0].smash).toBe(false);
   });

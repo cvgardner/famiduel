@@ -31,6 +31,8 @@ export const RULES = {
   speedUp: 34,
   maxSpeed: 760,
   smashSpeed: 980,
+  /** The Smash power's return speed (or the flick's own, if harder): fast, but a ready paddle can still reach it. */
+  powerSmash: 780,
   maxAngle: 0.85,
   /** Extra ball speed per unit of forward paddle speed at contact (a drive). */
   driveK: 0.4,
@@ -406,7 +408,7 @@ export class PingPong {
     const power = pd.smash;
     if (power) {
       shot = 'smash';
-      sp = RULES.smashSpeed;
+      sp = Math.max(sp, RULES.powerSmash);
       top = 1;
     }
     pd.smash = false;
