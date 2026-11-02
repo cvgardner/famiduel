@@ -19,7 +19,12 @@ function play(levels: [BotLevel, BotLevel], seed: number, opts: { powers?: [stri
   return { g, t, powersFired };
 }
 
-/** Drive one kick by hand: wait for aim, optional early dive, then shoot. */
+/** Step with no input until the ball is struck. */
+function untilKick(g: Penalty) {
+  while (g.phase === 'ready' || g.phase === 'aim') g.step(DT, [IDLE, IDLE]);
+}
+
+/** Drive one kick by hand: wait for aim, optional early dive, pick a shot, wait for the fixed kick. */
 function kick(g: Penalty, shot: Shot, dive: Dive | null = null, diveEarly = false) {
   const s = g.shooter;
   const k = g.keeper;
@@ -32,6 +37,7 @@ function kick(g: Penalty, shot: Shot, dive: Dive | null = null, diveEarly = fals
   while (g.phase === 'ready') g.step(DT, intents(null, null));
   if (diveEarly) g.step(DT, intents(null, dive));
   g.step(DT, intents(shot, null));
+  untilKick(g);
   if (!diveEarly && dive !== null) g.step(DT, intents(null, dive));
   while (g.phase === 'flight') g.step(DT, intents(null, null));
   const ev = g.events.find((e) => e.type === 'result');
@@ -136,12 +142,112 @@ describe('penalty shootout', () => {
     expect(h.keeperBox().half).toBe(RULES.keeperHalf);
   });
 
-  it('the shot clock kicks a soft ball down the middle', () => {
+  it('the pick clock runs out with no pick: a soft ball down the middle', () => {
     const g = fresh();
     while (g.phase !== 'flight') g.step(DT, [IDLE, IDLE]);
     expect(g.phaseT).toBeLessThan(0.1);
     expect(g.flight!.power).toBeCloseTo(0.2);
     expect(Math.abs(g.flight!.aimX - 180)).toBeLessThanOrEqual(20);
+  });
+
+  it('the kick always lands when the pick clock hits zero, however early the pick', () => {
+    const kickTimes: number[] = [];
+    for (const pickAt of [0.05, 1, 2.5, 2.95]) {
+      const g = fresh();
+      while (g.phase === 'ready') g.step(DT, [IDLE, IDLE]);
+      const start = g.t;
+      const s = g.shooter;
+      let kickT = -1;
+      let picked = false;
+      while (g.phase === 'aim') {
+        const it: [Intent, Intent] = [{ ...IDLE }, { ...IDLE }];
+        if (!picked && g.phaseT >= pickAt) {
+          it[s] = { ...IDLE, shot: { aimX: 240, power: 0.7, bow: 0 } };
+          picked = true;
+        }
+        g.step(DT, it);
+        if (g.events.some((e) => e.type === 'kick')) kickT = g.t - start;
+      }
+      expect(g.flight!.aimX).toBe(240);
+      kickTimes.push(kickT);
+    }
+    expect(kickTimes[0]).toBeCloseTo(RULES.aimTime, 1);
+    for (const t of kickTimes) expect(t).toBe(kickTimes[0]);
+  });
+
+  it('a new swipe replaces the pick; the clock ticks each second and calls the run-up', () => {
+    const g = fresh();
+    while (g.phase === 'ready') g.step(DT, [IDLE, IDLE]);
+    const s = g.shooter;
+    const it: [Intent, Intent] = [{ ...IDLE }, { ...IDLE }];
+    it[s] = { ...IDLE, shot: { aimX: 120, power: 0.6, bow: 0 } };
+    g.step(DT, it);
+    expect(g.picked!.aimX).toBe(120);
+    const ticks: number[] = [];
+    let runupAt = -1;
+    while (g.phase === 'aim') {
+      const i2: [Intent, Intent] = [{ ...IDLE }, { ...IDLE }];
+      if (g.phaseT > 2 && g.picks === 1) i2[s] = { ...IDLE, shot: { aimX: 250, power: 0.6, bow: 0 } };
+      g.step(DT, i2);
+      for (const e of g.events) {
+        if (e.type === 'tick') ticks.push(e.left);
+        if (e.type === 'runup') runupAt = g.kickIn();
+      }
+    }
+    expect(g.picks).toBe(2);
+    expect(g.flight!.aimX).toBe(250);
+    expect(ticks).toEqual([2, 1]);
+    expect(runupAt).toBeLessThanOrEqual(RULES.runUp);
+    expect(runupAt).toBeGreaterThan(RULES.runUp - 2 * DT);
+    // The next kick starts with a clean slate.
+    while ((g.phase as string) !== 'aim') g.step(DT, [IDLE, IDLE]);
+    expect(g.picked).toBeNull();
+    expect(g.picks).toBe(0);
+  });
+
+  it('kickIn counts down through ready and aim', () => {
+    const g = fresh();
+    const first = g.kickIn();
+    expect(first).toBeCloseTo(RULES.readyTime + RULES.aimTime);
+    while (g.phase === 'ready') g.step(DT, [IDLE, IDLE]);
+    expect(g.kickIn()).toBeLessThanOrEqual(RULES.aimTime);
+    expect(g.runningUp).toBe(false);
+    while (g.kickIn() > RULES.runUp) g.step(DT, [IDLE, IDLE]);
+    expect(g.runningUp).toBe(true);
+  });
+
+  it('bots strike on the clock and switch sides on a keeper who commits early', () => {
+    // Every kick in a bot match is struck exactly when the clock runs out.
+    const rng = makeRng(31);
+    const g = new Penalty([player({ bot: 'hard' }), player({ bot: 'normal' })], false, rng);
+    const bots = [new PenaltyBot(0, 'hard', rng), new PenaltyBot(1, 'normal', rng)];
+    let kicks = 0;
+    while (!g.over) {
+      const wasAim = g.phase === 'aim';
+      const t = g.phaseT;
+      g.step(DT, [bots[0].think(g, DT), bots[1].think(g, DT)]);
+      if (g.events.some((e) => e.type === 'kick')) {
+        kicks++;
+        expect(wasAim).toBe(true);
+        expect(t + DT).toBeGreaterThanOrEqual(g.aimTime() - 1e-9);
+        expect(t).toBeLessThan(g.aimTime());
+      }
+    }
+    expect(kicks).toBeGreaterThan(4);
+    // A human keeper dives left a second into the clock: the bot re-picks away from it.
+    let away = 0;
+    for (let seed = 0; seed < 20; seed++) {
+      const r2 = makeRng(500 + seed);
+      const h = new Penalty([player({ bot: 'hard' }), player({})], false, r2, 0);
+      const bot = new PenaltyBot(0, 'hard', r2);
+      while (h.phase !== 'flight') {
+        const it: [Intent, Intent] = [bot.think(h, DT), { ...IDLE }];
+        if (h.phase === 'aim' && h.phaseT >= 1 && h.dive === null) it[1] = { ...IDLE, dive: -1 };
+        h.step(DT, it);
+      }
+      if (h.flight!.aimX > 180) away++;
+    }
+    expect(away).toBeGreaterThanOrEqual(18);
   });
 
   it('a keeper who dives early is seen during the aim', () => {
@@ -184,6 +290,7 @@ describe('penalty shootout', () => {
     expect(g.armed[s]).toBe(true);
     it[s] = { ...IDLE, shot: { aimX: 240, power: 0.7, bow: 0 } };
     g.step(DT, it);
+    untilKick(g);
     const f = g.flight!;
     expect(f.bow).toBeLessThan(-RULES.bow); // big bend toward the middle
     expect(Penalty.at(f, f.T / 2).x).toBeLessThan(180 + 30);
@@ -217,6 +324,7 @@ describe('penalty shootout', () => {
     g.step(DT, it);
     it[s] = { ...IDLE, shot: { aimX: 240, power: 0.7, bow: 0 } };
     g.step(DT, it);
+    untilKick(g);
     expect(g.decoy).not.toBeNull();
     expect(g.decoy!.aimX).toBeCloseTo(120);
     // Keeper picks the decoy side: the real ball goes in.
