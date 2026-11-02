@@ -478,6 +478,28 @@ const BOT = {
 
 type Seen = Ball & { serving: boolean; factor: number };
 
+/**
+ * The bot's finger. A person's paddle follows a finger that speeds up and slows down;
+ * it can't jump from still to full speed in one frame or stop dead. The bot decides
+ * where the paddle should be, then this hand moves a virtual finger there: it keeps
+ * pace with a moving target (a planned swing), brakes as it arrives, accelerates no
+ * harder than `accel` (`swingAccel` while snapping into a shot) and never beats the
+ * paddle cap. The same for every level, so it changes how the bot looks, not how good
+ * it is. Checked by core/motion.ts in tests/pingpong-motion.test.ts.
+ */
+export const HAND = {
+  /** Units/s² (a quick move of a finger). */
+  accel: 12000,
+  /** Into a drive or smash, a wrist flick. */
+  swingAccel: 22000,
+  /** A target that jumps further than this in a frame is a new idea, not a moving swing. */
+  jump: 13,
+  /** Desired speed toward the target = gap × gain, so it settles instead of hunting. */
+  gain: 20,
+  /** Braking uses this share of 2 × accel, a margin so it stops without overshooting. */
+  brake: 1.4,
+};
+
 /** The swing a bot plans for one incoming ball: paddle speed toward the net and sideways at contact. */
 type Plan = { fwd: number; side: number };
 
@@ -487,6 +509,9 @@ export class PingPongBot {
   private err = 0;
   private aimOff = 0;
   private plan: Plan = { fwd: 0, side: 0 };
+  /** The virtual finger, its velocity, and last frame's target (to tell how fast it moves). */
+  private hand: { x: number; y: number; vx: number; vy: number; tx: number; ty: number } | null = null;
+  private swinging = false;
 
   constructor(
     readonly p: PlayerIndex,
@@ -495,6 +520,47 @@ export class PingPongBot {
   ) {}
 
   think(game: PingPong, dt: number): Intent {
+    const want = this.decide(game, dt);
+    const pd = game.paddles[this.p];
+    if (!this.hand || game.pointT > 0) this.hand = { x: pd.x, y: pd.y, vx: 0, vy: 0, tx: want.tx, ty: want.ty ?? pd.y };
+    const h = this.hand;
+    // Held back by the table edge or the lunge limit: the finger is where the paddle is.
+    if (Math.hypot(h.x - pd.x, h.y - pd.y) > 4) {
+      h.x = pd.x;
+      h.y = pd.y;
+      h.vx = pd.vx;
+      h.vy = pd.vy;
+    }
+    const half = pd.w / 2;
+    const tx = clamp(want.tx, RULES.wallX0 + half, RULES.wallX1 - half);
+    const ty = want.ty ?? RULES.paddleY[this.p];
+    const aMax = this.swinging ? HAND.swingAccel : HAND.accel;
+    const axis = (pos: number, vel: number, target: number, last: number): number => {
+      // Keep pace with a target that glides (a planned swing), but not one that jumps.
+      const tv = Math.abs(target - last) > HAND.jump ? 0 : clamp((target - last) / dt, -RULES.paddleSpeed, RULES.paddleSpeed);
+      const gap = target - pos;
+      // Close the gap no faster than it can brake to a stop on arrival.
+      const close = Math.sign(gap) * Math.min(Math.sqrt(HAND.brake * aMax * Math.abs(gap)), Math.abs(gap) * HAND.gain);
+      return clamp(tv + close, -RULES.paddleSpeed, RULES.paddleSpeed) - vel;
+    };
+    let ax = axis(h.x, h.vx, tx, h.tx) / dt;
+    let ay = axis(h.y, h.vy, ty, h.ty) / dt;
+    const a = Math.hypot(ax, ay);
+    if (a > aMax) {
+      ax *= aMax / a;
+      ay *= aMax / a;
+    }
+    h.vx += ax * dt;
+    h.vy += ay * dt;
+    h.x += h.vx * dt;
+    h.y += h.vy * dt;
+    h.tx = tx;
+    h.ty = ty;
+    return { tx: h.x, ty: h.y, power: want.power };
+  }
+
+  /** Where the bot wants its paddle this frame (the hand smooths the way there). */
+  private decide(game: PingPong, dt: number): Intent {
     const cfg = BOT[this.level];
     const b = game.ball;
     this.seen.push({ ...b, serving: game.serving || game.pointT > 0, factor: game.speedFactor() });
@@ -523,6 +589,7 @@ export class PingPongBot {
     }
     let tx = W / 2;
     let ty: number = home;
+    this.swinging = false;
     if (comingAtMe) {
       const pd = game.paddles[p];
       const plan = this.plan;
@@ -537,6 +604,7 @@ export class PingPongBot {
       // Run through the contact point at the planned speeds: be behind it now by speed × time left.
       tx = cx - plan.side * tLeft;
       ty = contactY - fs * plan.fwd * tLeft;
+      this.swinging = (plan.fwd > 0 || plan.side !== 0) && tLeft < 0.3;
     } else if (!s.serving) {
       tx = W / 2 + (s.x - W / 2) * 0.3;
     }
