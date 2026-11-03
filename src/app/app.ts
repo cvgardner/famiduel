@@ -15,7 +15,9 @@ import { shownGames } from './catalog';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
 import { homeGroups } from './homegroups';
-import { BOT_LEVELS, BOT_NAME, PLAYER_COLORS, Store, botFor, easierOffer, seatName } from './store';
+import { BOT_LEVELS, BOT_NAME, PLAYER_COLORS, Store, botFor, easierOffer, seatName, type ThemePref } from './store';
+import { applyTheme, watchSystemTheme } from './theme';
+import { inkOn } from '../core/contrast';
 
 export type GameMeta = (typeof gamesJson.games)[number];
 export const META: GameMeta[] = gamesJson.games;
@@ -56,13 +58,13 @@ export class App {
     root.innerHTML = `
       <section id="home" class="screen"></section>
       <section id="tourney" class="screen hidden"></section>
-      <section id="intro" class="screen hidden"></section>
-      <section id="play" class="screen hidden">
+      <section id="intro" class="screen arena hidden"></section>
+      <section id="play" class="screen arena hidden">
         <canvas id="stage" aria-label="Game"></canvas>
         <button id="pauseBtn" class="pause-btn" aria-label="Pause (press and hold)">II</button>
         <div id="pauseHint" class="pause-hint hidden" aria-hidden="true"><span class="p1">Hold to pause</span><span class="p0">Hold to pause</span></div>
       </section>
-      <section id="result" class="screen hidden"></section>
+      <section id="result" class="screen arena hidden"></section>
       <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>`;
     this.stage = new Stage($<HTMLCanvasElement>('#stage', root));
     this.sfx.muted = !this.store.data.settings.sound;
@@ -71,6 +73,8 @@ export class App {
     this.fixedSeed = seedParam ? hashSeed(seedParam) : null;
     root.addEventListener('pointerdown', () => this.sfx.unlock(), { capture: true });
     this.wirePauseButton($<HTMLButtonElement>('#pauseBtn', root), $('#pauseHint', root));
+    applyTheme(this.store.data.settings.theme);
+    watchSystemTheme(() => this.store.data.settings.theme);
     this.showHome();
   }
 
@@ -86,21 +90,28 @@ export class App {
     const night = this.store.night;
     const solo = this.store.solo;
     const played = night.games.length;
+    const theme = settings.theme ?? 'auto';
+    const score = (p: PlayerIndex) => {
+      const c = profiles[p].color;
+      return `<b class="score" style="--c:${c};--ink:${inkOn(c)}">${night.wins[p]}</b>`;
+    };
     $('#home').innerHTML = `
       <header class="brand">
-        <h1 class="logo">Fami<span>Duel</span></h1>
-        <p class="tag">Two players. One phone. Super powers.</p>
+        <h1 class="logo"><span class="l0">Fami</span><span class="l1">Duel</span></h1>
+        <p class="tag">Two players · One phone · Super powers</p>
       </header>
       <div class="seg mode" id="modeSeg" role="group" aria-label="Who is playing">
         <button data-v="together" class="${solo ? '' : 'on'}" aria-pressed="${!solo}">👫 Play together</button>
         <button data-v="solo" class="${solo ? 'on' : ''}" aria-pressed="${solo}">🤖 Play the bot</button>
       </div>
-      <section class="players">
-        ${[0, 1].map((i) => this.playerChip(i as PlayerIndex)).join('<div class="vs">vs</div>')}
-      </section>
-      <section class="night" aria-label="${solo ? 'You vs the bot' : 'Match night'}">
-        <div class="night-score"><b style="color:${profiles[0].color}">${night.wins[0]}</b><span>${solo ? 'You vs the bot' : 'Match night'} · ${played} game${played === 1 ? '' : 's'}</span><b style="color:${profiles[1].color}">${night.wins[1]}</b></div>
-        ${played ? `<button id="newNightBtn" class="link">${solo ? 'Start over' : 'New night'}</button>` : ''}
+      <section class="versus" aria-label="Players">
+        <div class="players">
+          ${[0, 1].map((i) => this.playerChip(i as PlayerIndex)).join('<div class="vs" aria-hidden="true">VS</div>')}
+        </div>
+        <div class="night" aria-label="${solo ? 'You vs the bot' : 'Match night'}">
+          <div class="night-score">${score(0)}<span>${solo ? 'You vs the bot' : 'Match night'} · ${played} game${played === 1 ? '' : 's'}</span>${score(1)}</div>
+          ${played ? `<button id="newNightBtn" class="link">${solo ? 'Start over' : 'New night'}</button>` : ''}
+        </div>
       </section>
       ${this.tourneyButton()}
       <div class="games">
@@ -109,13 +120,30 @@ export class App {
           <div class="grid">${g.games.map((m) => this.card(m)).join('')}</div>
         </section>`).join('')}
       </div>
-      <section class="settings">
-        ${this.toggle('powers', '⚡ Super powers', settings.powers)}
-        ${this.toggle('autoHandicap', '⚖️ Auto handicap', settings.autoHandicap)}
-        ${this.toggle('sound', '🔊 Sound', settings.sound)}
-        ${this.sfx.haptics.supported ? this.toggle('haptics', '📳 Vibration', settings.haptics) : ''}
+      <section class="settings-card" aria-labelledby="grp-settings">
+        <h2 class="group-title" id="grp-settings">⚙️ Settings</h2>
+        <div class="settings">
+          ${this.toggle('powers', '⚡', 'Super powers', 'Pick a power before each game', settings.powers)}
+          ${this.toggle('autoHandicap', '⚖️', 'Auto handicap', 'Helps whoever keeps losing', settings.autoHandicap)}
+          ${this.toggle('sound', '🔊', 'Sound', '', settings.sound)}
+          ${this.sfx.haptics.supported ? this.toggle('haptics', '📳', 'Vibration', '', settings.haptics) : ''}
+          <div class="set-row theme-row"><span class="set-ico" aria-hidden="true">🌗</span><span class="set-txt"><b>Look</b></span>
+            <div class="seg theme-seg" id="themeSeg" role="group" aria-label="Light or dark look">${(['auto', 'light', 'dark'] as const)
+              .map((v) => `<button data-v="${v}" class="${theme === v ? 'on' : ''}" aria-pressed="${theme === v}">${v === 'auto' ? 'Auto' : v === 'light' ? '☀️' : '🌙'}</button>`)
+              .join('')}</div>
+          </div>
+        </div>
       </section>
       <footer class="foot">Prototype · no ads, no accounts · everything stays on this device</footer>`;
+    for (const el of document.querySelectorAll<HTMLElement>('#themeSeg button')) {
+      el.addEventListener('click', () => {
+        settings.theme = el.dataset.v as ThemePref;
+        this.store.save();
+        applyTheme(settings.theme);
+        this.sfx.play('tap');
+        this.showHome();
+      });
+    }
     for (const el of document.querySelectorAll<HTMLElement>('.game-card[data-ready="1"]')) {
       el.addEventListener('click', () => {
         this.tourneyMatch = false;
@@ -140,7 +168,7 @@ export class App {
     }
     for (const el of document.querySelectorAll<HTMLInputElement>('.settings input')) {
       el.addEventListener('change', () => {
-        const k = el.dataset.k as keyof typeof settings;
+        const k = el.dataset.k as 'powers' | 'autoHandicap' | 'sound' | 'haptics';
         settings[k] = el.checked;
         this.sfx.muted = !settings.sound;
         this.sfx.haptics.enabled = settings.haptics;
@@ -163,8 +191,8 @@ export class App {
     const t = this.store.data.tournament;
     const live = t && champion(t) === null && t.played.length > 0;
     const w = t ? tournamentWins(t) : [0, 0];
-    const label = live ? `🏆 Tournament ${w[0]} – ${w[1]} · Continue` : `🏆 7-game tournament`;
-    return `<button id="tourneyBtn" class="btn tourney-btn">${label}<small>${live ? `Game ${t!.played.length + 1}` : `Best of ${TOURNAMENT_LENGTH} across different games`}</small></button>`;
+    const label = live ? `Tournament ${w[0]} – ${w[1]} · Continue` : `7-game tournament`;
+    return `<button id="tourneyBtn" class="btn tourney-btn"><span class="t-ico" aria-hidden="true">🏆</span><span class="t-txt"><b>${label}</b><small>${live ? `Game ${t!.played.length + 1}` : `Best of ${TOURNAMENT_LENGTH} across different games`}</small></span><span class="t-go" aria-hidden="true">›</span></button>`;
   }
 
   showTournament(): void {
@@ -195,7 +223,7 @@ export class App {
     $('#tourney').innerHTML = `
       <div class="tourney">
         ${head}
-        <div class="night-score tourney-score"><b style="color:${profiles[0].color}">${w[0]}</b><span>${name(0)} vs ${name(1)}</span><b style="color:${profiles[1].color}">${w[1]}</b></div>
+        <div class="night-score tourney-score">${[0, 1].map((p) => `<b class="score" style="--c:${profiles[p].color};--ink:${inkOn(profiles[p].color)}">${w[p]}</b>`).join(`<span>${name(0)} vs ${name(1)}</span>`)}</div>
         <ol class="lineup" aria-label="Tournament games">${slots}</ol>
         ${nextMeta ? `<button id="tourneyPlay" class="btn primary">Play ${nextMeta.icon} ${nextMeta.name}</button>` : `<button id="tourneyAgain" class="btn primary">New tournament</button>`}
         <div class="tourney-foot">
@@ -222,20 +250,22 @@ export class App {
     const pr = this.store.data.profiles[p];
     const stars = pr.headStart ? `<small>${'★'.repeat(pr.headStart)}</small>` : '';
     const bot = pr.bot ? `<small class="botlbl">🤖 ${pr.bot}</small>` : '';
-    return `<button class="player-chip" data-p="${p}" style="--c:${pr.color}"><span class="dot"></span><span class="pname">${esc(seatName(this.store.data.profiles, p))}</span>${stars}${bot}</button>`;
+    const name = seatName(this.store.data.profiles, p);
+    const face = pr.bot ? '🤖' : /^Player \d$/.test(name) ? String(p + 1) : esc([...name.trim()][0]?.toUpperCase() ?? '?');
+    return `<button class="player-chip" data-p="${p}" style="--c:${pr.color};--ink:${inkOn(pr.color)}" aria-label="${esc(name)}: edit player"><span class="dot">${face}</span><span class="pinfo"><span class="pname">${esc(name)}</span>${stars}${bot}${stars || bot ? '' : '<small class="edit">Tap to edit</small>'}</span></button>`;
   }
 
   private card(m: GameMeta): string {
     const ready = m.id in GAMES;
     return `<button class="game-card${ready ? '' : ' soon'}" data-id="${m.id}" data-ready="${ready ? 1 : 0}" style="--c:${m.color}" ${ready ? '' : 'aria-disabled="true"'}>
-      <span class="gicon">${m.icon}</span>
+      <span class="gicon" aria-hidden="true">${m.icon}</span>
       <span class="gname">${m.name}</span>
       <span class="gkind">${ready ? m.kind : 'Coming soon'}</span>
     </button>`;
   }
 
-  private toggle(k: string, label: string, on: boolean): string {
-    return `<label class="toggle"><input type="checkbox" data-k="${k}" ${on ? 'checked' : ''}/><span>${label}</span></label>`;
+  private toggle(k: string, icon: string, label: string, hint: string, on: boolean): string {
+    return `<label class="toggle set-row"><span class="set-ico" aria-hidden="true">${icon}</span><span class="set-txt"><b>${label}</b>${hint ? `<small>${hint}</small>` : ''}</span><input type="checkbox" role="switch" data-k="${k}" ${on ? 'checked' : ''}/></label>`;
   }
 
   private editPlayer(p: PlayerIndex): void {

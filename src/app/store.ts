@@ -74,7 +74,9 @@ export function easierOffer(history: readonly MatchRecord[], game: string, profi
   return i > 0 ? { bot, person, from, to: BOT_LEVELS[i - 1] } : { bot, person, from, to: from, headStart: head + 1 };
 }
 
-export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean; haptics: boolean };
+/** 'auto' follows the phone's light/dark setting. Missing in older saves (= auto). */
+export type ThemePref = 'auto' | 'light' | 'dark';
+export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean; haptics: boolean; theme?: ThemePref };
 export type MatchRecord = {
   game: string;
   at: number;
