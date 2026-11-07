@@ -18,7 +18,8 @@ import { StarterLog } from './starter';
 import { homeGroups } from './homegroups';
 import { BOT_LEVELS, BOT_NAME, PLAYER_COLORS, Store, botFor, easierOffer, seatName, type ThemePref } from './store';
 import { applyTheme, watchSystemTheme } from './theme';
-import { inkOn } from '../core/contrast';
+import { DARK_INK, inkOn } from '../core/contrast';
+import { cardInk } from './cardink';
 
 export type GameMeta = (typeof gamesJson.games)[number];
 export const META: GameMeta[] = gamesJson.games;
@@ -281,7 +282,7 @@ export class App {
 
   private card(m: GameMeta): string {
     const ready = m.id in GAMES;
-    return `<button class="game-card${ready ? '' : ' soon'}" data-id="${m.id}" data-ready="${ready ? 1 : 0}" style="--c:${m.color}" ${ready ? '' : 'aria-disabled="true"'}>
+    return `<button class="game-card${ready ? '' : ' soon'}${cardInk(m.color) === DARK_INK ? ' light-card' : ''}" data-id="${m.id}" data-ready="${ready ? 1 : 0}" style="--c:${m.color};--ink:${cardInk(m.color)}" ${ready ? '' : 'aria-disabled="true"'}>
       <span class="gicon" aria-hidden="true">${m.icon}</span>
       <span class="gname">${m.name}</span>
       <span class="gkind">${ready ? m.kind : 'Coming soon'}</span>

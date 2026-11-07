@@ -6,6 +6,7 @@ import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../e
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
+import { waitingLine } from '../../core/turnline';
 import { Minigolf, MinigolfBot, RULES, type Intent, type Shot } from './logic';
 import { inZone, moverSegs, PHYS, simulate, type Course, type Pt } from './physics';
 
@@ -663,6 +664,9 @@ class MinigolfView implements GameInstance {
     } else if (g.balls[p].done && g.phase !== 'card' && g.phase !== 'intro') status = g.balls[p].sunk ? 'In the hole ✓' : 'Picked up';
     else if (g.phase === 'roll' && g.shooter === p) status = 'Rolling…';
     else if (g.phase === 'intro' || g.phase === 'card') status = `Hole ${g.holeIdx + 1} of ${g.holes.length} · Par ${g.hole.par}`;
+    // While a bot lines up its shot the waiting seat reads the same "🤖 Bot is thinking…"
+    // line as the board games, so the pause reads as the bot's, not a stuck game.
+    else if (this.bots[other(p)] && (g.phase === 'turn' || g.phase === 'aim')) status = waitingLine(this.ctx.players[other(p)]);
     else status = `Wait · ${this.ctx.players[other(p)].name} shoots`;
     // Armed power badges
     const badges: string[] = [];
