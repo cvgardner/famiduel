@@ -4,7 +4,9 @@
 // unfinished matches and the average match length, so difficulty tuning across games
 // starts from numbers. The kid rows show whether a mashing small kid, with no head start
 // and with the full one, ever beats the easy bot. Options: `npm run sim -- --n 40 --game sumo --powers`.
-import { LONG_T, pairing, type SimLevel, SPECS } from './simlib';
+// `--idle`: one seat never touches the screen. `--selfout`: lost points that were self-outs (scripts/selfout.ts).
+import { LONG_T, pairing, playMatch, type SimLevel, SPECS } from './simlib';
+import { selfOutCounter } from './selfout';
 
 // "kid" is a small kid who just mashes (scripts/simlib.ts Masher); "kid+3" has the full head start.
 const PAIRS: [SimLevel, SimLevel][] = [
@@ -42,6 +44,32 @@ function main() {
       }
     }
     console.log(stalls ? `${stalls} row(s) with matches over ${LONG_T / 60} min against an idle seat.` : 'Every match against an idle seat ends inside 3 min.');
+    return;
+  }
+  if (args.includes('--selfout')) {
+    console.log(`Self-out table: ${n} matches per row, seats swapped every other match, powers ${powers ? 'on' : 'off'}.`);
+    console.log('"lost" = points/rounds each side lost; "self" = share of those lost on their own (Snake: wall or own trail; Sumo: off the ring untouched for 1 s).');
+    console.log(['game'.padEnd(12), 'pairing'.padEnd(15), 'A lost', 'A self', 'B lost', 'B self'].join(' '));
+    const rows: [SimLevel, SimLevel][] = [['kid', 'easy'], ['kid+3', 'easy'], ['easy', 'easy'], ['normal', 'normal'], ['hard', 'hard']];
+    for (const spec of SPECS) {
+      if (only && spec.id !== only) continue;
+      if (!selfOutCounter(spec.id)) continue;
+      for (const pr of rows) {
+        const lost = [0, 0], self = [0, 0];
+        for (let i = 0; i < n; i++) {
+          const swap = i % 2 === 1;
+          const c = selfOutCounter(spec.id)!;
+          playMatch(spec, swap ? [pr[1], pr[0]] : pr, 1000 + i, powers, [null, null], c.observe as never);
+          for (const side of [0, 1] as const) {
+            const seat = swap ? 1 - side : side;
+            lost[side] += c.tally.lost[seat];
+            self[side] += c.tally.self[seat];
+          }
+        }
+        const share = (k: 0 | 1) => (lost[k] ? pct(self[k] / lost[k]) : '    -');
+        console.log([spec.id.padEnd(12), `${pr[0]} v ${pr[1]}`.padEnd(15), String(lost[0]).padStart(6), share(0).padStart(6), String(lost[1]).padStart(6), share(1).padStart(6)].join(' '));
+      }
+    }
     return;
   }
   console.log(`Bot pace table: ${n} matches per row, seats swapped every other match, powers ${powers ? 'on' : 'off'}.`);
