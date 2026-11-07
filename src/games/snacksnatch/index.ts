@@ -8,6 +8,10 @@ import { Button, PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { fwd, RULES, SnackSnatch, SnackSnatchBot, type Critter, type Intent, type Snack } from './logic';
 import { inkOn } from '../../core/contrast';
+const GRASS = '#3f8f4f';
+const BLANKET = '#fff6ec';
+/** The colours most of the play area is painted in (tests read pops against them). */
+export const SURFACES: readonly string[] = [GRASS, BLANKET];
 
 /** Snack looks: cookie, donut, berry, cracker. */
 const KINDS = ['#d9a066', '#ff8fc2', '#ff5c7a', '#f4c96b'];
@@ -163,12 +167,12 @@ class SnackSnatchView implements GameInstance {
   private renderBlanket(gx: G): void {
     const [c0, c1] = [this.ctx.players[0].color, this.ctx.players[1].color];
     // Grass around the blanket
-    gx.fillStyle = '#3f8f4f';
+    gx.fillStyle = GRASS;
     gx.fillRect(0, 0, W, H);
     // Gingham picnic blanket over the play field
     const top = RULES.gum[1] - 6;
     const bot = RULES.gum[0] + 6;
-    rrect(gx, 4, top, W - 8, bot - top, 14, '#fff6ec');
+    rrect(gx, 4, top, W - 8, bot - top, 14, BLANKET);
     gx.save();
     gx.beginPath();
     gx.roundRect(4, top, W - 8, bot - top, 14);

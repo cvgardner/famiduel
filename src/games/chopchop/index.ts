@@ -7,6 +7,13 @@ import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { ChopBot, ChopChop, RULES, type Intent, type Side } from './logic';
+const SKY = '#9fd8ff';
+const SKY_LOW = '#d9f1ff';
+const GRASS = '#7cc96b';
+const GRASS_NEAR = '#4f9e45';
+const HILLS = '#a9dca0';
+/** The colours most of the play area is painted in (tests read pops against them). */
+export const SURFACES: readonly string[] = [SKY, SKY_LOW, GRASS, GRASS_NEAR, HILLS];
 
 /** Local (bottom-player) layout. */
 const L = {
@@ -162,16 +169,16 @@ class ChopView implements GameInstance {
     const col = this.ctx.players[p].color;
     // Sky near the middle, grass near the player
     const sky = gx.createLinearGradient(0, MID, 0, H);
-    sky.addColorStop(0, '#9fd8ff');
-    sky.addColorStop(0.62, '#d9f1ff');
-    sky.addColorStop(0.63, '#7cc96b');
-    sky.addColorStop(1, '#4f9e45');
+    sky.addColorStop(0, SKY);
+    sky.addColorStop(0.62, SKY_LOW);
+    sky.addColorStop(0.63, GRASS);
+    sky.addColorStop(1, GRASS_NEAR);
     gx.fillStyle = sky;
     gx.fillRect(0, MID, W, MID);
     gx.fillStyle = alpha(col, 0.1);
     gx.fillRect(0, MID, W, MID);
     // Distant hills and clouds
-    gx.fillStyle = '#a9dca0';
+    gx.fillStyle = HILLS;
     for (const [hx, rx, ry] of [[70, 120, 50], [300, 140, 40]]) {
       gx.beginPath();
       gx.ellipse(hx, L.baseY + 22, rx, ry, 0, Math.PI, 0);

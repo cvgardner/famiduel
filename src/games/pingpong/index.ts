@@ -13,11 +13,14 @@ import { FingerPaddle, fwdSign, PingPong, PingPongBot, RULES, type Intent, type 
 import { inkOn } from '../../core/contrast';
 import { liftOn } from '../../engine/fx';
 import { BounceMark, type Spot } from './bouncemark';
+const FLOOR = '#2a2350';
 
 const TABLE = { x0: 22, x1: W - 22, y0: RULES.tableY0, y1: RULES.tableY1 };
 export const TABLE_GREEN = '#1d7a52';
 /** Outline of the SERVE hint; Purple on it over the table was 4.0:1, so the word is lifted (liftOn). */
 export const SERVE_OUTLINE = 'rgba(0,0,0,0.75)';
+/** The colours most of the play area is painted in (tests read pops against them). */
+export const SURFACES: readonly string[] = [FLOOR, TABLE_GREEN];
 
 type Trail = { x: number; y: number; color: string };
 
@@ -161,7 +164,7 @@ class PingPongView implements GameInstance {
     const g = this.game;
     const c = [this.ctx.players[0].color, this.ctx.players[1].color];
     // Floor
-    gx.fillStyle = '#2a2350';
+    gx.fillStyle = FLOOR;
     gx.fillRect(0, 0, W, H);
     for (const p of PLAYERS) {
       const grad = gx.createLinearGradient(0, p === 0 ? H : 0, 0, MID);

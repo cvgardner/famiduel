@@ -199,3 +199,43 @@ describe('Ping Pong SERVE hint', () => {
     expect(src).toMatch(/'SERVE'[^;]*liftOn\(c\[p\], SERVE_OUTLINE, TABLE_GREEN\)/);
   });
 });
+
+describe('pop-up words in every action game', () => {
+  // Same source check as Sumo's, for every action game against the colours its
+  // own play area is painted in (each view exports SURFACES). The playtest only
+  // judges the pops a match happens to trigger, so rare ones are covered here.
+  const GAMES = ['airhockey', 'chopchop', 'minigolf', 'penalty', 'pingpong', 'quickdraw', 'snacksnatch', 'snake', 'sumo', 'tanks'];
+  it.each(GAMES)('%s pops read on its own surfaces', async (id) => {
+    const fs = await import('node:fs');
+    const { POP_OUTLINE, popColor } = await import('../src/engine/fx');
+    const { COLORS } = await import('../src/engine/draw');
+    const view = (await import(`../src/games/${id}/index.ts`)) as { SURFACES?: readonly string[]; seatPop?: (c: string) => string };
+    expect(view.SURFACES?.length, `${id} exports SURFACES`).toBeGreaterThan(0);
+    const src = fs.readFileSync(`src/games/${id}/index.ts`, 'utf8');
+    const consts = Object.fromEntries([...src.matchAll(/^(?:export )?const ([A-Z_]+) = '(#[0-9a-f]{3,6})'/gim)].map((m) => [m[1], m[2]]));
+    const colour = (expr: string): string[] => {
+      const lit = [...expr.matchAll(/'(#[0-9a-f]{3,6}|rgba?\([^']*\))'/gi)].map((m) => m[1]);
+      const named = [...expr.matchAll(/COLORS\.(\w+)/g)].map((m) => (COLORS as Record<string, string>)[m[1]]);
+      const own = [...expr.matchAll(/\b([A-Z_]{3,})\b/g)].map((m) => consts[m[1]]).filter(Boolean);
+      const seats = /players\[|\bcol\(|\bc\[/.test(expr) ? PLAYER_COLORS.map((c) => (/seatPop\(/.test(expr) && view.seatPop ? view.seatPop(c.hex) : /popColor\(/.test(expr) ? popColor(c.hex) : c.hex)) : [];
+      return [...lit, ...named, ...own, ...seats];
+    };
+    const pops = [...src.matchAll(/fx\.pop\(([^;]*)\);/g)].map((m) => m[1]);
+    expect(pops.length, `${id} has pops`).toBeGreaterThan(0);
+    const outline = parseColor(POP_OUTLINE)!;
+    const faint: string[] = [];
+    for (const call of pops) {
+      const args = call.split(/,(?![^(]*\))/);
+      const size = Number(args[args.length - 1]) || 22;
+      // A helper passing its own `color` argument on is checked at its callers.
+      if (/^\s*color\s*$/.test(args[3] ?? '')) continue;
+      for (const fill of colour(args.slice(3).join(','))) {
+        for (const bg of view.SURFACES!) {
+          const r = labelContrast(parseColor(fill)!, rgb(bg), 1, outline);
+          if (r < contrastNeeded(size, 800)) faint.push(`${args[0].trim()} ${fill} on ${bg}: ${r.toFixed(1)}:1`);
+        }
+      }
+    }
+    expect(faint).toEqual([]);
+  });
+});
