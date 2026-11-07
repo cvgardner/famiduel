@@ -156,6 +156,28 @@ describe('home game cards', () => {
   });
 });
 
+describe('Sumo push button', () => {
+  // The playtest only judges "LET GO" while someone holds the button, so a
+  // Mint seat could fail main on a lucky hold (white was 4.3:1). Check every
+  // seat colour, lit and dimmed, from the source.
+  it('HOLD / LET GO / MAX! read on every seat colour', async () => {
+    const fs = await import('node:fs');
+    const { shade } = await import('../src/engine/draw');
+    const src = fs.readFileSync('src/games/sumo/index.ts', 'utf8');
+    const sizes = [...src.matchAll(/label === 'LET GO' \? (\d+) : (\d+)/g)].flatMap((m) => [Number(m[1]), Number(m[2])]);
+    expect(sizes.length).toBe(2);
+    const size = Math.min(...sizes);
+    for (const c of PLAYER_COLORS) {
+      for (const fill of [c.hex, shade(c.hex, -0.35)]) {
+        const bg = parseColor(fill)!.slice(0, 3) as [number, number, number];
+        const r = contrastRatio(rgb(inkOn(fill)), bg);
+        expect(r, `${c.name} ${fill}`).toBeGreaterThanOrEqual(contrastNeeded(size, 800));
+        // Also small-text safe except Purple's best white (4.4:1), which the 19 px size covers.
+        expect(r, `${c.name} ${fill}`).toBeGreaterThanOrEqual(4.35);
+      }
+    }
+  });
+});
 describe('minigolf words in a player colour on its dark cards', () => {
   it('"<name> tees off first" and "<name>\'s shot" read at 4.5:1 for every seat colour, even on white', async () => {
     const { liftOn, popColor } = await import('../src/engine/fx');
