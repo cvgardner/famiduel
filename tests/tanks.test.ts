@@ -65,6 +65,28 @@ describe('tank duel', () => {
     }
   });
 
+  it('two normal bots finish a round on every arena in under a minute on average', () => {
+    for (let layout = 0; layout < LAYOUTS.length; layout++) {
+      const times: number[] = [];
+      for (const seed of [1, 2, 3, 4, 5, 6]) {
+        const rng = makeRng(seed * 31 + layout);
+        const g = new TankDuel([player({ bot: 'normal' }), player({ bot: 'normal' })], false, rng);
+        g.layout = layout;
+        g.arena = new (g.arena.constructor as new (grid: boolean[]) => typeof g.arena)(buildGrid(LAYOUTS[layout]));
+        const bots = [new TankBot(0, 'normal', rng), new TankBot(1, 'normal', rng)];
+        let t = 0;
+        while (g.round === 1 && !g.over && t < 120) {
+          g.step(DT, [bots[0].think(g, DT), bots[1].think(g, DT)]);
+          t += DT;
+        }
+        times.push(t);
+      }
+      const avg = times.reduce((a, b) => a + b, 0) / times.length;
+      expect(Math.max(...times), LAYOUTS[layout].name).toBeLessThan(120);
+      expect(avg, LAYOUTS[layout].name).toBeLessThan(45);
+    }
+  }, 60_000);
+
   it('bot vs bot always reaches a result, in about 1–3 minutes of game time', () => {
     for (const seed of [1, 2, 3, 4]) {
       const { g, t } = play(['normal', 'normal'], seed);

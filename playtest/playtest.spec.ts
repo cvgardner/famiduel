@@ -10,6 +10,7 @@ import path from 'node:path';
 import games from '../content/games.json' with { type: 'json' };
 import holes from '../content/minigolf-holes.json' with { type: 'json' };
 import { PLAYER_COLORS } from '../src/core/colors';
+import { buildGrid, LAYOUTS } from '../src/games/tanks/mazes';
 import { domContrast, faintLabels } from './domcontrast';
 import { installFingers, monkey, tapWorld, worldBox } from './monkey';
 import { checkersPerson, fourInARowPerson, rpsPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
@@ -1789,6 +1790,43 @@ test("checkers: a bot's double jump stays traced on the board until you move", a
   await expect.poll(async () => (await look())?.mover, { timeout: 2000 }).toBe(0);
   m = await look();
   expect(m).toEqual({ trail: [56, 49], taken: [], mover: 0 });
+  expect(errors).toEqual([]);
+});
+
+test('tank duel: every arena shows and two bots play a round on it', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, ['normal', 'normal']);
+  type TankHook = {
+    openGame(id: string): void;
+    startMatch(): void;
+    runner: null | { fastForward(s: number): void; game: { game: { layout: number; round: number; arena: { constructor: new (g: boolean[]) => unknown }; over: boolean } } };
+  };
+  for (let i = 0; i < LAYOUTS.length; i++) {
+    const shown = await page.evaluate(
+      ({ i, grid }) => {
+        const app = (window as unknown as { __famiduel: TankHook }).__famiduel;
+        app.openGame('tanks');
+        app.startMatch();
+        const g = app.runner!.game.game;
+        g.layout = i;
+        g.arena = new g.arena.constructor(grid) as typeof g.arena;
+        app.runner!.fastForward(1.2);
+        return g.layout;
+      },
+      { i, grid: buildGrid(LAYOUTS[i]) },
+    );
+    expect(shown, LAYOUTS[i].name).toBe(i);
+    await page.waitForTimeout(150);
+    await page.screenshot({ path: path.join(OUT, `tanks-arena-${LAYOUTS[i].name.toLowerCase()}.png`) });
+    const round = await page.evaluate(() => {
+      const app = (window as unknown as { __famiduel: TankHook }).__famiduel;
+      const g = app.runner!.game.game;
+      for (let s = 0; s < 120 && g.round === 1 && !g.over; s++) app.runner!.fastForward(1);
+      return g.round > 1 || g.over;
+    });
+    expect(round, `${LAYOUTS[i].name}: a round ends`).toBe(true);
+  }
   expect(errors).toEqual([]);
 });
 
