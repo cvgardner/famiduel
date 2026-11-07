@@ -804,9 +804,19 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Checkers: the jump trail line is thin on a 320 px phone; if kids still miss a bot's
       jump, replay the last move's hops once (slow) when the person taps a ghost ring.
 
+## Found 2026-11-07 (F61)
+- [x] Minigolf's play-like-a-person row always warned "'Downhill Dash' / 'Bot 2 tees off first'
+      was only seen fading in". Those were the bot-vs-bot match's first frames: the playtest
+      fast-forwarded while the hole card was still fading in. It now waits (`settleFades`, up
+      to 2.5 s) for the card to be fully shown first, so the words are judged at rest (they
+      pass) and the warning is gone. PR (this one).
+
 ## Ideas found 2026-11-01 (Sea Battle first shot run)
-- [ ] The two-person look-away cover is the only Sea Battle screen no playtest checks for
+- [x] The two-person look-away cover is the only Sea Battle screen no playtest checks for
       the opening line; a two-people match in the playtest could read it on the cover.
+      2026-11-07 (F64): the playtest "with two people, the first look-away cover says who goes
+      first" reads the cover's words off the canvas ("You go first!", the shooter's name, the
+      look-away line) and saves seabattle-first-cover.png. It already said it; no app change.
 - [ ] Turn games could show a small "first" marker beside the starter's score for the whole
       match (like a serve dot in Ping Pong), so a parent glancing in mid-match knows too.
 
@@ -823,8 +833,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       was red in `npm run verify`): it tapped the piece and its target with the same finger
       id back to back, and when both landed inside one frame the second replaced the first.
       It now waits to see the piece picked up before tapping where it goes, like a person.
-- [ ] Other playtests that tap twice in a row with one finger id (`__finger(77, …)` and
+- [x] Other playtests that tap twice in a row with one finger id (`__finger(77, …)` and
       friends) could hit the same race; a shared `tapThenWait` helper would cover them.
+      2026-11-07 (F63): `tapWorld(page, id, x, y)` in playtest/monkey.ts taps like a person
+      (down, 60 ms, up, then two frames); the seven hand-rolled tap helpers in the Sea Battle,
+      Tic-Tac-Toe, Four in a Row, Checkers and RPS playtests use it.
 - [x] 2026-11-01: Sea Battle says who goes first. It picks its first shooter only after both
       fleets are hidden, so the countdown said nothing and a rematch's swap of the first shot
       went unseen. Now the first turn opens with a gold "You go first!" pop over the sea and a
@@ -842,6 +855,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2026-11-07 (Snake part): checked, it doesn't. `tests/snake-mirror.test.ts` plays a person
       with three steering habits against hard Snake (15 matches): the bot's head sat on the
       mirror of the person's (turned or flipped board) in 18 of 4311 cells (0.4%). RPS part open.
+      2026-11-07 (F62, RPS part): checked, no change. The bot throws at random at every level;
+      `tests/rps.test.ts` plays 400 matches of the hard bot against a kid who always throws
+      rock, one who cycles and one who repeats their last throw: the bot wins 28-39% of rounds
+      and 42-58% of matches against each.
 - [x] 2026-11-01 (20:00 research run): Ping Pong shows where the ball landed. Reviews of
       another 2-player app still say "hard to tell whether the ball has landed yet"; ours
       only had a thin ring that faded as it grew for 0.5 s. Now each bounce leaves a spot on

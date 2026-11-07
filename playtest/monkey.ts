@@ -26,6 +26,22 @@ export async function worldBox(page: Page): Promise<Box> {
   return { x: c.x + (c.width - 360 * s) / 2, y: c.y + (c.height - 640 * s) / 2, width: 360 * s, height: 640 * s };
 }
 
+/**
+ * One quick tap of finger `id` at a world point (360 x 640 units), like a person: down, a
+ * beat, up, then two frames so the game has read it before the next tap. Two taps from the
+ * same finger inside one frame would replace each other (a Checkers playtest flaked on it).
+ */
+export async function tapWorld(page: Page, id: number, x: number, y: number): Promise<void> {
+  const box = await worldBox(page);
+  const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
+  const finger = (t: string) =>
+    page.evaluate(([i, tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(i, tt, cx, cy), [id, t, c.x, c.y] as const);
+  await finger('pointerdown');
+  await page.waitForTimeout(60);
+  await finger('pointerup');
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(null)))));
+}
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Seeded so a failing playtest can be replayed. */

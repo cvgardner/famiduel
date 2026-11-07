@@ -11,7 +11,7 @@ import games from '../content/games.json' with { type: 'json' };
 import holes from '../content/minigolf-holes.json' with { type: 'json' };
 import { PLAYER_COLORS } from '../src/core/colors';
 import { domContrast, faintLabels } from './domcontrast';
-import { installFingers, monkey, worldBox } from './monkey';
+import { installFingers, monkey, tapWorld, worldBox } from './monkey';
 import { checkersPerson, fourInARowPerson, rpsPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
 
 const OUT = path.resolve('playtest-report');
@@ -164,6 +164,19 @@ async function barPeak(page: Page): Promise<{ top: number; bottom: number }> {
     const peak = (y: number) => Math.max(...Array.from(g.getImageData(c.width >> 1, y, 1, 1).data.slice(0, 3)));
     return { top: peak(0), bottom: peak(c.height - 1) };
   });
+}
+
+/**
+ * Wait (up to 2.5 s) until no label is still only seen mid-fade, so the contrast probe
+ * gets to judge it fully shown.
+ */
+async function settleFades(page: Page) {
+  const fading = () =>
+    page.evaluate(() =>
+      [...(window as unknown as { __contrast: { seen: Map<string, { best: number; need: number; rest: boolean }> } }).__contrast.seen.values()].some((c) => !c.rest && c.best < c.need),
+    );
+  const end = Date.now() + 2500;
+  while (Date.now() < end && (await fading())) await page.waitForTimeout(100);
 }
 
 /** Tap through the intro like a person: pick a power if offered, then Ready. */
@@ -1344,6 +1357,50 @@ test('sea battle: two people see where their own shot landed before passing the 
   expect(errors).toEqual([]);
 });
 
+test('sea battle: with two people, the first look-away cover says who goes first', async ({ page }) => {
+  // Two people pass the phone, so the first shooter is told on the cover itself, before the
+  // sea shows: "You go first!" above their name. Read off the canvas, not the code.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  await page.locator('.game-card[data-id="seabattle"]').tap();
+  await introAsPeople(page, [0, 1]);
+  await page.waitForTimeout(2200); // countdown
+  type SeaHook = { runner: null | { game: { mode: { kind: string; next?: string; p: number }; game: { shotsFired: number[] } } } };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner?.game;
+      return v ? { kind: v.mode.kind, next: v.mode.next ?? null, p: v.mode.p, shots: v.game.shotsFired[0] + v.game.shotsFired[1] } : null;
+    });
+  const seen = () => page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, unknown> } }).__contrast.seen.keys()]);
+  await page.evaluate(() => {
+    const c = (window as unknown as { __contrast: { on: boolean; seen: Map<string, unknown> } }).__contrast;
+    c.seen.clear();
+    c.on = true;
+  });
+  const playing = seaBattlePerson(page, 20_000, 3);
+  let cover: Awaited<ReturnType<typeof look>> = null;
+  let words: string[] = [];
+  const end = Date.now() + 20_000;
+  while (Date.now() < end && !cover) {
+    const s = await look().catch(() => null);
+    if (s?.kind === 'cover' && s.next === 'fire' && s.shots === 0) {
+      await page.waitForTimeout(250); // one probe pass over the cover's words
+      words = await seen();
+      await page.screenshot({ path: path.join(OUT, 'seabattle-first-cover.png') });
+      cover = s;
+    } else await page.waitForTimeout(40);
+  }
+  await playing;
+  expect(cover, 'the first fire turn opens on a look-away cover').not.toBeNull();
+  const name = await page.evaluate((p) => (window as unknown as { __famiduel: { store: { data: { profiles: { name: string }[] } } } }).__famiduel.store.data.profiles[p].name, cover!.p);
+  expect(words, 'the cover says who goes first').toContain('You go first!');
+  expect(words, "and names them").toContain(name);
+  expect(words.some((w) => /look away!$/.test(w)), 'and tells the other one to look away').toBe(true);
+  await page.evaluate(() => ((window as unknown as { __contrast: { on: boolean } }).__contrast.on = false));
+  expect(errors).toEqual([]);
+});
+
 test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) => {
   // Chris, 2026-11-01: rules must match the ones kids know, like another shot after a hit.
   const errors: string[] = [];
@@ -1372,14 +1429,7 @@ test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) =
         water: open.find((i) => enemy.occ[i] < 0) ?? null,
       };
     });
-  const box = await worldBox(page);
-  const tap = async (x: number, y: number) => {
-    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup']) {
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, c.x, c.y] as const);
-      await page.waitForTimeout(60);
-    }
-  };
+  const tap = (x: number, y: number) => tapWorld(page, 77, x, y);
   // Grid geometry from src/games/seabattle/index.ts (the person is seat 0, upright).
   const N = 10, C = 27, GX = (360 - N * C) / 2, GY = 82;
   const fire = async (cell: number) => {
@@ -1464,13 +1514,7 @@ test('sea battle: on a small phone a cell is a fair target and a stray tap only 
   const N = 10, C = 27, GX = (360 - N * C) / 2, GY = 82;
   const cellPx = (C / 360) * box.width;
   expect(cellPx, `a grid cell on a 320 px phone is ${cellPx.toFixed(1)} CSS px`).toBeGreaterThanOrEqual(23.5);
-  const tap = async (x: number, y: number) => {
-    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup']) {
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(78, tt, cx, cy), [t, c.x, c.y] as const);
-      await page.waitForTimeout(60);
-    }
-  };
+  const tap = (x: number, y: number) => tapWorld(page, 78, x, y);
   const at = (cell: number) => [GX + (cell % N) * C + C / 2, GY + Math.floor(cell / N) * C + C / 2] as const;
   await expect.poll(async () => (await look()).kind, { timeout: 5000 }).toBe('place');
   await page.waitForTimeout(700);
@@ -1510,14 +1554,7 @@ test('sea battle: the first shot says who goes first, and the rematch swaps it',
       const v = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner!.game;
       return { kind: v.mode.kind, p: v.mode.p, phase: v.game.phase, header: v.header, announced: v.announced, first: v.firstMover() };
     });
-  const tap = async (x: number, y: number) => {
-    const box = await worldBox(page);
-    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup']) {
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(78, tt, cx, cy), [t, c.x, c.y] as const);
-      await page.waitForTimeout(60);
-    }
-  };
+  const tap = (x: number, y: number) => tapWorld(page, 78, x, y);
   const firsts: number[] = [];
   for (let m = 0; m < 2; m++) {
     await introAsPeople(page, [0]);
@@ -1578,12 +1615,7 @@ test("tic-tac-toe: the bot's newest mark sits on a tile until you move", async (
       const v = (window as unknown as { __famiduel: TttHook }).__famiduel.runner!.game;
       return { ring: v.ringCell(), last: v.game.last, turn: v.game.turn, board: [...v.game.board], between: v.game.between, done: v.game.done };
     });
-  const box = await worldBox(page);
-  const tap = async (cell: number) => {
-    const c = { x: box.x + ((45 + (cell % 3) * 90 + 45) / 360) * box.width, y: box.y + ((185 + Math.floor(cell / 3) * 90 + 45) / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup'])
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, c.x, c.y] as const);
-  };
+  const tap = (cell: number) => tapWorld(page, 77, 45 + (cell % 3) * 90 + 45, 185 + Math.floor(cell / 3) * 90 + 45);
   let s = await look();
   expect(s.last).toBeNull();
   expect(s.ring).toBeNull();
@@ -1627,12 +1659,7 @@ test("four in a row: the bot's newest disc keeps a ring until you move", async (
       const v = (window as unknown as { __famiduel: FourHook }).__famiduel.runner!.game;
       return { ring: v.ringCell(), last: v.game.last, turn: v.game.turn, moves: v.game.moves, still: !v.busy && !v.busyDiscs(), over: !!v.game.roundOver };
     });
-  const box = await worldBox(page);
-  const drop = async (col: number) => {
-    const c = { x: box.x + ((48 + col * 43 + 21.5) / 360) * box.width, y: box.y + (520 / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup'])
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(88, tt, cx, cy), [t, c.x, c.y] as const);
-  };
+  const drop = (col: number) => tapWorld(page, 88, 48 + col * 43 + 21.5, 520);
   // Nothing is ringed before the first disc.
   let s = await look();
   expect(s.last).toBeNull();
@@ -1714,13 +1741,7 @@ test("checkers: a bot's double jump stays traced on the board until you move", a
   await page.waitForTimeout(2500);
   expect(await look()).toEqual(m);
   // The person moves (7,0) to (6,1); the marks move to that simple move.
-  const box = await worldBox(page);
-  const tapSq = async (sqr: number) => {
-    const x = box.x + ((40 + (sqr % 8) * 39 + 19.5) / 360) * box.width;
-    const y = box.y + ((164 + Math.floor(sqr / 8) * 39 + 19.5) / 640) * box.height;
-    for (const t of ['pointerdown', 'pointerup'])
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, x, y] as const);
-  };
+  const tapSq = (sqr: number) => tapWorld(page, 77, 40 + (sqr % 8) * 39 + 19.5, 164 + Math.floor(sqr / 8) * 39 + 19.5);
   await tapSq(56);
   // Like a person, wait to see the piece picked up before tapping where it goes: two taps
   // from the same finger inside one frame would replace each other (flaky in the serial run).
@@ -2041,12 +2062,7 @@ test('rock paper scissors: two people pick behind a look-away cover, one at a ti
       const v = (window as unknown as { __famiduel: RpsHook }).__famiduel.runner!.game;
       return { step: v.secret.step, picks: [...v.game.picks], revealing: v.game.revealing };
     });
-  const box = await worldBox(page);
-  const tap = async (x: number, y: number) => {
-    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup'])
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, c.x, c.y] as const);
-  };
+  const tap = (x: number, y: number) => tapWorld(page, 77, x, y);
   const flip = (p: number, x: number, y: number) => (p === 1 ? [360 - x, 640 - y] : [x, y]) as [number, number];
   // Round 1: player 1 (bottom) is first. Nothing is on screen but the cover.
   let s = await look();
@@ -2243,6 +2259,9 @@ for (const g of games.games.filter((x) => !x.hidden)) {
     await setPlayers(page, ['normal', 'hard']);
     await page.evaluate((id) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(id), g.id);
     await expect(page.locator('#play')).toBeVisible();
+    // Let the opening card (Minigolf's hole card) finish fading in before jumping ahead, so
+    // its words are judged at rest instead of only from the first faint frames.
+    await settleFades(page);
     await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
     row.finished = await page.locator('#result').isVisible();
     if (row.finished) await shot('result');
