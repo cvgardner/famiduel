@@ -928,8 +928,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       contrast probe caught "Bot 2" in pink at 3.4:1 on the pink glow of the active panel.
 
 ## Ideas found 2026-11-01 (bot name run)
-- [ ] Other games print the name in the player's colour on a tinted panel; Sumo and Sea
+- [x] Other games print the name in the player's colour on a tinted panel; Sumo and Sea
       Battle already have an outline, but a shared `nameLabel()` would keep them alike.
+      2026-11-07 (F75): `nameLabel()` in engine/draw.ts (bold, the pop's 75% black outline).
+      Sumo, Sea Battle's cover and Rock Paper Scissors (secret pick line, name under the
+      hand) draw names through it; Sea Battle's and RPS's outlines were 35-40% black. A text
+      test fails on a player name drawn with a hand-rolled outline, and the small-text test
+      also reads nameLabel sizes. Minigolf's names sit on dark cards via liftOn (unchanged);
+      the hidden board games are left as they are.
 - [x] Bot names with character: each bot level could have a friendly name and face (e.g. a
       sleepy robot for Easy) so a kid knows which one they are beating, without new words.
       2026-11-07 (F73, PR #134): faces, no new names: Easy 😴, Normal 🤔, Hard 😎

@@ -198,6 +198,18 @@ function probeEdge(g: G, str: string, x: number, player: 0 | 1): void {
   if (over > 1) edgeProbe.over.set(str, Math.max(over, edgeProbe.over.get(str) ?? 0));
 }
 
+/** The dark outline behind a name drawn in its player's colour (same as a pop's). */
+export const NAME_OUTLINE = 'rgba(0,0,0,0.75)';
+
+/**
+ * A player's name in their own colour, on whatever tinted panel or floor the game has.
+ * Every game draws names through this so they look alike and read on light panels too:
+ * bold, with a dark outline (Four in a Row's pink "Bot 2" on its pink glow was 3.4:1).
+ */
+export function nameLabel(g: G, name: string, x: number, y: number, color: string, o: TextOpts = {}): void {
+  text(g, name, x, y, { weight: 800, ...o, color, stroke: NAME_OUTLINE });
+}
+
 export function circle(g: G, x: number, y: number, r: number, fill?: string, stroke?: string, lineWidth = 2): void {
   g.beginPath();
   g.arc(x, y, Math.max(0, r), 0, Math.PI * 2);

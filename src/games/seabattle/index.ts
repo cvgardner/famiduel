@@ -2,7 +2,7 @@
 // full-screen "pass the phone" cover hides everything, and the active player's
 // screen is turned to face them. Against a bot the screen always faces the person.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, glow, line, noGlow, rrect, seatEdges, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, glow, line, nameLabel, noGlow, rrect, seatEdges, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -534,7 +534,7 @@ class SeaBattleView implements GameInstance {
     text(gx, `${this.ctx.players[o].name}, look away!`, W / 2, 222, { size: 20, color: COLORS.dim, weight: 700 });
     const first = m.next === 'fire' ? this.opening(m.p, m.p) : null;
     text(gx, m.next === 'place' ? 'Hide your fleet' : first ?? 'Your turn to fire', W / 2, 300, { size: 22, color: '#fff', weight: 700 });
-    text(gx, pl.name, W / 2, 344, { size: 40, color: pl.color, stroke: 'rgba(0,0,0,0.4)' });
+    nameLabel(gx, pl.name, W / 2, 344, pl.color, { size: 40 });
     const s = 1 + 0.05 * Math.sin(this.t * 5);
     rrect(gx, W / 2 - 140 * s, 410, 280 * s, 70, 35, pl.color, '#fff', 3);
     text(gx, `Tap when only ${pl.name}`, W / 2, 432, { size: 19, color: inkOn(pl.color) });

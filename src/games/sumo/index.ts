@@ -2,7 +2,7 @@
 // bouncy top-down ring with squash/stretch wrestlers, dust and shockwaves.
 import { PLAYERS, type PlayerIndex } from '../../core/types';
 import { inkOn } from '../../core/contrast';
-import { alpha, circle, COLORS, facing, glow, noGlow, fitSize, seatRing, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, noGlow, fitSize, nameLabel, seatRing, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button, PowerButton, powerSpot } from '../../engine/widgets';
@@ -458,7 +458,7 @@ class SumoView implements GameInstance {
     const x = (p === 0) === right ? W - 62 : 62;
     const y = p === 0 ? H - 42 : 42;
     facing(gx, p, x, y, () => {
-      text(gx, this.ctx.players[p].name, x, y - 22, { size: 13, color: c, weight: 800, stroke: 'rgba(0,0,0,0.7)' });
+      nameLabel(gx, this.ctx.players[p].name, x, y - 22, c, { size: 13 });
       for (let i = 0; i < RULES.roundsToWin; i++) {
         const px = x - 14 + i * 28;
         const won = g.score[p] > i;
