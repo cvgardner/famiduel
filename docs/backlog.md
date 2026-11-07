@@ -459,8 +459,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       freezing, growing, the puck splitting; the stomp's shockwave, growing big, the other
       wrestler sliding. Unit tests check every free power has one with matching key times; the
       how-to-play playtest checks both halves show it, that it moves, and saves
-      pause-help-pic-<game>.png. Other games next (`hasPowerPic()` is false there today);
-      the intro's picked-power text could show it too.
+      pause-help-pic-<game>.png. Other games next (`hasPowerPic()` is false there today).
+      2026-11-07 (F76, PR #PRNUM2): the intro shows it too once a person picks: on tall phones
+      in the picked card, in the icon's place (48x33, a row under the cards pushed Sumo 25 px
+      out of its half); on short phones and with Bigger text beside the picked power's words
+      under the cards. The intro fit playtest (every power, 3 sizes, both text sizes) passes;
+      intro-picked-pic-390.png.
 - [x] 2026-11-01 (PR #69): Penalty's demo showed only the shooter's swipe. New `kick` gesture
       loops both roles: swipe the ball, then the keeper's tap on a dive button.
 
@@ -796,8 +800,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       kid's draw, measured with easy bots over 12 seeds.
 
 ## Ideas found 2026-11-01 (FIRE rim run)
-- [ ] The same owner-colour band could go on other shared-looking buttons: Penalty's and
+- [x] The same owner-colour band could go on other shared-looking buttons: Penalty's and
       Snack Snatch's power buttons, and Quick Draw's two DRAW pads, if kids mix them up.
+      2026-11-07: power buttons got it in F47 (PR #108). Quick Draw's pads need none (F74):
+      each SQUIRT pad is filled with its owner's colour and sits in that player's own half.
 - [x] Tank Duel's FIRE button could flash its band gold while a bouncy shell is loaded
       (the glow does this today, faintly on a light rim like Mint).
       2026-11-07 (F46, PR #107): the band blinks gold twice a second while a bouncy shell is

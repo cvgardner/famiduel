@@ -2459,6 +2459,9 @@ test('intro: a picked power says what it does and the intro still fits, every ga
   await cards.nth(2).tap();
   await expect(desc).toContainText((await cards.nth(2).locator('b').textContent())!);
   await expect(desc).not.toContainText(name1);
+  // Sumo is a free game: the picked power's looping picture sits beside its words.
+  await expect(desc.locator('.power-pic')).toBeVisible();
+  await expect(page.locator('.power-card[data-p="0"].on .power-pic')).toBeHidden();
   await page.screenshot({ path: path.join(OUT, 'bigtext-intro-picked-390.png') });
   // On a tall phone without Bigger text every card shows its description, as before.
   await setBig(false);
@@ -2466,8 +2469,13 @@ test('intro: a picked power says what it does and the intro still fits, every ga
   await expect(page.locator('#ready0')).toHaveText('Pick a power');
   await expect(page.locator('.power-card[data-p="0"] small').first()).toBeVisible();
   await page.locator('.power-card[data-p="0"]').first().tap();
+  // ...and the picked card shows the power's looping picture in its icon's place.
   await expect(page.locator('.half.p0 .pick-desc')).toBeHidden();
+  await expect(page.locator('.power-card[data-p="0"].on .power-pic')).toBeVisible();
+  await expect(page.locator('.power-card[data-p="0"].on .picon')).toBeHidden();
+  await expect(page.locator('.power-card[data-p="0"]:not(.on) .power-pic').first()).toBeHidden();
   await expect(page.locator('.half.p0 .howto')).toBeVisible();
+  await page.screenshot({ path: path.join(OUT, 'intro-picked-pic-390.png') });
   // Every game, two people, each power picked in turn: nothing spills out of a half.
   await setPlayers(page, [null, null]);
   const clipped: string[] = [];
