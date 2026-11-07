@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
-import { MIN_TEXT, readable } from '../src/engine/draw';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, BIG_TEXT_CAP, MIN_TEXT, readable, scaledSize, setTextScale, textSpan } from '../src/engine/draw';
 
 /** Every .ts file under src/. */
 function sources(dir = path.join(__dirname, '../src')): string[] {
@@ -40,5 +40,30 @@ describe('readable canvas text', () => {
       }
     }
     expect(small).toEqual([]);
+  });
+});
+
+describe('Bigger text', () => {
+  afterEach(() => setTextScale(1));
+
+  it('is off by default: sizes stay as written', () => {
+    expect(scaledSize(13)).toBe(13);
+    expect(scaledSize(48)).toBe(48);
+  });
+
+  it('grows small print 1.2x and big banners only up to the cap', () => {
+    setTextScale(BIG_TEXT);
+    expect(scaledSize(13)).toBeCloseTo(15.6);
+    expect(scaledSize(20)).toBeCloseTo(24);
+    expect(scaledSize(24)).toBe(BIG_TEXT_CAP);
+    expect(scaledSize(40)).toBe(40);
+    for (let s = MIN_TEXT; s <= 60; s++) expect(scaledSize(s)).toBeGreaterThanOrEqual(s);
+  });
+
+  it("finds a label's world span, turned for the top player", () => {
+    expect(textSpan(100, 40, 'center', 0)).toEqual([80, 120]);
+    expect(textSpan(10, 40, 'left', 0)).toEqual([10, 50]);
+    expect(textSpan(10, 40, 'left', 1)).toEqual([-30, 10]);
+    expect(textSpan(350, 40, 'right', 1)).toEqual([350, 390]);
   });
 });

@@ -168,6 +168,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       one under the floor, and checks menu font sizes on a 320×568 phone.
 - [ ] Accessibility: larger text option (a setting that scales canvas text and menus ~1.25×;
       needs the intros to fit at that size).
+      2026-11-07 (F7a, canvas half): Settings > Look > "Bigger text" draws game words 1.2x
+      (`setTextScale`, `scaledSize` in draw.ts; big banners only grow up to 28 units). A
+      playtest plays every shown game with it on at 320x568 and 390x844 (bigtext-*.png) and
+      fails on words past the screen edge (`__edges` probe). It found Sumo's round banner,
+      Penalty's "Shot picked! Swipe again to change" and Snake's CRASH! by a wall running
+      off; fx pops now shrink to fit and stay inside the edges (`insideX`). Menus: F7b.
 
 ## Content
 - [ ] Mini pool (first update).

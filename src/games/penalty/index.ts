@@ -3,7 +3,7 @@
 // runs out; the ball is struck on zero, so the keeper always knows when it
 // comes. The keeper taps a dive button.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, line, noGlow, fitSize, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button, PowerButton, powerSpot } from '../../engine/widgets';
@@ -348,7 +348,7 @@ class PenaltyView implements GameInstance {
         // Says that a shot is picked, never where: the keeper can read this side too.
         const msg = g.picked ? (g.runningUp ? 'Shot locked!' : 'Shot picked! Swipe again to change') : g.runningUp ? 'Quick, swipe!' : 'Swipe to pick your shot!';
         const pulse = g.picked && this.pickedT < 0.3 ? 1 + 0.25 * (1 - this.pickedT / 0.3) : 1;
-        text(gx, msg, W / 2, g.spotY() + back * 70, { size: Math.round((g.picked && !g.runningUp ? 14 : 16) * pulse), player: s, color: g.picked ? COLORS.gold : '#fff', stroke: 'rgba(0,0,0,0.45)' });
+        text(gx, msg, W / 2, g.spotY() + back * 70, { size: fitSize(gx, msg, W - 20, Math.round((g.picked && !g.runningUp ? 14 : 16) * pulse)), player: s, color: g.picked ? COLORS.gold : '#fff', stroke: 'rgba(0,0,0,0.45)' });
       }
       if (g.armed[s]) {
         const pw = this.ctx.players[s].power!;

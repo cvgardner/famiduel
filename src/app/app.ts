@@ -1,5 +1,6 @@
 // The app shell: home screen with the game grid and family scoreboard, player
 // cards, the split-screen "pick your power" intro, the match and the results.
+import { BIG_TEXT, setTextScale } from '../engine/draw';
 import gamesJson from '../../content/games.json';
 import powersJson from '../../content/powers.json';
 import { effectiveAssist } from '../core/handicap';
@@ -82,6 +83,7 @@ export class App {
     $('#play', root).addEventListener('pointerdown', (e) => this.clearPlayDemo(e), { capture: true });
     this.wirePauseButton($<HTMLButtonElement>('#pauseBtn', root), $('#pauseHint', root));
     applyTheme(this.store.data.settings.theme);
+    setTextScale(this.store.data.settings.bigText ? BIG_TEXT : 1);
     watchSystemTheme(() => this.store.data.settings.theme);
     this.showHome();
   }
@@ -185,7 +187,7 @@ export class App {
             <div class="seg theme-seg" id="themeSeg" role="group" aria-label="Light or dark look">${(['auto', 'light', 'dark'] as const)
               .map((v) => `<button data-v="${v}" class="${theme === v ? 'on' : ''}" aria-pressed="${theme === v}">${v === 'auto' ? 'Auto' : v === 'light' ? '☀️' : '🌙'}</button>`)
               .join('')}</div>
-          </div>`, 'Auto follows your phone\'s light or dark mode.')}
+          </div>` + this.toggle('bigText', '🔠', 'Bigger text', 'Larger words during games', !!settings.bigText), 'Auto follows your phone\'s light or dark mode.')}
       <footer class="foot">FamiDuel prototype · no ads, no accounts · everything stays on this device</footer>`;
     $('#settingsBack').addEventListener('click', () => {
       this.sfx.play('tap');
@@ -202,8 +204,9 @@ export class App {
     }
     for (const el of document.querySelectorAll<HTMLInputElement>('.settings input')) {
       el.addEventListener('change', () => {
-        const k = el.dataset.k as 'powers' | 'autoHandicap' | 'sound' | 'haptics';
+        const k = el.dataset.k as 'powers' | 'autoHandicap' | 'sound' | 'haptics' | 'bigText';
         settings[k] = el.checked;
+        setTextScale(settings.bigText ? BIG_TEXT : 1);
         this.sfx.muted = !settings.sound;
         this.sfx.haptics.enabled = settings.haptics;
         this.store.save();

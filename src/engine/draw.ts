@@ -47,6 +47,32 @@ export type TextOpts = {
  */
 export const MIN_TEXT = 13;
 
+/**
+ * "Bigger text" setting: canvas words are drawn this many times larger. Small print gains
+ * most; big banners and scores (already easy to read) grow only up to BIG_TEXT_CAP, so a
+ * headline never runs off the screen.
+ */
+let textScale = 1;
+export const BIG_TEXT = 1.2;
+export const BIG_TEXT_CAP = 28;
+export function setTextScale(s: number): void {
+  textScale = s;
+}
+export function getTextScale(): number {
+  return textScale;
+}
+/** The size a label of `size` units is really drawn at under the current text scale. */
+export function scaledSize(size: number): number {
+  if (textScale === 1) return size;
+  return Math.max(size, Math.min(size * textScale, BIG_TEXT_CAP));
+}
+
+/**
+ * Edge probe, switched on by the playtest: readable labels whose words reach past the
+ * world's left or right edge (by more than a unit), with the most they ran over.
+ */
+export const edgeProbe = { on: false, over: new Map<string, number>() };
+
 /** Readable strings drawn below MIN_TEXT since the last clear (read by the playtest). */
 export const smallText = new Map<string, number>();
 
@@ -122,23 +148,35 @@ export function readable(str: string): boolean {
 export function fitSize(g: G, str: string, maxW: number, size: number, weight = 800): number {
   let s = size;
   for (; s > MIN_TEXT; s--) {
-    g.font = `${weight} ${s}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+    g.font = `${weight} ${scaledSize(s)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
     if (g.measureText(str).width <= maxW) break;
   }
   return s;
 }
 
+/**
+ * A centred label's x moved in just enough that its words (drawn at `size` under the
+ * current text scale) stay `pad` units inside the screen's left and right edges.
+ */
+export function insideX(g: G, str: string, x: number, size: number, weight = 800, pad = 6): number {
+  g.font = `${weight} ${scaledSize(size)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  const half = g.measureText(str).width / 2 + pad;
+  return half * 2 >= W ? W / 2 : Math.max(half, Math.min(W - half, x));
+}
+
 export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}): void {
-  const size = o.size ?? 20;
-  if (size < MIN_TEXT && readable(str)) smallText.set(str, size);
+  const base = o.size ?? 20;
+  if (base < MIN_TEXT && readable(str)) smallText.set(str, base);
+  const size = scaledSize(base);
   facing(g, o.player ?? 0, x, y, () => {
     g.globalAlpha *= o.alpha ?? 1;
-    g.font = `${o.weight ?? 800} ${o.size ?? 20}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+    g.font = `${o.weight ?? 800} ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
     g.textAlign = o.align ?? 'center';
     g.textBaseline = 'middle';
-    if (contrastProbe.on && readable(str)) probeContrast(g, str, x, y, o);
+    if (contrastProbe.on && readable(str)) probeContrast(g, str, x, y, { ...o, size });
+    if (edgeProbe.on && readable(str)) probeEdge(g, str, x, o.player ?? 0);
     if (o.stroke) {
-      g.lineWidth = Math.max(3, (o.size ?? 20) / 6);
+      g.lineWidth = Math.max(3, size / 6);
       g.strokeStyle = o.stroke;
       g.lineJoin = 'round';
       g.strokeText(str, x, y);
@@ -146,6 +184,18 @@ export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}):
     g.fillStyle = o.color ?? COLORS.text;
     g.fillText(str, x, y);
   });
+}
+
+/** World x-range of a label's words: the top player's are turned 180° about (x, y). */
+export function textSpan(x: number, w: number, align: CanvasTextAlign, player: 0 | 1): [number, number] {
+  const x0 = align === 'center' ? x - w / 2 : align === 'right' || align === 'end' ? x - w : x;
+  return player === 1 ? [2 * x - (x0 + w), 2 * x - x0] : [x0, x0 + w];
+}
+
+function probeEdge(g: G, str: string, x: number, player: 0 | 1): void {
+  const [l, r] = textSpan(x, g.measureText(str).width, g.textAlign, player);
+  const over = Math.max(-l, r - W);
+  if (over > 1) edgeProbe.over.set(str, Math.max(over, edgeProbe.over.get(str) ?? 0));
 }
 
 export function circle(g: G, x: number, y: number, r: number, fill?: string, stroke?: string, lineWidth = 2): void {
