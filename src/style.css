@@ -201,6 +201,9 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .btn.primary:active { box-shadow: 0 1px 0 #c99a12; }
 .btn.ghost { background: transparent; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--text) 30%, transparent); }
 .btn:disabled { opacity: 0.45; }
+/* The result's buttons fade in while it ignores taps (RESULT_SETTLE_MS), instead of looking broken. */
+#result.settling .btn:disabled { opacity: 0.6; }
+#result .btn { transition: opacity 0.25s; }
 
 /* Split screens: player 1's half is rotated to face the top edge. */
 #intro, #result { display: flex; flex-direction: column; }
