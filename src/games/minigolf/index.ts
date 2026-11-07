@@ -21,6 +21,8 @@ const EDGE = 3;
 /** The dark cards behind the hole intro and the "<name>'s shot" line. */
 export const INTRO_CARD = 'rgba(10,12,28,0.88)';
 export const BANNER_CARD = 'rgba(10,12,28,0.8)';
+/** Each player's bottom strip (name and status). */
+export const STRIP_CARD = 'rgba(10,12,28,0.85)';
 
 type Aim = { id: number; sx: number; sy: number; x: number; y: number };
 
@@ -643,7 +645,7 @@ class MinigolfView implements GameInstance {
     const c = this.ctx.players[p].color;
     const myTurn = (g.phase === 'aim' || g.phase === 'turn') && g.shooter === p;
     const y0 = H - STRIP;
-    gx.fillStyle = myTurn ? alpha(c, 0.28 + 0.08 * Math.sin(this.t * 5)) : 'rgba(10,12,28,0.85)';
+    gx.fillStyle = myTurn ? alpha(c, 0.28 + 0.08 * Math.sin(this.t * 5)) : STRIP_CARD;
     gx.fillRect(0, y0, W, STRIP);
     gx.fillStyle = 'rgba(10,12,28,0.6)';
     if (myTurn) gx.fillRect(0, y0 + 4, W, STRIP - 4);
@@ -658,7 +660,8 @@ class MinigolfView implements GameInstance {
     const btn = this.powerBtns[p];
     const x0 = btn ? 74 : 54;
     const name = this.ctx.players[p].name;
-    text(gx, name, x0, y0 + 19, { size: 17, color: c, align: 'left' });
+    // Lifted for the dark strip: Purple was 4.3:1 there.
+    text(gx, name, x0, y0 + 19, { size: 17, color: liftOn(c, STRIP_CARD), align: 'left' });
     let status: string;
     let sc: string = COLORS.dim;
     if (g.phase === 'over') status = 'Match over';
