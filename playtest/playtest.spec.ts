@@ -475,6 +475,11 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
   });
   small.push(...(await smallTargets(page, 'home')));
   fonts.push(...(await smallFonts(page, 'home')));
+  await page.locator('#settingsBtn').tap();
+  small.push(...(await smallTargets(page, 'settings')));
+  fonts.push(...(await smallFonts(page, 'settings')));
+  await page.screenshot({ path: path.join(OUT, 'settings-small-phone.png') });
+  await page.locator('#settingsBack').tap();
   await page.locator('.player-chip[data-p="0"]').tap();
   small.push(...(await smallTargets(page, 'profile')));
   fonts.push(...(await smallFonts(page, 'profile')));
@@ -752,6 +757,7 @@ test('haptics: hits buzz the phone, and the Vibration toggle turns it off', asyn
   const errors: string[] = [];
   await boot(page, errors);
   const toggle = page.locator('.settings input[data-k="haptics"]');
+  await page.click('#settingsBtn');
   await expect(toggle).toBeChecked();
   const play = async () => {
     await setPlayers(page, ['normal', 'hard']);
@@ -765,9 +771,11 @@ test('haptics: hits buzz the phone, and the Vibration toggle turns it off', asyn
     return n;
   };
   expect(await play(), 'a bot-vs-bot air hockey match vibrates').toBeGreaterThan(0);
+  await page.click('#settingsBtn');
   await page.locator('label.toggle', { has: page.locator('input[data-k="haptics"]') }).tap();
   await expect(toggle).not.toBeChecked();
   await page.reload();
+  await page.click('#settingsBtn');
   await expect(page.locator('.settings input[data-k="haptics"]'), 'the setting is saved').not.toBeChecked();
   expect(await play(), 'no vibration with the toggle off').toBe(0);
   expect(errors).toEqual([]);
