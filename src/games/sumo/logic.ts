@@ -452,6 +452,11 @@ const BOT = {
   hard: { react: 0.12, anticip: 1.0, noise: 0.07, care: 1 },
 } satisfies Record<BotLevel, { react: number; anticip: number; noise: number; care: number }>;
 
+/** A foe who hasn't pressed for this long (walked away, or a kid just watching) is a still mark. */
+const BOT_STILL_T = 2;
+/** How every level aims at a still mark (at least this well). */
+const STILL_AIM = { anticip: 0.7, noise: 0.25, care: 0.9 };
+
 export class SumoBot {
   /** Press scheduled to land after the reaction delay. */
   private pressIn = -1;
@@ -460,6 +465,8 @@ export class SumoBot {
   private holding = false;
   private jitter = 0;
   private aimTarget: 'foe' | 'center' = 'foe';
+  /** Seconds since the foe last pressed their button. */
+  private foeStill = 0;
 
   constructor(
     readonly p: PlayerIndex,
@@ -472,6 +479,8 @@ export class SumoBot {
     const me = game.wrestlers[this.p];
     const foe = game.wrestlers[other(this.p)];
     const power = game.powersOn && game.energy[this.p].ready && this.wantsPower(game);
+    // How long since the foe last pressed (their arrow stops while they charge).
+    this.foeStill = foe.charging ? 0 : this.foeStill + dt;
     if (game.phase !== 'fight') {
       this.pressIn = -1;
       this.holding = false;
@@ -508,21 +517,26 @@ export class SumoBot {
     this.aimTarget = nearEdge && !foeTowardCenter && this.rng.next() < cfg.care ? 'center' : 'foe';
     const target = this.aimTarget === 'foe' ? toFoe : toCenter;
     // Where will the arrow be when the press lands? A good bot allows for its delay.
-    const lead = me.spin * RULES.turnSpeed * cfg.react * cfg.anticip;
+    // A foe who isn't pressing (walked away, or a kid just watching) is an easy mark even
+    // for a small kid: any level takes its time and allows for its own delay.
+    const still = this.foeStill >= BOT_STILL_T;
+    const anticip = still ? Math.max(cfg.anticip, STILL_AIM.anticip) : cfg.anticip;
+    const lead = me.spin * RULES.turnSpeed * cfg.react * anticip;
     const future = me.angle + lead;
     const err = angleDiff(target + this.jitter, future);
     // Only fire when the target is just ahead of the sweeping arrow.
     const ahead = err * me.spin;
     if (ahead > 0 && ahead < RULES.turnSpeed * dt * 1.5 + 0.02) {
       this.pressIn = cfg.react;
-      this.jitter = this.rng.range(-cfg.noise, cfg.noise);
+      const noise = still ? Math.min(cfg.noise, STILL_AIM.noise) : cfg.noise;
+      this.jitter = this.rng.range(-noise, noise);
       if (this.aimTarget === 'center') {
         this.holdFor = clamp((myD / ring) * 0.5, 0.1, 0.45) * RULES.chargeTime;
       } else {
         // Charge harder for long shots; a careful bot will not charge itself off the ring.
         const want = clamp(foeD / 260 + 0.45, 0.4, 1);
         let charge = want + this.rng.range(-0.15, 0.15);
-        if (this.rng.next() < cfg.care) {
+        if (this.rng.next() < (still ? Math.max(cfg.care, STILL_AIM.care) : cfg.care)) {
           // Distance this dash would carry us if we miss: speed / friction.
           const travel = Sumo.dashSpeed(charge) / RULES.friction;
           const ex = me.x + Math.cos(target) * travel;

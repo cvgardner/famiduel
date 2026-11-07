@@ -308,4 +308,25 @@ describe('sumo', () => {
     expect(masherWins('hard', 3)).toBeLessThan(0.1);
     expect(masherWins('easy', 0)).toBeLessThan(0.05);
   });
+  it('every bot beats a player who never presses (walked away, or a kid just watching)', () => {
+    // The easy bot used to dash past a still foe and teeter itself out: it won only 8% of
+    // matches against an idle seat. A foe who hasn't pressed for 2 s is a still mark, and
+    // every level aims at one at least as well as normal does.
+    for (const level of ['easy', 'normal', 'hard'] as BotLevel[]) {
+      let wins = 0;
+      const N = 40;
+      for (let s = 0; s < N; s++) {
+        const rng = makeRng(s * 7 + 3);
+        const g = new Sumo([player(), player({ bot: level })], false, rng);
+        const bot = new SumoBot(1, level, rng);
+        let t = 0;
+        while (!g.finished && t < 300) {
+          g.step(DT, [idle, bot.think(g, DT)]);
+          t += DT;
+        }
+        if (g.winner === 1) wins++;
+      }
+      expect(wins / N, level).toBeGreaterThanOrEqual(0.8);
+    }
+  }, 60_000);
 });
