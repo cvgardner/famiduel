@@ -623,8 +623,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Sea Battle shot) can wait forever, which is fine with a person there.
 
 ## Ideas found 2026-11-01 (minigolf pars run)
-- [ ] Minigolf: a hole-by-hole strokes table (easy / normal / hard, 12 seeds) as an
-      `npm run` script, so a new hole gets its par and place in the list from numbers.
+- [x] 2026-11-07: Minigolf: a hole-by-hole strokes table (easy / normal / hard, 12 seeds) as an
+      `npm run` script, so a new hole gets its par and place in the list from numbers:
+      `npm run golf` (avg strokes, aces, picked up per level; docs/verification.md). (F28)
 - [ ] Minigolf: the hard bot aces 9 of the 22 holes almost every time (Speed Bumps, Island
       Green, Bumper Bowl, Downhill Dash 12/12). Fine as "hard", but a hole where an ace needs
       a bank shot would give a strong grown-up something to chase.
