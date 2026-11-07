@@ -791,8 +791,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       jump, replay the last move's hops once (slow) when the person taps a ghost ring.
 
 ## Ideas found 2026-11-01 (Sea Battle first shot run)
-- [ ] The two-person look-away cover is the only Sea Battle screen no playtest checks for
+- [x] The two-person look-away cover is the only Sea Battle screen no playtest checks for
       the opening line; a two-people match in the playtest could read it on the cover.
+      2026-11-07 (F64): the playtest "with two people, the first look-away cover says who goes
+      first" reads the cover's words off the canvas ("You go first!", the shooter's name, the
+      look-away line) and saves seabattle-first-cover.png. It already said it; no app change.
 - [ ] Turn games could show a small "first" marker beside the starter's score for the whole
       match (like a serve dot in Ping Pong), so a parent glancing in mid-match knows too.
 
