@@ -536,9 +536,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       airhockey --n 40`: average match 131/140/134 s -> 109/123/53 s (easy/normal/hard), over
       3 min 13/25/5% -> 8/3/0%. What's left is the rules, not the bot: after every goal the
       walked-away player serves, so each goal waits the 7 s stall drift.
-- [ ] Air Hockey: a walked-away player's serve waits the full 7 s drift after every goal (~30 s
-      of a 5-goal match). Could the drift come sooner when that paddle hasn't moved at all
-      since the goal (a person who is there always twitches)? Rule change, so check it in play.
+- [x] 2026-11-07 (F41, PR #101): Air Hockey's stall rule is quicker for a paddle that hasn't
+      moved at all since the last goal (or kick-off): nudge at 2 s, drift at 4 s (was 4 / 7).
+      Anyone who has touched their paddle since the goal keeps the full 7 s. `npm run sim --
+      --idle --game airhockey`: avg 103/121/52 s -> 93/107/40 s, the normal row's one match
+      over 3 min is gone. The nudge ring follows the same clock (AirHockey.stallTimes).
 
 ## Ideas found 2026-10-31 (contrast run)
 - [x] 2026-11-01: Chop Chop's "◀ chop / chop ▶" hints faded to 45% opacity once play

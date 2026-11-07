@@ -80,6 +80,7 @@ describe('air hockey', () => {
     it('a puck resting in one half is nudged, then blown just past the centre line', () => {
       const g = new AirHockey([player(), player()], false, makeRng(5));
       g.resetPuck(0);
+      g.moved = [true, true]; // both players have touched their paddles since the goal
       const events: { type: string; t: number; p?: number }[] = [];
       let crossedAt = -1;
       let maxPast = 0;
@@ -100,6 +101,35 @@ describe('air hockey', () => {
       expect(maxPast).toBeGreaterThan(RULES.driftPast * 0.7);
       expect(maxPast).toBeLessThan(RULES.driftPast + 10);
       expect(g.score).toEqual([0, 0]);
+    });
+
+    it('a paddle that has not moved since the goal gets its puck blown over sooner', () => {
+      // A walked-away seat used to make every serve wait the full 7 s (~30 s of a match).
+      const firstStall = (wiggle: boolean) => {
+        const g = new AirHockey([player(), player()], false, makeRng(5));
+        g.resetPuck(0);
+        const events: { type: string; t: number }[] = [];
+        for (let t = 0; t < 10 && events.length < 2; t += DT) {
+          const mine = idle(g, 0);
+          if (wiggle && t < 0.2) mine.tx += 20; // the person brushes their paddle once
+          g.step(DT, [mine, idle(g, 1)]);
+          for (const e of g.events) if (e.type === 'nudge' || e.type === 'drift') events.push({ type: e.type, t: g.t });
+        }
+        return events;
+      };
+      const serve = RULES.serveDelay;
+      const still = firstStall(false);
+      expect(still.map((e) => e.type)).toEqual(['nudge', 'drift']);
+      expect(still[0].t).toBeCloseTo(serve + RULES.idleNudgeAfter, 1);
+      expect(still[1].t).toBeCloseTo(serve + RULES.idleDriftAfter, 1);
+      const touched = firstStall(true);
+      expect(touched[0].t).toBeCloseTo(serve + RULES.nudgeAfter, 1);
+      expect(touched[1].t).toBeCloseTo(serve + RULES.driftAfter, 1);
+      // The clock is per goal: after the next goal a still paddle counts as idle again.
+      const g = new AirHockey([player(), player()], false, makeRng(5));
+      g.moved = [true, true];
+      g.resetPuck(1);
+      expect(g.moved).toEqual([false, false]);
     });
 
     it('two players who walk away: the puck goes back and forth, nobody scores', () => {
