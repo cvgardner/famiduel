@@ -710,7 +710,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] Minigolf: the hard bot aces 9 of the 22 holes almost every time (Speed Bumps, Island
       Green, Bumper Bowl, Downhill Dash 12/12). Fine as "hard", but a hole where an ace needs
       a bank shot would give a strong grown-up something to chase.
-      2026-11-07 (F55, PR #TBD): new par-3 hole "Bank Shot" (23 holes): a block sits on the
+      2026-11-07 (F55, PR #115): new par-3 hole "Bank Shot" (23 holes): a block sits on the
       line from tee to cup, so the only ace comes off the right wall. `npm run golf`: easy
       2.9 strokes (0% aces), normal 1.8 (17%), hard 1.3 (71%), none picked up. Unit tests:
       no straight ace, and every ace in an angle/power sweep banks off the right wall.
