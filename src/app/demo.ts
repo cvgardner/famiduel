@@ -99,7 +99,7 @@ export function powerStatus(c: { value: number; active: number }): { cls: 'on' |
   if (c.active > 0) return { cls: 'on', text: '✨ On now!' };
   if (c.value >= 1) return { cls: 'ready', text: '⚡ Ready! Tap your power button' };
   const pct = Math.max(0, Math.min(99, Math.floor(c.value * 100)));
-  return { cls: 'charging', text: `Charging: ${pct}% (it fills as you play)` };
+  return { cls: 'charging', text: `Charging: ${pct}%` };
 }
 
 const escHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);

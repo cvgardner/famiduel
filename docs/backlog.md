@@ -375,7 +375,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       match stays paused and Resume resumes (`pause-help.png`, `pause-help-bot.png`), and the
       44 px target check now covers that screen.
 - [x] 2026-11-07: How to play mid-match shows each player's power meter under their picked
-      power: "Charging: 60% (it fills as you play)" with a small bar, "⚡ Ready! Tap your power
+      power: "Charging: 60%" with a small bar, "⚡ Ready! Tap your power
       button", or "✨ On now!". The meter fills from play, not time, so it never says "ready in
       4 s". `powerStatus()` in app/demo.ts, `energyOf()` in engine/game.ts; the pause-help
       playtest checks both halves show a state in every game with powers.
