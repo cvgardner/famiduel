@@ -26,10 +26,22 @@ export function botResultTitle(name: string, log: TurnLog, yours = true): string
  * (with hit-again that is usually a miss after some hits). When two people pass
  * the phone, the shooter also needs to read "Now pass the phone".
  */
-export function shooterBeat(volley: TurnLog, passing: boolean): number {
+export function shooterBeat(volley: TurnLog, passing: boolean, turn?: TurnLog): number {
   const base = volley.sunk ? 1.6 : volley.hits ? 1.2 : 0.6;
-  return base + (passing ? 0.6 : 0);
+  return base + (passing ? 0.6 : 0) + (turn && turnTally(turn) ? TALLY_HOLD : 0);
 }
+
+/**
+ * The pop that sums up a strong turn of hit-again: "3 hits!" over the sea once the
+ * turn's last shell lands. A turn of hits usually ends on a miss, so without it the
+ * last thing a kid saw of a great turn was "Missed…". Null for 0 or 1 hit.
+ */
+export function turnTally(turn: TurnLog): string | null {
+  return turn.hits >= 2 ? `${turn.hits} hits!` : null;
+}
+/** When the tally pops after the last shell lands, and how much longer the turn's result stays. */
+export const TALLY_AT = 0.3;
+export const TALLY_HOLD = 0.6;
 
 /**
  * The header for a person's own result. The title names the shot that ended the

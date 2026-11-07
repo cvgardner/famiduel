@@ -380,7 +380,21 @@ describe("sea battle: your own shot's result stays on screen", () => {
   it('the view counts the beat from the landing for people too', async () => {
     const fs = await import('node:fs');
     const src = fs.readFileSync('src/games/seabattle/index.ts', 'utf8');
-    expect(src).toMatch(/if \(busy\) m\.t = 0;\s*else if \(m\.t > shooterBeat\(this\.volley, this\.twoHumans\)\) this\.advance\(\);/);
+    expect(src).toMatch(/if \(busy\) m\.t = 0;\s*else if \(m\.t > shooterBeat\(this\.volley, this\.twoHumans, this\.turnLog\[m\.p\]\)\) this\.advance\(\);/);
+  });
+
+  it('a turn of 2+ hits ends with a tally pop, and the result stays long enough to read it', async () => {
+    const { shooterBeat, turnTally, TALLY_AT } = await import('../src/games/seabattle/beat');
+    expect(turnTally(T(0, 1))).toBeNull();
+    expect(turnTally(T(1, 1))).toBeNull();
+    expect(turnTally(T(3, 1))).toBe('3 hits!');
+    expect(turnTally(T(2, 1, 1))).toBe('2 hits!');
+    // Hit, hit, hit, miss: the miss ends the turn, and the tally gets time on screen.
+    for (const passing of [false, true]) {
+      expect(shooterBeat(T(0, 1), passing, T(3, 1))).toBeGreaterThan(shooterBeat(T(0, 1), passing, T(0, 1)));
+      expect(shooterBeat(T(0, 1), passing, T(3, 1)) - TALLY_AT).toBeGreaterThanOrEqual(0.8);
+    }
+    expect(shooterBeat(T(0, 1), true, T(1, 1))).toBe(shooterBeat(T(0, 1), true));
   });
 });
 
