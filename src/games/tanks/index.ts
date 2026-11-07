@@ -1,7 +1,7 @@
 // Tank Duel view: sticks, FIRE buttons and bots become intents; state becomes toy tanks.
 import { popColor } from '../../engine/fx';
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, glow, line, noGlow, seatRing, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -396,6 +396,8 @@ class TankView implements GameInstance {
       }
     }
     gx.restore();
+    // Whose tank: solid ring for the bottom seat, dashed for the top (not just colour).
+    seatRing(gx, p, tk.x, tk.y, RULES.tankR + 8);
     // Dizzy stars
     if (dz !== null) {
       for (let i = 0; i < 3; i++) {

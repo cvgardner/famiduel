@@ -624,6 +624,24 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
   expect(errors).toEqual([]);
 });
 
+test('seat cue: in games where both pieces roam, seats read apart in greyscale (solid vs dashed ring)', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, ['normal', 'hard']);
+  for (const id of ['sumo', 'snake', 'tanks']) {
+    await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+    await expect(page.locator('#play')).toBeVisible();
+    await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(3));
+    await page.waitForTimeout(300);
+    // What a kid with no colour vision sees: the rings must still say whose piece is whose.
+    await page.evaluate(() => (document.body.style.filter = 'grayscale(1)'));
+    await page.screenshot({ path: path.join(OUT, `seat-cue-${id}-grey.png`) });
+    await page.evaluate(() => (document.body.style.filter = ''));
+    await leaveMatch(page);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('make the bot easier: offered after losing twice in a row to a bot', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });

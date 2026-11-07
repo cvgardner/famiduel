@@ -439,8 +439,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tests/colors.test.ts); Penalty's saved/miss dots already add an X / dash.
 - [ ] Game cards' own colours (`content/games.json` `color`) aren't checked; fine since the
       name and icon carry them, but a game that colours pieces by card colour would need it.
-- [ ] A shape per seat (e.g. a small ring vs dot on paddles, snakes, pieces) would make
+- [x] A shape per seat (e.g. a small ring vs dot on paddles, snakes, pieces) would make
       seats readable even in greyscale or bright sunlight, not just for colour blindness.
+      2026-11-07 (F10, PR #PRNUM): `seatRing()` in src/engine/draw.ts: a white ring over a dark
+      under-stroke round each piece, solid for the bottom seat and dashed for the top, in the
+      games where both pieces roam the same space (Sumo wrestlers, Snake heads, Tanks). Air
+      Hockey and Ping Pong paddles never leave their own half, so they don't need it. Playtest
+      "seat cue" saves greyscale screenshots (seat-cue-<game>-grey.png).
+- [ ] Seat cue legend: the intro or How to play could show "yours has a solid ring" /
+      "dashed ring" on each half, so a kid knows which is theirs before the first round.
 
 ## Ideas found 2026-10-31 (easier bot run)
 - [x] 2026-10-31: Air Hockey stall rule. A puck left on one side (idle player, toddler,
