@@ -275,6 +275,13 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
       await page.evaluate(() => document.getElementById('home')!.scrollTo(0, 0));
       expect(await page.evaluate(() => document.getElementById('home')!.scrollTop), 'home shows its top for the screenshot').toBe(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), 'home scrolls sideways at 320px with bigger text').toBe(false);
+      // The "Play together / Play the bot" switch: each label stays inside its own button.
+      const modeCut = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('.seg.mode button')]
+          .filter((b) => b.scrollWidth > b.clientWidth + 1 || b.getBoundingClientRect().right > b.parentElement!.getBoundingClientRect().right - 3)
+          .map((b) => b.textContent),
+      );
+      expect(modeCut, 'home mode labels cut off at 320px with bigger text').toEqual([]);
       await page.screenshot({ path: path.join(OUT, 'bigtext-home-320.png') });
       await page.click('#settingsBtn');
       expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), 'settings scroll sideways at 320px with bigger text').toBe(false);

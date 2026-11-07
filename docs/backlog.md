@@ -1098,3 +1098,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-07 (F67): the layout playtest scrolls #home (the home scroller), not the window,
       so bigtext-home-320.png and home-groups follow-ups show the top of home. The fixed
       screenshot showed "Play the bot" cut off at the right at 320 px with Bigger text (F71).
+- [x] 2026-11-07 (F71): home's "Play together / Play the bot" switch wraps its labels onto two
+      lines when they don't fit (Bigger text at 320 px pushed "Play the bot" past the pill).
+      The layout playtest fails on a mode label past its button or the pill.
