@@ -967,7 +967,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       `npm run golf` already go easy > normal > hard).
 
 ## Ideas found 2026-11-07 (power band run)
-- [x] 2026-11-07 (F47, PR #PRNUM): every power button (the shared `PowerButton` in
+- [x] 2026-11-07 (F47, PR #108): every power button (the shared `PowerButton` in
       engine/widgets.ts) has a 2.5-unit band of its owner's colour round its dark backing, so
       it reads as "mine" with an empty meter too (the FIRE rim idea, for Penalty, Snack Snatch
       and every other game). Playtest "power buttons: each wears a band..." samples both
