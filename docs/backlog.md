@@ -509,6 +509,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       stalls (nothing unfinished at 5 min). Two findings, filed as tasks: the Sumo easy bot
       beats an idle player only 8% of the time (it dashes past and teeters itself out), and
       Air Hockey bots need ~2:15 to score 5 past a parked paddle (5-25% of matches over 3 min).
+- [x] 2026-11-07 (F35, PR #PRNUM): Air Hockey bots go round a parked paddle. Once the foe's paddle
+      has stood still 1.5 s, the bot picks the line into the goal with the most room past the
+      paddle and inside the posts (usually a bank off a side wall), and normal and hard line up
+      a careful set shot (within 6 units, at most 1 s; easy takes its rough shot). Bot-vs-bot
+      play is unchanged (the paddle is never still that long). `npm run sim -- --idle --game
+      airhockey --n 40`: average match 131/140/134 s -> 109/123/53 s (easy/normal/hard), over
+      3 min 13/25/5% -> 8/3/0%. What's left is the rules, not the bot: after every goal the
+      walked-away player serves, so each goal waits the 7 s stall drift.
+- [ ] Air Hockey: a walked-away player's serve waits the full 7 s drift after every goal (~30 s
+      of a 5-goal match). Could the drift come sooner when that paddle hasn't moved at all
+      since the goal (a person who is there always twitches)? Rule change, so check it in play.
 
 ## Ideas found 2026-10-31 (contrast run)
 - [x] 2026-11-01: Chop Chop's "◀ chop / chop ▶" hints faded to 45% opacity once play
