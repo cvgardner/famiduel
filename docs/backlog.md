@@ -1092,3 +1092,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seats in Penalty, Snack Snatch and Air Hockey.
 - [x] Quick Draw's two DRAW pads: no band needed, each SQUIRT! button is already filled with
       its owner's colour (quickdraw/index.ts drawButton).
+- [x] 2026-11-07 (F67): the layout playtest scrolls #home (the home scroller), not the window,
+      so bigtext-home-320.png and home-groups follow-ups show the top of home. The fixed
+      screenshot showed "Play the bot" cut off at the right at 320 px with Bigger text (F71).

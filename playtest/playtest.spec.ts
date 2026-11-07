@@ -225,7 +225,7 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
   expect(groups.reduce((n, g) => n + g.cards, 0)).toBe(shown.length);
   await page.locator('.group[data-group="turns"] .group-title').scrollIntoViewIfNeeded();
   await page.screenshot({ path: path.join(OUT, 'home-groups.png') });
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.evaluate(() => document.getElementById('home')!.scrollTo(0, 0));
   const clipped: string[] = [];
   // A common Android size, the smallest iPhone still in families' drawers (SE 1st gen), and a
   // tall phone (390×844), which gets the bigger desktop-size intro text.
@@ -271,7 +271,9 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
     if (big) {
       // Home and settings with Bigger text on a small phone: nothing sideways, screenshots for the eye.
       await page.setViewportSize({ width: 320, height: 568 });
-      await page.evaluate(() => window.scrollTo(0, 0));
+      // Home scrolls inside its own section (#home is the scroller), not the window.
+      await page.evaluate(() => document.getElementById('home')!.scrollTo(0, 0));
+      expect(await page.evaluate(() => document.getElementById('home')!.scrollTop), 'home shows its top for the screenshot').toBe(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), 'home scrolls sideways at 320px with bigger text').toBe(false);
       await page.screenshot({ path: path.join(OUT, 'bigtext-home-320.png') });
       await page.click('#settingsBtn');
