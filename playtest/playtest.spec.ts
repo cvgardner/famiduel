@@ -1281,6 +1281,22 @@ test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) =
     expect(after.header, 'the header says to fire again').toContain('go again');
     if (hit === 1) await page.screenshot({ path: path.join(OUT, 'seabattle-hit-again.png') });
   }
+  // Two hits this turn: each hit cell wears its number (1, 2) in a gold badge at its corner.
+  const chain = await page.evaluate(() => (window as unknown as { __famiduel: { runner: { game: { turnHits: number[][] } } } }).__famiduel.runner.game.turnHits[0]);
+  expect(chain.length, 'both hits are numbered').toBe(2);
+  await page.waitForTimeout(400); // let the HIT! pop and bursts clear the corner
+  const badgePx = await page.evaluate(([cells, n, cc, gx, gy]) => {
+    const c = document.getElementById('stage') as HTMLCanvasElement;
+    const g = c.getContext('2d')!;
+    const sc = Math.min(c.width / 360, c.height / 640);
+    const ox = (c.width - 360 * sc) / 2;
+    const oy = (c.height - 640 * sc) / 2;
+    // Badge centre: the cell's top-right corner, 4 units in; read just above the digit.
+    return cells.map((cell) => Array.from(g.getImageData(Math.round(ox + (gx + (cell % n) * cc + cc - 4) * sc), Math.round(oy + (gy + Math.floor(cell / n) * cc + 4 - 6) * sc), 1, 1).data.slice(0, 3)));
+  }, [chain, N, C, GX, GY] as const);
+  // Judge by hue: gold is bright red and green over little blue (a flash or shake can dim it).
+  for (const px of badgePx) expect(px[0] > 150 && px[1] > 0.7 * px[0] && px[0] - px[2] > 90, `gold hit badge, got ${px}`).toBe(true);
+  await page.screenshot({ path: path.join(OUT, 'seabattle-hit-badges.png') });
   // A miss hands the turn to the bot, and the turn's two hits are summed up over the sea.
   await fire((await look()).water!);
   await expect.poll(async () => (await look()).turn, { timeout: 3000 }).toBe(1);
@@ -1296,6 +1312,7 @@ test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) =
   await myTurn();
   const back = await look();
   expect(back.again).toBe(0);
+  expect(await page.evaluate(() => (window as unknown as { __famiduel: { runner: { game: { turnHits: number[][] } } } }).__famiduel.runner.game.turnHits[0]), 'a new turn starts without badges').toEqual([]);
   expect(back.header).not.toContain('go again');
   expect(errors).toEqual([]);
 });
