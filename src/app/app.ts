@@ -11,7 +11,7 @@ import { energyOf } from '../engine/game';
 import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
-import { demoHelpHtml, demoHtml, HelpMemory, howToHalfHtml, isGesture, seatCueHtml, showsDemo } from './demo';
+import { demoHelpHtml, demoHtml, firstMatchOf, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
@@ -58,6 +58,7 @@ export class App {
   private readonly starters = new StarterLog();
   /** The match on screen was started from the tournament screen. */
   private tourneyMatch = false;
+  private playDemoTimer = 0;
 
   constructor(private readonly root: HTMLElement) {
     root.innerHTML = `
@@ -78,6 +79,7 @@ export class App {
     const seedParam = new URLSearchParams(location.search).get('seed');
     this.fixedSeed = seedParam ? hashSeed(seedParam) : null;
     root.addEventListener('pointerdown', () => this.sfx.unlock(), { capture: true });
+    $('#play', root).addEventListener('pointerdown', (e) => this.clearPlayDemo(e), { capture: true });
     this.wirePauseButton($<HTMLButtonElement>('#pauseBtn', root), $('#pauseHint', root));
     applyTheme(this.store.data.settings.theme);
     watchSystemTheme(() => this.store.data.settings.theme);
@@ -472,8 +474,37 @@ export class App {
     const seed = this.fixedSeed !== null ? (this.fixedSeed + this.matchCount++) >>> 0 : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     const powersOn = this.store.data.settings.powers && !!this.picks[0] && !!this.picks[1];
     this.show('play');
+    this.playDemo(meta.id, meta.gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined);
     this.runner = new Runner(this.stage, def, seed, players, powersOn, this.sfx, (r) => this.finish(r), false, this.starters.next(meta.id));
     this.stage.start();
+  }
+
+  /**
+   * First match of a game on this phone: the ghost finger loops over each person's
+   * own half through the countdown and the first moments of play, then fades. A
+   * seat's own first touch clears its copy at once. Bots get none.
+   */
+  private playDemo(id: string, gesture: unknown, at?: number): void {
+    const play = $('#play', this.root);
+    for (const el of play.querySelectorAll('.play-demo')) el.remove();
+    clearTimeout(this.playDemoTimer);
+    if (!isGesture(gesture) || !firstMatchOf(this.store.data.history, id)) return;
+    for (const p of [0, 1] as PlayerIndex[]) {
+      const pr = this.store.data.profiles[p];
+      if (botFor(pr, id)) continue;
+      play.insertAdjacentHTML('beforeend', playDemoHtml(gesture, p, !!pr.lefty, at));
+    }
+    this.playDemoTimer = window.setTimeout(() => {
+      for (const el of play.querySelectorAll('.play-demo')) el.remove();
+    }, PLAY_DEMO_MS);
+  }
+
+  /** A touch in a seat's half clears that seat's in-play finger (it has the idea). */
+  private clearPlayDemo(e: PointerEvent): void {
+    const play = $('#play', this.root);
+    const r = play.getBoundingClientRect();
+    const p = e.clientY > r.top + r.height / 2 ? 0 : 1;
+    play.querySelector(`.play-demo[data-p="${p}"]`)?.classList.add('gone');
   }
 
   /**

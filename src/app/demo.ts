@@ -21,6 +21,27 @@ export function showsDemo(history: readonly { game: string }[], game: string): b
   return true;
 }
 
+/** How long the in-play finger stays over a person's half at their first match (ms). */
+export const PLAY_DEMO_MS = 5200;
+
+/**
+ * The very first match of a game on this phone also shows the finger once more in
+ * play, over each person's own half, through the countdown and the first moments
+ * (the intro's copy is small and gone by the time the ball moves).
+ */
+export function firstMatchOf(history: readonly { game: string }[], game: string): boolean {
+  return !history.some((h) => h.game === game);
+}
+
+/**
+ * The in-play finger for seat p (CSS turns seat 1's copy to face them). `at` is how far
+ * down seat 0's screen it sits (0.72 by default, between the middle and their edge; a
+ * game whose own hints sit there, like Ping Pong's, sets `demoAt` in content/games.json).
+ */
+export function playDemoHtml(g: Gesture, p: number, lefty = false, at = 0.72): string {
+  return `<div class="play-demo p${p}" data-p="${p}" style="--at:${at}" aria-hidden="true">${demoHtml(g, lefty)}</div>`;
+}
+
 // Props drawn next to the finger, per gesture: the thing the finger moves.
 const PROPS: Record<Gesture, string> = {
   tap: '',

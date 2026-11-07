@@ -378,8 +378,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       at 19 px bold (large text) so they pass, small badge text sits at 4.4.
 
 ## Ideas found 2026-10-31 (ghost finger run)
-- [ ] Ghost finger in play: show the same gesture once over each player's own half at the
+- [x] Ghost finger in play: show the same gesture once over each player's own half at the
       first serve / first turn of a first match (needs a view hook per game for where).
+      2026-11-07 (F59): no per-game hook needed. At a game's very first match on this phone
+      (`firstMatchOf()` in app/demo.ts) the app lays the intro's finger, twice the size, over
+      each person's half of the play screen (the top copy turned to face them; bots get none)
+      through the countdown and the first moments, ~5 s, then it fades. A seat's first touch
+      in its half clears its own copy. It sits between the middle and each player's edge;
+      Ping Pong, whose hints sit there, puts it on the paddle row (`"demoAt": 0.9` in
+      content/games.json). Playtest "ghost finger: the first match shows it in play..."
+      (ghost-finger-in-play.png).
 - [x] 2026-11-01: A "?" brings the ghost finger back. After a game's first 3 matches the
       finger used to vanish for good, so a kid who forgot the gesture (or a new kid on the
       phone) had only the how-to text. Each person's intro half now shows a small "?" where
