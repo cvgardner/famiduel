@@ -84,6 +84,32 @@ describe('minigolf holes', { timeout: 60_000 }, () => {
   });
 });
 
+describe('minigolf Bank Shot', { timeout: 60_000 }, () => {
+  // A hole for strong grown-ups: the hard bot aced 9 of 22 holes with straight shots, so
+  // here the only ace is off the right wall, round the block between tee and cup.
+  const hole = HOLES.find((h) => h.id === 'bankshot')!;
+  const c = compileCourse(hole);
+  const [tx, ty] = hole.tee;
+  const sweep = () => {
+    const aces: { angle: number; maxX: number }[] = [];
+    for (let a = -Math.PI; a < Math.PI; a += Math.PI / 360)
+      for (let pw = 0.3; pw <= 1.0001; pw += 0.05) {
+        const r = simulate(c, tx, ty, a, pw, 0, NO_MODS, DT, 5000);
+        if (r.roll.status === 'sunk') aces.push({ angle: a, maxX: Math.max(...r.path.map((q) => q[0])) });
+      }
+    return aces;
+  };
+  it('has no straight ace: the block sits on the line from tee to cup', () => {
+    const straight = Math.atan2(hole.cup[1] - ty, hole.cup[0] - tx);
+    for (let pw = 0.2; pw <= 1.0001; pw += 0.05) expect(simulate(c, tx, ty, straight, pw, 0, NO_MODS, DT).roll.status).not.toBe('sunk');
+  });
+  it('can be aced, and every ace banks off the right wall', () => {
+    const aces = sweep();
+    expect(aces.length).toBeGreaterThan(0);
+    for (const ace of aces) expect(ace.maxX, `ace at ${ace.angle.toFixed(3)} rad`).toBeGreaterThan(250);
+  });
+});
+
 describe('minigolf match', { timeout: 60_000 }, () => {
   it('bot vs bot finishes 3 holes in a sane time', () => {
     for (const seed of [1, 2, 3]) {

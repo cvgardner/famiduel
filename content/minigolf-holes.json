@@ -192,6 +192,19 @@
       "movers": []
     },
     {
+      "id": "bankshot",
+      "name": "Bank Shot",
+      "par": 3,
+      "tee": [120, 520],
+      "cup": [120, 150],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[80, 565], [280, 565], [280, 85], [80, 85]] },
+        { "kind": "inner", "closed": true, "pts": [[80, 280], [210, 280], [210, 340], [80, 340]] }
+      ],
+      "zones": [],
+      "movers": []
+    },
+    {
       "id": "island",
       "name": "Island Green",
       "par": 3,
