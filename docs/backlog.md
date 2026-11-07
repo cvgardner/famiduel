@@ -219,9 +219,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       `--game <id>`, `--n <matches>`), and prints win share, draws, unfinished and match length.
       First read (n=10–40): the higher level wins 80–100% everywhere, so the levels are real
       steps. Follow-ups below.
-- [ ] Air Hockey bottom seat won only 35–45% of mirror bot matches (n=40 per level) and ~3% of
+- [x] Air Hockey bottom seat won only 35–45% of mirror bot matches (n=40 per level) and ~3% of
       normal/hard matches ran past 5 minutes; check for a seat asymmetry and a stall with
       `npm run sim -- --game airhockey --n 200`.
+      2026-11-07 (F14): no change needed. Seat bias is noise: with 400 more seeds the bottom
+      seat wins 49% (normal) and 45% (hard), and letting the top bot think first flips easy
+      from 41% to 55%, so it follows which bot draws from the shared rng first, not the table.
+      No stall either: every goal gap over 2 minutes (3-5% of normal/hard bot matches reach
+      5 minutes) is a real rally, ~1.2 paddle hits a second, the puck fast half the time and
+      spread over the whole table, with 0-2 air drifts. Two good defenders just keep
+      returning it; people vs a bot don't play that long. If bot-vs-bot (tournament demo)
+      matches feel long, a rally speed-up (puck a little faster after ~30 s without a goal)
+      would be the fix.
 - [ ] Add the masher model (tests/sumo.test.ts) as a "kid" row to `npm run sim` for every game.
 - [ ] Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
       the sloppy easy bot spends more turns targeting, when it never radars. Fine for now;
