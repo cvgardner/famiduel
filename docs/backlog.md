@@ -452,7 +452,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       4 s". `powerStatus()` in app/demo.ts, `energyOf()` in engine/game.ts; the pause-help
       playtest checks both halves show a state in every game with powers.
 - [x] A short animation of each power in How to play, for kids who picked it without reading.
-      2026-11-07 (F70, PR #PRNUM): the three free games (Minigolf, Air Hockey, Sumo) draw a 2 s
+      2026-11-07 (F70, PR #133): the three free games (Minigolf, Air Hockey, Sumo) draw a 2 s
       looping picture of each power beside the picked power on How to play (inline SVG in
       `app/powerpic.ts`; you in your seat colour, the other player grey): the gust blowing a
       shot past the cup, the cup reeling a ball in, a ball floating through a wall; a paddle
@@ -460,7 +460,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       wrestler sliding. Unit tests check every free power has one with matching key times; the
       how-to-play playtest checks both halves show it, that it moves, and saves
       pause-help-pic-<game>.png. Other games next (`hasPowerPic()` is false there today).
-      2026-11-07 (F76, PR #PRNUM2): the intro shows it too once a person picks: on tall phones
+      2026-11-07 (F76, PR #135): the intro shows it too once a person picks: on tall phones
       in the picked card, in the icon's place (48x33, a row under the cards pushed Sumo 25 px
       out of its half); on short phones and with Bigger text beside the picked power's words
       under the cards. The intro fit playtest (every power, 3 sizes, both text sizes) passes;
