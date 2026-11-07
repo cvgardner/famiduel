@@ -32,4 +32,24 @@ describe('reduce motion', () => {
     calm.shake(8, 0.3);
     expect(shaken(calm)).toBe(0);
   });
+
+  it('a full-screen flash is a quarter as bright when the phone asks for less motion', () => {
+    const peak = (fx: Fx) => {
+      let a = 0;
+      let alpha = 1;
+      const g = new Proxy({}, {
+        get: (_t, k) => (k === 'fillRect' ? () => (a = Math.max(a, (g as { globalAlpha: number }).globalAlpha)) : k === 'globalAlpha' ? alpha : () => {}),
+        set: (_t, k, v) => ((k === 'globalAlpha' ? (alpha = v) : 0), true),
+      });
+      fx.flash('#fff', 0.18);
+      fx.render(g as never);
+      return a;
+    };
+    askFor(false);
+    const loud = peak(new Fx());
+    askFor(true);
+    const calm = peak(new Fx());
+    expect(loud).toBeCloseTo(0.35, 2);
+    expect(calm).toBeCloseTo(loud / 4, 2);
+  });
 });

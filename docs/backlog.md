@@ -316,7 +316,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       down; not worth it while the two-tap aim makes mis-taps free.
 - [x] Ages 4-6 guidance asks for 56-64 px primary buttons; consider a "little hands" setting
       that enlarges Ready / power cards (needs a taller intro layout).
-      2026-11-07 (F80): Settings > Look > "Little hands" (`settings.bigButtons`, <html
+      2026-11-07 (F80, PR #140): Settings > Look > "Little hands" (`settings.bigButtons`, <html
       data-bighands>): the intro's Ready button, power cards and bot level buttons are at least
       60 px tall (Ready was 48). No taller layout needed: playtest "little hands: ..." opens
       every shown game at 320x568, 360x640 and 390x844, with and without Bigger text, two
@@ -936,7 +936,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 ## Ideas found 2026-11-01 (bot name run)
 - [x] Other games print the name in the player's colour on a tinted panel; Sumo and Sea
       Battle already have an outline, but a shared `nameLabel()` would keep them alike.
-      2026-11-07 (F75): `nameLabel()` in engine/draw.ts (bold, the pop's 75% black outline).
+      2026-11-07 (F75, PR #139): `nameLabel()` in engine/draw.ts (bold, the pop's 75% black outline).
       Sumo, Sea Battle's cover and Rock Paper Scissors (secret pick line, name under the
       hand) draw names through it; Sea Battle's and RPS's outlines were 35-40% black. A text
       test fails on a player name drawn with a hand-rolled outline, and the small-text test
@@ -965,7 +965,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       as a fade, so a label drawn at a steady low opacity during play is never judged. A
       "steady" rule (same alpha for ~1 s counts as at rest) would catch the next one; check
       it doesn't flag real fades (Ping Pong tips, Snack Snatch banners) first.
-      2026-11-07 (F81): `atRest()` in engine/draw.ts: a label held at the same opacity
+      2026-11-07 (F81, PR #141): `atRest()` in engine/draw.ts: a label held at the same opacity
       (within 0.01) for 1 s counts as at rest and is judged; opacity under 0.3 never does
       (a fade's ends, or a card held at its start: Minigolf's hole card and "tees off first"
       read 1.0:1 that way on the first try). Every "play like a person" game and the Mint
@@ -1157,10 +1157,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       there; the Ready button reads "Tap a power to see it" until a pick, and the picked
       power's description takes the how-to's place under the cards. A playtest picks every
       power in every shown game at 320x568, 360x640 and 390x844, with and without Bigger text.
-- [x] 2026-11-07 (F79): Reduce motion. With the phone's "reduce motion" on, the power pictures
+- [x] 2026-11-07 (F79, PR #138): Reduce motion. With the phone's "reduce motion" on, the power pictures
       (SMIL, which CSS can't stop) pause on the frame 1 s into their loop (`watchPowerPics()` in
       app/powerpic.ts, a MutationObserver that freezes each picture as it appears, and sets
       them moving again if the setting is turned off), the camera no longer shakes
       (`reducedMotion()` in engine/calm.ts, checked in `Fx.shake`), and the ghost finger was
       already still in CSS. Playtest "reduced motion: ..." checks the picture is paused and
       looks the same 0.7 s later (reduced-motion-intro.png); unit test for the shake.
+- [x] 2026-11-07 (F82, PR #142): Reduce motion also softens full-screen flashes (goals, hits): with
+      the phone's setting on, `Fx.flash` draws at a quarter of its brightness, so it still
+      says something happened without a strobe. Unit test in tests/calm.test.ts.

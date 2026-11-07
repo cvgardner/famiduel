@@ -1,7 +1,7 @@
 // "Reduce motion" on the phone (iOS Settings > Accessibility > Motion, Android "Remove
 // animations"): moving decoration holds still. The ghost finger stops in CSS
-// (style.css), the power pictures freeze on one frame (app/powerpic.ts) and the camera
-// no longer shakes (engine/fx.ts). The game itself still moves: that is the game.
+// (style.css), the power pictures freeze on one frame (app/powerpic.ts), the camera
+// no longer shakes and full-screen flashes are a quarter as bright (engine/fx.ts). The game itself still moves: that is the game.
 
 const QUERY = '(prefers-reduced-motion: reduce)';
 

@@ -50,6 +50,7 @@ export class Fx {
   private shakeAmp = 0;
   private flashT = 0;
   private flashColor = '#fff';
+  private flashCalm = false;
 
   burst(x: number, y: number, color: string, count = 14, speed = 180, size = 4): void {
     for (let i = 0; i < count; i++) {
@@ -75,6 +76,7 @@ export class Fx {
   flash(color = '#fff', time = 0.18): void {
     this.flashColor = color;
     this.flashT = time;
+    this.flashCalm = reducedMotion();
   }
 
   update(dt: number): void {
@@ -119,7 +121,8 @@ export class Fx {
       text(g, f.str, insideX(g, f.str, f.x, size), f.y, { size, color: f.color, player: f.player, stroke: POP_OUTLINE, alpha: Math.min(1, f.life / f.max * 1.6) });
     }
     if (this.flashT > 0) {
-      g.globalAlpha = (this.flashT / 0.18) * 0.35;
+      // A quarter as bright with reduce motion on: still says "something happened", without a strobe.
+      g.globalAlpha = (this.flashT / 0.18) * 0.35 * (this.flashCalm ? 0.25 : 1);
       g.fillStyle = this.flashColor;
       g.fillRect(0, 0, W, H);
       g.globalAlpha = 1;
