@@ -498,7 +498,7 @@ test('ghost finger: a "?" brings it back after the first matches, on a small pho
   expect(errors).toEqual([]);
 });
 
-const FREE_PICS = ['minigolf', 'airhockey', 'sumo'];
+const FREE_PICS = ['minigolf', 'airhockey', 'sumo', 'pingpong', 'penalty', 'snacksnatch'];
 
 test('how to play: the pause menu shows each player the finger, the rules and their power', async ({ page }) => {
   const errors: string[] = [];

@@ -26,6 +26,16 @@ const table = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1d3a5c"/><
 // Sumo: the ring from above.
 const ring = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#5a3a22"/><circle cx="32" cy="22" r="19" fill="#c9a66b" stroke="#fff" stroke-opacity="0.7" stroke-width="1.5"/>`;
 
+const rect = (x: number, y: number, w: number, h: number, fill: string, kids = '') =>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(w, h) / 2}" ${fill.startsWith('var(') ? `style="fill:${fill}"` : `fill="${fill}"`}>${kids}</rect>`;
+
+// Ping Pong: a table with the net across the middle.
+const pong = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1b6b5a"/><rect x="8" y="4" width="48" height="36" fill="none" stroke="#fff" stroke-opacity="0.6" stroke-width="1"/><line x1="4" y1="22" x2="60" y2="22" stroke="#fff" stroke-width="2"/>`;
+// Penalty: grass with a goal at the top.
+const pitch = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2f8f46"/><rect x="14" y="2" width="36" height="9" fill="none" stroke="#fff" stroke-width="1.5"/>`;
+// Snack Snatch: a mat with your critter's mouth at the bottom.
+const mat = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#3a2c5c"/>`;
+
 const PICS: Record<string, Record<string, string>> = {
   minigolf: {
     // The other player's shot heads for the cup, a gust blows it past.
@@ -65,6 +75,65 @@ const PICS: Record<string, Record<string, string>> = {
       circle(32, 8, 6, THEM) +
       circle(32, 36, 6, YOU) +
       [-1, 1].map((d) => circle(32, 28, 3, '#fff', anim('cx', [32, 32, 32 + d * 8, 32 + d * 8], [0, 0.35, 0.85, 1]) + anim('cy', [28, 22, 4, 4], [0, 0.35, 0.85, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.8, 0.85, 1]))).join(''),
+  },
+  pingpong: {
+    // Your return flies super fast, leaving a streak.
+    smash:
+      pong +
+      rect(26, 4, 12, 3, THEM) +
+      rect(24, 37, 16, 4, YOU) +
+      `<line x1="32" y1="34" x2="32" y2="34" stroke="#ffd166" stroke-width="3" stroke-linecap="round">${anim('y2', [34, 34, 8, 8], [0, 0.3, 0.42, 1])}${anim('opacity', [0, 0, 0.9, 0, 0], [0, 0.3, 0.42, 0.6, 1])}</line>` +
+      circle(32, 34, 2.5, '#fff', anim('cy', [12, 33, 33, 8, 8], [0, 0.28, 0.3, 0.42, 1]) + anim('opacity', [1, 1, 1, 1, 0, 0], [0, 0.3, 0.42, 0.5, 0.55, 1])),
+    // The ball slows right down as it comes to you.
+    slowmo:
+      pong +
+      rect(26, 4, 12, 3, THEM) +
+      rect(24, 37, 16, 4, YOU) +
+      `<rect x="9" y="23" width="46" height="16" fill="#8fdcff">${anim('opacity', [0, 0, 0.25, 0.25, 0], [0, 0.2, 0.25, 0.9, 1])}</rect>` +
+      circle(32, 8, 2.5, '#fff', anim('cy', [8, 22, 28, 33, 34], [0, 0.2, 0.55, 0.9, 1])),
+    // Your return bends away from the other paddle.
+    curve:
+      pong +
+      rect(16, 4, 12, 3, THEM) +
+      rect(24, 37, 16, 4, YOU) +
+      circle(32, 34, 2.5, '#fff', anim('cx', [32, 32, 24, 34, 50, 50], [0, 0.15, 0.35, 0.55, 0.75, 1]) + anim('cy', [34, 34, 26, 16, 6, 6], [0, 0.15, 0.35, 0.55, 0.75, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.75, 0.8, 0.85, 1])),
+  },
+  penalty: {
+    // Your shot swings out wide, then bends back on target past the keeper.
+    curveshot:
+      pitch +
+      rect(26, 8, 12, 4, THEM) +
+      circle(32, 38, 3, YOU, anim('cx', [32, 32, 50, 54, 44, 44], [0, 0.15, 0.4, 0.55, 0.75, 1]) + anim('cy', [38, 38, 28, 18, 7, 7], [0, 0.15, 0.4, 0.55, 0.75, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.88, 0.92, 1])),
+    // Your keeper spreads extra wide and blocks the shot.
+    widekeeper:
+      pitch +
+      rect(26, 7, 12, 4, YOU, anim('x', [26, 26, 18, 18, 26], [0, 0.15, 0.3, 0.85, 1]) + anim('width', [12, 12, 28, 28, 12], [0, 0.15, 0.3, 0.85, 1])) +
+      circle(40, 38, 3, THEM, anim('cx', [40, 40, 42, 40, 40], [0, 0.3, 0.55, 0.8, 1]) + anim('cy', [38, 38, 12, 24, 24], [0, 0.3, 0.55, 0.8, 1]) + anim('opacity', [1, 1, 1, 1, 0], [0, 0.3, 0.55, 0.85, 1])),
+    // Your shot sends a fake ball too; the keeper dives for the wrong one.
+    decoy:
+      pitch +
+      rect(26, 8, 12, 4, THEM, anim('x', [26, 26, 16, 16], [0, 0.4, 0.6, 1])) +
+      circle(32, 38, 3, YOU, anim('cx', [32, 32, 46, 46], [0, 0.15, 0.6, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.15, 0.6, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.85, 0.9, 1])) +
+      circle(32, 38, 3, YOU, anim('cx', [32, 32, 20, 20], [0, 0.15, 0.6, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.15, 0.6, 1]) + anim('opacity', [0, 0, 0.6, 0.6, 0, 0], [0, 0.14, 0.16, 0.6, 0.7, 1]), ' stroke="#fff" stroke-dasharray="2 2"'),
+  },
+  snacksnatch: {
+    // Snacks drift toward your critter.
+    magnet:
+      mat +
+      rect(22, 34, 20, 8, YOU) +
+      [[10, 8], [54, 12], [30, 4]].map(([x, y], i) => circle(x, y, 3, '#ffb347', anim('cx', [x, x, 32, 32], [0, 0.1 + i * 0.08, 0.75, 1]) + anim('cy', [y, y, 33, 33], [0, 0.1 + i * 0.08, 0.75, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.7, 0.75, 0.8, 1]))).join(''),
+    // Snacks slow right down on your side.
+    sticky:
+      mat +
+      `<rect x="2" y="22" width="60" height="20" rx="6" fill="#ffd166" opacity="0.18"/>` +
+      rect(22, 34, 20, 8, YOU) +
+      [14, 32, 50].map((x, i) => circle(x, 2, 3, '#ffb347', anim('cy', [2, 2, 22, 30, 30], [0, i * 0.1, 0.2 + i * 0.1, 0.9, 1]))).join(''),
+    // Your next snaps reach twice as far.
+    double:
+      mat +
+      circle(32, 6, 3, '#ffb347', anim('opacity', [1, 1, 0, 0, 1], [0, 0.55, 0.6, 0.9, 1])) +
+      `<line x1="32" y1="34" x2="32" y2="34" stroke="#ff7eb3" stroke-width="4" stroke-linecap="round">${anim('y2', [34, 34, 22, 22, 34, 34, 7, 34, 34], [0, 0.1, 0.2, 0.25, 0.32, 0.4, 0.55, 0.7, 1])}</line>` +
+      rect(22, 34, 20, 8, YOU),
   },
   sumo: {
     // Stomp: a shockwave shoves the other wrestler away.
