@@ -9,7 +9,7 @@ import { PowerButton } from '../../engine/widgets';
 import { clamp, H, W } from '../../engine/world';
 import { cellsOf, isSunk, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIP_NAMES, SHIPS, strikeCells, type Move } from './logic';
 import { inkOn } from '../../core/contrast';
-import { botBeat, botResultTitle, openingLine, shooterBeat, shooterResult } from './beat';
+import { botBeat, botResultTitle, openingLine, shooterBeat, shooterResult, TALLY_AT, turnTally } from './beat';
 
 // Layout, in the viewer's frame (the viewer sits at the bottom).
 const C = 27;
@@ -25,7 +25,7 @@ type Mode =
   | { kind: 'place'; p: PlayerIndex; t: number }
   | { kind: 'fire'; p: PlayerIndex; t: number }
   | { kind: 'bot'; p: PlayerIndex; t: number; aim: Move | null }
-  | { kind: 'after'; p: PlayerIndex; t: number }
+  | { kind: 'after'; p: PlayerIndex; t: number; tallied?: boolean }
   | { kind: 'over'; t: number };
 
 type Shell = { owner: PlayerIndex; cell: number; t: number; result: 'hit' | 'miss' | 'mine' | 'hitBack'; a: PlayerIndex };
@@ -211,8 +211,17 @@ class SeaBattleView implements GameInstance {
     else if (m.kind === 'after') {
       // Like the bot's beat: counted from when the last shell lands, so the shooter
       // sees where it went (and two people read "pass the phone") before the hand-over.
+      // A turn of 2+ hits ends with a "3 hits!" pop over the sea, upright for the shooter.
+      if (!busy && !m.tallied && m.t > TALLY_AT) {
+        m.tallied = true;
+        const tally = turnTally(this.turnLog[m.p]);
+        if (tally) {
+          this.pop(tally, W / 2, GY + (N * C) / 2, COLORS.gold, 32);
+          this.ctx.sfx.play('score');
+        }
+      }
       if (busy) m.t = 0;
-      else if (m.t > shooterBeat(this.volley, this.twoHumans)) this.advance();
+      else if (m.t > shooterBeat(this.volley, this.twoHumans, this.turnLog[m.p])) this.advance();
     } else if (m.kind === 'over') {
       if (!busy && m.t > 3 && !this.ended) {
         this.ended = true;

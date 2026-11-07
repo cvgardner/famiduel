@@ -30,6 +30,14 @@ export const RULES = {
    */
   nudgeAfter: 4,
   driftAfter: 7,
+  /**
+   * A player whose paddle hasn't moved at all since the last goal (or kick-off) has
+   * walked away or hasn't looked up yet: their puck is nudged and blown over sooner, so
+   * a match against an empty seat doesn't wait the full 7 s after every goal. Anyone who
+   * has touched their paddle since the goal gets the full `driftAfter`.
+   */
+  idleNudgeAfter: 2,
+  idleDriftAfter: 4,
   /** After a drift, the puck gets this long to cross before the air blows again. */
   driftRetry: 2.5,
   /** Where a drift stops: this far past the centre line, mid-table. */
@@ -65,6 +73,8 @@ export class AirHockey {
   t = 0;
   /** Whose half the puck is resting in, and for how long (the stall rule). */
   held: { p: PlayerIndex; t: number } | null = null;
+  /** Whether each paddle has moved since the last goal (or kick-off): the idle stall rule. */
+  moved: [boolean, boolean] = [false, false];
   private lastHit: [number, number] = [-1, -1];
 
   constructor(
@@ -96,6 +106,7 @@ export class AirHockey {
     this.pucks = [{ x: W / 2, y: toward === 0 ? MID + 70 : MID - 70, vx: 0, vy: 0, alive: true }];
     this.serve = RULES.serveDelay;
     this.held = null;
+    this.moved = [false, false];
   }
 
   /** Whose half a point is in: player 0 owns the bottom. */
@@ -133,11 +144,12 @@ export class AirHockey {
       if (!pk.held || pk.held.p !== p) pk.held = { p, t: 0, nudged: false };
       const h = pk.held;
       h.t += dt;
-      if (!h.nudged && h.t >= RULES.nudgeAfter) {
+      const [nudgeAfter, driftAfter] = this.stallTimes(p);
+      if (!h.nudged && h.t >= nudgeAfter) {
         h.nudged = true;
         this.events.push({ type: 'nudge', p });
       }
-      if (h.t >= RULES.driftAfter) {
+      if (h.t >= driftAfter) {
         // Slide to a spot just past the centre line: friction stops it there.
         const tx = W / 2 + (this.pucks.length > 1 ? (i === 0 ? -50 : 50) : 0);
         const ty = p === 0 ? MID - RULES.driftPast : MID + RULES.driftPast;
@@ -147,7 +159,7 @@ export class AirHockey {
         const v = d * -Math.log(1 - RULES.friction);
         pk.vx = (dx / d) * v;
         pk.vy = (dy / d) * v;
-        h.t = RULES.driftAfter - RULES.driftRetry;
+        h.t = driftAfter - RULES.driftRetry;
         this.events.push({ type: 'drift', p, x: pk.x, y: pk.y });
       }
     });
@@ -156,6 +168,11 @@ export class AirHockey {
   }
 
 
+
+  /** When the puck resting in `p`'s half is nudged and blown over: sooner for a still paddle. */
+  stallTimes(p: PlayerIndex): [number, number] {
+    return this.moved[p] ? [RULES.nudgeAfter, RULES.driftAfter] : [RULES.idleNudgeAfter, RULES.idleDriftAfter];
+  }
 
   private firePower(p: PlayerIndex): void {
     const power = this.players[p].power;
@@ -195,6 +212,7 @@ export class AirHockey {
     }
     pd.x += dx;
     pd.y += dy;
+    if (Math.hypot(dx, dy) > 0.5) this.moved[p] = true;
     pd.vx = dx / dt;
     pd.vy = dy / dt;
   }

@@ -487,10 +487,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       game's bot plays a level picked on its intro that differs from the player sheet's
       (ownBotLevel() in store.ts; "Bot level here: easy" for screen readers). Playtest "bot
       level" checks it and saves bot-level-home-badge.png.
-- [x] 2026-11-07 (F44, PR #104): Intros are fit-checked on a tall phone (390×844, where the
-      desktop-size how-to text shows) both with two people (layout test) and with a bot on
-      top (bot level test, plus its 44 px target and font checks). Every intro fits; nothing
-      needed fixing. Saves bot-level-intro-tall.png.
+- [ ] The layout fit test only ran intros with two people; it now runs with a bot too, but
+      not on a tall phone (390×844) where the desktop-size how-to text shows for bots.
 
 ## Ideas found 2026-10-31 (air hockey stall run)
 - [ ] Other real-time games may stall with an idle player too (Ping Pong serve, Penalty
@@ -658,9 +656,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       fades (e.g. a result transition), make them relative like the buttons.
 
 ## Ideas found 2026-11-01 (shooter beat run)
-- [ ] Sea Battle: the "go again" header after a hit appears only once the shell lands, but the
-      big "HIT!" pop sits over the grid near the top player's side; check the pop reads
-      upright for whoever is shooting when the top player fires (two people).
+- [x] 2026-11-07 (F42, PR #102): Checked: Sea Battle's pops go through `this.pop`, which
+      faces `viewer`, and the viewer in the fire and after-turn screens is the shooter
+      (seabattle/index.ts `get viewer`), so "HIT!" and the new "3 hits!" read upright for the
+      top player when they fire.
 - [x] 2026-11-07 (F42, PR #102): A person's turn of 2+ hits (hit-again) ends with a gold
       "3 hits!" pop over the sea 0.3 s after the last shell lands, upright for the shooter,
       with the score chime; the result stays 0.6 s longer so it's read before the hand-over.

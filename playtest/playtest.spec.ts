@@ -666,6 +666,32 @@ test('seat cue: in games where both pieces roam, seats read apart in greyscale (
   expect(errors).toEqual([]);
 });
 
+test('seat cue: the intro tells each person which ring is theirs (solid bottom, dashed top)', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  const ringGames = games.games.filter((g) => 'seatRing' in g && g.seatRing).map((g) => g.id);
+  expect(ringGames.sort()).toEqual(['snake', 'sumo', 'tanks']);
+  for (const id of ringGames) {
+    await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+    await expect(page.locator('#intro')).toBeVisible();
+    const cue = (p: number) => page.locator(`#intro .half.p${p} .seat-cue`);
+    await expect(cue(0)).toHaveText(/solid ring/);
+    await expect(cue(1)).toHaveText(/dashed ring/);
+    await expect(cue(1).locator('circle').first()).toHaveAttribute('stroke-dasharray', '5 4');
+    await page.screenshot({ path: path.join(OUT, `seat-cue-${id}-intro.png`) });
+    await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
+  }
+  // Games without the ring say nothing about one, and a bot's half doesn't need it.
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('airhockey'));
+  await expect(page.locator('#intro .seat-cue')).toHaveCount(0);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
+  await setPlayers(page, [null, 'normal']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
+  await expect(page.locator('#intro .half.p0 .seat-cue')).toHaveCount(1);
+  await expect(page.locator('#intro .half.p1 .seat-cue')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test('result: a tap meant for the game right as the match ends does not skip the result', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
@@ -1171,9 +1197,17 @@ test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) =
     expect(after.header, 'the header says to fire again').toContain('go again');
     if (hit === 1) await page.screenshot({ path: path.join(OUT, 'seabattle-hit-again.png') });
   }
-  // A miss hands the turn to the bot.
+  // A miss hands the turn to the bot, and the turn's two hits are summed up over the sea.
   await fire((await look()).water!);
   await expect.poll(async () => (await look()).turn, { timeout: 3000 }).toBe(1);
+  const tally = () =>
+    page.evaluate(() => {
+      const fx = (window as unknown as { __famiduel: { runner: { fx: { floaters: { str: string; player: number }[] } } } }).__famiduel.runner.fx;
+      return fx.floaters.filter((f) => /hits!$/.test(f.str)).map((f) => ({ str: f.str, player: f.player }));
+    });
+  await expect.poll(tally, { timeout: 3000 }).toEqual([{ str: '2 hits!', player: 0 }]);
+  await page.waitForTimeout(150);
+  await page.screenshot({ path: path.join(OUT, 'seabattle-turn-tally.png') });
   // The bot's turn ends with a miss too, and the next person turn starts plain.
   await myTurn();
   const back = await look();

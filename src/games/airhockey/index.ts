@@ -149,7 +149,7 @@ class AirHockeyView implements GameInstance {
     }
     // Stall rule: the puck has rested in one half a while; ring it in that player's colour.
     const held = g.held;
-    if (held && held.t >= RULES.nudgeAfter && g.pucks[0] && g.serve <= 0) {
+    if (held && held.t >= g.stallTimes(held.p)[0] && g.pucks[0] && g.serve <= 0) {
       const pk = g.pucks[0];
       const c = this.ctx.players[held.p].color;
       circle(gx, pk.x, pk.y, RULES.puckR + 7 + 5 * Math.sin(this.t * 8), undefined, alpha(c, 0.8), 3);
