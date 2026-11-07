@@ -1,7 +1,7 @@
 // Juice: particles, pop-up text, screen shake and flashes. Purely visual, so
 // it uses Math.random and never affects a game's result.
 import { contrastRatio, over, parseColor } from '../core/contrast';
-import { COLORS, text, type G } from './draw';
+import { COLORS, fitSize, insideX, text, type G } from './draw';
 import { W, H } from './world';
 
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number };
@@ -109,7 +109,10 @@ export class Fx {
     }
     g.globalAlpha = 1;
     for (const f of this.floaters) {
-      text(g, f.str, f.x, f.y, { size: f.size, color: f.color, player: f.player, stroke: POP_OUTLINE, alpha: Math.min(1, f.life / f.max * 1.6) });
+      // Pops land where things happen, often by a wall: shrink a long one to fit and
+      // keep its words on screen (Bigger text makes them wider).
+      const size = fitSize(g, f.str, W - 16, f.size);
+      text(g, f.str, insideX(g, f.str, f.x, size), f.y, { size, color: f.color, player: f.player, stroke: POP_OUTLINE, alpha: Math.min(1, f.life / f.max * 1.6) });
     }
     if (this.flashT > 0) {
       g.globalAlpha = (this.flashT / 0.18) * 0.35;

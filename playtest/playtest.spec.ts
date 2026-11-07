@@ -2287,6 +2287,53 @@ test('contrast: Mint vs Orange, the lightest seats, in every shown game', async 
   expect(errors).toEqual([]);
 });
 
+// Bigger text (settings): every shown game is played with it on, by people on a small phone
+// and then bot vs bot to the result on a tall one, with screenshots of both. Fails on any
+// word that runs past the world's left or right edge; the screenshots are for the eye
+// (strips, buttons, banners).
+test('bigger text: every shown game keeps its words on screen, small and tall phone', async ({ page }) => {
+  test.setTimeout(300_000);
+  const errors: string[] = [];
+  await boot(page, errors);
+  await page.click('#settingsBtn');
+  await page.locator('input[data-k="bigText"]').check();
+  await page.click('#settingsBack');
+  const on = await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.store.data.settings.bigText);
+  expect(on, 'the Bigger text switch is saved').toBe(true);
+  const problems: string[] = [];
+  for (const g of games.games.filter((x) => !x.hidden && (built.length === 0 || built.includes(x.id)))) {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await setPlayers(page, [null, null]);
+    await page.evaluate(() => {
+      const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number> } }).__edges;
+      e.over.clear();
+      e.on = true;
+    });
+    await page.locator(`.game-card[data-id="${g.id}"]`).tap();
+    await introAsPeople(page, [0, 1]);
+    await page.waitForTimeout(2200); // countdown
+    const person = PEOPLE[g.id];
+    if (person) await person(page, 3000, 4);
+    else await Promise.all([monkey(page, 0, 3000, 4), monkey(page, 1, 3000, 5)]);
+    await page.screenshot({ path: path.join(OUT, `bigtext-${g.id}-320.png`) });
+    await leaveMatch(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await setPlayers(page, ['normal', 'hard']);
+    await page.evaluate((id) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(id), g.id);
+    await expect(page.locator('#play')).toBeVisible();
+    await page.waitForTimeout(2600);
+    await page.screenshot({ path: path.join(OUT, `bigtext-${g.id}-390.png`) });
+    await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
+    const over = await page.evaluate(() => [...(window as unknown as { __edges: { over: Map<string, number> } }).__edges.over]);
+    for (const [str, by] of over) problems.push(`${g.id}: "${str}" runs ${by.toFixed(0)} units off the screen`);
+    if (await page.locator('#result').isVisible()) await page.click('#homeBtn');
+    else await leaveMatch(page);
+  }
+  await page.evaluate(() => ((window as unknown as { __edges: { on: boolean } }).__edges.on = false));
+  expect(problems, 'words off the screen with Bigger text on').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 // Menus are DOM, so the canvas probe never sees them: judge the intro (with a person and
 // with a bot, before and after Ready), the pause sheet and the result screen against the
 // pixels behind each text run, once with the usual seats and once with Mint vs Orange
