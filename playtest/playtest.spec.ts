@@ -214,8 +214,9 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
   await page.screenshot({ path: path.join(OUT, 'home-groups.png') });
   await page.evaluate(() => window.scrollTo(0, 0));
   const clipped: string[] = [];
-  // A common Android size, and the smallest iPhone still in families' drawers (SE 1st gen).
-  for (const [w, h] of [[360, 640], [320, 568]]) {
+  // A common Android size, the smallest iPhone still in families' drawers (SE 1st gen), and a
+  // tall phone (390×844), which gets the bigger desktop-size intro text.
+  for (const [w, h] of [[360, 640], [320, 568], [390, 844]]) {
     await page.setViewportSize({ width: w, height: h });
     for (const id of built) {
       await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
@@ -245,7 +246,7 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
       await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
     }
   }
-  expect(clipped, 'intro content cut off on a small phone').toEqual([]);
+  expect(clipped, 'intro content cut off on a phone').toEqual([]);
   expect(errors).toEqual([]);
 });
 
@@ -529,26 +530,35 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
   // Every intro with a bot on top: the level row replaces Ready, so nothing grows.
   await setPlayers(page, [null, 'normal']);
   const problems: string[] = [];
-  for (const g of games.games) {
-    const ok = await page.evaluate((id) => {
-      const a = (window as unknown as { __famiduel: H }).__famiduel;
-      a.openGame(id);
-      const half = document.querySelector('#intro .half.p1') as HTMLElement | null;
-      if (!half) return 'not built';
-      const inner = half.querySelector('.half-inner') as HTMLElement;
-      const row = half.querySelectorAll('.botlvl button');
-      const on = half.querySelector('.botlvl button.on') as HTMLElement | null;
-      if (row.length !== 3) return 'no bot level row';
-      if (on?.dataset.v !== 'normal') return `level shown is ${on?.dataset.v}`;
-      if (inner.getBoundingClientRect().height > half.getBoundingClientRect().height + 1) return 'intro does not fit';
-      return '';
-    }, g.id);
-    if (ok && ok !== 'not built') problems.push(`${g.id}: ${ok}`);
-    else if (!ok) {
-      problems.push(...(await smallTargets(page, `${g.id} intro with a bot`)));
-      problems.push(...(await smallFonts(page, `${g.id} intro with a bot`)));
+  // The smallest phone, then a tall one (390×844), where the bigger desktop-size how-to text
+  // and power cards show and the bot's level row has to fit beside them.
+  for (const [vw, vh] of [[320, 568], [390, 844]]) {
+    await page.setViewportSize({ width: vw, height: vh });
+    for (const g of games.games) {
+      const ok = await page.evaluate((id) => {
+        const a = (window as unknown as { __famiduel: H }).__famiduel;
+        a.openGame(id);
+        const half = document.querySelector('#intro .half.p1') as HTMLElement | null;
+        if (!half) return 'not built';
+        const inner = half.querySelector('.half-inner') as HTMLElement;
+        const row = half.querySelectorAll('.botlvl button');
+        const on = half.querySelector('.botlvl button.on') as HTMLElement | null;
+        if (row.length !== 3) return 'no bot level row';
+        if (on?.dataset.v !== 'normal') return `level shown is ${on?.dataset.v}`;
+        if (inner.getBoundingClientRect().height > half.getBoundingClientRect().height + 1) return 'intro does not fit';
+        return '';
+      }, g.id);
+      if (ok && ok !== 'not built') {
+        problems.push(`${g.id} at ${vw}x${vh}: ${ok}`);
+        await page.screenshot({ path: path.join(OUT, `${g.id}-intro-bot-clipped-${vw}x${vh}.png`) });
+      } else if (!ok) {
+        problems.push(...(await smallTargets(page, `${g.id} intro with a bot at ${vw}x${vh}`)));
+        problems.push(...(await smallFonts(page, `${g.id} intro with a bot at ${vw}x${vh}`)));
+      }
     }
   }
+  await page.screenshot({ path: path.join(OUT, 'bot-level-intro-tall.png') });
+  await page.setViewportSize({ width: 320, height: 568 });
   expect(problems).toEqual([]);
   // A parent turns the Sea Battle bot down to Easy right on the intro.
   await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
