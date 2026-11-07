@@ -261,11 +261,16 @@ export class QuickDraw {
 // plus the phone's screen and touch delay, which the bot doesn't otherwise pay.
 // Hard is a quick adult (about 0.3 s on a phone), and never beats the fastest
 // a person can do (HUMAN.reaction + HUMAN.touchLag).
+/**
+ * `jump`: the chance per round that the bot's thumb twitches before DRAW! with nothing on
+ * screen to fool it, the way people jump the gun. Without it the forgiving powers (Double
+ * Shot, and Fake-out's bait) were worth far less against a bot than against a family.
+ */
 const BOT = {
-  easy: { mean: 0.5, sd: 0.07, fooled: 0.22 },
-  normal: { mean: 0.38, sd: 0.045, fooled: 0.05 },
-  hard: { mean: 0.3, sd: 0.03, fooled: 0 },
-} satisfies Record<BotLevel, { mean: number; sd: number; fooled: number }>;
+  easy: { mean: 0.5, sd: 0.07, fooled: 0.22, jump: 0.1 },
+  normal: { mean: 0.38, sd: 0.045, fooled: 0.05, jump: 0.04 },
+  hard: { mean: 0.3, sd: 0.03, fooled: 0, jump: 0.01 },
+} satisfies Record<BotLevel, { mean: number; sd: number; fooled: number; jump: number }>;
 
 export const BOT_LEVELS = BOT;
 export const MIN_REACTION = HUMAN.reaction + HUMAN.touchLag;
@@ -273,9 +278,11 @@ export const MIN_REACTION = HUMAN.reaction + HUMAN.touchLag;
 export class QuickDrawBot {
   /** Seconds until the bot's thumb lands, or Infinity when it is not about to tap. */
   private tapIn = Infinity;
-  private mode: 'draw' | 'pulse' | 'fooled' | null = null;
+  private mode: 'draw' | 'pulse' | 'fooled' | 'jump' | null = null;
   private seenFake = -1;
   private round = -1;
+  /** Whether this round's jump-the-gun roll has been made (once per round, at the wait). */
+  private rolled = false;
 
   constructor(
     readonly p: PlayerIndex,
@@ -298,8 +305,17 @@ export class QuickDrawBot {
       this.round = game.round;
       this.mode = null;
       this.tapIn = Infinity;
+      this.rolled = false;
     }
     if (game.phase === 'wait') {
+      if (!this.rolled) {
+        this.rolled = true;
+        // Some time during the wait; a twitch that would come after DRAW! is just a tap.
+        if (this.mode === null && this.rng.chance(cfg.jump)) {
+          this.mode = 'jump';
+          this.tapIn = this.rng.range(RULES.waitMin * 0.5, RULES.waitMax);
+        }
+      }
       if (game.fake && game.fake.id !== this.seenFake) {
         this.seenFake = game.fake.id;
         // The bot that played the fake-out knows it is fake.
@@ -308,12 +324,12 @@ export class QuickDrawBot {
           this.tapIn = this.reaction() * 0.9;
         }
       }
-      if (this.mode === null && game.pulse(this.p)) {
+      if ((this.mode === null || this.mode === 'jump') && game.pulse(this.p)) {
         // Slow Time: the pulse is a head start, but the bot still waits for DRAW!.
         this.mode = 'pulse';
         this.tapIn = RULES.pulseLead + Math.max(0.08, this.reaction() - 0.15);
       }
-    } else if (game.phase === 'draw' && (this.mode === null || this.mode === 'fooled')) {
+    } else if (game.phase === 'draw' && (this.mode === null || this.mode === 'fooled' || this.mode === 'jump')) {
       this.mode = 'draw';
       this.tapIn = this.reaction();
     }
@@ -321,7 +337,7 @@ export class QuickDrawBot {
     if (this.tapIn !== Infinity) {
       this.tapIn -= dt;
       // A pulse head start never fires before DRAW! is actually on screen.
-      const allowed = game.phase === 'draw' || (game.phase === 'wait' && this.mode === 'fooled');
+      const allowed = game.phase === 'draw' || (game.phase === 'wait' && (this.mode === 'fooled' || this.mode === 'jump'));
       if (this.tapIn <= 0 && allowed) {
         tap = true;
         this.tapIn = Infinity;
