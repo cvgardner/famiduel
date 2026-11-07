@@ -58,6 +58,7 @@ export class App {
     root.innerHTML = `
       <section id="home" class="screen"></section>
       <section id="tourney" class="screen hidden"></section>
+      <section id="settings" class="screen hidden" aria-label="Settings"></section>
       <section id="intro" class="screen arena hidden"></section>
       <section id="play" class="screen arena hidden">
         <canvas id="stage" aria-label="Game"></canvas>
@@ -86,17 +87,17 @@ export class App {
   // ---------- Home ----------
   showHome(): void {
     this.show('home');
-    const { profiles, settings } = this.store.data;
+    const { profiles } = this.store.data;
     const night = this.store.night;
     const solo = this.store.solo;
     const played = night.games.length;
-    const theme = settings.theme ?? 'auto';
     const score = (p: PlayerIndex) => {
       const c = profiles[p].color;
       return `<b class="score" style="--c:${c};--ink:${inkOn(c)}">${night.wins[p]}</b>`;
     };
     $('#home').innerHTML = `
       <header class="brand">
+        <button id="settingsBtn" class="icon-btn" aria-label="Settings"><span aria-hidden="true">⚙️</span></button>
         <h1 class="logo"><span class="l0">Fami</span><span class="l1">Duel</span></h1>
         <p class="tag">Two players · One phone · Super powers</p>
       </header>
@@ -120,30 +121,7 @@ export class App {
           <div class="grid">${g.games.map((m) => this.card(m)).join('')}</div>
         </section>`).join('')}
       </div>
-      <section class="settings-card" aria-labelledby="grp-settings">
-        <h2 class="group-title" id="grp-settings">⚙️ Settings</h2>
-        <div class="settings">
-          ${this.toggle('powers', '⚡', 'Super powers', 'Pick a power before each game', settings.powers)}
-          ${this.toggle('autoHandicap', '⚖️', 'Auto handicap', 'Helps whoever keeps losing', settings.autoHandicap)}
-          ${this.toggle('sound', '🔊', 'Sound', '', settings.sound)}
-          ${this.sfx.haptics.supported ? this.toggle('haptics', '📳', 'Vibration', '', settings.haptics) : ''}
-          <div class="set-row theme-row"><span class="set-ico" aria-hidden="true">🌗</span><span class="set-txt"><b>Look</b></span>
-            <div class="seg theme-seg" id="themeSeg" role="group" aria-label="Light or dark look">${(['auto', 'light', 'dark'] as const)
-              .map((v) => `<button data-v="${v}" class="${theme === v ? 'on' : ''}" aria-pressed="${theme === v}">${v === 'auto' ? 'Auto' : v === 'light' ? '☀️' : '🌙'}</button>`)
-              .join('')}</div>
-          </div>
-        </div>
-      </section>
-      <footer class="foot">Prototype · no ads, no accounts · everything stays on this device</footer>`;
-    for (const el of document.querySelectorAll<HTMLElement>('#themeSeg button')) {
-      el.addEventListener('click', () => {
-        settings.theme = el.dataset.v as ThemePref;
-        this.store.save();
-        applyTheme(settings.theme);
-        this.sfx.play('tap');
-        this.showHome();
-      });
-    }
+`;
     for (const el of document.querySelectorAll<HTMLElement>('.game-card[data-ready="1"]')) {
       el.addEventListener('click', () => {
         this.tourneyMatch = false;
@@ -166,6 +144,55 @@ export class App {
     for (const el of document.querySelectorAll<HTMLElement>('.player-chip')) {
       el.addEventListener('click', () => this.editPlayer(Number(el.dataset.p) as PlayerIndex));
     }
+    $('#settingsBtn').addEventListener('click', () => {
+      this.sfx.play('tap');
+      this.showSettings();
+    });
+    document.querySelector('#newNightBtn')?.addEventListener('click', () => {
+      this.store.newNight();
+      this.showHome();
+    });
+  }
+
+  // ---------- Settings: its own screen, behind the gear on home ----------
+  showSettings(): void {
+    this.show('settings');
+    const { settings } = this.store.data;
+    const theme = settings.theme ?? 'auto';
+    const group = (title: string, rows: string, note = '') =>
+      `<section class="set-group"><h2 class="group-title">${title}</h2><div class="settings">${rows}</div>${note ? `<p class="set-note">${note}</p>` : ''}</section>`;
+    $('#settings').innerHTML = `
+      <header class="set-head">
+        <button id="settingsBack" class="icon-btn back" aria-label="Back to games"><span aria-hidden="true">‹</span></button>
+        <h1 class="set-title">Settings</h1>
+        <span class="icon-btn-spacer" aria-hidden="true"></span>
+      </header>
+      ${group('Game rules',
+        this.toggle('powers', '⚡', 'Super powers', 'Pick a power before each game', settings.powers) +
+        this.toggle('autoHandicap', '⚖️', 'Auto handicap', 'Helps whoever keeps losing', settings.autoHandicap),
+        'Off is classic rules. Head starts for younger players are on each player card.')}
+      ${group('Sound & feel',
+        this.toggle('sound', '🔊', 'Sound', '', settings.sound) +
+        (this.sfx.haptics.supported ? this.toggle('haptics', '📳', 'Vibration', '', settings.haptics) : ''))}
+      ${group('Look', `<div class="set-row theme-row"><span class="set-ico" aria-hidden="true">🌗</span><span class="set-txt"><b>Theme</b></span>
+            <div class="seg theme-seg" id="themeSeg" role="group" aria-label="Light or dark look">${(['auto', 'light', 'dark'] as const)
+              .map((v) => `<button data-v="${v}" class="${theme === v ? 'on' : ''}" aria-pressed="${theme === v}">${v === 'auto' ? 'Auto' : v === 'light' ? '☀️' : '🌙'}</button>`)
+              .join('')}</div>
+          </div>`, 'Auto follows your phone\'s light or dark mode.')}
+      <footer class="foot">FamiDuel prototype · no ads, no accounts · everything stays on this device</footer>`;
+    $('#settingsBack').addEventListener('click', () => {
+      this.sfx.play('tap');
+      this.showHome();
+    });
+    for (const el of document.querySelectorAll<HTMLElement>('#themeSeg button')) {
+      el.addEventListener('click', () => {
+        settings.theme = el.dataset.v as ThemePref;
+        this.store.save();
+        applyTheme(settings.theme);
+        this.sfx.play('tap');
+        this.showSettings();
+      });
+    }
     for (const el of document.querySelectorAll<HTMLInputElement>('.settings input')) {
       el.addEventListener('change', () => {
         const k = el.dataset.k as 'powers' | 'autoHandicap' | 'sound' | 'haptics';
@@ -175,10 +202,6 @@ export class App {
         this.store.save();
       });
     }
-    document.querySelector('#newNightBtn')?.addEventListener('click', () => {
-      this.store.newNight();
-      this.showHome();
-    });
   }
 
   // ---------- Tournament: best of 7 across different games ----------

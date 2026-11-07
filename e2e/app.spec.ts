@@ -25,8 +25,14 @@ test('edit a player: name and head start', async ({ page }) => {
 
 test('a fresh install plays classic: powers and auto handicap off, no power cards', async ({ page }) => {
   const errors = await boot(page, 'E2E', false);
+  // Settings live on their own screen behind the gear on home.
+  await page.click('#settingsBtn');
+  await expect(page.locator('#settings')).toBeVisible();
+  await expect(page.locator('#home')).toBeHidden();
   await expect(page.locator('.settings input[data-k="powers"]')).not.toBeChecked();
   await expect(page.locator('.settings input[data-k="autoHandicap"]')).not.toBeChecked();
+  await page.click('#settingsBack');
+  await expect(page.locator('#home')).toBeVisible();
   await page.locator('.game-card[data-id="airhockey"]').click();
   await expect(page.locator('#intro')).toBeVisible();
   await expect(page.locator('.power-card')).toHaveCount(0);
@@ -37,7 +43,9 @@ test('a fresh install plays classic: powers and auto handicap off, no power card
   // Turning powers on from home brings the power cards back.
   await holdPause(page);
   await page.click('#quitBtn');
+  await page.click('#settingsBtn');
   await page.locator('.settings input[data-k="powers"]').check();
+  await page.click('#settingsBack');
   await page.locator('.game-card[data-id="airhockey"]').click();
   await expect(page.locator('.power-card[data-p="0"]').first()).toBeVisible();
   expect(errors).toEqual([]);
