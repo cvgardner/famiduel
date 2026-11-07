@@ -219,9 +219,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       `--game <id>`, `--n <matches>`), and prints win share, draws, unfinished and match length.
       First read (n=10–40): the higher level wins 80–100% everywhere, so the levels are real
       steps. Follow-ups below.
-- [ ] Air Hockey bottom seat won only 35–45% of mirror bot matches (n=40 per level) and ~3% of
+- [x] Air Hockey bottom seat won only 35–45% of mirror bot matches (n=40 per level) and ~3% of
       normal/hard matches ran past 5 minutes; check for a seat asymmetry and a stall with
       `npm run sim -- --game airhockey --n 200`.
+      2026-11-07 (F14): no change needed. Seat bias is noise: with 400 more seeds the bottom
+      seat wins 49% (normal) and 45% (hard), and letting the top bot think first flips easy
+      from 41% to 55%, so it follows which bot draws from the shared rng first, not the table.
+      No stall either: every goal gap over 2 minutes (3-5% of normal/hard bot matches reach
+      5 minutes) is a real rally, ~1.2 paddle hits a second, the puck fast half the time and
+      spread over the whole table, with 0-2 air drifts. Two good defenders just keep
+      returning it; people vs a bot don't play that long. If bot-vs-bot (tournament demo)
+      matches feel long, a rally speed-up (puck a little faster after ~30 s without a goal)
+      would be the fix.
 - [ ] Add the masher model (tests/sumo.test.ts) as a "kid" row to `npm run sim` for every game.
 - [ ] Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
       the sloppy easy bot spends more turns targeting, when it never radars. Fine for now;
@@ -526,10 +535,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Extend the source check of `fx.pop` colours to every game against its own play
       surfaces (Quick Draw sand, Minigolf grass, Ping Pong table), so rare pops elsewhere
       are covered too; needs each view to export its surface colours.
-- [ ] Purple on the dark floor (#14112b) is about 4.2:1, so a small (15-16 px) pop in a
+- [x] Purple on the dark floor (#14112b) is about 4.2:1, so a small (15-16 px) pop in a
       Purple player's colour ("they used …" in Snake/Tanks) is below 4.5:1; the playtest
       only plays Blue vs Pink. Run one pass with Purple and Mint and give player-colour
       pops a lighter tint or a larger size.
+      2026-11-07 (F31): small player-colour pops in Snake, Tanks and Quick Draw go through
+      `popColor()` (src/engine/fx.ts), which mixes a colour toward white only until it reads
+      at 4.5:1 on the floor (Purple becomes rgb(129,100,255); every other seat colour is
+      unchanged). The Mint vs Orange playtest now also plays those three games Purple vs
+      Mint; a unit test checks every seat colour.
 
 ## Ideas found 2026-11-01 (left-handed run)
 - [ ] Left-handed power buttons: most games put the power button in the player's left
@@ -859,3 +873,36 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       kid with the full head start 0% against the easy bot (`npm run sim`). Decide per game
       whether that is fine (a kid who plays at all does better) or the head start should
       cover mashing too (e.g. Quick Draw forgives early taps at assist 3).
+
+## Ideas found 2026-11-07 (rules check run)
+- [x] 2026-11-07 (F33): docs/rules.md lists, per shown game, the rule families know and what
+      FamiDuel does. No mismatches: Ping Pong (to 7, deuce serve rule kept), Air Hockey (to 5)
+      and Sumo (best of 3) are shortened, everything else plays the familiar rule.
+- [ ] A "long match" setting (Ping Pong to 11, Air Hockey to 7) if families ask for full-length
+      games; rules stay the same.
+
+## Ideas found 2026-11-07 (home contrast run)
+- [x] 2026-11-07 (F30): Home and settings (DOM) text is judged in light and dark theme by a new
+      playtest (every screenful of home, then settings). It found white game names on light
+      cards at 2.2-4.2:1 (Quick Draw yellow worst). Each card name now takes `cardInk()`
+      (src/app/cardink.ts): dark or white ink, whichever reads better on the gradient shade
+      actually behind the name; Ping Pong's card is a touch deeper (#ff5c7a → #f25070) so its
+      white name passes. A unit test holds every card at 4.5:1. The test waits for the neon
+      "Duel" to switch on before judging it.
+
+## Ideas found 2026-11-07 (Twin Gates run)
+- [x] 2026-11-07 (F29): Twin Gates' two gaps were 100 units wide with a slider and a windmill
+      in them, so easy players were picked up at the cap (8) in half their holes. The gaps are
+      now 140 (walls end at 110 / start at 250); slider, windmill and sand stay.
+      `npm run golf -- --hole gates --n 60`: easy 6.6 → 5.4 strokes, picked up 50% → 10%;
+      normal 4.6 → 3.3; hard 2.6 → 2.2. Par stays 5 (par 4 would cap at 7 and pick easy
+      players up 18% of the time).
+- [ ] Twin Gates is now easier than Switchback for normal and hard bots (3.3 vs 3.8): if hole
+      order should stay easiest-first, swap them in `content/minigolf-holes.json`.
+
+## Ideas found 2026-11-07 (waiting line run)
+- [x] 2026-11-07 (F26): Minigolf's waiting strip said "Wait · Bot shoots" for the whole bot
+      turn, so its lining-up pause read like a stuck game. It now shows the board games'
+      `waitingLine()` ("🤖 Bot is thinking…") while a bot lines up, and "Wait · <name>
+      shoots" otherwise; playtest `minigolf-bot-thinking.png`. Penalty needs no line: both
+      seats act on every kick (shooter swipes, keeper dives), so nobody waits.
