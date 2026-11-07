@@ -855,6 +855,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       whether that is fine (a kid who plays at all does better) or the head start should
       cover mashing too (e.g. Quick Draw forgives early taps at assist 3).
 
+## Ideas found 2026-11-07 (home contrast run)
+- [x] 2026-11-07 (F30): Home and settings (DOM) text is judged in light and dark theme by a new
+      playtest (every screenful of home, then settings). It found white game names on light
+      cards at 2.2-4.2:1 (Quick Draw yellow worst). Each card name now takes `cardInk()`
+      (src/app/cardink.ts): dark or white ink, whichever reads better on the gradient shade
+      actually behind the name; Ping Pong's card is a touch deeper (#ff5c7a → #f25070) so its
+      white name passes. A unit test holds every card at 4.5:1. The test waits for the neon
+      "Duel" to switch on before judging it.
+
 ## Ideas found 2026-11-07 (Twin Gates run)
 - [x] 2026-11-07 (F29): Twin Gates' two gaps were 100 units wide with a slider and a windmill
       in them, so easy players were picked up at the cap (8) in half their holes. The gaps are

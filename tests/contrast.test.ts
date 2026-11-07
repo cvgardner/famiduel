@@ -130,3 +130,14 @@ describe('pop-up words', () => {
     }
   });
 });
+
+describe('home game cards', () => {
+  it('every card name reads at 4.5:1 on the shade behind it', async () => {
+    const { cardInk, NAME_SHADE } = await import('../src/app/cardink');
+    const { default: games } = await import('../content/games.json');
+    for (const g of games.games) {
+      const c = rgb(g.color).map((v) => Math.round(v * NAME_SHADE)) as [number, number, number];
+      expect(contrastRatio(rgb(cardInk(g.color)), c), g.id).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+});
