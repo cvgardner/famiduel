@@ -578,7 +578,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       at full seat colour (PR #82).
 
 ## Ideas found 2026-11-01 (pop outline run)
-- [x] 2026-11-07 (F51): Extend the source check of `fx.pop` colours to every game against its own play
+- [x] 2026-11-07 (F51, PR #112): Extend the source check of `fx.pop` colours to every game against its own play
       surfaces (Quick Draw sand, Minigolf grass, Ping Pong table), so rare pops elsewhere
       are covered too; needs each view to export its surface colours.
 - [x] Purple on the dark floor (#14112b) is about 4.2:1, so a small (15-16 px) pop in a
@@ -994,7 +994,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       0.75 outline on the green table) was short, Purple at 4.0:1; it now goes through
       `liftOn(colour, SERVE_OUTLINE, TABLE_GREEN)`, tested. Sumo's corner names, Snake and
       Chop Chop's 22 px messages and Sea Battle's "them" already pass.
-- [x] 2026-11-07 (F51): every action game's view exports `SURFACES` (the colours its play area
+- [x] 2026-11-07 (F51, PR #112): every action game's view exports `SURFACES` (the colours its play area
       is painted in) and tests/contrast.test.ts reads each of its `fx.pop` calls against them
       (10 games). It found Quick Draw's "they used <power>" (15 px) on the sand in Purple at
       3.0:1 and Pink at 4.1:1; it now goes through `seatPop()` (popColor, then liftOn on both
