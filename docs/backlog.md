@@ -1088,3 +1088,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seats in Penalty, Snack Snatch and Air Hockey.
 - [x] Quick Draw's two DRAW pads: no band needed, each SQUIRT! button is already filled with
       its owner's colour (quickdraw/index.ts drawButton).
+- [x] 2026-11-07 (F65): the canvas contrast probe also runs in the Bigger text playtest (every
+      shown game, people at 320x568 then bots to the result at 390x844). All words pass with
+      the switch on; the test also fails if the probe saw no words for a game.
