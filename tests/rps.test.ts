@@ -83,3 +83,43 @@ describe('rock paper scissors', () => {
     expect(g.picksMade).toEqual([1, 1]);
   });
 });
+
+// Reviews of 2-player apps say hard bots "never lose" and read your patterns. Ours throws
+// at random at every level, so a kid who always throws rock, cycles, or copies their own
+// last throw still wins about half the matches against the hard bot.
+describe('rock paper scissors: the hard bot does not punish a patterned kid', () => {
+  const CYCLE = ['rock', 'paper', 'scissors'] as const;
+  const kids: Record<string, (round: number, last: (typeof CYCLE)[number] | null) => (typeof CYCLE)[number]> = {
+    'always rock': () => 'rock',
+    'rock, paper, scissors in turn': (r) => CYCLE[r % 3],
+    'throws again what they threw last': (_r, last) => last ?? 'paper',
+  };
+  for (const [name, kid] of Object.entries(kids)) {
+    it(`${name}: rounds and matches stay near a coin flip`, () => {
+      let rounds = 0;
+      let botRounds = 0;
+      let botMatches = 0;
+      const MATCHES = 400;
+      for (let seed = 1; seed <= MATCHES; seed++) {
+        const g = new Rps([player(), player()]);
+        const bot = new RpsBot(1, 'hard', makeRng(seed));
+        let last: (typeof CYCLE)[number] | null = null;
+        let r = 0;
+        while (!g.done) {
+          if (g.revealing) g.next();
+          const k = kid(r++, last);
+          g.pick(0, k);
+          g.pick(1, bot.choose());
+          last = k;
+          rounds++;
+          if (g.last!.winner === 1) botRounds++;
+        }
+        if (g.winner === 1) botMatches++;
+      }
+      expect(botRounds / rounds).toBeGreaterThan(0.28);
+      expect(botRounds / rounds).toBeLessThan(0.39);
+      expect(botMatches / MATCHES).toBeLessThan(0.58);
+      expect(botMatches / MATCHES).toBeGreaterThan(0.42);
+    });
+  }
+});
