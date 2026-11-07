@@ -6,7 +6,7 @@ import { PLAYERS, other, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, fitSize, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
-import { Button, PowerButton, powerSpot } from '../../engine/widgets';
+import { bigHandsOn, Button, PowerButton, powerSpot } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { Penalty, PenaltyBot, RULES, shotFromSwipe, type Dive, type Flight, type Intent, type KickResult, type Shot, type SwipePoint } from './logic';
 const PITCH = '#2f9e4f';
@@ -16,6 +16,10 @@ export const SURFACES: readonly string[] = [PITCH, PITCH_LIGHT];
 
 const DIVE_X = [104, 180, 256];
 const DIVE_Y = [H - 52, 52];
+/** Dive button radius, and with Settings > Little hands on; the touch area (r + slop) stays 36 either way. */
+export const DIVE_R = 28;
+export const DIVE_R_BIG = 32;
+const DIVE_HIT = 36;
 const DIVES: Dive[] = [-1, 0, 1];
 /** Lock in the pick as soon as the finger has travelled this far toward the goal. */
 const AUTO_KICK = 150;
@@ -43,7 +47,8 @@ class PenaltyView implements GameInstance {
       const [x, y] = powerSpot(p, 34, 28, !!ctx.players[p].lefty);
       return new PowerButton(x, y, p, pw, ctx.players[p].color);
     });
-    this.diveBtns = PLAYERS.map((p) => DIVE_X.map((x) => new Button(x, DIVE_Y[p], 28, p, '', ctx.players[p].color, 8)));
+    const diveR = bigHandsOn() ? DIVE_R_BIG : DIVE_R;
+    this.diveBtns = PLAYERS.map((p) => DIVE_X.map((x) => new Button(x, DIVE_Y[p], diveR, p, '', ctx.players[p].color, DIVE_HIT - diveR)));
     this.announce();
   }
 

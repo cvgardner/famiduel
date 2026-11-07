@@ -1205,6 +1205,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       power button that runs off the screen (unless it already did at normal size: Ping Pong)
       or overlaps another canvas button; screenshots little-hands-*.png. Unit test
       tests/littlehands.test.ts.
+- [x] 2026-11-07 (F92): Little hands also grows Penalty's dive buttons (radius 28 -> 32, same
+      64 px touch area) and Tank Duel's FIRE (34 -> 38; its touch zone was already the outer
+      strip). Sea Battle's Ready is already 140x58 and its cells are tapped, so nothing there.
+      The canvas-button playtest checks both grew, dive buttons don't touch, FIRE stays on
+      screen (little-hands-penalty.png, little-hands-tanks.png).
 - [x] 2026-11-07 (F88): Minigolf seat check per hole. No seat edge: the same seed with the
       seats swapped plays the same strokes mirrored (new test in tests/minigolf.test.ts, all
       23 holes). A first sim's "bottom seat wins 40%" followed which seeds it started on

@@ -662,6 +662,7 @@ test('layout: every in-game canvas button is a 56px touch target on a small phon
   const clash: string[] = [];
   let seen = 0;
   let grown = 0;
+  const grownOther = new Set<string>();
   // Buttons that already sit partly past the edge at normal size (Ping Pong's corners).
   const offAtNormal = new Set<string>();
   // Settings > Little hands draws the power buttons bigger (same touch area); they must still
@@ -709,12 +710,25 @@ test('layout: every in-game canvas button is a 56px touch target on a small phon
         // Sea Battle's two power buttons share a spot: only the shooter's shows (pass and play).
         for (const o of found) if (o !== f && (o.x !== f.x || o.y !== f.y) && Math.hypot(o.x - f.x, o.y - f.y) < R + o.r + (o.power ? 6 : 0)) clash.push(`${id}${tag} ${f.where} overlaps ${o.where}`);
       }
-      if (big && ['snacksnatch', 'sumo', 'airhockey'].includes(id)) await page.screenshot({ path: path.join(OUT, `little-hands-${id}.png`) });
+      // F92: Penalty's dive buttons and Tank Duel's FIRE grow too; drawn neighbours of one
+      // seat (not just power buttons) must not touch.
+      if (id === 'penalty') {
+        const dives = found.filter((b) => b.where.includes('diveBtns'));
+        if (big && dives.length && dives.every((b) => b.r > 28)) grownOther.add('penalty');
+        for (const a of dives) for (const b of dives) if (a !== b && a.y === b.y && Math.hypot(a.x - b.x, a.y - b.y) < a.r + b.r + 4) clash.push(`penalty${tag} ${a.where} touches ${b.where}`);
+      }
+      if (id === 'tanks') {
+        const fireR = await page.evaluate(() => (window as unknown as { __famiduel: { runner: { game: { fireR?: number } } } }).__famiduel.runner!.game.fireR ?? 0);
+        if (big && fireR > 34) grownOther.add('tanks');
+        if (584 + fireR + 5 + 4 > 640) clash.push(`tanks${tag} FIRE runs off the screen`);
+      }
+      if (big && ['snacksnatch', 'sumo', 'airhockey', 'penalty', 'tanks'].includes(id)) await page.screenshot({ path: path.join(OUT, `little-hands-${id}.png`) });
       await leaveMatch(page);
     }
   }
   expect(seen, 'canvas buttons found').toBeGreaterThan(built.length);
   expect(grown, 'power buttons drawn bigger with Little hands').toBeGreaterThan(built.length);
+  expect([...grownOther].sort(), 'dive buttons and FIRE drawn bigger with Little hands').toEqual(['penalty', 'tanks'].filter((g) => built.includes(g)));
   expect(small, `canvas buttons whose touch area is under ${MIN_CANVAS_TARGET}px on a 320x568 phone`).toEqual([]);
   expect(clash, 'power buttons on screen and clear of other canvas buttons').toEqual([]);
   expect(errors).toEqual([]);

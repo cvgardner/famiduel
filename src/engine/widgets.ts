@@ -97,6 +97,10 @@ let bigHands = false;
 export function setBigHands(on: boolean): void {
   bigHands = on;
 }
+/** True while Settings > Little hands is on (other in-game controls grow with it too). */
+export function bigHandsOn(): boolean {
+  return bigHands;
+}
 
 export class PowerButton {
   readonly button: Button;
