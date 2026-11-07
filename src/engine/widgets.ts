@@ -72,6 +72,9 @@ export class Button {
  * The super power button: a ring that fills with energy, and a tap to fire
  * when full. Returns true from update() on the frame the player fires.
  */
+/** Width of the owner-colour band round every power button. */
+export const POWER_BAND = 2.5;
+
 export class PowerButton {
   readonly button: Button;
 
@@ -94,7 +97,9 @@ export class PowerButton {
     const { x, y, r } = this.button;
     const ready = energy.ready;
     const active = energy.active > 0;
-    circle(g, x, y, r + 6, 'rgba(0,0,0,0.45)');
+    // A thin band of the owner's colour round the dark backing, so a button reads as "mine"
+    // even while its meter is empty (two buttons on one phone, kids side by side).
+    circle(g, x, y, r + 6, 'rgba(0,0,0,0.45)', alpha(this.color, 0.9), POWER_BAND);
     // energy ring
     g.beginPath();
     g.lineCap = 'round';

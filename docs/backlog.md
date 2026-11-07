@@ -974,3 +974,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Penalty, Minigolf and Sea Battle aren't in `scripts/simlib.ts`, so only hard v easy is
       tested for them; add the normal step there too (Minigolf: strokes per level from
       `npm run golf` already go easy > normal > hard).
+
+## Ideas found 2026-11-07 (power band run)
+- [x] 2026-11-07 (F47, PR #108): every power button (the shared `PowerButton` in
+      engine/widgets.ts) has a 2.5-unit band of its owner's colour round its dark backing, so
+      it reads as "mine" with an empty meter too (the FIRE rim idea, for Penalty, Snack Snatch
+      and every other game). Playtest "power buttons: each wears a band..." samples both
+      seats in Penalty, Snack Snatch and Air Hockey.
+- [x] Quick Draw's two DRAW pads: no band needed, each SQUIRT! button is already filled with
+      its owner's colour (quickdraw/index.ts drawButton).
