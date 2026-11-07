@@ -718,11 +718,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 ## Ideas found 2026-11-01 (FIRE rim run)
 - [ ] The same owner-colour band could go on other shared-looking buttons: Penalty's and
       Snack Snatch's power buttons, and Quick Draw's two DRAW pads, if kids mix them up.
-      2026-11-07 (F47, PR #PRNUM): every power button (the shared `PowerButton` in
-      engine/widgets.ts) now has a 2.5-unit band of its owner's colour round its dark backing,
-      so it reads as "mine" with an empty meter too. Playtest "power buttons: each wears a
-      band..." samples both seats in Penalty, Snack Snatch and Air Hockey. Quick Draw's DRAW
-      pads are still open.
 - [ ] Tank Duel's FIRE button could flash its band gold while a bouncy shell is loaded
       (the glow does this today, faintly on a light rim like Mint).
 
@@ -970,3 +965,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Penalty, Minigolf and Sea Battle aren't in `scripts/simlib.ts`, so only hard v easy is
       tested for them; add the normal step there too (Minigolf: strokes per level from
       `npm run golf` already go easy > normal > hard).
+
+## Ideas found 2026-11-07 (power band run)
+- [x] 2026-11-07 (F47, PR #PRNUM): every power button (the shared `PowerButton` in
+      engine/widgets.ts) has a 2.5-unit band of its owner's colour round its dark backing, so
+      it reads as "mine" with an empty meter too (the FIRE rim idea, for Penalty, Snack Snatch
+      and every other game). Playtest "power buttons: each wears a band..." samples both
+      seats in Penalty, Snack Snatch and Air Hockey.
+- [ ] Quick Draw's two DRAW pads could get the same owner band, if kids mix them up.
