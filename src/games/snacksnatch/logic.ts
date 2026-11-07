@@ -64,6 +64,9 @@ export const RULES = {
   energyPerPoint: 0.05,
 };
 
+/** Looks only (cookie, donut, berry, cracker, wrapped sweet, orange slice); every kind scores the same. */
+export const SNACK_KINDS = 6;
+
 export type Snack = { id: number; x: number; y: number; vx: number; vy: number; gold: boolean; r: number; alive: boolean; kind: number };
 
 export type Critter = {
@@ -280,7 +283,7 @@ export class SnackSnatch {
   private launchPair(gold: boolean, speed?: number): void {
     const a = Math.PI / 2 + this.rng.range(-1.05, 1.05);
     const sp = speed ?? this.rng.range(RULES.speedMin, RULES.speedMax);
-    const kind = this.rng.int(0, 3);
+    const kind = this.rng.int(0, SNACK_KINDS - 1);
     for (const toward of [1, -1]) this.launch(gold, sp, Math.cos(a), Math.sin(a) * toward, kind);
   }
 

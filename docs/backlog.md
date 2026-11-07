@@ -201,6 +201,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       contrast probe judges a label at rest: a label only ever caught mid-fade is a report
       warning, not a failure (`keepSample` in engine/draw.ts, unit tested).
 - [ ] More tank arenas, more Snack Snatch snack types.
+  - [x] 2026-11-07 (F85): Snack Snatch serves six snack kinds (new: a wrapped sweet and an orange
+        slice, drawn in code). Looks only: every kind scores 1, a mirrored pair shares its kind, and
+        the pot makes the same number of random draws, so matches play out exactly as before.
 
 ## Ideas found 2026-10-31
 - [x] 2026-10-31: Sumo: a mashing kid never won a match against any bot, even with the
