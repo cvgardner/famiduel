@@ -7,7 +7,7 @@ import { PLAYERS, other, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
-import { PowerButton } from '../../engine/widgets';
+import { PowerButton, powerSpot } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { FingerPaddle, fwdSign, PingPong, PingPongBot, RULES, type Intent, type Shot } from './logic';
 import { inkOn } from '../../core/contrast';
@@ -51,7 +51,8 @@ class PingPongView implements GameInstance {
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
-      return p === 0 ? new PowerButton(38, H - 26, 0, pw, ctx.players[0].color) : new PowerButton(W - 38, 26, 1, pw, ctx.players[1].color);
+      const [x, y] = powerSpot(p, 38, 26, !!ctx.players[p].lefty);
+      return new PowerButton(x, y, p, pw, ctx.players[p].color);
     });
   }
 

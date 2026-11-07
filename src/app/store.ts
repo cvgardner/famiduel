@@ -9,7 +9,7 @@ import type { BotLevel, GameResult, PlayerIndex } from '../core/types';
  * `botLevels` holds a level picked for one game on that game's intro, which
  * wins there (a parent may want an easy Checkers bot but a normal Air Hockey one).
  */
-export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null; botLevels?: Record<string, BotLevel>; /** Swaps two-thumb controls (stick and FIRE); older saves are right-handed. */ lefty?: boolean; /** The bot level "Play the bot" brings back after "Play together". */ lastBot?: BotLevel; /** A name given to this seat's bot; a bot without one is called "Bot". */ botName?: string };
+export type Profile = { name: string; color: string; headStart: number; bot: BotLevel | null; botLevels?: Record<string, BotLevel>; /** Swaps two-thumb controls (stick and FIRE) and moves corner power buttons to the right corner; older saves are right-handed. */ lefty?: boolean; /** The bot level "Play the bot" brings back after "Play together". */ lastBot?: BotLevel; /** A name given to this seat's bot; a bot without one is called "Bot". */ botName?: string };
 
 /** What a bot seat is called when nobody named it. */
 export const BOT_NAME = 'Bot';

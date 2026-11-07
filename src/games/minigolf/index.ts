@@ -4,7 +4,7 @@ import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
-import { PowerButton } from '../../engine/widgets';
+import { PowerButton, powerSpot } from '../../engine/widgets';
 import { liftOn } from '../../engine/fx';
 import { H, MID, W } from '../../engine/world';
 import { waitingLine } from '../../core/turnline';
@@ -61,7 +61,8 @@ class MinigolfView implements GameInstance {
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
-      return p === 0 ? new PowerButton(38, H - 31, 0, pw, ctx.players[0].color) : new PowerButton(W - 38, 31, 1, pw, ctx.players[1].color);
+      const [x, y] = powerSpot(p, 38, 31, !!ctx.players[p].lefty);
+      return new PowerButton(x, y, p, pw, ctx.players[p].color);
     });
     this.facingP = this.game.leadOff;
     this.rot = this.rotFrom = this.rotTo = this.facingP === 1 ? Math.PI : 0;
@@ -662,7 +663,11 @@ class MinigolfView implements GameInstance {
     gx.fillStyle = myTurn ? alpha(c, 0.8 + 0.2 * Math.sin(this.t * 5)) : shade(c, -0.15);
     gx.fillRect(0, H - EDGE, W, EDGE);
     const btn = this.powerBtns[p];
-    const x0 = btn ? 74 : 54;
+    // A left-handed player's power button sits in the strip's right corner (powerSpot), so
+    // their Hole / Total columns move left of it and the name starts at the left edge.
+    const lefty = !!btn && !!this.ctx.players[p].lefty;
+    const x0 = lefty ? 24 : btn ? 74 : 54;
+    const [colHole, colTotal] = lefty ? [216, 266] : [268, 322];
     const name = this.ctx.players[p].name;
     // Lifted for the dark strip: Purple was 4.3:1 there.
     text(gx, name, x0, y0 + 19, { size: 17, color: liftOn(c, STRIP_CARD), align: 'left' });
@@ -689,11 +694,11 @@ class MinigolfView implements GameInstance {
     text(gx, status, x0, y0 + 42, { size: 13, color: sc, align: 'left', weight: 700 });
     // Scores
     const hs = g.phase === 'card' || g.phase === 'over' || g.phase === 'intro' ? '–' : String(g.balls[p].strokes);
-    text(gx, 'Hole', 268, y0 + 14, { size: 13, color: COLORS.dim });
-    text(gx, hs, 268, y0 + 36, { size: 24, color: '#ffffff' });
-    text(gx, 'Total', 322, y0 + 14, { size: 13, color: COLORS.dim });
-    text(gx, String(g.total(p)), 322, y0 + 36, { size: 24, color: c });
-    if (g.bonus(p) > 0) text(gx, `★ −${g.bonus(p)} a hole`, 295, y0 + 54, { size: 13, color: COLORS.gold, weight: 700 });
+    text(gx, 'Hole', colHole, y0 + 14, { size: 13, color: COLORS.dim });
+    text(gx, hs, colHole, y0 + 36, { size: 24, color: '#ffffff' });
+    text(gx, 'Total', colTotal, y0 + 14, { size: 13, color: COLORS.dim });
+    text(gx, String(g.total(p)), colTotal, y0 + 36, { size: 24, color: c });
+    if (g.bonus(p) > 0) text(gx, `★ −${g.bonus(p)} a hole`, (colHole + colTotal) / 2, y0 + 54, { size: 13, color: COLORS.gold, weight: 700 });
   }
 
   private drawBanner(gx: G, p: PlayerIndex): void {

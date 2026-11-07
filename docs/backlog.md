@@ -624,9 +624,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Mint; a unit test checks every seat colour.
 
 ## Ideas found 2026-11-01 (left-handed run)
-- [ ] Left-handed power buttons: most games put the power button in the player's left
+- [x] Left-handed power buttons: most games put the power button in the player's left
       corner (free hand for a right-hander). Mirroring it for a lefty needs each game's
       opposite corner cleared first (Minigolf's Hole/Total, Air Hockey's score).
+      2026-11-07 (F38): the player sheet's existing "Left-handed" (Tank Duel's stick/FIRE
+      swap) now also moves the corner power button to that player's right corner in
+      Minigolf, Air Hockey, Sumo, Ping Pong, Penalty and Quick Draw (`powerSpot()` in
+      engine/widgets.ts). Minigolf's Hole / Total columns move left of it (name and status
+      start at the left edge) and Sumo's name and round pips swap corners; Air Hockey,
+      Ping Pong, Penalty and Quick Draw had that corner free. Snake, Snack Snatch, Chop
+      Chop, Tanks and Sea Battle put the button in the middle or by the controls, so
+      nothing changes there. Playtest "left-handed: corner power buttons..." (lefty-*.png).
 - [x] 2026-11-01: Tank Duel: both FIRE buttons were the same red with a white edge, so two
       kids sitting close had only the button's corner to tell whose it was (the stick was
       already player-coloured). FIRE stays red (red means fire) but now sits in a 5-unit band

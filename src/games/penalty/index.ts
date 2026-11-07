@@ -6,7 +6,7 @@ import { PLAYERS, other, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
-import { Button, PowerButton } from '../../engine/widgets';
+import { Button, PowerButton, powerSpot } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { Penalty, PenaltyBot, RULES, shotFromSwipe, type Dive, type Flight, type Intent, type KickResult, type Shot, type SwipePoint } from './logic';
 const PITCH = '#2f9e4f';
@@ -40,7 +40,8 @@ class PenaltyView implements GameInstance {
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
-      return p === 0 ? new PowerButton(34, H - 28, 0, pw, ctx.players[0].color) : new PowerButton(W - 34, 28, 1, pw, ctx.players[1].color);
+      const [x, y] = powerSpot(p, 34, 28, !!ctx.players[p].lefty);
+      return new PowerButton(x, y, p, pw, ctx.players[p].color);
     });
     this.diveBtns = PLAYERS.map((p) => DIVE_X.map((x) => new Button(x, DIVE_Y[p], 28, p, '', ctx.players[p].color, 8)));
     this.announce();

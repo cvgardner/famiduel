@@ -1,5 +1,6 @@
 // In-canvas buttons that belong to one player's half.
 import { alpha, circle, COLORS, glow, noGlow, text, type G } from './draw';
+import { H, W } from './world';
 import type { Energy } from '../core/energy';
 import type { PowerDef } from '../core/types';
 import type { Input } from './input';
@@ -74,6 +75,17 @@ export class Button {
  */
 /** Width of the owner-colour band round every power button. */
 export const POWER_BAND = 2.5;
+
+/**
+ * Where a corner power button goes. `x` and `inset` are laid out for a right-hander in seat
+ * 0's frame (inset = distance from that player's own edge); seat 1's button is the same spot
+ * turned 180°. A right-hander steers with the right hand and presses powers with the left, so
+ * the button sits in their left corner; a left-handed player's moves to the mirrored corner.
+ */
+export function powerSpot(p: 0 | 1, x: number, inset: number, lefty: boolean): [number, number] {
+  const lx = lefty ? W - x : x;
+  return p === 0 ? [lx, H - inset] : [W - lx, inset];
+}
 
 export class PowerButton {
   readonly button: Button;

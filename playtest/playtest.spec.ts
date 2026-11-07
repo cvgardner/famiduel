@@ -1058,6 +1058,49 @@ test('sumo: a small kid with a full head start gets two rows of rope saves', asy
   expect(errors).toEqual([]);
 });
 
+test('left-handed: corner power buttons move to the other corner and clear what sat there', async ({ page }) => {
+  // Backlog 2026-11-01 (F38): a right-hander steers with the right hand and presses powers
+  // with the left, so corner power buttons sit in each player's left corner. The Hand row's
+  // "Left-handed" (already used by Tank Duel) mirrors them; the bottom seat is a lefty here,
+  // the top seat is not. Minigolf's Hole / Total and Sumo's name and pips move out of the way.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await page.evaluate(() => {
+    const a = (window as unknown as { __famiduel: Hook & { store: { data: { profiles: { lefty?: boolean }[]; settings: { powers: boolean } } } } }).__famiduel;
+    a.store.data.profiles[0].lefty = true;
+    a.store.data.settings.powers = true;
+    a.store.save();
+  });
+  await setPlayers(page, [null, null]);
+  const corner = ['minigolf', 'airhockey', 'sumo', 'pingpong', 'penalty', 'quickdraw'];
+  for (const id of corner) {
+    await openFromHome(page, id);
+    for (const p of [0, 1]) await page.locator(`.power-card[data-p="${p}"]`).first().tap();
+    for (const p of [0, 1]) await page.locator(`#ready${p}`).tap();
+    await expect(page.locator('#play')).toBeVisible();
+    // Every PowerButton the view holds: { owner, x, y } in world units.
+    const spots = await page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: { runner: { game: Record<string, unknown> } } }).__famiduel.runner.game;
+      const out: { owner: number; x: number; y: number }[] = [];
+      for (const val of Object.values(v)) {
+        const list = Array.isArray(val) ? val : [val];
+        for (const b of list as { owner?: number; button?: { x: number; y: number } }[]) if (b && typeof b === 'object' && b.button && typeof b.owner === 'number') out.push({ owner: b.owner, x: b.button.x, y: b.button.y });
+      }
+      return out;
+    });
+    const mine = spots.find((b) => b.owner === 0)!, theirs = spots.find((b) => b.owner === 1)!;
+    expect(mine && theirs, `${id}: both power buttons found`).toBeTruthy();
+    expect(mine.x, `${id}: the lefty's button is in their right corner`).toBeGreaterThan(300);
+    expect(mine.y, `${id}: ...at their own end`).toBeGreaterThan(560);
+    expect(theirs.x, `${id}: the right-hander's button (turned 180°) stays in their left corner`).toBeGreaterThan(300);
+    expect(theirs.y).toBeLessThan(80);
+    await page.waitForTimeout(2400); // countdown
+    await page.screenshot({ path: path.join(OUT, `lefty-${id}.png`) });
+    await leaveMatch(page);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('tanks: a left-handed player gets FIRE on the left and the stick on the right', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
