@@ -1,6 +1,7 @@
 // Juice: particles, pop-up text, screen shake and flashes. Purely visual, so
 // it uses Math.random and never affects a game's result.
-import { text, type G } from './draw';
+import { contrastRatio, parseColor } from '../core/contrast';
+import { COLORS, text, type G } from './draw';
 import { W, H } from './world';
 
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number };
@@ -12,6 +13,23 @@ type Floater = { str: string; x: number; y: number; life: number; max: number; c
  * pink pops at 4.5:1 on Sumo's pale sand (at 50% "Last rope save!" was 2.4:1).
  */
 export const POP_OUTLINE = 'rgba(0,0,0,0.75)';
+
+/**
+ * A pop's colour, lightened (mixed toward white) until it reads at 4.5:1 on the dark floor
+ * behind most pops. For small pops in a player's colour: Purple (#7a5cff) was 4.2:1 there,
+ * so "they used …" in a Purple player's colour was too faint. Light colours pass as is.
+ */
+export function popColor(color: string): string {
+  const c = parseColor(color);
+  const bg = parseColor(COLORS.bg);
+  if (!c || !bg || c[3] < 1) return color;
+  const floor: [number, number, number] = [bg[0], bg[1], bg[2]];
+  for (let k = 0; k <= 1.0001; k += 0.05) {
+    const m = [0, 1, 2].map((i) => Math.round(c[i] + (255 - c[i]) * k)) as [number, number, number];
+    if (contrastRatio(m, floor) >= 4.5) return k === 0 ? color : `rgb(${m[0]},${m[1]},${m[2]})`;
+  }
+  return '#ffffff';
+}
 
 export class Fx {
   private particles: Particle[] = [];

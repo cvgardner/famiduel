@@ -131,7 +131,10 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .game-card.soon { filter: grayscale(0.85) brightness(0.7); cursor: default; }
 .gicon { position: relative; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-size: 32px; line-height: 1;
   background: rgba(255,255,255,0.24); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.35), inset 0 -4px 0 rgba(0,0,0,0.10); }
-.gname { position: relative; font-weight: 900; font-size: 14px; text-align: center; line-height: 1.1; text-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.25); min-height: 2.2em; display: flex; align-items: center; }
+/* The name takes the card colour's own ink (dark on light cards like Quick Draw's yellow, white
+   on dark ones), so it passes WCAG on every card in both themes. */
+.gname { position: relative; font-weight: 900; font-size: 14px; text-align: center; line-height: 1.1; color: var(--ink, #fff); text-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.25); min-height: 2.2em; display: flex; align-items: center; }
+.game-card.light-card .gname { text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
 .gkind { position: relative; font-size: 12px; color: #fff; font-weight: 800; padding: 1px 8px; border-radius: 10px; white-space: nowrap; max-width: 100%; background: rgba(0,0,0,0.28); }
 
 /* Tournament: the featured card. */

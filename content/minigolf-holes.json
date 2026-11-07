@@ -348,10 +348,10 @@
       "cup": [180, 120],
       "walls": [
         { "kind": "border", "closed": true, "pts": [[50, 565], [310, 565], [310, 80], [50, 80]] },
-        { "kind": "inner", "closed": false, "pts": [[50, 400], [130, 400]] },
-        { "kind": "inner", "closed": false, "pts": [[230, 400], [310, 400]] },
-        { "kind": "inner", "closed": false, "pts": [[50, 240], [130, 240]] },
-        { "kind": "inner", "closed": false, "pts": [[230, 240], [310, 240]] }
+        { "kind": "inner", "closed": false, "pts": [[50, 400], [110, 400]] },
+        { "kind": "inner", "closed": false, "pts": [[250, 400], [310, 400]] },
+        { "kind": "inner", "closed": false, "pts": [[50, 240], [110, 240]] },
+        { "kind": "inner", "closed": false, "pts": [[250, 240], [310, 240]] }
       ],
       "zones": [
         { "type": "sand", "circle": [180, 320, 30] }
