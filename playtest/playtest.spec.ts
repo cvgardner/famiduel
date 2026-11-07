@@ -675,7 +675,9 @@ test('power buttons: each wears a band of its owner\'s colour, even with an empt
     await expect(page.locator('#play')).toBeVisible();
     await page.waitForTimeout(400);
     type BtnHook = { runner: { game: { ctx: { players: { color: string }[] }; powerBtns: ({ button: { x: number; y: number; r: number } } | null)[] } } };
-    const offs = await page.evaluate(() => {
+    // A button may be dimmed (countdown, not usable yet), so the band is judged by hue:
+    // each sample on it must sit nearer its owner's colour than the other seat's.
+    const verdicts = await page.evaluate(() => {
       const r = (window as unknown as { __famiduel: BtnHook }).__famiduel.runner.game;
       const c = document.getElementById('stage') as HTMLCanvasElement;
       const g = c.getContext('2d')!;
@@ -684,18 +686,23 @@ test('power buttons: each wears a band of its owner\'s colour, even with an empt
       const oy = (c.height - 640 * sc) / 2;
       const px = (wx: number, wy: number) => Array.from(g.getImageData(Math.round(ox + wx * sc), Math.round(oy + wy * sc), 1, 1).data.slice(0, 3));
       const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-      const off = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i])));
+      const dist = (a: number[], b: number[]) => Math.hypot(...a.map((v, i) => v - b[i]));
+      // Distance to a colour's direction (its shade at any brightness), so dimming doesn't count.
+      const hueOff = (a: number[], b: number[]) => {
+        const k = Math.max(0.05, Math.min(1, a.reduce((s, v, i) => s + v * b[i], 0) / b.reduce((s, v) => s + v * v, 0)));
+        return dist(a, b.map((v) => v * k));
+      };
       return r.powerBtns.map((b, p) => {
-        if (!b) return -1;
+        if (!b) return 'no button';
         const { x, y, r: rad } = b.button;
-        const want = hex(r.ctx.players[p].color);
-        // Left and right of the button, on the band (the energy ring is inside it).
-        return Math.max(off(px(x - rad - 6, y), want), off(px(x + rad + 6, y), want));
+        const own = hex(r.ctx.players[p].color);
+        const foe = hex(r.ctx.players[1 - p].color);
+        const samples = [px(x - rad - 6, y), px(x + rad + 6, y)];
+        const ok = samples.every((s) => hueOff(s, own) < hueOff(s, foe) && Math.max(...s) - Math.min(...s) > 25);
+        return ok ? 'ok' : `seat ${p}: band ${JSON.stringify(samples)} vs own ${own}`;
       });
     });
-    expect(offs.length, id).toBe(2);
-    for (const o of offs) expect(o, `${id}: band in the owner's colour`).toBeGreaterThanOrEqual(0);
-    for (const o of offs) expect(o, `${id}: band in the owner's colour`).toBeLessThan(60);
+    expect(verdicts, `${id}: each band in its owner's colour`).toEqual(['ok', 'ok']);
     await page.screenshot({ path: path.join(OUT, `power-band-${id}.png`) });
     await leaveMatch(page);
   }
