@@ -4,6 +4,8 @@
 // content/games.json; the animations themselves are CSS (`.demo` in style.css).
 // It shows for a game's first few matches on this phone, then gets out of the way.
 
+import { powerPicHtml } from './powerpic';
+
 export const GESTURES = ['tap', 'tap2', 'sides', 'hold', 'pull', 'swipe', 'slide', 'drag', 'move', 'drop', 'stick', 'kick'] as const;
 export type Gesture = (typeof GESTURES)[number];
 
@@ -106,7 +108,7 @@ export type HowToSeat = {
   color: string;
   bot: boolean;
   lefty?: boolean;
-  power?: { icon: string; name: string; desc: string } | null;
+  power?: { id?: string; icon: string; name: string; desc: string } | null;
   /** The power meter right now (0..1 full, seconds still active); left out = not shown. */
   charge?: { value: number; active: number } | null;
 };
@@ -148,13 +150,13 @@ export function seatCueHtml(p: number): string {
   return ` <span class="seat-cue"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="rgba(20,17,43,.7)" stroke-width="4"${dash}/><circle cx="12" cy="12" r="8" fill="none" stroke="#fff" stroke-width="2"${dash}/></svg> yours: <b>${p === 1 ? 'dashed' : 'solid'} ring</b></span>`;
 }
 
-export function howToHalfHtml(seat: HowToSeat, game: { icon: string; name: string; howTo: string; gesture?: string; seatRing?: boolean }): string {
+export function howToHalfHtml(seat: HowToSeat, game: { id?: string; icon: string; name: string; howTo: string; gesture?: string; seatRing?: boolean }): string {
   const g = isGesture(game.gesture) ? game.gesture : null;
   const head = `<div class="intro-head"><div class="intro-title">${game.icon} ${game.name}</div>${g && !seat.bot ? demoHtml(g, !!seat.lefty) : ''}</div>`;
   const body = seat.bot
     ? `<p class="howto">🤖 Waiting for you</p>`
     : `<p class="howto">${game.howTo}</p>${
-        seat.power ? `<p class="my-power"><span class="picon">${seat.power.icon}</span> <b>Your power: ${seat.power.name}</b> ${seat.power.desc}${
+        seat.power ? `<p class="my-power">${game.id && seat.power.id ? powerPicHtml(game.id, seat.power.id) : ''}<span class="picon">${seat.power.icon}</span> <b>Your power: ${seat.power.name}</b> ${seat.power.desc}${
             seat.charge ? chargeHtml(seat.charge) : ''
           }</p>` : ''
       }`;

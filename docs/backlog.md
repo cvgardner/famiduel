@@ -451,7 +451,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       button", or "✨ On now!". The meter fills from play, not time, so it never says "ready in
       4 s". `powerStatus()` in app/demo.ts, `energyOf()` in engine/game.ts; the pause-help
       playtest checks both halves show a state in every game with powers.
-- [ ] A short animation of each power in How to play, for kids who picked it without reading.
+- [x] A short animation of each power in How to play, for kids who picked it without reading.
+      2026-11-07 (F70, PR #PRNUM): the three free games (Minigolf, Air Hockey, Sumo) draw a 2 s
+      looping picture of each power beside the picked power on How to play (inline SVG in
+      `app/powerpic.ts`; you in your seat colour, the other player grey): the gust blowing a
+      shot past the cup, the cup reeling a ball in, a ball floating through a wall; a paddle
+      freezing, growing, the puck splitting; the stomp's shockwave, growing big, the other
+      wrestler sliding. Unit tests check every free power has one with matching key times; the
+      how-to-play playtest checks both halves show it, that it moves, and saves
+      pause-help-pic-<game>.png. Other games next (`hasPowerPic()` is false there today);
+      the intro's picked-power text could show it too.
 - [x] 2026-11-01 (PR #69): Penalty's demo showed only the shooter's swipe. New `kick` gesture
       loops both roles: swipe the ball, then the keeper's tap on a dive button.
 
