@@ -33,6 +33,7 @@ export class Runner {
     private readonly onDone: (r: GameResult) => void,
     skipCountdown = false,
     starter?: PlayerIndex,
+    daily?: string,
   ) {
     if (skipCountdown) this.countdown = 0;
     this.game = def.create({
@@ -43,6 +44,7 @@ export class Runner {
       sfx,
       fx: this.fx,
       starter,
+      daily,
       end: (r) => {
         if (!this.result) this.result = r;
       },
