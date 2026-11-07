@@ -652,7 +652,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Sea Battle: the "go again" header after a hit appears only once the shell lands, but the
       big "HIT!" pop sits over the grid near the top player's side; check the pop reads
       upright for whoever is shooting when the top player fires (two people).
-- [x] 2026-11-07 (F42, PR #TBD): A person's turn of 2+ hits (hit-again) ends with a gold
+- [x] 2026-11-07 (F42, PR #102): A person's turn of 2+ hits (hit-again) ends with a gold
       "3 hits!" pop over the sea 0.3 s after the last shell lands, upright for the shooter,
       with the score chime; the result stays 0.6 s longer so it's read before the hand-over.
       Both vs a bot and between two people (turnTally() in seabattle/beat.ts). Playtest
