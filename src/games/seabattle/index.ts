@@ -19,6 +19,11 @@ const SX = 24; // small grid
 const SY = 456;
 const SC = 14;
 const SHOT_T = 0.38; // shell flight time
+const DEEP = '#0a1838';
+const WAVE_TOP = '#11508f';
+const WAVE_LOW = '#0b3566';
+/** What pop-up words land on: the deep sea and the grid's water (tests/contrast.test.ts). */
+export const SURFACES: readonly string[] = [DEEP, WAVE_TOP, WAVE_LOW];
 
 type Mode =
   | { kind: 'cover'; p: PlayerIndex; next: 'place' | 'fire'; t: number }
@@ -543,7 +548,7 @@ class SeaBattleView implements GameInstance {
     const vc = this.ctx.players[v].color;
     // Deep sea background with the viewer's colour at their edge.
     const grd = gx.createLinearGradient(0, 0, 0, H);
-    grd.addColorStop(0, '#0a1838');
+    grd.addColorStop(0, DEEP);
     grd.addColorStop(1, shade(vc, -0.7));
     gx.fillStyle = grd;
     gx.fillRect(0, 0, W, H);
@@ -682,8 +687,8 @@ class SeaBattleView implements GameInstance {
     const attacker = other(owner);
     rrect(gx, x0 - 4, y0 - 4, size + 8, size + 8, big ? 12 : 6, '#0d3a6b', alpha(this.ctx.players[owner].color, 0.8), big ? 3 : 2);
     const wave = gx.createLinearGradient(x0, y0, x0 + size, y0 + size);
-    wave.addColorStop(0, '#11508f');
-    wave.addColorStop(1, '#0b3566');
+    wave.addColorStop(0, WAVE_TOP);
+    wave.addColorStop(1, WAVE_LOW);
     gx.fillStyle = wave;
     gx.fillRect(x0, y0, size, size);
     for (let k = 1; k < N; k++) {

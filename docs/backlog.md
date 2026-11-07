@@ -999,6 +999,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (10 games). It found Quick Draw's "they used <power>" (15 px) on the sand in Purple at
       3.0:1 and Pink at 4.1:1; it now goes through `seatPop()` (popColor, then liftOn on both
       sands). Pops passed through a helper's own `color` argument are skipped.
+- [x] 2026-11-07 (F52, PR #TBD): the pop check also reads pops passed through a helper's own
+      `color` (Sea Battle's pop(), Ping Pong's popBoth(), Minigolf's and Penalty's both()) at
+      each caller, with the caller's size; it fails if a pass-through helper isn't found.
+      Sea Battle now exports SURFACES (deep sea and grid water) and is checked too. No faint
+      pop turned up.
 
 ## Ideas found 2026-11-07 (power band run)
 - [x] 2026-11-07 (F47, PR #108): every power button (the shared `PowerButton` in
