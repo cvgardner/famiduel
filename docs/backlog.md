@@ -961,10 +961,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       white on #14112b, about 7:1), but a probe over all menu text would catch a regression.
 
 ## Ideas found 2026-11-01 (Chop Chop hints run)
-- [ ] The contrast probe keeps a label's best at-rest sample and treats any alpha below 0.99
+- [x] The contrast probe keeps a label's best at-rest sample and treats any alpha below 0.99
       as a fade, so a label drawn at a steady low opacity during play is never judged. A
       "steady" rule (same alpha for ~1 s counts as at rest) would catch the next one; check
       it doesn't flag real fades (Ping Pong tips, Snack Snatch banners) first.
+      2026-11-07 (F81): `atRest()` in engine/draw.ts: a label held at the same opacity
+      (within 0.01) for 1 s counts as at rest and is judged; opacity under 0.3 never does
+      (a fade's ends, or a card held at its start: Minigolf's hole card and "tees off first"
+      read 1.0:1 that way on the first try). Every "play like a person" game and the Mint
+      vs Orange pass still pass with it, so no steady faint label exists today. Unit tests.
 
 ## 2026-11-01 Air Hockey bot motion (Chris: "super spazzy")
 - [x] Measured first (`src/core/motion.ts`): every level flipped direction ~9×/s and
