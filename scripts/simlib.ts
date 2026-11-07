@@ -110,7 +110,10 @@ export function powersOf(game: string): PowerDef[] {
 
 export type Result = { winner: PlayerIndex | null; t: number; finished: boolean };
 
-export function playMatch(spec: Spec, levels: [SimLevel, SimLevel], seed: number, powersOn = false, picks: [PowerDef | null, PowerDef | null] = [null, null]): Result {
+/** Called after every step with the game and that step's events (scripts/sim.ts --selfout). */
+export type Observer = (g: never, events: readonly { type: string }[]) => void;
+
+export function playMatch(spec: Spec, levels: [SimLevel, SimLevel], seed: number, powersOn = false, picks: [PowerDef | null, PowerDef | null] = [null, null], observe?: Observer): Result {
   const rng = makeRng(seed);
   const g = spec.make([seat(levels[0], picks[0]), seat(levels[1], picks[1])], powersOn, rng);
   const kidRng = makeRng(seed + 7919);
@@ -126,6 +129,7 @@ export function playMatch(spec: Spec, levels: [SimLevel, SimLevel], seed: number
   for (; !ended() && t < MAX_T; t += DT) {
     const its = [bots[0].think(g as never, DT), bots[1].think(g as never, DT)];
     g.step(DT, its as [never, never]);
+    if (observe) observe(g as never, (g as { events?: { type: string }[] }).events ?? []);
   }
   return { winner: g.winner ?? null, t, finished: ended() };
 }

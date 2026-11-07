@@ -200,8 +200,19 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       instead of ~8. The knots wrap into two rows of 8 under the round pips. Unit test pins
       the masher rates; the playtest plays a ★★★ kid against the easy bot and checks both
       knot rows are drawn (screenshot `sumo-head-start.png`).
-- [ ] Playtest: per-game "self-out" counter (player lost without the other touching them)
+- [x] Playtest: per-game "self-out" counter (player lost without the other touching them)
       would catch the same trap in other games (Snake walls, Minigolf water).
+      2026-11-07 (F45): as a sim table rather than the playtest (the playtest's matches are
+      too short to lose many rounds): `npm run sim -- --selfout`. Snake counts a crash into a
+      wall or your own trail, Sumo a ring-out untouched for over 1 s. Minigolf water costs a
+      stroke, not a round, and Air Hockey's own-paddle goals are nearly all deflected shots
+      (hard bots 85%), so neither is counted. n=20: a mashing kid loses 98% of Sumo rounds
+      and 90% of Snake rounds by themselves vs easy; with the full head start 48% / 82%.
+      Bots never walk off in Sumo (0%). Snake bots self-crash in 48-51% (easy), 82-88%
+      (normal) and 35-38% (hard) of lost rounds. Checked (F60, no change): a normal bot's
+      self-crash is the end of a long round, boxed into its own patch (median 30 free cells
+      next to its head when it crashes), while easy (median 646) and hard (417) crash with
+      room to spare, easy from fumbles and hard from the human turn gap on tight U-turns.
 - [x] 2026-11-01: Minigolf pars and hole order now come from measurements. Every hole was
       played by the easy bot (a young kid) and the normal bot (a grown-up), 24 rounds each:
       many par 3s were really 2-stroke holes (the easy bot averaged 2.0 on Crater, 2.3 on

@@ -38,7 +38,9 @@ any other real-time bot (Sumo, Ping Pong, Tanks) by recording that bot's positio
 `npm run sim` plays the real-time action games bot against bot at every level pairing (plus a
 mashing kid), `npm run sim:powers` compares each game's powers, and `npm run sim -- --idle`
 plays every game with one seat that never touches the screen against each bot level: no
-match there should be unfinished, and few should pass 3 minutes.
+match there should be unfinished, and few should pass 3 minutes. `npm run sim -- --selfout`
+counts, for Snake and Sumo, the share of lost rounds a side lost on its own (Snake into a
+wall or its own trail, Sumo off the ring untouched for a second; scripts/selfout.ts).
 
 ## Minigolf strokes table
 
