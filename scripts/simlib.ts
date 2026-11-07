@@ -14,6 +14,8 @@ import { TankBot, TankDuel } from '../src/games/tanks/logic';
 
 export const DT = 1 / 60;
 const MAX_T = 300;
+/** A match longer than this (3 min) counts as long: an idle seat should never make one. */
+export const LONG_T = 180;
 
 type Game = { over?: boolean; done?: boolean; finished?: boolean; phase?: string; winner?: PlayerIndex | null; step(dt: number, intents: [never, never]): void };
 type Bot = { think(game: never, dt: number): unknown };
@@ -68,8 +70,23 @@ export class Masher {
   }
 }
 
-/** Seat levels the sims play: the three bot levels, or the masher kid with no head start / a full one. */
-export type SimLevel = BotLevel | 'kid' | 'kid+3';
+/**
+ * A player who walked away (or never touches the screen): no taps, no presses, the finger
+ * resting on their own half's centre (so a stick reads 0). Uses the kid's intent mapping.
+ */
+export class Idle extends Masher {
+  constructor(p: PlayerIndex, rng: Rng) {
+    super(p, rng);
+    this.press = false;
+    this.x = W / 2;
+    this.y = p === 0 ? H * 0.75 : H * 0.25;
+  }
+
+  override tick(): void {}
+}
+
+/** Seat levels the sims play: the three bot levels, the masher kid with no head start / a full one, or an idle seat. */
+export type SimLevel = BotLevel | 'kid' | 'kid+3' | 'idle';
 
 export const SPECS: Spec[] = [
   { id: 'airhockey', make: (pl, pw, r) => new AirHockey(pl, pw, r) as unknown as Game, bot: (p, l, r) => new AirHockeyBot(p, l, r) as unknown as Bot, endsOnWinner: true, kid: (m) => ({ tx: m.x, ty: m.y, power: false }) },
@@ -82,7 +99,7 @@ export const SPECS: Spec[] = [
   { id: 'chopchop', make: (pl, pw, r) => new ChopChop(pl, pw, r) as unknown as Game, bot: (p, l, r) => new ChopBot(p, l, r) as unknown as Bot, kid: (m) => ({ chop: m.tap() ? m.side : 0, power: false }) },
 ];
 
-const isKid = (l: SimLevel): l is 'kid' | 'kid+3' => l === 'kid' || l === 'kid+3';
+const isKid = (l: SimLevel): l is 'kid' | 'kid+3' | 'idle' => l === 'kid' || l === 'kid+3' || l === 'idle';
 const seat = (l: SimLevel, pw: PowerDef | null = null): PlayerInfo =>
   isKid(l) ? { name: l, color: '#3fa9ff', assist: l === 'kid+3' ? 3 : 0, power: pw, bot: null } : { name: l, color: '#3fa9ff', assist: 0, power: pw, bot: l };
 
@@ -100,7 +117,7 @@ export function playMatch(spec: Spec, levels: [SimLevel, SimLevel], seed: number
   const player = (p: PlayerIndex): Bot => {
     const l = levels[p];
     if (!isKid(l)) return spec.bot(p, l, rng);
-    const m = new Masher(p, kidRng);
+    const m = l === 'idle' ? new Idle(p, kidRng) : new Masher(p, kidRng);
     return { think: (_g: never, dt: number) => (m.tick(dt), spec.kid(m, p)) };
   };
   const bots = [player(0), player(1)];
@@ -115,11 +132,12 @@ export function playMatch(spec: Spec, levels: [SimLevel, SimLevel], seed: number
 
 /** Win share of levels[0] over n matches, with the seats swapped every other match. */
 export function pairing(spec: Spec, levels: [SimLevel, SimLevel], n: number, powersOn = false, picks: [PowerDef | null, PowerDef | null] = [null, null]) {
-  let wins = 0, seat0Wins = 0, draws = 0, unfinished = 0, time = 0;
+  let wins = 0, seat0Wins = 0, draws = 0, unfinished = 0, time = 0, long = 0;
   for (let i = 0; i < n; i++) {
     const swap = i % 2 === 1;
     const r = playMatch(spec, swap ? [levels[1], levels[0]] : levels, 1000 + i, powersOn, swap ? [picks[1], picks[0]] : picks);
     time += r.t;
+    if (r.t > LONG_T) long++;
     if (!r.finished) unfinished++;
     else if (r.winner === null) draws++;
     else {
@@ -127,6 +145,6 @@ export function pairing(spec: Spec, levels: [SimLevel, SimLevel], n: number, pow
       if (r.winner === (swap ? 1 : 0)) wins++;
     }
   }
-  return { wins: wins / n, seat0: seat0Wins / n, draws: draws / n, unfinished: unfinished / n, avgT: time / n };
+  return { wins: wins / n, seat0: seat0Wins / n, draws: draws / n, unfinished: unfinished / n, avgT: time / n, long: long / n };
 }
 
