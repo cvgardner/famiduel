@@ -639,6 +639,25 @@ test('seat cue: in games where both pieces roam, seats read apart in greyscale (
     await page.evaluate(() => (document.body.style.filter = ''));
     await leaveMatch(page);
   }
+test('result: a tap meant for the game right as the match ends does not skip the result', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, ['normal', 'hard']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('airhockey'));
+  await expect(page.locator('#play')).toBeVisible();
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
+  await expect(page.locator('#result')).toBeVisible();
+  // A kid still swinging taps where "Games" and "Rematch" now sit: nothing happens.
+  for (const id of ['#homeBtn', '#rematchBtn']) {
+    const box = (await page.locator(id).boundingBox())!;
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  }
+  await expect(page.locator('#result'), 'result still up after an early tap').toBeVisible();
+  await page.screenshot({ path: path.join(OUT, 'result-settling.png') });
+  // A moment later the buttons work.
+  await expect(page.locator('#result.settling')).toHaveCount(0, { timeout: 2000 });
+  await page.locator('#homeBtn').click();
+  await expect(page.locator('#home')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -2008,7 +2027,9 @@ test('contrast: intro, pause and result text (DOM) in the usual and the lightest
     await expect(page.locator('#play')).toBeVisible();
     await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
     await expect(page.locator('#result')).toBeVisible();
-    await page.waitForTimeout(600);
+    // Judge the buttons once they're awake (the result ignores taps for a moment first).
+    await expect(page.locator('#result.settling')).toHaveCount(0);
+    await page.waitForTimeout(400);
     await judge(`${tag} result`, '#result');
     await page.screenshot({ path: path.join(OUT, `result-${tag.toLowerCase()}.png`) });
     await page.click('#homeBtn');

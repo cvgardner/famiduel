@@ -37,6 +37,9 @@ function botRow(p: PlayerIndex, level: BotLevel): string {
   ).join('')}</div>`;
 }
 
+/** How long the result screen ignores taps, so a tap meant for the game doesn't skip it. */
+export const RESULT_SETTLE_MS = 800;
+
 export class App {
   readonly store = new Store();
   readonly sfx = new Sfx();
@@ -654,6 +657,15 @@ export class App {
         ${tourney ? `<button id="tourneyNextBtn" class="btn primary">${champ !== null ? '🏆 Champion' : 'Next game'}</button>` : `<button id="rematchBtn" class="btn primary">Rematch</button>`}
       </div>${half(0)}`;
     this.show('result');
+    // A tap meant for the game (a last swing, a mashed button) must not skip the result
+    // before both players have seen it: the buttons wake up a moment after it appears.
+    const settle = [...res.querySelectorAll<HTMLButtonElement>('button')];
+    for (const b of settle) b.disabled = true;
+    res.classList.add('settling');
+    window.setTimeout(() => {
+      for (const b of settle) if (!b.classList.contains('on')) b.disabled = false;
+      res.classList.remove('settling');
+    }, RESULT_SETTLE_MS);
     $('#homeBtn', res).addEventListener('click', () => {
       this.tourneyMatch = false;
       this.showHome();
