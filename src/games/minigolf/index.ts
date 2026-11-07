@@ -252,7 +252,7 @@ class MinigolfView implements GameInstance {
         both(sunkLabel(e.strokes, e.par), W / 2, MID, ace ? COLORS.gold : c, ace ? 34 : 28);
       } else if (e.type === 'pickup') {
         sfx.play('buzz');
-        both(`Picked up · ${RULES.strokeCap}`, W / 2, MID, '#ffffff', 22);
+        both(`Picked up · ${g.cap}`, W / 2, MID, '#ffffff', 22);
       } else if (e.type === 'stop') {
         sfx.play('tap');
       } else if (e.type === 'power') {

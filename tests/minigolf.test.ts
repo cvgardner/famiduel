@@ -182,7 +182,8 @@ describe('minigolf match', { timeout: 60_000 }, () => {
   it('a ball is picked up at the stroke cap', () => {
     const g = atAim('zigzag');
     const p = g.shooter;
-    for (let i = 0; i < RULES.strokeCap; i++) {
+    expect(g.cap, 'Zig Zag is par 4: par + 3').toBe(7);
+    for (let i = 0; i < g.cap; i++) {
       for (let n = 0; !(g.phase === 'aim' && g.shooter === p) && n < 5000; n++) {
         if (g.phase === 'aim') shoot(g, Math.PI / 2, 0.06); // the other player putts too
         else g.step(DT, [NO_INTENT, NO_INTENT]);
@@ -191,7 +192,17 @@ describe('minigolf match', { timeout: 60_000 }, () => {
     }
     expect(g.balls[p].done).toBe(true);
     expect(g.balls[p].sunk).toBe(false);
-    expect(g.balls[p].strokes).toBe(RULES.strokeCap);
+    expect(g.balls[p].strokes).toBe(g.cap);
+  });
+
+  it('the stroke cap is 6, or par + 3 on long holes, so a kid can finish a par 5', () => {
+    // Nov 2026, easy bots, 12 seeds: a flat cap of 6 picked up 71% of balls on Twin Gates
+    // (par 5) and 21% on Switchback (par 4); par + 3 brings them to 50% and 4%.
+    for (const h of HOLES) {
+      const g = atAim(h.id);
+      expect(g.cap, h.id).toBe(Math.max(RULES.strokeCap, h.par + RULES.capOverPar));
+      expect(g.cap - h.par, h.id).toBeGreaterThanOrEqual(3);
+    }
   });
 
   it('a straight putt drops in the cup, a screamer lips out', () => {

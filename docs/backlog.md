@@ -630,6 +630,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       a bank shot would give a strong grown-up something to chase.
 - [ ] Minigolf: Twin Gates (easy 5.3, normal 4.2 strokes) and Switchback are long for a small
       kid with a 6-stroke cap; check the cap is hit rarely with the head start on.
+      2026-11-07: checked (easy bots, 12 seeds; the head start doesn't change a bot's shots,
+      only the net score): a flat cap of 6 picked up 71% of balls on Twin Gates (par 5) and
+      13-21% on the par 4s. The cap is now 6 or par + 3, whichever is more (`Minigolf.cap`):
+      Twin Gates 50%, Switchback 4%, Zig Zag 4%; the "Picked up · N" pop shows the hole's cap.
+- [ ] Twin Gates is still the one hole an easy bot can't finish half the time (6.6 strokes
+      on par 5, picked up at 8 in 50%). Soften it (a wider gate) or move it out of a small
+      kid's draw, measured with easy bots over 12 seeds.
 
 ## Ideas found 2026-11-01 (FIRE rim run)
 - [ ] The same owner-colour band could go on other shared-looking buttons: Penalty's and

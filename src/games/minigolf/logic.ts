@@ -15,7 +15,10 @@ export const HOLES = (holesData as unknown as { holes: HoleDef[] }).holes;
 
 export const RULES = {
   holesPerMatch: 3,
+  /** Most strokes on a hole before the ball is picked up: this, or par + capOverPar on long holes. */
   strokeCap: 6,
+  /** A par-4 or par-5 hole allows par + 3 (a kid on Twin Gates was picked up 71% of the time at 6). */
+  capOverPar: 3,
   introTime: 1.9,
   turnTime: 0.75,
   settleTime: 0.7,
@@ -119,6 +122,11 @@ export class Minigolf {
     this.firstLeadOff = this.leadOff;
     this.balls = [this.newBall(), this.newBall()];
     this.startHole(0);
+  }
+
+  /** Strokes on the current hole before the ball is picked up. */
+  get cap(): number {
+    return Math.max(RULES.strokeCap, this.hole.par + RULES.capOverPar);
   }
 
   get hole(): HoleDef {
@@ -299,8 +307,8 @@ export class Minigolf {
     } else {
       this.events.push({ type: 'stop', p, x: b.x, y: b.y });
     }
-    if (!b.done && b.strokes >= RULES.strokeCap) {
-      b.strokes = RULES.strokeCap;
+    if (!b.done && b.strokes >= this.cap) {
+      b.strokes = this.cap;
       b.done = true;
       this.events.push({ type: 'pickup', p });
     }
