@@ -174,6 +174,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       fails on words past the screen edge (`__edges` probe). It found Sumo's round banner,
       Penalty's "Shot picked! Swipe again to change" and Snake's CRASH! by a wall running
       off; fx pops now shrink to fit and stay inside the edges (`insideX`). Menus: F7b.
+      2026-11-07 (F7b, menus): the same switch scales every menu font up to 20 px by 1.2
+      (`--ts` on <html data-bigtext>): home, settings, pause, result. The intro stays at 1x:
+      with bigger rules and power cards it overflowed in 8 games at 320x568 and 390x844
+      (F7c). The layout playtest runs the intro fit, home and settings again with it on.
 
 ## Content
 - [ ] Mini pool (first update).

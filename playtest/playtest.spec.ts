@@ -229,6 +229,14 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
   const clipped: string[] = [];
   // A common Android size, the smallest iPhone still in families' drawers (SE 1st gen), and a
   // tall phone (390×844), which gets the bigger desktop-size intro text.
+  // Then again with Settings > Bigger text on (menu words 1.2x).
+  for (const big of [false, true]) {
+    await page.evaluate((on) => {
+      const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void } }).__famiduel;
+      app.store.data.settings.bigText = on;
+      app.applyBigText();
+    }, big);
+    const tag = big ? ' (bigger text)' : '';
   for (const [w, h] of [[360, 640], [320, 568], [390, 844]]) {
     await page.setViewportSize({ width: w, height: h });
     for (const id of built) {
@@ -250,15 +258,36 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
           return { shown: !!d, fits: head.scrollWidth <= head.clientWidth + 1 && (!dr || (dr.left >= hr.left && dr.right <= hr.right)) };
         }),
       );
-      if (demo.some((d) => !d.shown)) clipped.push(`${id} at ${w}x${h}: no ghost finger on a first match`);
-      if (demo.some((d) => !d.fits)) clipped.push(`${id} at ${w}x${h}: ghost finger pushes the title off the phone`);
+      if (demo.some((d) => !d.shown)) clipped.push(`${id} at ${w}x${h}${tag}: no ghost finger on a first match`);
+      if (demo.some((d) => !d.fits)) clipped.push(`${id} at ${w}x${h}${tag}: ghost finger pushes the title off the phone`);
       if (bad || demo.some((d) => !d.shown || !d.fits)) {
-        if (bad) clipped.push(`${id} at ${w}x${h}`);
-        await page.screenshot({ path: path.join(OUT, `${id}-intro-clipped-${w}x${h}.png`) });
+        if (bad) clipped.push(`${id} at ${w}x${h}${tag}`);
+        await page.screenshot({ path: path.join(OUT, `${id}-intro-clipped-${w}x${h}${big ? '-big' : ''}.png`) });
       }
       await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
     }
   }
+    if (big) {
+      // Home and settings with Bigger text on a small phone: nothing sideways, screenshots for the eye.
+      await page.setViewportSize({ width: 320, height: 568 });
+      await page.evaluate(() => window.scrollTo(0, 0));
+      expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), 'home scrolls sideways at 320px with bigger text').toBe(false);
+      await page.screenshot({ path: path.join(OUT, 'bigtext-home-320.png') });
+      await page.click('#settingsBtn');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), 'settings scroll sideways at 320px with bigger text').toBe(false);
+      const cut = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('#settings .set-txt b')].filter((b) => b.scrollWidth > b.parentElement!.clientWidth + 1 || b.getBoundingClientRect().right > b.parentElement!.getBoundingClientRect().right + 1).map((b) => b.textContent),
+      );
+      expect(cut, 'settings labels cut off at 320px with bigger text').toEqual([]);
+      await page.screenshot({ path: path.join(OUT, 'bigtext-settings-320.png') });
+      await page.click('#settingsBack');
+    }
+  }
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void } }).__famiduel;
+    app.store.data.settings.bigText = false;
+    app.applyBigText();
+  });
   expect(clipped, 'intro content cut off on a phone').toEqual([]);
   expect(errors).toEqual([]);
 });
