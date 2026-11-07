@@ -972,4 +972,5 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       it reads as "mine" with an empty meter too (the FIRE rim idea, for Penalty, Snack Snatch
       and every other game). Playtest "power buttons: each wears a band..." samples both
       seats in Penalty, Snack Snatch and Air Hockey.
-- [ ] Quick Draw's two DRAW pads could get the same owner band, if kids mix them up.
+- [x] Quick Draw's two DRAW pads: no band needed, each SQUIRT! button is already filled with
+      its owner's colour (quickdraw/index.ts drawButton).
