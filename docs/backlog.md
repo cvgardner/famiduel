@@ -468,8 +468,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2026-11-07 (F77, PR #PRNUM3): Ping Pong (smash streak, the ball slowing on your side, a
       return bending away from the paddle), Penalty (a shot swinging wide and back, your keeper
       spreading wide, a fake ball beside the real one) and Snack Snatch (snacks drifting to you,
-      slowing on your side, a snap reaching twice as far) have pictures too. Left: Tanks, Snake,
-      Chop Chop, Quick Draw, Sea Battle.
+      slowing on your side, a snap reaching twice as far) have pictures too.
+      2026-11-07 (F78, PR #PRNUM4): and Tanks, Snake, Chop Chop, Quick Draw and Sea Battle, so
+      every game with powers has a picture for each (unit test covers all 33; the how-to-play
+      playtest checks every one shows and moves).
 - [x] 2026-11-01 (PR #69): Penalty's demo showed only the shooter's swipe. New `kick` gesture
       loops both roles: swipe the ball, then the keeper's tap on a dive button.
 

@@ -4,11 +4,14 @@ import games from '../content/games.json';
 import { hasPowerPic, powerPicHtml } from '../src/app/powerpic';
 import { howToHalfHtml } from '../src/app/demo';
 
-const FREE = ['minigolf', 'airhockey', 'sumo', 'pingpong', 'penalty', 'snacksnatch'];
+// Every shown game with powers (hidden board games get no work).
+const shown = new Set(games.games.filter((g) => !(g as { hidden?: boolean }).hidden).map((g) => g.id));
 const table = (powers as { games: Record<string, { id: string; name: string; icon: string; desc: string }[]> }).games;
 
 describe('power pictures', () => {
-  it('every power of the pictured games has a looping picture', () => {
+  it('every power of every shown game has a looping picture', () => {
+    const FREE = Object.keys(table).filter((g) => shown.has(g));
+    expect(FREE.length).toBe(11);
     for (const g of FREE) {
       expect(table[g]?.length, g).toBe(3);
       for (const p of table[g]) {

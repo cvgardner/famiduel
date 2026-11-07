@@ -498,7 +498,7 @@ test('ghost finger: a "?" brings it back after the first matches, on a small pho
   expect(errors).toEqual([]);
 });
 
-const FREE_PICS = ['minigolf', 'airhockey', 'sumo', 'pingpong', 'penalty', 'snacksnatch'];
+const PICTURED = ['minigolf', 'airhockey', 'sumo', 'pingpong', 'penalty', 'snacksnatch', 'tanks', 'snake', 'chopchop', 'quickdraw', 'seabattle'];
 
 test('how to play: the pause menu shows each player the finger, the rules and their power', async ({ page }) => {
   const errors: string[] = [];
@@ -530,12 +530,17 @@ test('how to play: the pause menu shows each player the finger, the rules and th
         };
       }),
     );
-    // The free games' powers come with a looping picture (app/powerpic.ts) that really moves.
-    if (FREE_PICS.includes(id)) {
+    // Every game's powers come with a looping picture (app/powerpic.ts) that really moves.
+    if (PICTURED.includes(id)) {
       const pose = () =>
         page.evaluate(() =>
-          [...document.querySelectorAll('.pause-help .power-pic circle')]
-            .map((c) => { const e = c as SVGCircleElement; return `${e.cx.animVal.value},${e.cy.animVal.value},${e.r.animVal.value}`; })
+          [...document.querySelectorAll('.pause-help .power-pic :is(circle, rect, line)')]
+            .map((el) => {
+              // Where each shape is right now (SMIL moves the anim values) and how it looks.
+              const a = (k: string) => ((el as unknown as Record<string, { animVal: { value: number } } | undefined>)[k]?.animVal.value ?? '');
+              const cs = getComputedStyle(el);
+              return [a('cx'), a('cy'), a('r'), a('x'), a('y'), a('width'), a('x1'), a('x2'), a('y2'), cs.opacity, cs.fill].join(',');
+            })
             .join(' '),
         );
       const a = await pose();
