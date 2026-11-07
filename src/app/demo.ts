@@ -116,7 +116,18 @@ function chargeHtml(c: { value: number; active: number }): string {
   return `<span class="charge ${st.cls}"><span class="charge-bar"><i style="width:${Math.round(fill * 100)}%"></i></span>${st.text}</span>`;
 }
 
-export function howToHalfHtml(seat: HowToSeat, game: { icon: string; name: string; howTo: string; gesture?: string }): string {
+/**
+ * The colour-free seat cue in words (see seatRing in engine/draw.ts): player 0's piece has a
+ * solid white ring, player 1's a dashed one. Shown on a person's half of the intro and of
+ * How to play in the games that draw the ring, so a kid knows which piece is theirs before
+ * round 1 even when both colours look alike to them.
+ */
+export function seatCueHtml(p: number): string {
+  const dash = p === 1 ? ' stroke-dasharray="5 4"' : '';
+  return ` <span class="seat-cue"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="rgba(20,17,43,.7)" stroke-width="4"${dash}/><circle cx="12" cy="12" r="8" fill="none" stroke="#fff" stroke-width="2"${dash}/></svg> yours: <b>${p === 1 ? 'dashed' : 'solid'} ring</b></span>`;
+}
+
+export function howToHalfHtml(seat: HowToSeat, game: { icon: string; name: string; howTo: string; gesture?: string; seatRing?: boolean }): string {
   const g = isGesture(game.gesture) ? game.gesture : null;
   const head = `<div class="intro-head"><div class="intro-title">${game.icon} ${game.name}</div>${g && !seat.bot ? demoHtml(g, !!seat.lefty) : ''}</div>`;
   const body = seat.bot
@@ -126,5 +137,5 @@ export function howToHalfHtml(seat: HowToSeat, game: { icon: string; name: strin
             seat.charge ? chargeHtml(seat.charge) : ''
           }</p>` : ''
       }`;
-  return `<div class="half p${seat.p}${seat.bot ? ' bot' : ''}" style="--c:${seat.color}"><div class="half-inner">${head}${body}<div class="who">${escHtml(seat.name)}${seat.bot ? ' 🤖' : ''}</div></div></div>`;
+  return `<div class="half p${seat.p}${seat.bot ? ' bot' : ''}" style="--c:${seat.color}"><div class="half-inner">${head}${body}<div class="who">${escHtml(seat.name)}${seat.bot ? ' 🤖' : game.seatRing ? seatCueHtml(seat.p) : ''}</div></div></div>`;
 }
