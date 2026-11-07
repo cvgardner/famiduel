@@ -255,7 +255,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (n=100, normal bots: smash 63%, slow-mo 44%, curve 49%; `npm run swipes` unchanged).
 - [ ] Quick Draw Slow Time wins 74%; Ping Pong Smash 71% (Slow-mo 34%); Tanks Shield 68%;
       Air Hockey Split 33% (loses to None 40/60).
-- [x] 2026-11-07 (F20, PR #TBD): Quick Draw bots jump the gun like people: each round a bot
+- [x] 2026-11-07 (F20, PR #105): Quick Draw bots jump the gun like people: each round a bot
       may twitch during the wait with nothing on screen (easy 10%, normal 4%, hard 1%; about
       9 / 2 / 1% of rounds lost early in bot mirrors). `npm run sim:powers -- --game quickdraw
       --n 300`: Slow Time 74% -> 65% (the edge of the 35-65% band), Double Shot now beats None
