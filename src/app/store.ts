@@ -30,6 +30,14 @@ export function seatName(profiles: readonly [Profile, Profile], p: PlayerIndex):
 
 export const BOT_LEVELS: readonly BotLevel[] = ['easy', 'normal', 'hard'];
 
+/**
+ * Each bot level's own face, shown beside its level everywhere the bot is named (intro
+ * level buttons, the seat's name line, the home chip, the result), so a kid who can't read
+ * "Easy" yet still knows which bot they are playing or just beat. No new words.
+ */
+export const BOT_FACES: Readonly<Record<BotLevel, string>> = { easy: '😴', normal: '🤔', hard: '😎' };
+export const botFace = (level: BotLevel): string => BOT_FACES[level];
+
 /** Who plays this seat in this game: null for a person, else the bot's level. */
 export function botFor(pr: Profile, game: string): BotLevel | null {
   if (!pr.bot) return null;
