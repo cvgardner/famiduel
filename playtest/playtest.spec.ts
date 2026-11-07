@@ -2434,6 +2434,97 @@ test('bigger text: every shown game keeps its words on screen, small and tall ph
   expect(errors).toEqual([]);
 });
 
+// F79: with the phone's "reduce motion" on, the power pictures hold one frame and the
+// ghost finger stands still; turning it off sets them moving again.
+test('reduced motion: power pictures and the ghost finger hold still', async ({ page }) => {
+  const errors: string[] = [];
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await boot(page, errors);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await setPlayers(page, [null, null]);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
+  await expect(page.locator('#intro')).toBeVisible();
+  await page.locator('.power-card[data-p="0"]').first().tap();
+  const pic = page.locator('.power-card[data-p="0"].on .power-pic');
+  await expect(pic).toBeVisible();
+  const state = () =>
+    pic.evaluate((svg) => ({ paused: (svg as SVGSVGElement).animationsPaused(), t: (svg as SVGSVGElement).getCurrentTime() }));
+  const a = await state();
+  expect(a.paused).toBe(true);
+  expect(a.t).toBeCloseTo(1, 1);
+  const shot1 = await pic.screenshot();
+  await page.waitForTimeout(700);
+  expect((await pic.screenshot()).equals(shot1), 'the picture did not move').toBe(true);
+  // The intro's ghost finger (shown for a game's first matches) has no animation.
+  const finger = page.locator('.half.p0 .demo .f');
+  if (await finger.count()) expect(await finger.evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
+  await page.screenshot({ path: path.join(OUT, 'reduced-motion-intro.png') });
+  // The phone's setting turned off mid-session: the picture loops again.
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect.poll(async () => (await state()).paused).toBe(false);
+  expect(errors).toEqual([]);
+});
+
+// F80: Settings > Look > Little hands makes the intro's Ready, power cards and bot level
+// buttons at least 56 px tall (ages 4-6 guidance asks 56-64 px); every intro still fits.
+test('little hands: big intro buttons, and every intro still fits', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  await boot(page, errors);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.click('#settingsBtn');
+  await page.locator('input[data-k="bigButtons"]').check();
+  expect(await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.store.data.settings.bigButtons)).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.dataset.bighands)).toBe('1');
+  await page.click('#settingsBack');
+  const setBig = (on: boolean) =>
+    page.evaluate((v) => {
+      const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void } }).__famiduel;
+      app.store.data.settings.bigText = v;
+      app.applyBigText();
+    }, on);
+  const problems: string[] = [];
+  for (const players of [[null, null], [null, 'easy']] as const) {
+    await setPlayers(page, [...players]);
+    for (const big of [false, true]) {
+      await setBig(big);
+      for (const [w, h] of [[320, 568], [360, 640], [390, 844]]) {
+        await page.setViewportSize({ width: w, height: h });
+        for (const id of built) {
+          const r = await page.evaluate((g) => {
+            const app = (window as unknown as { __famiduel: Hook }).__famiduel;
+            app.openGame(g);
+            // Pick the first power in each person's half: the picked layout is the tallest.
+            for (const c of document.querySelectorAll<HTMLElement>('.half:not(.bot) .power-card:first-child')) c.click();
+            const small = [...document.querySelectorAll<HTMLElement>('#intro .btn.ready, #intro .power-card, #intro .botlvl button')]
+              .map((b) => Math.round(b.getBoundingClientRect().height))
+              .filter((hgt) => hgt < 56);
+            const over = [...document.querySelectorAll('#intro .half')].some(
+              (hf) => (hf.querySelector('.half-inner') as HTMLElement).getBoundingClientRect().height > (hf as HTMLElement).getBoundingClientRect().height + 1,
+            );
+            return { small, over };
+          }, id);
+          const tag = `${id} at ${w}x${h}${big ? ' (bigger text)' : ''}${players[1] ? ' vs bot' : ''}`;
+          if (r.small.length) problems.push(`${tag}: buttons ${r.small.join(', ')} px`);
+          if (r.over) {
+            problems.push(`${tag}: intro spills out of its half`);
+            await page.screenshot({ path: path.join(OUT, `bighands-clipped-${id}-${w}x${h}${big ? '-big' : ''}.png`) });
+          }
+          if (id === 'sumo' && w !== 360) await page.screenshot({ path: path.join(OUT, `bighands-sumo-${w}${big ? '-big' : ''}${players[1] ? '-bot' : ''}.png`) });
+        }
+      }
+    }
+  }
+  await setBig(false);
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void } }).__famiduel;
+    app.store.data.settings.bigButtons = false;
+    app.applyBigText();
+  });
+  expect(problems).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 // Short phones and Bigger text have no room for power descriptions inside the narrow cards:
 // the Ready button tells a person who hasn't picked that a tap shows what a power does, and
 // the picked power's description takes the how-to's place, so the half never grows. Every
