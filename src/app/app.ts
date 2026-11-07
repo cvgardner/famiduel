@@ -374,7 +374,7 @@ export class App {
       const bot = botFor(pr, id);
       const again = !!gesture && !firstMatches && !bot && this.help.wants(id, p, pr.name);
       if (again) this.helpShown.push({ p, who: pr.name });
-      return `<div class="half p${p}${bot ? ' bot' : ''}" style="--c:${pr.color}">
+      return `<div class="half p${p}${bot ? ' bot' : ''}" style="--c:${pr.color};--ink:${inkOn(pr.color)}">
         <div class="half-inner">
           <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${!gesture ? '' : firstMatches || again ? demoHtml(gesture, !!pr.lefty && !bot) : bot ? '' : demoHelpHtml(p)}</div>
           <p class="howto">${meta.howTo}</p>
@@ -633,7 +633,7 @@ export class App {
       // In solo play the bot's half speaks about the bot, not to it.
       const botHalf = solo && !!seats?.[p].bot;
       const title = draw ? 'Draw!' : botHalf ? (won ? 'Bot wins' : 'Bot lost') : won ? 'You win!' : 'So close!';
-      return `<div class="half p${p} ${won ? 'won' : ''}" style="--c:${profiles[p].color}"><div class="half-inner">
+      return `<div class="half p${p} ${won ? 'won' : ''}" style="--c:${profiles[p].color};--ink:${inkOn(profiles[p].color)}"><div class="half-inner">
         <div class="res-title">${title}</div>
         <div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>
         <div class="who">${esc(seatName(profiles, p))}${won ? ' 🏆' : ''}</div>

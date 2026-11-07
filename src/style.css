@@ -213,13 +213,15 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .power-card .picon { font-size: 26px; }
 .power-card b { font-size: 13px; }
 .power-card small { font-size: 12px; color: var(--dim); line-height: 1.2; }
-.btn.ready { min-width: 180px; background: var(--c); color: #fff; }
+/* --ink (inkOn) is white or dark, whichever reads on the seat colour: white on Mint was 2.4:1. */
+.btn.ready { min-width: 180px; background: var(--c); color: var(--ink, #fff); }
 .btn.ready.on { background: var(--good, #5eead4); color: #14112b; }
-.who { font-weight: 800; color: var(--c); }
+/* Lifted toward white so a dark seat colour (Pink, Purple) still reads on the tinted half. */
+.who { font-weight: 800; color: color-mix(in srgb, var(--c) 72%, #fff); }
 /* A bot's level row sits where a person's Ready button would, at the same height. */
 .botlvl { flex-wrap: nowrap; width: 100%; max-width: 300px; }
 .botlvl button { min-height: 48px; font-size: 14px; }
-.botlvl button.on { background: var(--c); color: #fff; box-shadow: 0 0 0 2px var(--gold) inset; }
+.botlvl button.on { background: var(--c); color: var(--ink, #fff); box-shadow: 0 0 0 2px var(--gold) inset; }
 .intro-mid { flex: none; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 8px 12px; background: #0e0c20; color: var(--dim); font-weight: 700; font-size: 13px; }
 .res-title { font-size: 40px; font-weight: 900; }
 .half.won .res-title { color: var(--gold); }

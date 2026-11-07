@@ -212,7 +212,9 @@ class ChopView implements GameInstance {
     for (let i = 0; i < RULES.winRounds; i++) circle(gx, bx + bw + 22, L.barY + 4 + i * 20 - 0, 7, i < g.score[p] ? COLORS.gold : 'rgba(255,255,255,0.35)', 'rgba(0,0,0,0.3)', 1.5);
     // Rival progress, small
     const o = g.choppers[other(p)];
-    text(gx, `them: ${o.chops}`, bx - 4, L.barY + 30, { size: 13, color: 'rgba(30,40,60,0.75)', align: 'left' });
+    // On a dark pill like the goal label: dark text over the sky fell under 4.5:1 with light seats.
+    rrect(gx, bx - 10, L.barY + 20, 74, 20, 10, 'rgba(20,20,40,0.75)');
+    text(gx, `them: ${o.chops}`, bx - 3, L.barY + 30, { size: 13, color: '#ffffff', align: 'left' });
     // Power status
     if (c.double > 0) text(gx, `✌️ x2 ·${c.double}`, W / 2 + 96, L.barY + 54, { size: 16, color: COLORS.gold, stroke: 'rgba(0,0,0,0.4)' });
     // Tap hints near the player's edge, on a dark pill so they stay readable over the
