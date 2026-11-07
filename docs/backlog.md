@@ -967,7 +967,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       `npm run golf` already go easy > normal > hard).
 
 ## Ideas found 2026-11-07 (minigolf card ink run)
-- [x] 2026-11-07 (F48, PR #PRNUM): the playtest summary warned "Bot 2 tees off first" was
+- [x] 2026-11-07 (F48, PR #109): the playtest summary warned "Bot 2 tees off first" was
       only seen fading in. Checked by hand: in Purple that line (14 px) was about 3.5:1 on the
       hole card, and "<name>'s shot" (17 px) the same on its banner. Both now go through
       `liftOn(colour, card)` (engine/fx.ts, the general form of popColor), tested for every
