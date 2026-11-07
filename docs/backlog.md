@@ -854,3 +854,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       kid with the full head start 0% against the easy bot (`npm run sim`). Decide per game
       whether that is fine (a kid who plays at all does better) or the head start should
       cover mashing too (e.g. Quick Draw forgives early taps at assist 3).
+
+## Ideas found 2026-11-07 (Twin Gates run)
+- [x] 2026-11-07 (F29): Twin Gates' two gaps were 100 units wide with a slider and a windmill
+      in them, so easy players were picked up at the cap (8) in half their holes. The gaps are
+      now 140 (walls end at 110 / start at 250); slider, windmill and sand stay.
+      `npm run golf -- --hole gates --n 60`: easy 6.6 → 5.4 strokes, picked up 50% → 10%;
+      normal 4.6 → 3.3; hard 2.6 → 2.2. Par stays 5 (par 4 would cap at 7 and pick easy
+      players up 18% of the time).
+- [ ] Twin Gates is now easier than Switchback for normal and hard bots (3.3 vs 3.8): if hole
+      order should stay easiest-first, swap them in `content/minigolf-holes.json`.
