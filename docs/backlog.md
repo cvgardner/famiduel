@@ -965,3 +965,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Penalty, Minigolf and Sea Battle aren't in `scripts/simlib.ts`, so only hard v easy is
       tested for them; add the normal step there too (Minigolf: strokes per level from
       `npm run golf` already go easy > normal > hard).
+
+## Ideas found 2026-11-07 (minigolf card ink run)
+- [x] 2026-11-07 (F48, PR #PRNUM): the playtest summary warned "Bot 2 tees off first" was
+      only seen fading in. Checked by hand: in Purple that line (14 px) was about 3.5:1 on the
+      hole card, and "<name>'s shot" (17 px) the same on its banner. Both now go through
+      `liftOn(colour, card)` (engine/fx.ts, the general form of popColor), tested for every
+      seat colour on both cards over white, grass and the floor; the Purple-vs-Mint contrast
+      playtest now plays Minigolf too.
+- [ ] Other words drawn in a player colour on a see-through card (search `players[..].color`
+      next to an rgba card) could get the same `liftOn` check.
+

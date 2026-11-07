@@ -1995,7 +1995,7 @@ test('contrast: Mint vs Orange, the lightest seats, in every shown game', async 
   // power user's colour, so those small pops are judged in Purple too.
   const runs = [
     ...shown.map((g) => ({ g, a: mint, b: orange, tag: 'mint-orange' })),
-    ...shown.filter((g) => ['snake', 'tanks', 'quickdraw'].includes(g.id)).map((g) => ({ g, a: purple, b: mint, tag: 'purple-mint' })),
+    ...shown.filter((g) => ['snake', 'tanks', 'quickdraw', 'minigolf'].includes(g.id)).map((g) => ({ g, a: purple, b: mint, tag: 'purple-mint' })),
   ];
   for (const { g, a: seatA, b: seatB, tag } of runs) {
     await page.evaluate(([a, b]) => {

@@ -155,3 +155,30 @@ describe('home game cards', () => {
     }
   });
 });
+
+describe('minigolf words in a player colour on its dark cards', () => {
+  it('"<name> tees off first" and "<name>\'s shot" read at 4.5:1 for every seat colour, even on white', async () => {
+    const { liftOn, popColor } = await import('../src/engine/fx');
+    const { INTRO_CARD, BANNER_CARD } = await import('../src/games/minigolf/index');
+    const { over } = await import('../src/core/contrast');
+    for (const card of [INTRO_CARD, BANNER_CARD]) {
+      for (const behind of ['#ffffff', '#4caf50', '#14112b']) {
+        const floor = over(parseColor(card)!, rgb(behind));
+        for (const c of PLAYER_COLORS) {
+          expect(contrastRatio(parseColor(liftOn(c.hex, card))!.slice(0, 3) as [number, number, number], floor), `${c.name} on ${card} over ${behind}`).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    }
+    // Purple needed it (about 3.5:1 before); colours that read keep their exact hue.
+    const purple = PLAYER_COLORS.find((c) => c.name === 'Purple')!.hex;
+    const mint = PLAYER_COLORS.find((c) => c.name === 'Mint')!.hex;
+    expect(liftOn(purple, INTRO_CARD)).not.toBe(purple);
+    expect(liftOn(mint, INTRO_CARD)).toBe(mint);
+    // popColor is liftOn against the opaque floor, unchanged.
+    expect(popColor('#15e5b4')).toBe('#15e5b4');
+    const src = (await import('node:fs')).readFileSync('src/games/minigolf/index.ts', 'utf8');
+    expect(src).toMatch(/tees off first`;\n\s*text\(gx, who,[^;]*liftOn\(/);
+    expect(src).toMatch(/'s shot`, W \/ 2, y, \{[^}]*liftOn\(c, BANNER_CARD\)/);
+  });
+});
+
