@@ -14,7 +14,7 @@ const BLANKET = '#fff6ec';
 export const SURFACES: readonly string[] = [GRASS, BLANKET];
 
 /** Snack looks: cookie, donut, berry, cracker. */
-const KINDS = ['#d9a066', '#ff8fc2', '#ff5c7a', '#f4c96b'];
+const KINDS = ['#d9a066', '#ff8fc2', '#ff5c7a', '#f4c96b', '#6ec8ff', '#ffa24c'];
 
 class SnackSnatchView implements GameInstance {
   readonly game: SnackSnatch;
@@ -286,6 +286,37 @@ class SnackSnatchView implements GameInstance {
       circle(gx, sn.x, sn.y, r, col, shade(col, -0.35), 2);
       circle(gx, sn.x - 3, sn.y - 3, 2.5, 'rgba(255,255,255,0.6)');
       circle(gx, sn.x, sn.y - r + 1, 3, '#3fbf6a');
+    } else if (sn.kind === 4) {
+      // Wrapped sweet: twisted wrapper ends either side
+      const wing = shade(col, -0.2);
+      for (const sx of [-1, 1]) {
+        gx.beginPath();
+        gx.moveTo(sn.x + sx * (r - 2), sn.y);
+        gx.lineTo(sn.x + sx * (r + 5), sn.y - 6);
+        gx.lineTo(sn.x + sx * (r + 5), sn.y + 6);
+        gx.closePath();
+        gx.fillStyle = wing;
+        gx.fill();
+      }
+      circle(gx, sn.x, sn.y, r - 1, col, shade(col, -0.35), 2);
+      gx.strokeStyle = 'rgba(255,255,255,0.75)';
+      gx.lineWidth = 2;
+      gx.beginPath();
+      gx.arc(sn.x, sn.y, r * 0.5, Math.PI * 1.1, Math.PI * 1.7);
+      gx.stroke();
+    } else if (sn.kind === 5) {
+      // Orange slice: pale rind and segments
+      circle(gx, sn.x, sn.y, r, '#fff1d6', shade(col, -0.3), 2);
+      circle(gx, sn.x, sn.y, r * 0.8, col);
+      gx.strokeStyle = '#fff1d6';
+      gx.lineWidth = 1.4;
+      gx.beginPath();
+      for (let k = 0; k < 6; k++) {
+        const a = (k * Math.PI) / 3;
+        gx.moveTo(sn.x, sn.y);
+        gx.lineTo(sn.x + Math.cos(a) * r * 0.8, sn.y + Math.sin(a) * r * 0.8);
+      }
+      gx.stroke();
     } else {
       // Cracker
       rrect(gx, sn.x - r, sn.y - r, r * 2, r * 2, 4, col, shade(col, -0.3), 2);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel, PowerDef } from '../src/core/types';
-import { RULES, SnackSnatch, SnackSnatchBot, type Intent, type Snack } from '../src/games/snacksnatch/logic';
+import { RULES, SNACK_KINDS, SnackSnatch, SnackSnatchBot, type Intent, type Snack } from '../src/games/snacksnatch/logic';
 import { DT, player, power } from './helpers';
 
 function play(levels: [BotLevel, BotLevel], seed: number, opts: { powers?: [PowerDef, PowerDef]; assist?: [number, number] } = {}) {
@@ -179,6 +179,26 @@ describe('snack snatch', () => {
         expect(q.vy).toBeCloseTo(-p.vy);
         expect(q.y - 320).toBeCloseTo(-(p.y - 320));
       }
+    }
+  });
+
+  it('a match serves every snack kind, all worth the same', () => {
+    const kinds = new Set<number>();
+    for (let seed = 1; seed <= 12; seed++) {
+      const g = new SnackSnatch([player(), player()], false, makeRng(seed));
+      for (let i = 0; i < RULES.matchTime / DT && !g.finished; i++) {
+        g.step(DT, [idle, idle]);
+        for (const s of g.snacks) if (!s.gold) kinds.add(s.kind);
+      }
+    }
+    expect([...kinds].sort()).toEqual([...Array(SNACK_KINDS).keys()]);
+    for (const kind of [0, SNACK_KINDS - 1]) {
+      const g = game();
+      const c = g.critters[0][0];
+      only(g, { x: c.x, y: c.restY - 60, kind });
+      g.step(DT, [{ snap: [true, false], power: false }, idle]);
+      for (let i = 0; i < 12; i++) g.step(DT, [idle, idle]);
+      expect(g.score, `kind ${kind}`).toEqual([1, 0]);
     }
   });
 

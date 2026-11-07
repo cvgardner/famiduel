@@ -200,12 +200,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       mid-fade). The card and the shot banner now fade their words with the card, and the
       contrast probe judges a label at rest: a label only ever caught mid-fade is a report
       warning, not a failure (`keepSample` in engine/draw.ts, unit tested).
-- [ ] More tank arenas, more Snack Snatch snack types.
+- [x] More tank arenas, more Snack Snatch snack types.
   - [x] 2026-11-07 (F84): Tank Duel has 8 arenas (new: Pillars, Crosses, Diamonds). Measured with
         150 rounds of each bot pairing per arena: rounds average 5-10 s like the old five, and
         self-bonks and seat splits sit inside the old arenas' range (a maze-like "Hallways" try
         was dropped: the top seat won 98 of 137 normal rounds). tests/tanks.test.ts plays a round
         on each arena; the playtest saves tanks-arena-<name>.png for each.
+  - [x] 2026-11-07 (F85): Snack Snatch serves six snack kinds (new: a wrapped sweet and an orange
+        slice, drawn in code). Looks only: every kind scores 1, a mirrored pair shares its kind, and
+        the pot makes the same number of random draws, so matches play out exactly as before.
 
 ## Ideas found 2026-10-31
 - [x] 2026-10-31: Sumo: a mashing kid never won a match against any bot, even with the
