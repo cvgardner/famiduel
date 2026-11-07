@@ -92,6 +92,26 @@ describe('sea battle', () => {
     expect(a.actions).toBe(b.actions);
   });
 
+  it('each level is a step up: normal beats easy, hard beats normal (seats swapped)', () => {
+    // The middle step too, not just hard v easy (a rival app's reviews: "the stronger bot
+    // doesn't seem more powerful"). tests/bot-levels.test.ts does this for the sim games.
+    // 2026-11-07 (n=20): Penalty 95% / 80%, Sea Battle 80% / 85%, Minigolf 95% / 90%.
+    const share = (a: BotLevel, b: BotLevel) => {
+      let wins = 0;
+      const N = 20;
+      for (let s = 0; s < N; s++) {
+        const aSeat = (s % 2) as PlayerIndex;
+        const lv: [BotLevel, BotLevel] = aSeat === 0 ? [a, b] : [b, a];
+        if (play(lv, 300 + s).g.winner === aSeat) wins++;
+      }
+      return wins / N;
+    };
+    const ne = share('normal', 'easy');
+    const hn = share('hard', 'normal');
+    expect(ne, 'normal v easy').toBeGreaterThanOrEqual(0.6);
+    expect(hn, 'hard v normal').toBeGreaterThanOrEqual(0.55);
+  }, 60_000);
+
   it('a hard bot beats an easy bot most of the time', () => {
     let wins = 0;
     for (let s = 0; s < 10; s++) {
