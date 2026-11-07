@@ -1758,6 +1758,42 @@ for (const [id, person] of boardPersons) {
   });
 }
 
+// Minigolf is a turn game too: while the bot lines up its shot, the person's strip says so
+// with the same line as the board games ("🤖 Bot is thinking…").
+test('minigolf: the waiting player sees the bot lining up', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await page.evaluate(() => ((window as unknown as { __contrast: { on: boolean } }).__contrast.on = true));
+  await setPlayers(page, [null, 'normal']);
+  await openFromHome(page, 'minigolf');
+  await introAsPeople(page, [0]);
+  await page.waitForTimeout(2200); // countdown
+  const botLine = '🤖 Bot is thinking…';
+  type GolfHook = { runner: null | { game: { game: { phase: string; shooter: number } } } };
+  const botAiming = () =>
+    page.evaluate(() => {
+      const g = (window as unknown as { __famiduel: GolfHook }).__famiduel.runner!.game.game;
+      return g.phase === 'aim' && g.shooter === 1;
+    });
+  const seen = () =>
+    page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, unknown> } }).__contrast.seen.keys()]);
+  // The person takes their shots (the monkey drags in the bottom half); catch the bot's turn once.
+  let shot = false;
+  const watch = async () => {
+    for (let i = 0; i < 120 && !shot; i++) {
+      if ((await botAiming()) && (await seen()).includes(botLine)) {
+        await page.screenshot({ path: path.join(OUT, 'minigolf-bot-thinking.png') });
+        shot = true;
+      } else await page.waitForTimeout(100);
+    }
+  };
+  await Promise.all([monkey(page, 0, 12000, 7), watch()]);
+  expect(await seen(), "the person's strip names the bot lining up").toContain(botLine);
+  expect(shot).toBe(true);
+  expect(errors).toEqual([]);
+});
+
 // Hidden games (content/games.json) have no home card; their own checks above still run.
 for (const g of games.games.filter((x) => !x.hidden)) {
   test(`play like a person: ${g.id}`, async ({ page }) => {
