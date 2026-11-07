@@ -16,7 +16,7 @@ import { shownGames } from './catalog';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
 import { homeGroups } from './homegroups';
-import { BOT_LEVELS, BOT_NAME, PLAYER_COLORS, Store, botFor, easierOffer, seatName, type ThemePref } from './store';
+import { BOT_LEVELS, BOT_NAME, PLAYER_COLORS, Store, botFor, easierOffer, ownBotLevel, seatName, type ThemePref } from './store';
 import { applyTheme, watchSystemTheme } from './theme';
 import { DARK_INK, inkOn } from '../core/contrast';
 import { cardInk } from './cardink';
@@ -285,10 +285,12 @@ export class App {
 
   private card(m: GameMeta): string {
     const ready = m.id in GAMES;
+    const own = ready ? ownBotLevel(this.store.data.profiles, m.id) : null;
     return `<button class="game-card${ready ? '' : ' soon'}${cardInk(m.color) === DARK_INK ? ' light-card' : ''}" data-id="${m.id}" data-ready="${ready ? 1 : 0}" style="--c:${m.color};--ink:${cardInk(m.color)}" ${ready ? '' : 'aria-disabled="true"'}>
-      <span class="gicon" aria-hidden="true">${m.icon}</span>
+      <span class="gicon" aria-hidden="true">${m.icon}${own ? `<span class="gbot" data-v="${own}">🤖</span>` : ''}</span>
       <span class="gname">${m.name}</span>
       <span class="gkind">${ready ? m.kind : 'Coming soon'}</span>
+      ${own ? `<span class="sr-only">Bot level here: ${own}</span>` : ''}
     </button>`;
   }
 

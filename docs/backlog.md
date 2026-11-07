@@ -480,8 +480,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       game use Normal (`easier-offer.png`). Finding: Air Hockey with an idle person never
       ends (the serve rests on their side and the bot can't cross), which is right by the
       rules but means a walked-away match runs forever.
-- [ ] The home player chip shows the sheet's bot level only; a game card could show a small
-      🤖 badge when that game has its own level.
+- [x] 2026-11-07 (F43, PR #TBD): A game card shows a small 🤖 badge on its icon when that
+      game's bot plays a level picked on its intro that differs from the player sheet's
+      (ownBotLevel() in store.ts; "Bot level here: easy" for screen readers). Playtest "bot
+      level" checks it and saves bot-level-home-badge.png.
 - [ ] The layout fit test only ran intros with two people; it now runs with a bot too, but
       not on a tall phone (390×844) where the desktop-size how-to text shows for bots.
 

@@ -36,6 +36,18 @@ export function botFor(pr: Profile, game: string): BotLevel | null {
   const lv = pr.botLevels?.[game];
   return lv && BOT_LEVELS.includes(lv) ? lv : pr.bot;
 }
+/**
+ * A bot level picked for this one game on its intro that differs from the bot's usual
+ * level (the player sheet's), so the home card can say "🤖 Hard" and nobody is surprised
+ * that this game's bot plays differently. Null when every bot seat plays its usual level.
+ */
+export function ownBotLevel(profiles: readonly Profile[], game: string): BotLevel | null {
+  for (const pr of profiles) {
+    const lv = botFor(pr, game);
+    if (lv && lv !== pr.bot) return lv;
+  }
+  return null;
+}
 /** How many losses in a row to the same bot, in one game, before we offer an easier one. */
 export const LOSSES_BEFORE_OFFER = 2;
 
