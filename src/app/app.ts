@@ -19,7 +19,7 @@ import { shownGames } from './catalog';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
 import { homeGroups } from './homegroups';
-import { BOT_LEVELS, BOT_NAME, PLAYER_COLORS, Store, botFor, easierOffer, ownBotLevel, seatName, type ThemePref } from './store';
+import { BOT_LEVELS, BOT_NAME, botFace, PLAYER_COLORS, Store, botFor, easierOffer, ownBotLevel, seatName, type ThemePref } from './store';
 import { applyTheme, watchSystemTheme } from './theme';
 import { DARK_INK, inkOn } from '../core/contrast';
 import { cardInk } from './cardink';
@@ -36,7 +36,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 function botRow(p: PlayerIndex, level: BotLevel): string {
   const name = (v: BotLevel) => v[0].toUpperCase() + v.slice(1);
   return `<div class="seg botlvl" data-p="${p}" role="group" aria-label="Bot level for this game">${BOT_LEVELS.map(
-    (v) => `<button data-p="${p}" data-v="${v}" class="${v === level ? 'on' : ''}" aria-pressed="${v === level}">${name(v)}</button>`,
+    (v) => `<button data-p="${p}" data-v="${v}" class="${v === level ? 'on' : ''}" aria-pressed="${v === level}"><span class="bface" aria-hidden="true">${botFace(v)}</span> ${name(v)}</button>`,
   ).join('')}</div>`;
 }
 
@@ -366,9 +366,9 @@ export class App {
   private playerChip(p: PlayerIndex): string {
     const pr = this.store.data.profiles[p];
     const stars = pr.headStart ? `<small>${'★'.repeat(pr.headStart)}</small>` : '';
-    const bot = pr.bot ? `<small class="botlbl">🤖 ${pr.bot}</small>` : '';
+    const bot = pr.bot ? `<small class="botlbl">🤖 ${botFace(pr.bot)} ${pr.bot}</small>` : '';
     const name = seatName(this.store.data.profiles, p);
-    const face = pr.bot ? '🤖' : /^Player \d$/.test(name) ? String(p + 1) : esc([...name.trim()][0]?.toUpperCase() ?? '?');
+    const face = pr.bot ? botFace(pr.bot) : /^Player \d$/.test(name) ? String(p + 1) : esc([...name.trim()][0]?.toUpperCase() ?? '?');
     return `<button class="player-chip" data-p="${p}" style="--c:${pr.color};--ink:${inkOn(pr.color)}" aria-label="${esc(name)}: edit player"><span class="dot">${face}</span><span class="pinfo"><span class="pname">${esc(name)}</span>${stars}${bot}${stars || bot ? '' : '<small class="edit">Tap to edit</small>'}</span></button>`;
   }
 
@@ -404,7 +404,7 @@ export class App {
       <div class="field">Hand <small>swaps the stick and FIRE in Tank Duel</small>
         <div class="seg" id="pHand">${(['right', 'left'] as const).map((v) => `<button data-v="${v}" class="${(pr.lefty ? 'left' : 'right') === v ? 'on' : ''}">${v === 'right' ? 'Right-handed' : 'Left-handed'}</button>`).join('')}</div></div>
       <div class="field">Who plays
-        <div class="seg" id="pBot">${(['human', 'easy', 'normal', 'hard'] as const).map((v) => `<button data-v="${v}" class="${(pr.bot ?? 'human') === v ? 'on' : ''}">${v === 'human' ? '🙂 Person' : '🤖 ' + v}</button>`).join('')}</div></div>
+        <div class="seg" id="pBot">${(['human', 'easy', 'normal', 'hard'] as const).map((v) => `<button data-v="${v}" class="${(pr.bot ?? 'human') === v ? 'on' : ''}">${v === 'human' ? '🙂 Person' : `🤖 ${botFace(v)} ${v}`}</button>`).join('')}</div></div>
       <button id="pDone" class="btn primary">Done</button>
     </div>`;
     let color = pr.color;
@@ -476,7 +476,7 @@ export class App {
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>${bot ? '' : '<p class="pick-desc"></p>'}` : ''}
           ${bot ? botRow(p, bot) : `<button class="btn ready" id="ready${p}" data-p="${p}">${powers.length ? 'Pick a power' : 'Ready!'}</button>`}
-          <div class="who">${esc(seatName(this.store.data.profiles, p))}${bot ? ' 🤖' : 'seatRing' in meta && meta.seatRing ? seatCueHtml(p) : ''}</div>
+          <div class="who">${esc(seatName(this.store.data.profiles, p))}${bot ? ` 🤖<span class="botface" data-p="${p}">${botFace(bot)}</span>` : 'seatRing' in meta && meta.seatRing ? seatCueHtml(p) : ''}</div>
         </div>
       </div>`;
     };
@@ -526,6 +526,8 @@ export class App {
       b.addEventListener('click', () => {
         const p = Number(b.dataset.p) as PlayerIndex;
         this.store.setBotLevel(p, id, b.dataset.v as BotLevel);
+        const face = intro.querySelector<HTMLElement>(`.botface[data-p="${p}"]`);
+        if (face) face.textContent = botFace(b.dataset.v as BotLevel);
         intro.querySelectorAll<HTMLElement>(`.botlvl[data-p="${p}"] button`).forEach((x) => {
           x.classList.toggle('on', x === b);
           x.setAttribute('aria-pressed', String(x === b));
@@ -768,7 +770,7 @@ export class App {
       return `<div class="half p${p} ${won ? 'won' : ''}" style="--c:${profiles[p].color};--ink:${inkOn(profiles[p].color)}"><div class="half-inner">
         <div class="res-title">${title}</div>
         <div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>
-        <div class="who">${esc(seatName(profiles, p))}${won ? ' 🏆' : ''}</div>
+        <div class="who">${esc(seatName(profiles, p))}${seats?.[p].bot ? ` 🤖${botFace(seats[p].bot!)}` : ''}${won ? ' 🏆' : ''}</div>
         <div class="res-night">${tw ? `🏆 ${champ === p ? 'Tournament champion!' : 'Tournament:'} ${tw[p]} – ${tw[p === 0 ? 1 : 0]}` : `${solo ? (botHalf ? 'Bot' : 'You vs the bot') : 'Match night'}: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}`}</div>
         ${
           offer?.person === p
@@ -808,7 +810,7 @@ export class App {
           easier.textContent = `⭐ Head start ${'★'.repeat(offer.headStart)} ✓`;
         } else {
           this.store.setBotLevel(offer.bot, meta.id, offer.to);
-          easier.textContent = `🤖 Bot is ${level(offer.to)} now ✓`;
+          easier.textContent = `🤖 Bot is ${botFace(offer.to)} ${level(offer.to)} now ✓`;
         }
         easier.removeAttribute('aria-label');
         easier.disabled = true;

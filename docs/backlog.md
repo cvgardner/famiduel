@@ -908,8 +908,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 ## Ideas found 2026-11-01 (bot name run)
 - [ ] Other games print the name in the player's colour on a tinted panel; Sumo and Sea
       Battle already have an outline, but a shared `nameLabel()` would keep them alike.
-- [ ] Bot names with character: each bot level could have a friendly name and face (e.g. a
+- [x] Bot names with character: each bot level could have a friendly name and face (e.g. a
       sleepy robot for Easy) so a kid knows which one they are beating, without new words.
+      2026-11-07 (F73, PR #PRNUM): faces, no new names: Easy 😴, Normal 🤔, Hard 😎
+      (`BOT_FACES` / `botFace()` in app/store.ts; none is the person's 🙂). Shown on the intro's
+      level buttons ("😴 Easy") and the seat's name line ("Bot 🤖😴", follows a new pick), the
+      home player chip (its dot and "🤖 😴 easy"), the player sheet, the result's name line and
+      the "Bot is 😴 Easy now" confirmation. Playtests check the buttons, the name line, the
+      chip and every solo intro and result.
 - [ ] Saves from before this change that named a bot on the sheet now show "Bot"; harmless
       before launch, but a save migration would be needed after.
 
