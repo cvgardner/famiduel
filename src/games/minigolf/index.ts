@@ -5,6 +5,7 @@ import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, 
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
+import { liftOn } from '../../engine/fx';
 import { H, MID, W } from '../../engine/world';
 import { waitingLine } from '../../core/turnline';
 import { Minigolf, MinigolfBot, RULES, type Intent, type Shot } from './logic';
@@ -17,6 +18,11 @@ const TURN_ANIM = 0.6;
 const STRIP = 62;
 /** Height of the coloured outer edge of each player's strip (see drawStrip). */
 const EDGE = 3;
+/** The dark cards behind the hole intro and the "<name>'s shot" line. */
+export const INTRO_CARD = 'rgba(10,12,28,0.88)';
+export const BANNER_CARD = 'rgba(10,12,28,0.8)';
+/** Each player's bottom strip (name and status). */
+export const STRIP_CARD = 'rgba(10,12,28,0.85)';
 
 type Aim = { id: number; sx: number; sy: number; x: number; y: number };
 
@@ -639,7 +645,7 @@ class MinigolfView implements GameInstance {
     const c = this.ctx.players[p].color;
     const myTurn = (g.phase === 'aim' || g.phase === 'turn') && g.shooter === p;
     const y0 = H - STRIP;
-    gx.fillStyle = myTurn ? alpha(c, 0.28 + 0.08 * Math.sin(this.t * 5)) : 'rgba(10,12,28,0.85)';
+    gx.fillStyle = myTurn ? alpha(c, 0.28 + 0.08 * Math.sin(this.t * 5)) : STRIP_CARD;
     gx.fillRect(0, y0, W, STRIP);
     gx.fillStyle = 'rgba(10,12,28,0.6)';
     if (myTurn) gx.fillRect(0, y0 + 4, W, STRIP - 4);
@@ -654,7 +660,8 @@ class MinigolfView implements GameInstance {
     const btn = this.powerBtns[p];
     const x0 = btn ? 74 : 54;
     const name = this.ctx.players[p].name;
-    text(gx, name, x0, y0 + 19, { size: 17, color: c, align: 'left' });
+    // Lifted for the dark strip: Purple was 4.3:1 there.
+    text(gx, name, x0, y0 + 19, { size: 17, color: liftOn(c, STRIP_CARD), align: 'left' });
     let status: string;
     let sc: string = COLORS.dim;
     if (g.phase === 'over') status = 'Match over';
@@ -698,8 +705,9 @@ class MinigolfView implements GameInstance {
       text(gx, 'YOUR SHOT!', W / 2, y, { size: 30, color: '#ffffff', stroke: shade(c, -0.5) });
     } else {
       const y = H - STRIP - 22;
-      rrect(gx, 60, y - 15, W - 120, 30, 15, 'rgba(10,12,28,0.8)', alpha(c, 0.9), 2);
-      text(gx, `${this.ctx.players[shooter].name}'s shot`, W / 2, y, { size: 17, color: c });
+      rrect(gx, 60, y - 15, W - 120, 30, 15, BANNER_CARD, alpha(c, 0.9), 2);
+      // Lifted for the dark card: Purple was ~3.5:1 there.
+      text(gx, `${this.ctx.players[shooter].name}'s shot`, W / 2, y, { size: 17, color: liftOn(c, BANNER_CARD) });
     }
     gx.globalAlpha = 1;
   }
@@ -709,7 +717,7 @@ class MinigolfView implements GameInstance {
     const k = Math.min(1, (RULES.introTime - g.timer) / 0.25, g.timer / 0.25);
     gx.globalAlpha = Math.max(0, k);
     const y = MID + 150;
-    rrect(gx, 40, y - 62, W - 80, 124, 20, 'rgba(10,12,28,0.88)', 'rgba(255,255,255,0.3)', 2);
+    rrect(gx, 40, y - 62, W - 80, 124, 20, INTRO_CARD, 'rgba(255,255,255,0.3)', 2);
     // text() multiplies the canvas's alpha, so the words fade in with their dark
     // card instead of popping onto the bright grass ahead of it.
     text(gx, `HOLE ${g.holeIdx + 1} OF ${g.holes.length}`, W / 2, y - 38, { size: 13, color: COLORS.dim });
@@ -717,7 +725,7 @@ class MinigolfView implements GameInstance {
     text(gx, `Par ${g.hole.par}`, W / 2, y + 18, { size: 15, color: COLORS.gold });
     const lead = g.leadOff;
     const who = lead === p ? 'You tee off first' : `${this.ctx.players[lead].name} tees off first`;
-    text(gx, who, W / 2, y + 42, { size: 14, color: this.ctx.players[lead].color, weight: 700 });
+    text(gx, who, W / 2, y + 42, { size: 14, color: liftOn(this.ctx.players[lead].color, INTRO_CARD), weight: 700 });
     gx.globalAlpha = 1;
   }
 
