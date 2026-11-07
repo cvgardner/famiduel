@@ -1198,3 +1198,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       56px touch target" walks each shown game's view for Buttons and fails a smaller one.
       Tanks FIRE (a 100 px zone plus its side of the strip) and Sea Battle's cells (F58) aren't
       Buttons and have their own checks. So Little hands (F83) only needs to grow drawn size.
+- [x] 2026-11-07 (F83): Little hands reaches the games. With Settings > Look > Little hands on,
+      in-game power buttons are drawn bigger (radius 22 -> 26 world units, icon with it) as far
+      as the screen edge allows, with the same 57 px touch area; the settings line now says
+      "in games too". The canvas-button playtest runs every shown game with it on and fails a
+      power button that runs off the screen (unless it already did at normal size: Ping Pong)
+      or overlaps another canvas button; screenshots little-hands-*.png. Unit test
+      tests/littlehands.test.ts.
