@@ -828,6 +828,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2026-11-07 (Snake part): checked, it doesn't. `tests/snake-mirror.test.ts` plays a person
       with three steering habits against hard Snake (15 matches): the bot's head sat on the
       mirror of the person's (turned or flipped board) in 18 of 4311 cells (0.4%). RPS part open.
+      2026-11-07 (F62, RPS part): checked, no change. The bot throws at random at every level;
+      `tests/rps.test.ts` plays 400 matches of the hard bot against a kid who always throws
+      rock, one who cycles and one who repeats their last throw: the bot wins 28-39% of rounds
+      and 42-58% of matches against each.
 - [x] 2026-11-01 (20:00 research run): Ping Pong shows where the ball landed. Reviews of
       another 2-player app still say "hard to tell whether the ball has landed yet"; ours
       only had a thin ring that faded as it grew for 0.5 s. Now each bounce leaves a spot on
