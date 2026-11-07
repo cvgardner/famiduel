@@ -87,6 +87,17 @@ export function powerSpot(p: 0 | 1, x: number, inset: number, lefty: boolean): [
   return p === 0 ? [lx, H - inset] : [W - lx, inset];
 }
 
+/** Drawn radius of a power button, and with Settings > Little hands on. */
+export const POWER_R = 22;
+export const POWER_R_BIG = 26;
+/** Touch radius (drawn radius + slop) stays the same either way: a 57 CSS px target at 320 px. */
+const POWER_HIT = 32;
+let bigHands = false;
+/** Settings > Little hands: power buttons made after this are drawn bigger. */
+export function setBigHands(on: boolean): void {
+  bigHands = on;
+}
+
 export class PowerButton {
   readonly button: Button;
 
@@ -97,7 +108,10 @@ export class PowerButton {
     public readonly power: PowerDef,
     private readonly color: string,
   ) {
-    this.button = new Button(x, y, 22, owner, '', color, 10);
+    // Grows only as far as the screen edge allows (backing and band included), never below normal.
+    const room = Math.min(x, W - x, y, H - y) - 6;
+    const r = bigHands ? Math.max(POWER_R, Math.min(POWER_R_BIG, room)) : POWER_R;
+    this.button = new Button(x, y, r, owner, '', color, POWER_HIT - r);
   }
 
   update(input: Input, energy: Energy, key?: string): boolean {
@@ -129,6 +143,6 @@ export class PowerButton {
     if (ready) glow(g, COLORS.gold, 12 + 6 * Math.sin(t * 8));
     circle(g, x, y, r - 2, ready ? alpha(this.color, 0.95) : active ? COLORS.gold : 'rgba(255,255,255,0.08)');
     noGlow(g);
-    text(g, this.power.icon, x, y + 1, { size: 20, player: this.owner, alpha: ready || active ? 1 : 0.5 });
+    text(g, this.power.icon, x, y + 1, { size: Math.round((20 * r) / POWER_R), player: this.owner, alpha: ready || active ? 1 : 0.5 });
   }
 }

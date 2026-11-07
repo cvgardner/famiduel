@@ -3,6 +3,7 @@
 import { gateOpens, gateQuestion } from './gate';
 import { makeRng } from '../core/rng';
 import { BIG_TEXT, setTextScale } from '../engine/draw';
+import { setBigHands } from '../engine/widgets';
 import gamesJson from '../../content/games.json';
 import powersJson from '../../content/powers.json';
 import { effectiveAssist } from '../core/handicap';
@@ -169,7 +170,8 @@ export class App {
 
   /**
    * Bigger text: canvas words through the text scale, menus through <html data-bigtext>.
-   * Little hands: <html data-bighands> makes the intro's Ready and power buttons taller.
+   * Little hands: <html data-bighands> makes the intro's Ready and power buttons taller, and
+   * the in-game power buttons are drawn bigger (setBigHands).
    */
   applyBigText(): void {
     const { bigText, bigButtons } = this.store.data.settings;
@@ -177,6 +179,7 @@ export class App {
     const root = document.documentElement.dataset;
     if (bigText) root.bigtext = '1';
     else delete root.bigtext;
+    setBigHands(!!bigButtons);
     if (bigButtons) root.bighands = '1';
     else delete root.bighands;
   }
@@ -206,7 +209,7 @@ export class App {
               .map((v) => `<button data-v="${v}" class="${theme === v ? 'on' : ''}" aria-pressed="${theme === v}">${v === 'auto' ? 'Auto' : v === 'light' ? '☀️' : '🌙'}</button>`)
               .join('')}</div>
           </div>` + this.toggle('bigText', '🔠', 'Bigger text', 'Larger words in games and menus', !!settings.bigText) +
-          this.toggle('bigButtons', '🖐️', 'Little hands', 'Bigger Ready and power buttons', !!settings.bigButtons), 'Auto follows your phone\'s light or dark mode.')}
+          this.toggle('bigButtons', '🖐️', 'Little hands', 'Bigger Ready and power buttons, in games too', !!settings.bigButtons), 'Auto follows your phone\'s light or dark mode.')}
       ${group('For grown-ups', `<button class="set-row set-link" id="grownUps"><span class="set-ico" aria-hidden="true">👪</span><span class="set-txt"><b>Grown-ups corner</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
       <footer class="foot">FamiDuel prototype · no ads, no accounts · everything stays on this device</footer>`;
     $('#grownUps').addEventListener('click', () => {
