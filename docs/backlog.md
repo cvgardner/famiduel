@@ -370,8 +370,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Games / Rematch now sit can't skip it. Playtest "result: a tap meant for the game...".
 - [ ] VoiceOver/TalkBack: the pause button says "press and hold"; a screen reader double
       tap is a click with detail 0, which pauses at once. Check that on a real phone.
-- [ ] Guided Access / screen pinning tip on the home screen for parents of toddlers (the
+- [x] Guided Access / screen pinning tip on the home screen for parents of toddlers (the
       OS-level way to stop a kid leaving the app), behind the parental gate.
+      2026-11-07 (F68): Settings > For grown-ups > Grown-ups corner, behind the first parental
+      gate (src/app/gate.ts: a times-table question in words, a new one after a wrong answer;
+      reusable for sharing and the unlock screen). Shows Guided Access (iPhone/iPad) and App
+      pinning (Android) steps. Nothing leaves the phone; playtest grownups-*.png.
 
 ## Ideas found 2026-10-31 (text size run)
 - [x] 2026-11-01 (research run): rematches take turns starting. Store reviews of the

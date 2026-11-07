@@ -462,3 +462,17 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .tourney-tag { color: var(--gold); }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Settings rows that open something (Grown-ups corner). */
+.set-link { width: 100%; text-align: left; color: inherit; }
+.set-go { margin-left: auto; color: var(--dim); font-size: 24px; font-weight: 700; }
+/* Parental gate and the grown-ups tips. */
+.gate-q { margin: 0; text-align: center; font-weight: 800; font-size: calc(18px * var(--ts)); }
+.gate-in { font: inherit; font-size: 24px; font-weight: 800; text-align: center; padding: 10px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface-2); color: var(--text); min-height: 48px; }
+.gate-msg { margin: 0; text-align: center; color: var(--dim); font-size: calc(13px * var(--ts)); font-weight: 600; }
+.gate-btns { display: flex; gap: 10px; }
+.gate-btns .btn { flex: 1; }
+.grownups h3 { margin: 4px 0 0; font-size: calc(16px * var(--ts)); }
+.grownups ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: calc(14px * var(--ts)); line-height: 1.35; }
+.grownups .gu-lead, .grownups .gu-note { margin: 0; font-size: calc(14px * var(--ts)); line-height: 1.35; }
+.grownups .gu-note { color: var(--dim); font-size: calc(13px * var(--ts)); }
