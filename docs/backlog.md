@@ -260,6 +260,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       9 / 2 / 1% of rounds lost early in bot mirrors). `npm run sim:powers -- --game quickdraw
       --n 300`: Slow Time 74% -> 65% (the edge of the 35-65% band), Double Shot now beats None
       57/43 (was 54/50), Fake-out 47% unchanged. Chop Chop's wrong-side chops are not done yet.
+- [x] 2026-11-07 (F15, PR #106): Quick Draw Slow Time 65% -> 63% (n=1000, normal bots). The
+      "get ready" glow used to start a fixed 0.45 s before DRAW!, so a person could count it down
+      to a perfect tap (the bot got 0.15 s off its reaction). The lead is now random each round
+      (0.45-1.1 s, `RULES.pulseLeadMin/Max`): it says "soon", not "now". A warned bot still waits
+      for DRAW! and reacts 0.06 s faster (`RULES.pulseEdge`). Fake-out 46%, Double 50%, None 46%.
 - [x] 2026-11-02 (PR #77): Air Hockey Split won 33% because the bot split pucks that were coming
       at its own goal (two to stop). It now splits just after a hit, while the puck heads at
       the other goal, as a person would: split 56% at normal (easy 59%, hard 63%), n=60.
