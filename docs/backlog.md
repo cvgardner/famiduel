@@ -449,7 +449,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       games where both pieces roam the same space (Sumo wrestlers, Snake heads, Tanks). Air
       Hockey and Ping Pong paddles never leave their own half, so they don't need it. Playtest
       "seat cue" saves greyscale screenshots (seat-cue-<game>-grey.png).
-- [x] 2026-11-07 (F40, PR #TBD): Seat cue legend. In Sumo, Snake Duel and Tank Duel
+- [x] 2026-11-07 (F40, PR #100): Seat cue legend. In Sumo, Snake Duel and Tank Duel
       (`"seatRing": true` in content/games.json) each person's name line on the intro and in
       How to play reads "◯ yours: solid ring" (bottom) / "dashed ring" (top), drawn like the
       ring itself. On the name line, not a new line, so the intro still fits a 320×568 phone.
@@ -483,11 +483,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       game use Normal (`easier-offer.png`). Finding: Air Hockey with an idle person never
       ends (the serve rests on their side and the bot can't cross), which is right by the
       rules but means a walked-away match runs forever.
-- [x] 2026-11-07 (F43, PR #TBD): A game card shows a small 🤖 badge on its icon when that
+- [x] 2026-11-07 (F43, PR #103): A game card shows a small 🤖 badge on its icon when that
       game's bot plays a level picked on its intro that differs from the player sheet's
       (ownBotLevel() in store.ts; "Bot level here: easy" for screen readers). Playtest "bot
       level" checks it and saves bot-level-home-badge.png.
-- [x] 2026-11-07 (F44, PR #TBD): Intros are fit-checked on a tall phone (390×844, where the
+- [x] 2026-11-07 (F44, PR #104): Intros are fit-checked on a tall phone (390×844, where the
       desktop-size how-to text shows) both with two people (layout test) and with a bot on
       top (bot level test, plus its 44 px target and font checks). Every intro fits; nothing
       needed fixing. Saves bot-level-intro-tall.png.
@@ -540,7 +540,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       airhockey --n 40`: average match 131/140/134 s -> 109/123/53 s (easy/normal/hard), over
       3 min 13/25/5% -> 8/3/0%. What's left is the rules, not the bot: after every goal the
       walked-away player serves, so each goal waits the 7 s stall drift.
-- [x] 2026-11-07 (F41, PR #TBD): Air Hockey's stall rule is quicker for a paddle that hasn't
+- [x] 2026-11-07 (F41, PR #101): Air Hockey's stall rule is quicker for a paddle that hasn't
       moved at all since the last goal (or kick-off): nudge at 2 s, drift at 4 s (was 4 / 7).
       Anyone who has touched their paddle since the goal keeps the full 7 s. `npm run sim --
       --idle --game airhockey`: avg 103/121/52 s -> 93/107/40 s, the normal row's one match
@@ -661,7 +661,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Sea Battle: the "go again" header after a hit appears only once the shell lands, but the
       big "HIT!" pop sits over the grid near the top player's side; check the pop reads
       upright for whoever is shooting when the top player fires (two people).
-- [x] 2026-11-07 (F42, PR #TBD): A person's turn of 2+ hits (hit-again) ends with a gold
+- [x] 2026-11-07 (F42, PR #102): A person's turn of 2+ hits (hit-again) ends with a gold
       "3 hits!" pop over the sea 0.3 s after the last shell lands, upright for the shooter,
       with the score chime; the result stays 0.6 s longer so it's read before the hand-over.
       Both vs a bot and between two people (turnTally() in seabattle/beat.ts). Playtest
