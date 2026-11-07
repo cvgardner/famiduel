@@ -142,5 +142,14 @@ describe('pops in a player colour', () => {
     // Colours that already read keep their exact hue.
     expect(popColor('#15e5b4')).toBe('#15e5b4');
     expect(popColor('#7a5cff')).not.toBe('#7a5cff');
+
+describe('home game cards', () => {
+  it('every card name reads at 4.5:1 on the shade behind it', async () => {
+    const { cardInk, NAME_SHADE } = await import('../src/app/cardink');
+    const { default: games } = await import('../content/games.json');
+    for (const g of games.games) {
+      const c = rgb(g.color).map((v) => Math.round(v * NAME_SHADE)) as [number, number, number];
+      expect(contrastRatio(rgb(cardInk(g.color)), c), g.id).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });
