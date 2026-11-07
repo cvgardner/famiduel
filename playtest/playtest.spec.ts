@@ -1849,23 +1849,31 @@ for (const g of games.games.filter((x) => !x.hidden)) {
 // colours, so a label drawn in a player's colour (or on it) is at its worst with them:
 // play every shown game once more with Mint at the bottom and Orange on top.
 test('contrast: Mint vs Orange, the lightest seats, in every shown game', async ({ page }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(330_000);
   const errors: string[] = [];
   await boot(page, errors);
   const mint = PLAYER_COLORS.find((c) => c.name === 'Mint')!.hex;
   const orange = PLAYER_COLORS.find((c) => c.name === 'Orange')!.hex;
+  const purple = PLAYER_COLORS.find((c) => c.name === 'Purple')!.hex;
   const problems: string[] = [];
-  for (const g of games.games.filter((x) => !x.hidden && (built.length === 0 || built.includes(x.id)))) {
+  const shown = games.games.filter((x) => !x.hidden && (built.length === 0 || built.includes(x.id)));
+  // Then Purple (the darkest seat) vs Mint in the games that pop "they used …" in the
+  // power user's colour, so those small pops are judged in Purple too.
+  const runs = [
+    ...shown.map((g) => ({ g, a: mint, b: orange, tag: 'mint-orange' })),
+    ...shown.filter((g) => ['snake', 'tanks', 'quickdraw'].includes(g.id)).map((g) => ({ g, a: purple, b: mint, tag: 'purple-mint' })),
+  ];
+  for (const { g, a: seatA, b: seatB, tag } of runs) {
     await page.evaluate(([a, b]) => {
       const app = (window as unknown as { __famiduel: Hook & { store: { data: { profiles: { color: string }[] } } } }).__famiduel;
       app.store.data.profiles[0].color = a;
       app.store.data.profiles[1].color = b;
-    }, [mint, orange]);
+    }, [seatA, seatB]);
     await setPlayers(page, [null, null]);
     const colors = await page.evaluate(() =>
       (window as unknown as { __famiduel: { store: { data: { profiles: { color: string }[] } } } }).__famiduel.store.data.profiles.map((p) => p.color),
     );
-    expect(colors, 'the seats keep Mint and Orange').toEqual([mint, orange]);
+    expect(colors, `the seats keep their colours (${tag})`).toEqual([seatA, seatB]);
     await page.evaluate(() => {
       const c = (window as unknown as { __contrast: { on: boolean; seen: Map<string, unknown> } }).__contrast;
       c.seen.clear();
@@ -1877,7 +1885,7 @@ test('contrast: Mint vs Orange, the lightest seats, in every shown game', async 
     const person = PEOPLE[g.id];
     if (person) await person(page, 5000, 4);
     else await Promise.all([monkey(page, 0, 5000, 4), monkey(page, 1, 5000, 5)]);
-    if (g.id === 'snake' || g.id === 'tanks') await page.screenshot({ path: path.join(OUT, `${g.id}-mint-orange.png`) });
+    if (g.id === 'snake' || g.id === 'tanks') await page.screenshot({ path: path.join(OUT, `${g.id}-${tag}.png`) });
     // Then bots in the same seats to the result, so end-of-round labels are seen too.
     await leaveMatch(page);
     await setPlayers(page, ['normal', 'hard']);
@@ -1885,11 +1893,11 @@ test('contrast: Mint vs Orange, the lightest seats, in every shown game', async 
     await expect(page.locator('#play')).toBeVisible();
     await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
     const seen = await page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, { best: number; need: number; size: number; rest: boolean }> } }).__contrast.seen]);
-    for (const [str, c] of seen) if (c.rest && c.best < c.need) problems.push(`${g.id}: "${str}" ${c.best.toFixed(1)}:1 (needs ${c.need}:1 at ${c.size})`);
+    for (const [str, c] of seen) if (c.rest && c.best < c.need) problems.push(`${g.id} (${tag}): "${str}" ${c.best.toFixed(1)}:1 (needs ${c.need}:1 at ${c.size})`);
     if (await page.locator('#result').isVisible()) await page.click('#homeBtn');
     else await leaveMatch(page);
   }
-  expect(problems, 'labels below WCAG contrast with Mint vs Orange seats').toEqual([]);
+  expect(problems, 'labels below WCAG contrast with Mint vs Orange (and Purple vs Mint) seats').toEqual([]);
   expect(errors).toEqual([]);
 });
 

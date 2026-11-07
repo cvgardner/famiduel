@@ -130,3 +130,17 @@ describe('pop-up words', () => {
     }
   });
 });
+
+describe('pops in a player colour', () => {
+  it('read at 4.5:1 on the dark floor for every seat colour', async () => {
+    const { popColor } = await import('../src/engine/fx');
+    const floor = rgb('#14112b');
+    for (const c of PLAYER_COLORS) {
+      const out = parseColor(popColor(c.hex))!.slice(0, 3) as [number, number, number];
+      expect(contrastRatio(out, floor), c.name).toBeGreaterThanOrEqual(4.5);
+    }
+    // Colours that already read keep their exact hue.
+    expect(popColor('#15e5b4')).toBe('#15e5b4');
+    expect(popColor('#7a5cff')).not.toBe('#7a5cff');
+  });
+});
