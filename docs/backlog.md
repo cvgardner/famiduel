@@ -854,3 +854,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       kid with the full head start 0% against the easy bot (`npm run sim`). Decide per game
       whether that is fine (a kid who plays at all does better) or the head start should
       cover mashing too (e.g. Quick Draw forgives early taps at assist 3).
+
+## Ideas found 2026-11-07 (rules check run)
+- [x] 2026-11-07 (F33): docs/rules.md lists, per shown game, the rule families know and what
+      FamiDuel does. No mismatches: Ping Pong (to 7, deuce serve rule kept), Air Hockey (to 5)
+      and Sumo (best of 3) are shortened, everything else plays the familiar rule.
+- [ ] A "long match" setting (Ping Pong to 11, Air Hockey to 7) if families ask for full-length
+      games; rules stay the same.
