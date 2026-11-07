@@ -6,7 +6,7 @@
 // - Against a bot (it never peeks): each player taps one of three buttons in
 //   their own half at the same time.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, noGlow, rrect, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, noGlow, rrect, seatEdges, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { drawCover, lookAwayBanner, SecretTurns, toWorld } from '../../engine/secret';
@@ -209,6 +209,7 @@ class RpsView implements GameInstance {
     tint.addColorStop(1, alpha(c0, 0.3));
     gx.fillStyle = tint;
     gx.fillRect(0, 0, W, H);
+    seatEdges(gx, c0, c1);
     gx.fillStyle = 'rgba(255,255,255,0.12)';
     gx.fillRect(20, MID - 1, W - 40, 2);
     text(gx, 'VS', W / 2, MID, { size: 16, color: COLORS.dim });

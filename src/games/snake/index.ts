@@ -1,7 +1,7 @@
 // Snake Duel view: two turn buttons per player, a neon grid arena, juice on every crash.
 import { popColor } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, noGlow, seatRing, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, noGlow, seatRing, rrect, seatEdges, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -138,6 +138,7 @@ class SnakeView implements GameInstance {
       gx.fillStyle = grad;
       gx.fillRect(0, y, W, H - AH - OY);
     }
+    seatEdges(gx, col[0], col[1]);
     // Arena
     rrect(gx, OX - 4, OY - 4, AW + 8, AH + 8, 8, '#171436', '#3b3577', 3);
     gx.strokeStyle = 'rgba(120,120,220,0.08)';

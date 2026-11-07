@@ -234,3 +234,20 @@ export function seatRing(g: G, p: 0 | 1, x: number, y: number, r: number, a = 1)
 }
 /** Dash pattern of player 1's seat ring (player 0's is solid). */
 export const SEAT_DASH = [5, 4];
+
+/** Height of a seat-colour edge at the top and bottom of the world. */
+export const SEAT_EDGE = 3;
+
+/**
+ * A thin edge in each player's colour along the world's top and bottom rows.
+ * On tall phones the stage stretches the outermost row into the letterbox bar,
+ * so each end of the phone glows in its player's colour instead of reading as
+ * a black band (the playtest's `barPeak` check). `bottom` and `top` are the
+ * colours for the world's bottom and top edge as drawn (after any rotation).
+ */
+export function seatEdges(gx: G, bottom: string, top: string): void {
+  gx.fillStyle = shade(bottom, -0.15);
+  gx.fillRect(0, H - SEAT_EDGE, W, SEAT_EDGE);
+  gx.fillStyle = shade(top, -0.15);
+  gx.fillRect(0, 0, W, SEAT_EDGE);
+}

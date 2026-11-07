@@ -2,7 +2,7 @@
 // full-screen "pass the phone" cover hides everything, and the active player's
 // screen is turned to face them. Against a bot the screen always faces the person.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, glow, line, noGlow, rrect, seatEdges, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -515,6 +515,8 @@ class SeaBattleView implements GameInstance {
     grd.addColorStop(1, shade(pl.color, -0.45));
     gx.fillStyle = grd;
     gx.fillRect(0, 0, W, H);
+    // The deep-sea ends would letterbox as black bands on a tall phone.
+    seatEdges(gx, pl.color, this.ctx.players[other(m.p)].color);
     // Gentle waves
     for (let k = 0; k < 6; k++) {
       gx.beginPath();
@@ -558,6 +560,8 @@ class SeaBattleView implements GameInstance {
     grd.addColorStop(1, shade(vc, -0.7));
     gx.fillStyle = grd;
     gx.fillRect(0, 0, W, H);
+    // Your end of the phone in your colour, the far end in theirs.
+    seatEdges(gx, vc, this.ctx.players[other(v)].color);
 
     // Header
     // The bot's turn ends a beat before the view hands over, so name the seat on screen, not g.turn.

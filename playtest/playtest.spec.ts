@@ -2022,6 +2022,10 @@ for (const g of games.games.filter((x) => !x.hidden)) {
     const bars = await barMismatch(page);
     expect(bars.bars, 'a tall phone letterboxes the world').toBe(true);
     expect(Math.max(bars.top, bars.bottom), 'letterbox bars carry the game edge').toBeLessThan(24);
+    // ...and that edge isn't so dark the bars read as black bands (~25). Sea Battle,
+    // Snake and Rock Paper Scissors draw a seat-colour edge for this (seatEdges()).
+    const peak = await barPeak(page);
+    expect(Math.min(peak.top, peak.bottom), `letterbox bars aren't black bands (top ${peak.top}, bottom ${peak.bottom})`).toBeGreaterThan(40);
     const person = PEOPLE[g.id];
     if (person) {
       const r = await person(page, SECONDS * 1000, 1);
