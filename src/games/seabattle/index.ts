@@ -19,6 +19,8 @@ const SX = 24; // small grid
 const SY = 456;
 const SC = 14;
 const SHOT_T = 0.38; // shell flight time
+const BADGE = '#ffd54a';
+const BADGE_INK = '#2b2459';
 const DEEP = '#0a1838';
 const WAVE_TOP = '#11508f';
 const WAVE_LOW = '#0b3566';
@@ -61,6 +63,8 @@ class SeaBattleView implements GameInstance {
   ];
   /** The last shot's result alone (the one that ended a turn), for the shooter's own beat. */
   volley = { hits: 0, misses: 0, sunk: 0 };
+  /** Cells each shooter hit this turn, in order: numbered badges once a turn has 2+ hits. */
+  private turnHits: number[][] = [[], []];
   /** Hits in a row this turn (each one earned another shot). Shown once the shell lands. */
   private again = 0;
   /** The header line last drawn (read by the playtest). */
@@ -114,6 +118,7 @@ class SeaBattleView implements GameInstance {
     const p = g.turn;
     this.again = 0;
     this.turnLog[p] = { hits: 0, misses: 0, sunk: 0 };
+    this.turnHits = [[], []];
     this.lastShots[other(p)] = [];
     if (this.bots[p]) this.mode = { kind: 'bot', p, t: 0, aim: null };
     else this.mode = this.twoHumans ? { kind: 'cover', p, next: 'fire', t: 0 } : { kind: 'fire', p, t: 0 };
@@ -454,6 +459,7 @@ class SeaBattleView implements GameInstance {
       fx.shake(big ? 6 : 3, 0.18);
       if (s.result === 'hit') {
         log.hits++;
+        this.turnHits[s.a].push(s.cell);
         this.volley.hits++;
       }
       if (big) this.pop(s.result === 'hitBack' ? 'Hit back!' : 'HIT!', x, y + (y < GY + 70 ? 26 : -24), '#ff8a3d', 24);
@@ -760,6 +766,16 @@ class SeaBattleView implements GameInstance {
         }
       }
     }
+    // A turn of 2+ hits numbers each one (1, 2, 3...) so a kid sees every hit called out.
+    const chain = this.turnHits[attacker];
+    if (big && chain.length >= 2)
+      chain.forEach((cell, k) => {
+        if (hidden.has(cell)) return;
+        const bx = x0 + (cell % N) * c + c - 4;
+        const by = y0 + Math.floor(cell / N) * c + 4;
+        circle(gx, bx, by, 8, BADGE, BADGE_INK, 1.5);
+        text(gx, String(k + 1), bx, by + 0.5, { size: 13, color: BADGE_INK, weight: 800 });
+      });
   }
 
   private drawPlaceUi(gx: G, p: PlayerIndex): void {
