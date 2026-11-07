@@ -315,8 +315,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the turn-based games.
 
 ## Ideas found 2026-10-31 (pause run)
-- [ ] Same hold-to-confirm for the result screen's "Games" button if kids skip the result
+- [x] Same hold-to-confirm for the result screen's "Games" button if kids skip the result
       before the other player has seen it (check in the playtest how fast the monkey hits it).
+      2026-11-07 (F37, PR #96): simpler than a hold: the result's buttons ignore taps for
+      0.8 s after it appears (dimmed, then fade in), so a last swing or mashed tap where
+      Games / Rematch now sit can't skip it. Playtest "result: a tap meant for the game...".
 - [ ] VoiceOver/TalkBack: the pause button says "press and hold"; a screen reader double
       tap is a click with detail 0, which pauses at once. Check that on a real phone.
 - [ ] Guided Access / screen pinning tip on the home screen for parents of toddlers (the
