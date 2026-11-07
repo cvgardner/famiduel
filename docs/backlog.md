@@ -809,8 +809,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       was red in `npm run verify`): it tapped the piece and its target with the same finger
       id back to back, and when both landed inside one frame the second replaced the first.
       It now waits to see the piece picked up before tapping where it goes, like a person.
-- [ ] Other playtests that tap twice in a row with one finger id (`__finger(77, …)` and
+- [x] Other playtests that tap twice in a row with one finger id (`__finger(77, …)` and
       friends) could hit the same race; a shared `tapThenWait` helper would cover them.
+      2026-11-07 (F63): `tapWorld(page, id, x, y)` in playtest/monkey.ts taps like a person
+      (down, 60 ms, up, then two frames); the seven hand-rolled tap helpers in the Sea Battle,
+      Tic-Tac-Toe, Four in a Row, Checkers and RPS playtests use it.
 - [x] 2026-11-01: Sea Battle says who goes first. It picks its first shooter only after both
       fleets are hidden, so the countdown said nothing and a rematch's swap of the first shot
       went unseen. Now the first turn opens with a gold "You go first!" pop over the sea and a
