@@ -302,8 +302,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       shot), which the stage stretches into the bar: each end of the phone glows in its
       player's colour and shows whose shot it is from across the table. The hole playtest
       now fails if either bar's brightest channel is under 55 (black bands peak near 25).
-- [ ] Other games whose world edge is dark (Sea Battle's deep water, Quick Draw at night?)
+- [x] Other games whose world edge is dark (Sea Battle's deep water, Quick Draw at night?)
       could check their bars the same way; `barPeak` in the playtest measures it.
+      2026-11-07 (F57): measured every shown game on a 390×844 phone. Sea Battle (37/44),
+      Snake (38/51) and Rock Paper Scissors (44 top) read as near-black bands; Quick Draw is
+      fine (88-98). Those three now draw a 3-unit seat-colour edge (`seatEdges()` in
+      engine/draw.ts: your end in your colour, the far end in theirs; Sea Battle's cover
+      screen too), so their bars peak at 91-99. The "play like a person" playtest now fails
+      any shown game whose bar peaks at 40 or less.
 
 ## Ideas found 2026-11-01 (minigolf holes run)
 - [x] 2026-11-01: `text()` set `globalAlpha` to its own `alpha`, so a caller's fade never
