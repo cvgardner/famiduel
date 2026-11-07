@@ -2434,6 +2434,37 @@ test('bigger text: every shown game keeps its words on screen, small and tall ph
   expect(errors).toEqual([]);
 });
 
+// F79: with the phone's "reduce motion" on, the power pictures hold one frame and the
+// ghost finger stands still; turning it off sets them moving again.
+test('reduced motion: power pictures and the ghost finger hold still', async ({ page }) => {
+  const errors: string[] = [];
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await boot(page, errors);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await setPlayers(page, [null, null]);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
+  await expect(page.locator('#intro')).toBeVisible();
+  await page.locator('.power-card[data-p="0"]').first().tap();
+  const pic = page.locator('.power-card[data-p="0"].on .power-pic');
+  await expect(pic).toBeVisible();
+  const state = () =>
+    pic.evaluate((svg) => ({ paused: (svg as SVGSVGElement).animationsPaused(), t: (svg as SVGSVGElement).getCurrentTime() }));
+  const a = await state();
+  expect(a.paused).toBe(true);
+  expect(a.t).toBeCloseTo(1, 1);
+  const shot1 = await pic.screenshot();
+  await page.waitForTimeout(700);
+  expect((await pic.screenshot()).equals(shot1), 'the picture did not move').toBe(true);
+  // The intro's ghost finger (shown for a game's first matches) has no animation.
+  const finger = page.locator('.half.p0 .demo .f');
+  if (await finger.count()) expect(await finger.evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
+  await page.screenshot({ path: path.join(OUT, 'reduced-motion-intro.png') });
+  // The phone's setting turned off mid-session: the picture loops again.
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect.poll(async () => (await state()).paused).toBe(false);
+  expect(errors).toEqual([]);
+});
+
 // Short phones and Bigger text have no room for power descriptions inside the narrow cards:
 // the Ready button tells a person who hasn't picked that a tap shows what a power does, and
 // the picked power's description takes the how-to's place, so the half never grows. Every

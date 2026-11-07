@@ -1140,3 +1140,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       there; the Ready button reads "Tap a power to see it" until a pick, and the picked
       power's description takes the how-to's place under the cards. A playtest picks every
       power in every shown game at 320x568, 360x640 and 390x844, with and without Bigger text.
+- [x] 2026-11-07 (F79): Reduce motion. With the phone's "reduce motion" on, the power pictures
+      (SMIL, which CSS can't stop) pause on the frame 1 s into their loop (`watchPowerPics()` in
+      app/powerpic.ts, a MutationObserver that freezes each picture as it appears, and sets
+      them moving again if the setting is turned off), the camera no longer shakes
+      (`reducedMotion()` in engine/calm.ts, checked in `Fx.shake`), and the ghost finger was
+      already still in CSS. Playtest "reduced motion: ..." checks the picture is paused and
+      looks the same 0.7 s later (reduced-motion-intro.png); unit test for the shake.

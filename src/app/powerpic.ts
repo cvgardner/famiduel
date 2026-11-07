@@ -5,6 +5,8 @@
 // the picked power and on the intro once a power is picked. Every shown game's
 // powers have one; a new power needs one too (tests/powerpic.test.ts).
 
+import { onReducedMotionChange, reducedMotion } from '../engine/calm';
+
 const DUR = '2s';
 const YOU = 'var(--c, #ffd166)';
 const THEM = '#b8b4cc';
@@ -296,4 +298,35 @@ export function powerPicHtml(game: string, power: string): string {
   const body = PICS[game]?.[power];
   if (!body) return '';
   return `<svg class="power-pic" data-power="${power}" viewBox="0 0 64 44" width="64" height="44" aria-hidden="true">${body}</svg>`;
+}
+
+/** Seconds into the 2 s loop shown when the phone asks for reduced motion: mid-action. */
+export const STILL_AT = 1;
+
+/** Freeze (or, with `still` false, restart) every power picture under root. */
+export function holdPicsStill(root: ParentNode, still = true): void {
+  root.querySelectorAll<SVGSVGElement>('svg.power-pic').forEach((svg) => {
+    if (still) {
+      svg.pauseAnimations();
+      svg.setCurrentTime(STILL_AT);
+      svg.dataset.still = '1';
+    } else if (svg.dataset.still) {
+      delete svg.dataset.still;
+      svg.unpauseAnimations();
+    }
+  });
+}
+
+/**
+ * With reduce motion on, every power picture the app puts on screen (intro, How to play)
+ * holds still on one frame; turning the setting off mid-session sets them moving again.
+ */
+export function watchPowerPics(root: HTMLElement): void {
+  if (typeof MutationObserver !== 'function') return;
+  const sync = () => holdPicsStill(root, reducedMotion());
+  new MutationObserver(() => {
+    if (reducedMotion() && root.querySelector('svg.power-pic:not([data-still])')) holdPicsStill(root);
+  }).observe(root, { childList: true, subtree: true });
+  onReducedMotionChange(sync);
+  sync();
 }
