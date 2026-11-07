@@ -1147,9 +1147,17 @@ test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) =
     expect(after.header, 'the header says to fire again').toContain('go again');
     if (hit === 1) await page.screenshot({ path: path.join(OUT, 'seabattle-hit-again.png') });
   }
-  // A miss hands the turn to the bot.
+  // A miss hands the turn to the bot, and the turn's two hits are summed up over the sea.
   await fire((await look()).water!);
   await expect.poll(async () => (await look()).turn, { timeout: 3000 }).toBe(1);
+  const tally = () =>
+    page.evaluate(() => {
+      const fx = (window as unknown as { __famiduel: { runner: { fx: { floaters: { str: string; player: number }[] } } } }).__famiduel.runner.fx;
+      return fx.floaters.filter((f) => /hits!$/.test(f.str)).map((f) => ({ str: f.str, player: f.player }));
+    });
+  await expect.poll(tally, { timeout: 3000 }).toEqual([{ str: '2 hits!', player: 0 }]);
+  await page.waitForTimeout(150);
+  await page.screenshot({ path: path.join(OUT, 'seabattle-turn-tally.png') });
   // The bot's turn ends with a miss too, and the next person turn starts plain.
   await myTurn();
   const back = await look();
