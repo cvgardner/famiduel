@@ -7,7 +7,7 @@ import { groupOf, homeGroups } from '../src/app/homegroups';
 import powers from '../content/powers.json';
 import { shownGames } from '../src/app/catalog';
 import { GAMES } from '../src/games/registry';
-import { Store, botFor, easierOffer, seatName } from '../src/app/store';
+import { Store, botFor, easierOffer, ownBotLevel, seatName } from '../src/app/store';
 
 describe('rng', () => {
   it('is deterministic per seed', () => {
@@ -150,6 +150,19 @@ describe('bot level per game', () => {
     const pr = again.data.profiles[1];
     expect(botFor(pr, 'checkers')).toBe('easy');
     expect(botFor(pr, 'airhockey')).toBe('normal');
+  });
+  it("the home card's badge names a game's own level only when it differs from the usual", () => {
+    const s = new Store(mem());
+    expect(ownBotLevel(s.data.profiles, 'sumo')).toBeNull();
+    s.setBot(1, 'normal');
+    expect(ownBotLevel(s.data.profiles, 'sumo')).toBeNull();
+    s.setBotLevel(1, 'sumo', 'hard');
+    expect(ownBotLevel(s.data.profiles, 'sumo')).toBe('hard');
+    expect(ownBotLevel(s.data.profiles, 'tanks')).toBeNull();
+    s.setBotLevel(1, 'tanks', 'normal'); // picked, but the same as the usual level
+    expect(ownBotLevel(s.data.profiles, 'tanks')).toBeNull();
+    s.setBot(1, null);
+    expect(ownBotLevel(s.data.profiles, 'sumo')).toBeNull();
   });
   it('a person is never a bot, whatever levels are saved', () => {
     const s = new Store(mem());

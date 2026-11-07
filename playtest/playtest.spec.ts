@@ -574,6 +574,20 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
   await page.locator('.game-card[data-id="seabattle"]').tap();
   await expect(page.locator('.botlvl[data-p="1"] button.on')).toHaveAttribute('data-v', 'easy');
   await page.locator('#introBack').tap();
+  // Home says so on that game's card (and only there), so the easier bot is no surprise.
+  await expect(page.locator('.game-card[data-id="seabattle"] .gbot')).toHaveAttribute('data-v', 'easy');
+  await expect(page.locator('.game-card[data-id="seabattle"]')).toContainText('Bot level here: easy');
+  await expect(page.locator('.game-card .gbot')).toHaveCount(1);
+  const badge = await page.locator('.game-card[data-id="seabattle"]').evaluate((card) => {
+    const b = card.querySelector('.gbot')!.getBoundingClientRect();
+    const c = card.getBoundingClientRect();
+    return { inside: b.left >= c.left && b.right <= c.right && b.top >= c.top, size: Math.round(b.width) };
+  });
+  expect(badge, 'the badge sits on the icon, inside the card').toEqual({ inside: true, size: 26 });
+  await page.locator('.game-card[data-id="seabattle"]').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: path.join(OUT, 'bot-level-home-badge.png') });
+  problems.push(...(await smallFonts(page, 'home with a game bot badge')));
+  expect(problems).toEqual([]);
   await page.locator('.game-card[data-id="airhockey"]').tap();
   await expect(page.locator('.botlvl[data-p="1"] button.on')).toHaveAttribute('data-v', 'normal');
   await introAsPeople(page, [0]);
