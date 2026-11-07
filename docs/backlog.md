@@ -502,8 +502,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       now sit on a small dark pill at full opacity the whole match (white on the pill is well
       over 4.5:1 on every grass shade). A unit test reads the hints from the source and checks
       them on the lightest grass, since the playtest's probe only judges a label at its best.
-- [ ] Menus (DOM) aren't contrast-checked yet; the same check over the intro and result
-      screens' text (computed colour vs the element's background) would cover them.
+- [x] 2026-11-07: Menus (DOM) are contrast-checked: `playtest/domcontrast.ts` screenshots the
+      page with every glyph transparent and judges each text run against the median pixel
+      behind it (covered text skipped). The playtest "contrast: intro, pause and result text
+      (DOM)" runs it on the intro (people, after Ready, vs a bot), the pause sheet and the
+      result, with Blue/Pink and Mint/Orange. It found and fixed: white "Ready!" and bot level
+      text on a light seat colour (2.4:1 on Mint, now `inkOn`), and the seat name on the
+      intro half (4.3:1 on Pink, now lifted toward white). (F8)
 - [x] 2026-11-07: The playtest only played Blue vs Pink; a new pass ("contrast: Mint vs
       Orange") plays every shown game with the lightest pair (two people for 5 s, then bots
       to the result) and fails on any label below WCAG contrast. Screenshots
@@ -745,7 +750,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] The group headings could be tappable chips at the top of home ("Action · Board ·
       Extras") that scroll to their group, so the board games are one tap away on a small
       phone.
-- [ ] The home screen (DOM) is still not contrast-checked; the headings use `--dim` (62%
+- [ ] The home screen (DOM) is still not contrast-checked (`domContrast(page, '#home')` would do it, in light and dark theme); the headings use `--dim` (62%
       white on #14112b, about 7:1), but a probe over all menu text would catch a regression.
 
 ## Ideas found 2026-11-01 (Chop Chop hints run)

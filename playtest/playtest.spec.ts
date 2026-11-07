@@ -10,6 +10,7 @@ import path from 'node:path';
 import games from '../content/games.json' with { type: 'json' };
 import holes from '../content/minigolf-holes.json' with { type: 'json' };
 import { PLAYER_COLORS } from '../src/core/colors';
+import { domContrast, faintLabels } from './domcontrast';
 import { installFingers, monkey, worldBox } from './monkey';
 import { checkersPerson, fourInARowPerson, rpsPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
 
@@ -1889,6 +1890,69 @@ test('contrast: Mint vs Orange, the lightest seats, in every shown game', async 
     else await leaveMatch(page);
   }
   expect(problems, 'labels below WCAG contrast with Mint vs Orange seats').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+// Menus are DOM, so the canvas probe never sees them: judge the intro (with a person and
+// with a bot, before and after Ready), the pause sheet and the result screen against the
+// pixels behind each text run, once with the usual seats and once with Mint vs Orange
+// (the lightest seat colours, which tint the halves and colour the Ready buttons).
+test('contrast: intro, pause and result text (DOM) in the usual and the lightest seats', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors: string[] = [];
+  await boot(page, errors);
+  const pairs: [string, string][] = [
+    [PLAYER_COLORS[0].hex, PLAYER_COLORS[1].hex],
+    [PLAYER_COLORS.find((c) => c.name === 'Mint')!.hex, PLAYER_COLORS.find((c) => c.name === 'Orange')!.hex],
+  ];
+  const id = built.includes('sumo') || built.length === 0 ? 'sumo' : built[0];
+  const problems: string[] = [];
+  let checked = 0;
+  const judge = async (where: string, root: string) => {
+    const labels = await domContrast(page, root);
+    checked += labels.length;
+    problems.push(...faintLabels(where, labels));
+  };
+  for (const [a, b] of pairs) {
+    const tag = PLAYER_COLORS.find((c) => c.hex === a)!.name;
+    await page.evaluate(([x, y]) => {
+      const app = (window as unknown as { __famiduel: Hook & { store: { data: { profiles: { color: string }[] } } } }).__famiduel;
+      app.store.data.profiles[0].color = x;
+      app.store.data.profiles[1].color = y;
+    }, [a, b]);
+    await setPlayers(page, [null, null]);
+    await page.locator(`.game-card[data-id="${id}"]`).tap();
+    await expect(page.locator('#intro')).toBeVisible();
+    await page.waitForTimeout(400);
+    await judge(`${tag} intro`, '#intro');
+    for (const p of [0, 1]) if (await page.locator(`.power-card[data-p="${p}"]`).count()) await page.locator(`.power-card[data-p="${p}"]`).nth(p).tap();
+    await page.locator('#ready0').tap();
+    await judge(`${tag} intro, powers picked, one ready`, '#intro');
+    await page.screenshot({ path: path.join(OUT, `intro-${tag.toLowerCase()}-ready.png`) });
+    await page.locator('#ready1').tap();
+    await expect(page.locator('#play')).toBeVisible();
+    await page.waitForTimeout(2400);
+    await holdPause(page);
+    await judge(`${tag} pause`, 'body');
+    await page.click('#quitBtn');
+    await setPlayers(page, [null, 'easy']);
+    await page.locator(`.game-card[data-id="${id}"]`).tap();
+    await expect(page.locator('#intro')).toBeVisible();
+    await page.waitForTimeout(400);
+    await judge(`${tag} intro vs bot`, '#intro');
+    await page.locator('#introBack').tap();
+    await setPlayers(page, ['normal', 'hard']);
+    await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+    await expect(page.locator('#play')).toBeVisible();
+    await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
+    await expect(page.locator('#result')).toBeVisible();
+    await page.waitForTimeout(600);
+    await judge(`${tag} result`, '#result');
+    await page.screenshot({ path: path.join(OUT, `result-${tag.toLowerCase()}.png`) });
+    await page.click('#homeBtn');
+  }
+  expect(checked, 'text runs judged').toBeGreaterThan(20);
+  expect(problems, 'menu text below WCAG contrast against what is behind it').toEqual([]);
   expect(errors).toEqual([]);
 });
 
