@@ -498,6 +498,8 @@ test('ghost finger: a "?" brings it back after the first matches, on a small pho
   expect(errors).toEqual([]);
 });
 
+const FREE_PICS = ['minigolf', 'airhockey', 'sumo'];
+
 test('how to play: the pause menu shows each player the finger, the rules and their power', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
@@ -524,9 +526,25 @@ test('how to play: the pause menu shows each player the finger, the rules and th
           power: !!h.querySelector('.my-power'),
           charge: h.querySelector('.my-power .charge')?.textContent ?? null,
           fits: ir.height <= hr.height + 1 && ir.top >= hr.top - 1 && ir.bottom <= hr.bottom + 1,
+          pic: !!h.querySelector('.my-power .power-pic'),
         };
       }),
     );
+    // The free games' powers come with a looping picture (app/powerpic.ts) that really moves.
+    if (FREE_PICS.includes(id)) {
+      const pose = () =>
+        page.evaluate(() =>
+          [...document.querySelectorAll('.pause-help .power-pic circle')]
+            .map((c) => { const e = c as SVGCircleElement; return `${e.cx.animVal.value},${e.cy.animVal.value},${e.r.animVal.value}`; })
+            .join(' '),
+        );
+      const a = await pose();
+      await page.waitForTimeout(450);
+      const b = await pose();
+      for (const [i, h] of halves.entries()) if (!h.pic) problems.push(`${id} half ${i}: no picture of the picked power`);
+      if (a === b) problems.push(`${id}: power pictures don't move`);
+      await page.screenshot({ path: path.join(OUT, `pause-help-pic-${id}.png`) });
+    }
     if (halves.length !== 2) problems.push(`${id}: ${halves.length} halves on how to play`);
     for (const [i, h] of halves.entries()) {
       if (!h.demo) problems.push(`${id} half ${i}: no ghost finger`);
