@@ -1314,6 +1314,50 @@ test('sea battle: two people see where their own shot landed before passing the 
   expect(errors).toEqual([]);
 });
 
+test('sea battle: with two people, the first look-away cover says who goes first', async ({ page }) => {
+  // Two people pass the phone, so the first shooter is told on the cover itself, before the
+  // sea shows: "You go first!" above their name. Read off the canvas, not the code.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  await page.locator('.game-card[data-id="seabattle"]').tap();
+  await introAsPeople(page, [0, 1]);
+  await page.waitForTimeout(2200); // countdown
+  type SeaHook = { runner: null | { game: { mode: { kind: string; next?: string; p: number }; game: { shotsFired: number[] } } } };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner?.game;
+      return v ? { kind: v.mode.kind, next: v.mode.next ?? null, p: v.mode.p, shots: v.game.shotsFired[0] + v.game.shotsFired[1] } : null;
+    });
+  const seen = () => page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, unknown> } }).__contrast.seen.keys()]);
+  await page.evaluate(() => {
+    const c = (window as unknown as { __contrast: { on: boolean; seen: Map<string, unknown> } }).__contrast;
+    c.seen.clear();
+    c.on = true;
+  });
+  const playing = seaBattlePerson(page, 20_000, 3);
+  let cover: Awaited<ReturnType<typeof look>> = null;
+  let words: string[] = [];
+  const end = Date.now() + 20_000;
+  while (Date.now() < end && !cover) {
+    const s = await look().catch(() => null);
+    if (s?.kind === 'cover' && s.next === 'fire' && s.shots === 0) {
+      await page.waitForTimeout(250); // one probe pass over the cover's words
+      words = await seen();
+      await page.screenshot({ path: path.join(OUT, 'seabattle-first-cover.png') });
+      cover = s;
+    } else await page.waitForTimeout(40);
+  }
+  await playing;
+  expect(cover, 'the first fire turn opens on a look-away cover').not.toBeNull();
+  const name = await page.evaluate((p) => (window as unknown as { __famiduel: { store: { data: { profiles: { name: string }[] } } } }).__famiduel.store.data.profiles[p].name, cover!.p);
+  expect(words, 'the cover says who goes first').toContain('You go first!');
+  expect(words, "and names them").toContain(name);
+  expect(words.some((w) => /look away!$/.test(w)), 'and tells the other one to look away').toBe(true);
+  await page.evaluate(() => ((window as unknown as { __contrast: { on: boolean } }).__contrast.on = false));
+  expect(errors).toEqual([]);
+});
+
 test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) => {
   // Chris, 2026-11-01: rules must match the ones kids know, like another shot after a hit.
   const errors: string[] = [];
