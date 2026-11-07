@@ -711,9 +711,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-07: Minigolf: a hole-by-hole strokes table (easy / normal / hard, 12 seeds) as an
       `npm run` script, so a new hole gets its par and place in the list from numbers:
       `npm run golf` (avg strokes, aces, picked up per level; docs/verification.md). (F28)
-- [ ] Minigolf: the hard bot aces 9 of the 22 holes almost every time (Speed Bumps, Island
+- [x] Minigolf: the hard bot aces 9 of the 22 holes almost every time (Speed Bumps, Island
       Green, Bumper Bowl, Downhill Dash 12/12). Fine as "hard", but a hole where an ace needs
       a bank shot would give a strong grown-up something to chase.
+      2026-11-07 (F55, PR #115): new par-3 hole "Bank Shot" (23 holes): a block sits on the
+      line from tee to cup, so the only ace comes off the right wall. `npm run golf`: easy
+      2.9 strokes (0% aces), normal 1.8 (17%), hard 1.3 (71%), none picked up. Unit tests:
+      no straight ace, and every ace in an angle/power sweep banks off the right wall.
 - [ ] Minigolf: Twin Gates (easy 5.3, normal 4.2 strokes) and Switchback are long for a small
       kid with a 6-stroke cap; check the cap is hit rarely with the head start on.
       2026-11-07: checked (easy bots, 12 seeds; the head start doesn't change a bot's shots,
