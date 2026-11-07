@@ -209,7 +209,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (hard bots 85%), so neither is counted. n=20: a mashing kid loses 98% of Sumo rounds
       and 90% of Snake rounds by themselves vs easy; with the full head start 48% / 82%.
       Bots never walk off in Sumo (0%). Snake bots self-crash in 48-51% (easy), 82-88%
-      (normal) and 35-38% (hard) of lost rounds: normal looks worse than easy (F60).
+      (normal) and 35-38% (hard) of lost rounds. Checked (F60, no change): a normal bot's
+      self-crash is the end of a long round, boxed into its own patch (median 30 free cells
+      next to its head when it crashes), while easy (median 646) and hard (417) crash with
+      room to spare, easy from fumbles and hard from the human turn gap on tight U-turns.
 - [x] 2026-11-01: Minigolf pars and hole order now come from measurements. Every hole was
       played by the easy bot (a young kid) and the normal bot (a grown-up), 24 rounds each:
       many par 3s were really 2-stroke holes (the easy bot averaged 2.0 on Crater, 2.3 on
