@@ -217,3 +217,20 @@ export function alpha(hex: string, a: number): string {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 }
+
+/**
+ * A seat cue that doesn't rely on colour: a ring round a piece, solid for player 0 (the
+ * bottom seat) and dashed for player 1 (the top seat), white over a dark under-stroke so it
+ * reads on any colour and in greyscale. For games where both players' pieces roam the same
+ * space (Sumo, Snake Duel, Tank Duel), so two colour-blind kids can still tell whose is whose.
+ */
+export function seatRing(g: G, p: 0 | 1, x: number, y: number, r: number, a = 1): void {
+  g.save();
+  g.globalAlpha *= a;
+  if (p === 1) g.setLineDash(SEAT_DASH);
+  circle(g, x, y, r, undefined, 'rgba(20,17,43,0.7)', 4);
+  circle(g, x, y, r, undefined, '#ffffff', 2);
+  g.restore();
+}
+/** Dash pattern of player 1's seat ring (player 0's is solid). */
+export const SEAT_DASH = [5, 4];

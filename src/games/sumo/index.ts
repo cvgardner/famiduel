@@ -1,7 +1,7 @@
 // Sumo view: one big hold button per player becomes intents; state becomes a
 // bouncy top-down ring with squash/stretch wrestlers, dust and shockwaves.
 import { PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, noGlow, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, noGlow, seatRing, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button, PowerButton } from '../../engine/widgets';
@@ -390,6 +390,8 @@ class SumoView implements GameInstance {
     circle(gx, r * 0.36, -r * 0.33, r * 0.08, 'rgba(255,120,120,0.5)');
     circle(gx, r * 0.36, r * 0.33, r * 0.08, 'rgba(255,120,120,0.5)');
     gx.restore();
+    // Whose wrestler: solid ring for the bottom seat, dashed for the top (not just colour).
+    seatRing(gx, p, x, y, r + 5, 1 - fall);
     if (w.slip > 0) {
       for (let i = 0; i < 4; i++) {
         const a = this.t * 3 + i * 1.6;
