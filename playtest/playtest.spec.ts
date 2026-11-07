@@ -11,7 +11,7 @@ import games from '../content/games.json' with { type: 'json' };
 import holes from '../content/minigolf-holes.json' with { type: 'json' };
 import { PLAYER_COLORS } from '../src/core/colors';
 import { domContrast, faintLabels } from './domcontrast';
-import { installFingers, monkey, worldBox } from './monkey';
+import { installFingers, monkey, tapWorld, worldBox } from './monkey';
 import { checkersPerson, fourInARowPerson, rpsPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
 
 const OUT = path.resolve('playtest-report');
@@ -1386,14 +1386,7 @@ test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) =
         water: open.find((i) => enemy.occ[i] < 0) ?? null,
       };
     });
-  const box = await worldBox(page);
-  const tap = async (x: number, y: number) => {
-    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup']) {
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, c.x, c.y] as const);
-      await page.waitForTimeout(60);
-    }
-  };
+  const tap = (x: number, y: number) => tapWorld(page, 77, x, y);
   // Grid geometry from src/games/seabattle/index.ts (the person is seat 0, upright).
   const N = 10, C = 27, GX = (360 - N * C) / 2, GY = 82;
   const fire = async (cell: number) => {
@@ -1478,13 +1471,7 @@ test('sea battle: on a small phone a cell is a fair target and a stray tap only 
   const N = 10, C = 27, GX = (360 - N * C) / 2, GY = 82;
   const cellPx = (C / 360) * box.width;
   expect(cellPx, `a grid cell on a 320 px phone is ${cellPx.toFixed(1)} CSS px`).toBeGreaterThanOrEqual(23.5);
-  const tap = async (x: number, y: number) => {
-    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup']) {
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(78, tt, cx, cy), [t, c.x, c.y] as const);
-      await page.waitForTimeout(60);
-    }
-  };
+  const tap = (x: number, y: number) => tapWorld(page, 78, x, y);
   const at = (cell: number) => [GX + (cell % N) * C + C / 2, GY + Math.floor(cell / N) * C + C / 2] as const;
   await expect.poll(async () => (await look()).kind, { timeout: 5000 }).toBe('place');
   await page.waitForTimeout(700);
@@ -1524,14 +1511,7 @@ test('sea battle: the first shot says who goes first, and the rematch swaps it',
       const v = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner!.game;
       return { kind: v.mode.kind, p: v.mode.p, phase: v.game.phase, header: v.header, announced: v.announced, first: v.firstMover() };
     });
-  const tap = async (x: number, y: number) => {
-    const box = await worldBox(page);
-    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup']) {
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(78, tt, cx, cy), [t, c.x, c.y] as const);
-      await page.waitForTimeout(60);
-    }
-  };
+  const tap = (x: number, y: number) => tapWorld(page, 78, x, y);
   const firsts: number[] = [];
   for (let m = 0; m < 2; m++) {
     await introAsPeople(page, [0]);
@@ -1592,12 +1572,7 @@ test("tic-tac-toe: the bot's newest mark sits on a tile until you move", async (
       const v = (window as unknown as { __famiduel: TttHook }).__famiduel.runner!.game;
       return { ring: v.ringCell(), last: v.game.last, turn: v.game.turn, board: [...v.game.board], between: v.game.between, done: v.game.done };
     });
-  const box = await worldBox(page);
-  const tap = async (cell: number) => {
-    const c = { x: box.x + ((45 + (cell % 3) * 90 + 45) / 360) * box.width, y: box.y + ((185 + Math.floor(cell / 3) * 90 + 45) / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup'])
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, c.x, c.y] as const);
-  };
+  const tap = (cell: number) => tapWorld(page, 77, 45 + (cell % 3) * 90 + 45, 185 + Math.floor(cell / 3) * 90 + 45);
   let s = await look();
   expect(s.last).toBeNull();
   expect(s.ring).toBeNull();
@@ -1641,12 +1616,7 @@ test("four in a row: the bot's newest disc keeps a ring until you move", async (
       const v = (window as unknown as { __famiduel: FourHook }).__famiduel.runner!.game;
       return { ring: v.ringCell(), last: v.game.last, turn: v.game.turn, moves: v.game.moves, still: !v.busy && !v.busyDiscs(), over: !!v.game.roundOver };
     });
-  const box = await worldBox(page);
-  const drop = async (col: number) => {
-    const c = { x: box.x + ((48 + col * 43 + 21.5) / 360) * box.width, y: box.y + (520 / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup'])
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(88, tt, cx, cy), [t, c.x, c.y] as const);
-  };
+  const drop = (col: number) => tapWorld(page, 88, 48 + col * 43 + 21.5, 520);
   // Nothing is ringed before the first disc.
   let s = await look();
   expect(s.last).toBeNull();
@@ -1728,13 +1698,7 @@ test("checkers: a bot's double jump stays traced on the board until you move", a
   await page.waitForTimeout(2500);
   expect(await look()).toEqual(m);
   // The person moves (7,0) to (6,1); the marks move to that simple move.
-  const box = await worldBox(page);
-  const tapSq = async (sqr: number) => {
-    const x = box.x + ((40 + (sqr % 8) * 39 + 19.5) / 360) * box.width;
-    const y = box.y + ((164 + Math.floor(sqr / 8) * 39 + 19.5) / 640) * box.height;
-    for (const t of ['pointerdown', 'pointerup'])
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, x, y] as const);
-  };
+  const tapSq = (sqr: number) => tapWorld(page, 77, 40 + (sqr % 8) * 39 + 19.5, 164 + Math.floor(sqr / 8) * 39 + 19.5);
   await tapSq(56);
   // Like a person, wait to see the piece picked up before tapping where it goes: two taps
   // from the same finger inside one frame would replace each other (flaky in the serial run).
@@ -2055,12 +2019,7 @@ test('rock paper scissors: two people pick behind a look-away cover, one at a ti
       const v = (window as unknown as { __famiduel: RpsHook }).__famiduel.runner!.game;
       return { step: v.secret.step, picks: [...v.game.picks], revealing: v.game.revealing };
     });
-  const box = await worldBox(page);
-  const tap = async (x: number, y: number) => {
-    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
-    for (const t of ['pointerdown', 'pointerup'])
-      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(77, tt, cx, cy), [t, c.x, c.y] as const);
-  };
+  const tap = (x: number, y: number) => tapWorld(page, 77, x, y);
   const flip = (p: number, x: number, y: number) => (p === 1 ? [360 - x, 640 - y] : [x, y]) as [number, number];
   // Round 1: player 1 (bottom) is first. Nothing is on screen but the cover.
   let s = await look();
