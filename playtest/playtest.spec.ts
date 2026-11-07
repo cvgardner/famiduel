@@ -2406,6 +2406,81 @@ test('bigger text: every shown game keeps its words on screen, small and tall ph
   expect(errors).toEqual([]);
 });
 
+// Short phones and Bigger text have no room for power descriptions inside the narrow cards:
+// the Ready button tells a person who hasn't picked that a tap shows what a power does, and
+// the picked power's description takes the how-to's place, so the half never grows. Every
+// shown game's intro must still fit with each power picked, on small and tall phones.
+test('intro: a picked power says what it does and the intro still fits, every game and size', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  await boot(page, errors);
+  const setBig = (on: boolean) =>
+    page.evaluate((v) => {
+      const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void } }).__famiduel;
+      app.store.data.settings.bigText = v;
+      app.applyBigText();
+    }, on);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await setBig(true);
+  await setPlayers(page, [null, 'normal']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
+  await expect(page.locator('#intro')).toBeVisible();
+  await expect(page.locator('#ready0')).toHaveText('Tap a power to see it');
+  await expect(page.locator('.power-card[data-p="0"] small').first()).toBeHidden();
+  await expect(page.locator('.half.p0 .howto')).toBeVisible();
+  await page.screenshot({ path: path.join(OUT, 'bigtext-intro-hint-390.png') });
+  const cards = page.locator('.power-card[data-p="0"]');
+  await cards.nth(1).tap();
+  await expect(page.locator('#ready0')).toHaveText('Ready!');
+  const desc = page.locator('.half.p0 .pick-desc');
+  await expect(desc).toBeVisible();
+  await expect(page.locator('.half.p0 .howto')).toBeHidden();
+  const name1 = (await cards.nth(1).locator('b').textContent())!;
+  await expect(desc).toContainText(name1);
+  // Changing your mind shows the other power's description instead.
+  await cards.nth(2).tap();
+  await expect(desc).toContainText((await cards.nth(2).locator('b').textContent())!);
+  await expect(desc).not.toContainText(name1);
+  await page.screenshot({ path: path.join(OUT, 'bigtext-intro-picked-390.png') });
+  // On a tall phone without Bigger text every card shows its description, as before.
+  await setBig(false);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
+  await expect(page.locator('#ready0')).toHaveText('Pick a power');
+  await expect(page.locator('.power-card[data-p="0"] small').first()).toBeVisible();
+  await page.locator('.power-card[data-p="0"]').first().tap();
+  await expect(page.locator('.half.p0 .pick-desc')).toBeHidden();
+  await expect(page.locator('.half.p0 .howto')).toBeVisible();
+  // Every game, two people, each power picked in turn: nothing spills out of a half.
+  await setPlayers(page, [null, null]);
+  const clipped: string[] = [];
+  for (const big of [false, true]) {
+    await setBig(big);
+    for (const [w, h] of [[320, 568], [360, 640], [390, 844]]) {
+      await page.setViewportSize({ width: w, height: h });
+      for (const id of built) {
+        const over = await page.evaluate(async (g) => {
+          const app = (window as unknown as { __famiduel: Hook }).__famiduel;
+          app.openGame(g);
+          let worst = -Infinity;
+          for (const card of document.querySelectorAll<HTMLElement>('#intro .power-card')) {
+            card.click();
+            await new Promise((r) => requestAnimationFrame(() => r(null)));
+            for (const half of document.querySelectorAll<HTMLElement>('#intro .half')) {
+              worst = Math.max(worst, (half.querySelector('.half-inner') as HTMLElement).getBoundingClientRect().height - half.getBoundingClientRect().height);
+            }
+          }
+          app.showHome();
+          return worst;
+        }, id);
+        if (over > 1) clipped.push(`${id} at ${w}x${h}${big ? ' (bigger text)' : ''}: ${Math.round(over)}px`);
+      }
+    }
+  }
+  await setBig(false);
+  expect(clipped, 'intro cut off once a power is picked').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 // Menus are DOM, so the canvas probe never sees them: judge the intro (with a person and
 // with a bot, before and after Ready), the pause sheet and the result screen against the
 // pixels behind each text run, once with the usual seats and once with Mint vs Orange

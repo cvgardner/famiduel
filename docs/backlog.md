@@ -1101,3 +1101,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-07 (F71): home's "Play together / Play the bot" switch wraps its labels onto two
       lines when they don't fit (Bigger text at 320 px pushed "Play the bot" past the pill).
       The layout playtest fails on a mode label past its button or the pill.
+- [x] 2026-11-07 (F66): on short phones (and with Bigger text) picking a power pushed the intro
+      out of its half: the picked card's description stretched the whole card row, cutting
+      the title and the seat line (up to 85 px over at 320x568, 95 px with Bigger text at
+      360x640; the layout playtest only checked before a pick). Cards now show names only
+      there; the Ready button reads "Tap a power to see it" until a pick, and the picked
+      power's description takes the how-to's place under the cards. A playtest picks every
+      power in every shown game at 320x568, 360x640 and 390x844, with and without Bigger text.
