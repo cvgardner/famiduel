@@ -225,7 +225,7 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
   expect(groups.reduce((n, g) => n + g.cards, 0)).toBe(shown.length);
   await page.locator('.group[data-group="turns"] .group-title').scrollIntoViewIfNeeded();
   await page.screenshot({ path: path.join(OUT, 'home-groups.png') });
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.evaluate(() => document.getElementById('home')!.scrollTo(0, 0));
   const clipped: string[] = [];
   // A common Android size, the smallest iPhone still in families' drawers (SE 1st gen), and a
   // tall phone (390×844), which gets the bigger desktop-size intro text.
@@ -271,8 +271,17 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
     if (big) {
       // Home and settings with Bigger text on a small phone: nothing sideways, screenshots for the eye.
       await page.setViewportSize({ width: 320, height: 568 });
-      await page.evaluate(() => window.scrollTo(0, 0));
+      // Home scrolls inside its own section (#home is the scroller), not the window.
+      await page.evaluate(() => document.getElementById('home')!.scrollTo(0, 0));
+      expect(await page.evaluate(() => document.getElementById('home')!.scrollTop), 'home shows its top for the screenshot').toBe(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), 'home scrolls sideways at 320px with bigger text').toBe(false);
+      // The "Play together / Play the bot" switch: each label stays inside its own button.
+      const modeCut = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('.seg.mode button')]
+          .filter((b) => b.scrollWidth > b.clientWidth + 1 || b.getBoundingClientRect().right > b.parentElement!.getBoundingClientRect().right - 3)
+          .map((b) => b.textContent),
+      );
+      expect(modeCut, 'home mode labels cut off at 320px with bigger text').toEqual([]);
       await page.screenshot({ path: path.join(OUT, 'bigtext-home-320.png') });
       await page.click('#settingsBtn');
       expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), 'settings scroll sideways at 320px with bigger text').toBe(false);
@@ -2339,7 +2348,7 @@ test('contrast: Mint vs Orange, the lightest seats, in every shown game', async 
 // Bigger text (settings): every shown game is played with it on, by people on a small phone
 // and then bot vs bot to the result on a tall one, with screenshots of both. Fails on any
 // word that runs past the world's left or right edge; the screenshots are for the eye
-// (strips, buttons, banners).
+// (strips, buttons, banners). The canvas contrast probe judges every word too.
 test('bigger text: every shown game keeps its words on screen, small and tall phone', async ({ page }) => {
   test.setTimeout(300_000);
   const errors: string[] = [];
@@ -2350,6 +2359,7 @@ test('bigger text: every shown game keeps its words on screen, small and tall ph
   const on = await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.store.data.settings.bigText);
   expect(on, 'the Bigger text switch is saved').toBe(true);
   const problems: string[] = [];
+  const dim: string[] = [];
   for (const g of games.games.filter((x) => !x.hidden && (built.length === 0 || built.includes(x.id)))) {
     await page.setViewportSize({ width: 320, height: 568 });
     await setPlayers(page, [null, null]);
@@ -2357,6 +2367,11 @@ test('bigger text: every shown game keeps its words on screen, small and tall ph
       const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number> } }).__edges;
       e.over.clear();
       e.on = true;
+      // Bigger words sit on different pixels (and their outlines change width), so the
+      // canvas contrast probe judges every word again with the switch on.
+      const c = (window as unknown as { __contrast: { on: boolean; seen: Map<string, unknown> } }).__contrast;
+      c.seen.clear();
+      c.on = true;
     });
     await page.locator(`.game-card[data-id="${g.id}"]`).tap();
     await introAsPeople(page, [0, 1]);
@@ -2375,11 +2390,19 @@ test('bigger text: every shown game keeps its words on screen, small and tall ph
     await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
     const over = await page.evaluate(() => [...(window as unknown as { __edges: { over: Map<string, number> } }).__edges.over]);
     for (const [str, by] of over) problems.push(`${g.id}: "${str}" runs ${by.toFixed(0)} units off the screen`);
+    await settleFades(page);
+    const seen = await page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, { best: number; need: number; size: number; rest: boolean }> } }).__contrast.seen]);
+    expect(seen.length, `${g.id}: the contrast probe saw words with Bigger text on`).toBeGreaterThan(0);
+    for (const [str, c] of seen) if (c.rest && c.best < c.need) dim.push(`${g.id}: "${str}" ${c.best.toFixed(1)}:1 (needs ${c.need}:1 at ${c.size})`);
     if (await page.locator('#result').isVisible()) await page.click('#homeBtn');
     else await leaveMatch(page);
   }
-  await page.evaluate(() => ((window as unknown as { __edges: { on: boolean } }).__edges.on = false));
+  await page.evaluate(() => {
+    (window as unknown as { __edges: { on: boolean } }).__edges.on = false;
+    (window as unknown as { __contrast: { on: boolean } }).__contrast.on = false;
+  });
   expect(problems, 'words off the screen with Bigger text on').toEqual([]);
+  expect(dim, 'labels below WCAG contrast with Bigger text on').toEqual([]);
   expect(errors).toEqual([]);
 });
 
