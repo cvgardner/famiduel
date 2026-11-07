@@ -183,3 +183,19 @@ describe('minigolf words in a player colour on its dark cards', () => {
   });
 });
 
+
+describe('Ping Pong SERVE hint', () => {
+  it('reads at 4.5:1 for every seat colour on the green table', async () => {
+    const { liftOn } = await import('../src/engine/fx');
+    const { TABLE_GREEN, SERVE_OUTLINE } = await import('../src/games/pingpong/index');
+    for (const c of PLAYER_COLORS) {
+      const ink = parseColor(liftOn(c.hex, SERVE_OUTLINE, TABLE_GREEN))!;
+      expect(labelContrast(ink, rgb(TABLE_GREEN), 1, parseColor(SERVE_OUTLINE)), c.name).toBeGreaterThanOrEqual(4.5);
+    }
+    // Purple was 4.0:1 before.
+    const purple = PLAYER_COLORS.find((c) => c.name === 'Purple')!.hex;
+    expect(labelContrast(parseColor(purple)!, rgb(TABLE_GREEN), 1, parseColor(SERVE_OUTLINE))).toBeLessThan(4.5);
+    const src = (await import('node:fs')).readFileSync('src/games/pingpong/index.ts', 'utf8');
+    expect(src).toMatch(/'SERVE'[^;]*liftOn\(c\[p\], SERVE_OUTLINE, TABLE_GREEN\)/);
+  });
+});

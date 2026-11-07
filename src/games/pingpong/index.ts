@@ -11,10 +11,13 @@ import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { FingerPaddle, fwdSign, PingPong, PingPongBot, RULES, type Intent, type Shot } from './logic';
 import { inkOn } from '../../core/contrast';
+import { liftOn } from '../../engine/fx';
 import { BounceMark, type Spot } from './bouncemark';
 
 const TABLE = { x0: 22, x1: W - 22, y0: RULES.tableY0, y1: RULES.tableY1 };
-const TABLE_GREEN = '#1d7a52';
+export const TABLE_GREEN = '#1d7a52';
+/** Outline of the SERVE hint; Purple on it over the table was 4.0:1, so the word is lifted (liftOn). */
+export const SERVE_OUTLINE = 'rgba(0,0,0,0.75)';
 
 type Trail = { x: number; y: number; color: string };
 
@@ -241,7 +244,7 @@ class PingPongView implements GameInstance {
     if (g.serving) {
       const p = g.server;
       const y = g.paddles[p].y + fwdSign(p) * 44;
-      text(gx, 'SERVE', g.paddles[p].x, y, { size: 14, color: c[p], player: p, stroke: 'rgba(0,0,0,0.75)' });
+      text(gx, 'SERVE', g.paddles[p].x, y, { size: 14, color: liftOn(c[p], SERVE_OUTLINE, TABLE_GREEN), player: p, stroke: SERVE_OUTLINE });
     }
     for (const p of PLAYERS) this.powerBtns[p]?.render(gx, g.energy[p], this.t);
     if (this.pointFlash > 0) {
