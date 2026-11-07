@@ -62,9 +62,39 @@ describe('quick draw', () => {
     expect(wins).toBeGreaterThanOrEqual(8);
   });
 
-  it('bots never tap before a signal is on screen', () => {
+  it('bots jump the gun now and then like people, the easy bot most and the hard bot least', () => {
+    // Before, bots never tapped with nothing on screen, so the forgiving powers (Double Shot)
+    // were worth less against a bot than against a family that jumps the gun.
+    const rate: Record<string, number> = {};
     for (const lvl of ['easy', 'normal', 'hard'] as BotLevel[]) {
-      for (let s = 0; s < 6; s++) expect(play([lvl, lvl], 300 + s, { powers: ['slowtime', 'double'] }).earlyBeforeSignal).toBe(0);
+      let rounds = 0;
+      let early = 0;
+      for (let s = 0; s < 60; s++) {
+        const { g } = play([lvl, lvl], 300 + s);
+        rounds += g.history.length;
+        early += g.history.filter((h) => h.reason === 'early' || h.reason === 'bothEarly').length;
+      }
+      rate[lvl] = early / rounds;
+    }
+    expect(rate.easy).toBeGreaterThan(0.04);
+    expect(rate.easy).toBeLessThan(0.16);
+    expect(rate.normal).toBeLessThan(0.05);
+    expect(rate.hard).toBeLessThan(0.025);
+    expect(rate.easy).toBeGreaterThan(rate.normal);
+    expect(rate.normal).toBeGreaterThanOrEqual(rate.hard);
+  });
+
+  it('a Slow Time pulse never makes a bot tap before DRAW!', () => {
+    // The pulse is a head start the bot waits out; only its own rare twitch can come early.
+    for (const lvl of ['normal', 'hard'] as BotLevel[]) {
+      let early = 0;
+      let rounds = 0;
+      for (let s = 0; s < 20; s++) {
+        const r = play([lvl, lvl], 300 + s, { powers: ['slowtime', 'slowtime'] });
+        early += r.earlyBeforeSignal;
+        rounds += r.g.history.length;
+      }
+      expect(early / rounds, lvl).toBeLessThan(0.06);
     }
   });
 
