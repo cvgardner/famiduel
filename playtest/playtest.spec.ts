@@ -1956,6 +1956,48 @@ test('contrast: intro, pause and result text (DOM) in the usual and the lightest
   expect(errors).toEqual([]);
 });
 
+// Home and settings follow the phone's light or dark look (settings.theme), so judge their
+// DOM text in both: the whole home page (scrolled through, so every game card is seen) and
+// the settings screen, against the pixels behind each run.
+test('contrast: home and settings text (DOM) in light and dark theme', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  await boot(page, errors);
+  const problems: string[] = [];
+  let checked = 0;
+  const judge = async (where: string, root: string) => {
+    const labels = await domContrast(page, root);
+    checked += labels.length;
+    problems.push(...faintLabels(where, labels));
+  };
+  for (const theme of ['light', 'dark'] as const) {
+    await page.locator('#settingsBtn').tap();
+    await expect(page.locator('#settings')).toBeVisible();
+    await page.locator(`#themeSeg button[data-v="${theme}"]`).tap();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    await page.waitForTimeout(300);
+    await judge(`${theme} settings`, '#settings');
+    await page.screenshot({ path: path.join(OUT, `settings-${theme}.png`) });
+    await page.locator('#settingsBack').tap();
+    await expect(page.locator('#home')).toBeVisible();
+    await page.waitForTimeout(1900); // the neon "Duel" flickers on once (1.75 s); judge it lit
+    // Judge each screenful of home, top to bottom.
+    // #home is the scroller (a full-screen panel), not the document.
+    const pages = await page.evaluate(() => Math.ceil(document.querySelector('#home')!.scrollHeight / innerHeight));
+    expect(pages, 'home is taller than one screen (so scrolling is checked)').toBeGreaterThan(1);
+    for (let i = 0; i <= pages; i++) {
+      await page.evaluate((k) => document.querySelector('#home')!.scrollTo(0, k * innerHeight * 0.8), i);
+      await page.waitForTimeout(150);
+      await judge(`${theme} home (screen ${i + 1})`, '#home');
+    }
+    await page.evaluate(() => document.querySelector('#home')!.scrollTo(0, 0));
+    await page.screenshot({ path: path.join(OUT, `home-${theme}.png`) });
+  }
+  expect(checked, 'text runs judged').toBeGreaterThan(20);
+  expect(problems, 'home and settings text below WCAG contrast').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test.afterAll(() => {
   fs.mkdirSync(OUT, { recursive: true });
   fs.writeFileSync(path.join(OUT, 'summary.json'), JSON.stringify(rows, null, 2));
