@@ -650,6 +650,76 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
   expect(errors).toEqual([]);
 });
 
+// The canvas buttons in play (power buttons, Sumo's HOLD, Snack Snatch's critters, Penalty's
+// dive buttons, RPS throws) aren't DOM, so the check above can't see them. Each one's touch
+// area (drawn radius plus slop) must stay a little-hand-sized target on a 320x568 phone.
+const MIN_CANVAS_TARGET = 56;
+test('layout: every in-game canvas button is a 56px touch target on a small phone, also with Little hands', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  const small: string[] = [];
+  const clash: string[] = [];
+  let seen = 0;
+  let grown = 0;
+  // Buttons that already sit partly past the edge at normal size (Ping Pong's corners).
+  const offAtNormal = new Set<string>();
+  // Settings > Little hands draws the power buttons bigger (same touch area); they must still
+  // sit on the screen and clear every other canvas button.
+  for (const big of [false, true]) {
+    await page.evaluate((on) => {
+      const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void } }).__famiduel;
+      app.store.data.settings.bigButtons = on;
+      app.applyBigText();
+    }, big);
+    for (const id of built) {
+      await setPlayers(page, [null, null]);
+      await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+      await introAsPeople(page, [0, 1]);
+      await page.waitForTimeout(300);
+      const found = await page.evaluate(() => {
+        const view = (window as unknown as { __famiduel: { runner: { game: unknown } } }).__famiduel.runner!.game;
+        const c = document.getElementById('stage')!.getBoundingClientRect();
+        const scale = Math.min(c.width / 360, c.height / 640);
+        type B = { r: number; slop: number; owner: number; hit: unknown; x: number; y: number };
+        const isButton = (o: unknown): o is B => !!o && typeof o === 'object' && typeof (o as B).hit === 'function' && typeof (o as B).r === 'number' && typeof (o as B).slop === 'number';
+        const out: { where: string; css: number; x: number; y: number; r: number; power: boolean }[] = [];
+        const seen = new Set<unknown>();
+        const walk = (o: unknown, where: string, depth: number, power: boolean) => {
+          if (!o || typeof o !== 'object' || seen.has(o) || depth > 4) return;
+          seen.add(o);
+          if (isButton(o)) return void out.push({ where, css: 2 * (o.r + o.slop) * scale, x: o.x, y: o.y, r: o.r, power });
+          const isPower = !!(o as { power?: unknown }).power && 'button' in (o as object);
+          for (const [k, v] of Object.entries(o as Record<string, unknown>)) if (k !== 'ctx' && k !== 'game') walk(v, `${where}.${k}`, depth + 1, isPower);
+        };
+        walk(view, 'view', 0, false);
+        return out;
+      });
+      seen += found.length;
+      const tag = big ? ' (little hands)' : '';
+      for (const f of found) if (f.css < MIN_CANVAS_TARGET - 0.5) small.push(`${id}${tag} ${f.where}: ${Math.round(f.css)}px`);
+      for (const f of found.filter((b) => b.power)) {
+        if (big && f.r > 22) grown++;
+        // The drawn button with its dark backing and owner band (r + 6).
+        const R = f.r + 6;
+        if (f.x - R < 0 || f.x + R > 360 || f.y - R < 0 || f.y + R > 640) {
+          if (!big) offAtNormal.add(`${id} ${f.where}`);
+          else if (!offAtNormal.has(`${id} ${f.where}`)) clash.push(`${id}${tag} ${f.where} runs off the screen`);
+        }
+        // Sea Battle's two power buttons share a spot: only the shooter's shows (pass and play).
+        for (const o of found) if (o !== f && (o.x !== f.x || o.y !== f.y) && Math.hypot(o.x - f.x, o.y - f.y) < R + o.r + (o.power ? 6 : 0)) clash.push(`${id}${tag} ${f.where} overlaps ${o.where}`);
+      }
+      if (big && ['snacksnatch', 'sumo', 'airhockey'].includes(id)) await page.screenshot({ path: path.join(OUT, `little-hands-${id}.png`) });
+      await leaveMatch(page);
+    }
+  }
+  expect(seen, 'canvas buttons found').toBeGreaterThan(built.length);
+  expect(grown, 'power buttons drawn bigger with Little hands').toBeGreaterThan(built.length);
+  expect(small, `canvas buttons whose touch area is under ${MIN_CANVAS_TARGET}px on a 320x568 phone`).toEqual([]);
+  expect(clash, 'power buttons on screen and clear of other canvas buttons').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('bot level: picked on the intro, kept per game, fits a small phone', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });

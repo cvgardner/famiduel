@@ -600,9 +600,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       needed fixing. Saves bot-level-intro-tall.png.
 
 ## Ideas found 2026-10-31 (air hockey stall run)
-- [ ] Other real-time games may stall with an idle player too (Ping Pong serve, Penalty
+- [x] Other real-time games may stall with an idle player too (Ping Pong serve, Penalty
       shooter, Tanks): a playtest that idles one seat against a bot in every game and
       checks a result arrives within ~3 minutes would find them all.
+      2026-11-07 (F91): covered: `npm run sim -- --idle` measures every real-time game with one seat idle, and Ping Pong, Penalty and Quick Draw have clocks (see "Idle-seat stalls" below).
 - [x] 2026-10-31: Air Hockey bots scored on themselves. Ran every real-time game with one
       seat idle against each bot level (none stall now; Minigolf waits for its shot, as it
       should). Air Hockey stood out: an idle person beat the easy bot in 21 of 40 matches
@@ -901,7 +902,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       first shooter and a rematch starter). A new playtest plays two matches against the bot
       through Rematch and checks the pop and header for whoever opens each, and that the
       first shot swaps seats (`seabattle-you-first.png`, `seabattle-bot-first.png`).
-- [ ] Reviews also ask to pick their colour when playing a bot and complain hard bots feel
+- [x] Reviews also ask to pick their colour when playing a bot and complain hard bots feel
       like they "never lose" (RPS, Mini Golf) or copy your moves (Snake); check our hard RPS
       bot stays near 1/3 per throw against a patterned kid, and that the hard Snake bot never
       mirrors a player's path.
@@ -912,6 +913,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       `tests/rps.test.ts` plays 400 matches of the hard bot against a kid who always throws
       rock, one who cycles and one who repeats their last throw: the bot wins 28-39% of rounds
       and 42-58% of matches against each.
+      2026-11-07 (F91): RPS part done too (F62, tests/rps.test.ts: the hard bot throws at random vs a patterned kid). Colour: each seat's colour is already picked on its player sheet, bot or not.
 - [x] 2026-11-01 (20:00 research run): Ping Pong shows where the ball landed. Reviews of
       another 2-player app still say "hard to tell whether the ball has landed yet"; ours
       only had a thin ring that faded as it grew for 0.5 s. Now each bounce leaves a spot on
@@ -929,8 +931,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       mirrored bot matches; a small edge, like real shootouts, so no change.
 
 ## Ideas found 2026-11-01 (thinking pill run)
-- [ ] Sea Battle's header already names the aiming bot; Penalty and Minigolf (bot's shot)
+- [x] Sea Battle's header already names the aiming bot; Penalty and Minigolf (bot's shot)
       could use `waitingLine()` on the waiting side too, so every turn game reads the same.
+      2026-11-07 (F91): Minigolf already uses it. Penalty has no waiting seat: during a bot's kick the person keeps goal ("Tap a button to dive!"), so nothing to add.
 - [ ] Tic-Tac-Toe's "Game 1" card covers the board for a moment while the bot may already be
       thinking; check a kid doesn't tap through it and miss the bot's first mark.
 - [x] 2026-11-01 (Chris: "should famiduel have a solo mode vs AI?" → build it): Play the bot.
@@ -978,8 +981,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] The group headings could be tappable chips at the top of home ("Action · Board ·
       Extras") that scroll to their group, so the board games are one tap away on a small
       phone.
-- [ ] The home screen (DOM) is still not contrast-checked (`domContrast(page, '#home')` would do it, in light and dark theme); the headings use `--dim` (62%
+- [x] The home screen (DOM) is still not contrast-checked (`domContrast(page, '#home')` would do it, in light and dark theme); the headings use `--dim` (62%
       white on #14112b, about 7:1), but a probe over all menu text would catch a regression.
+      2026-11-07 (F91): done: playtest "contrast: home and settings text (DOM) in light and dark theme" judges all of home (scrolled through) and settings.
 
 ## Ideas found 2026-11-01 (Chop Chop hints run)
 - [x] The contrast probe keeps a label's best at-rest sample and treats any alpha below 0.99
@@ -1188,6 +1192,19 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-07 (F82, PR #142): Reduce motion also softens full-screen flashes (goals, hits): with
       the phone's setting on, `Fx.flash` draws at a quarter of its brightness, so it still
       says something happened without a strobe. Unit test in tests/calm.test.ts.
+- [x] 2026-11-07 (F89): in-game canvas buttons measured on a 320x568 phone. Every Button in
+      play (power buttons 57 px touch area, Penalty dive 64, RPS 89, Snack Snatch 103, Sumo
+      HOLD 117) is a 56 px or bigger target; playtest "layout: every in-game canvas button is a
+      56px touch target" walks each shown game's view for Buttons and fails a smaller one.
+      Tanks FIRE (a 100 px zone plus its side of the strip) and Sea Battle's cells (F58) aren't
+      Buttons and have their own checks. So Little hands (F83) only needs to grow drawn size.
+- [x] 2026-11-07 (F83): Little hands reaches the games. With Settings > Look > Little hands on,
+      in-game power buttons are drawn bigger (radius 22 -> 26 world units, icon with it) as far
+      as the screen edge allows, with the same 57 px touch area; the settings line now says
+      "in games too". The canvas-button playtest runs every shown game with it on and fails a
+      power button that runs off the screen (unless it already did at normal size: Ping Pong)
+      or overlaps another canvas button; screenshots little-hands-*.png. Unit test
+      tests/littlehands.test.ts.
 - [x] 2026-11-07 (F88): Minigolf seat check per hole. No seat edge: the same seed with the
       seats swapped plays the same strokes mirrored (new test in tests/minigolf.test.ts, all
       23 holes). A first sim's "bottom seat wins 40%" followed which seeds it started on
