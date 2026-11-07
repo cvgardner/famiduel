@@ -210,8 +210,13 @@ export class Arena {
 }
 
 export function spawnOf(p: PlayerIndex): { x: number; y: number; a: number } {
+  // The middle of the arena is the line between columns 4 and 5, and a cell lookup
+  // floors, so a tank right on it counts as column 5 from either seat. Turned 180°,
+  // that is a different cell for each player, and bots routing from it gave the bottom
+  // seat ~64% of rounds on Lanes and Rooms. A hair to each player's own right keeps the
+  // two spawns exact 180° images, in mirrored cells.
   const x = ARENA.x + ARENA.w / 2;
-  return p === 0 ? { x, y: ARENA.y + ARENA.h - CELL / 2, a: -Math.PI / 2 } : { x, y: ARENA.y + CELL / 2, a: Math.PI / 2 };
+  return p === 0 ? { x: x + 0.01, y: ARENA.y + ARENA.h - CELL / 2, a: -Math.PI / 2 } : { x: x - 0.01, y: ARENA.y + CELL / 2, a: Math.PI / 2 };
 }
 
 export function armorFor(assist: number): number {

@@ -87,6 +87,36 @@ describe('tank duel', () => {
     }
   }, 60_000);
 
+  it('both spawns sit in mirrored cells, so neither seat gets a head start', () => {
+    const g = fresh();
+    const [c0, r0] = g.arena.cellOf(spawnOf(0).x, spawnOf(0).y);
+    const [c1, r1] = g.arena.cellOf(spawnOf(1).x, spawnOf(1).y);
+    expect([c1, r1]).toEqual([COLS - 1 - c0, ROWS - 1 - r0]);
+    // 180° images of each other around the arena's middle.
+    expect(spawnOf(0).x + spawnOf(1).x).toBeCloseTo(2 * ARENA.x + ARENA.w);
+    expect(spawnOf(0).y + spawnOf(1).y).toBeCloseTo(2 * ARENA.y + ARENA.h);
+  });
+
+  it('two equal bots win about as many first rounds from either seat, on every arena', () => {
+    for (let layout = 0; layout < LAYOUTS.length; layout++) {
+      const wins = [0, 0];
+      for (let seed = 1; seed <= 200; seed++) {
+        const rng = makeRng(seed * 7919 + layout);
+        const g = new TankDuel([player({ bot: 'normal' }), player({ bot: 'normal' })], false, rng);
+        g.layout = layout;
+        g.arena = new (g.arena.constructor as new (grid: boolean[]) => typeof g.arena)(buildGrid(LAYOUTS[layout]));
+        const bots = [new TankBot(0, 'normal', rng), new TankBot(1, 'normal', rng)];
+        for (let t = 0; g.round === 1 && !g.over && t < 120; t += DT) {
+          g.step(DT, [bots[0].think(g, DT), bots[1].think(g, DT)]);
+          for (const e of g.events) if (e.type === 'hit') wins[e.p === 0 ? 1 : 0]++;
+        }
+      }
+      const share = wins[0] / (wins[0] + wins[1]);
+      expect(share, `${LAYOUTS[layout].name}: bottom seat won ${wins.join('/')}`).toBeGreaterThan(0.4);
+      expect(share, `${LAYOUTS[layout].name}: bottom seat won ${wins.join('/')}`).toBeLessThan(0.6);
+    }
+  }, 120_000);
+
   it('bot vs bot always reaches a result, in about 1–3 minutes of game time', () => {
     for (const seed of [1, 2, 3, 4]) {
       const { g, t } = play(['normal', 'normal'], seed);

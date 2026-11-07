@@ -206,6 +206,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
         self-bonks and seat splits sit inside the old arenas' range (a maze-like "Hallways" try
         was dropped: the top seat won 98 of 137 normal rounds). tests/tanks.test.ts plays a round
         on each arena; the playtest saves tanks-arena-<name>.png for each.
+  - [x] 2026-11-07 (F86): Tank Duel seat bias found while measuring F84: between two normal bots
+        the bottom seat won ~64% of first rounds on Lanes and Rooms (400 rounds, same with the
+        bots' think order swapped or separate random streams). Cause: both spawns sat exactly on
+        the line between columns 4 and 5, and a cell lookup floors, so both tanks counted as
+        column 5, which is a different cell for each seat once the arena is turned 180°. Each
+        spawn now sits a hair to its player's own right; all 8 arenas land at 48-54%. Tests:
+        spawns in mirrored cells; equal bots win 40-60% of 200 first rounds from either seat.
   - [x] 2026-11-07 (F85): Snack Snatch serves six snack kinds (new: a wrapped sweet and an orange
         slice, drawn in code). Looks only: every kind scores 1, a mirrored pair shares its kind, and
         the pot makes the same number of random draws, so matches play out exactly as before.
