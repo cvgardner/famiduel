@@ -260,6 +260,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       9 / 2 / 1% of rounds lost early in bot mirrors). `npm run sim:powers -- --game quickdraw
       --n 300`: Slow Time 74% -> 65% (the edge of the 35-65% band), Double Shot now beats None
       57/43 (was 54/50), Fake-out 47% unchanged. Chop Chop's wrong-side chops are not done yet.
+- [x] 2026-11-07 (F15, PR #106): Quick Draw Slow Time 65% -> 63% (n=1000, normal bots). The
+      "get ready" glow used to start a fixed 0.45 s before DRAW!, so a person could count it down
+      to a perfect tap (the bot got 0.15 s off its reaction). The lead is now random each round
+      (0.45-1.1 s, `RULES.pulseLeadMin/Max`): it says "soon", not "now". A warned bot still waits
+      for DRAW! and reacts 0.06 s faster (`RULES.pulseEdge`). Fake-out 46%, Double 50%, None 46%.
 - [x] 2026-11-02 (PR #77): Air Hockey Split won 33% because the bot split pucks that were coming
       at its own goal (two to stop). It now splits just after a hit, while the puck heads at
       the other goal, as a person would: split 56% at normal (easy 59%, hard 63%), n=60.
@@ -718,8 +723,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 ## Ideas found 2026-11-01 (FIRE rim run)
 - [ ] The same owner-colour band could go on other shared-looking buttons: Penalty's and
       Snack Snatch's power buttons, and Quick Draw's two DRAW pads, if kids mix them up.
-- [ ] Tank Duel's FIRE button could flash its band gold while a bouncy shell is loaded
+- [x] Tank Duel's FIRE button could flash its band gold while a bouncy shell is loaded
       (the glow does this today, faintly on a light rim like Mint).
+      2026-11-07 (F46, PR #107): the band blinks gold twice a second while a bouncy shell is
+      loaded (gold a quarter second, then the owner's colour), `fireLook(..., bouncy, t)` in
+      tanks/controls.ts. Playtest "tanks: a loaded bouncy shell blinks..." samples Mint's band
+      and sees both, saving tanks-bouncy-band.png.
 
 ## Ideas found 2026-11-01 (newest mark run)
 - [ ] A shared "newest move" look across the board games (Four in a Row ring, Tic-Tac-Toe
@@ -977,3 +986,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Other words drawn in a player colour on a see-through card (search `players[..].color`
       next to an rgba card) could get the same `liftOn` check.
 
+## Ideas found 2026-11-07 (power band run)
+- [x] 2026-11-07 (F47, PR #108): every power button (the shared `PowerButton` in
+      engine/widgets.ts) has a 2.5-unit band of its owner's colour round its dark backing, so
+      it reads as "mine" with an empty meter too (the FIRE rim idea, for Penalty, Snack Snatch
+      and every other game). Playtest "power buttons: each wears a band..." samples both
+      seats in Penalty, Snack Snatch and Air Hockey.
+- [x] Quick Draw's two DRAW pads: no band needed, each SQUIRT! button is already filled with
+      its owner's colour (quickdraw/index.ts drawButton).

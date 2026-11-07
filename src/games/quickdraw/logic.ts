@@ -22,8 +22,14 @@ export const RULES = {
   fakeGap: 0.35,
   /** Seconds added to the opponent's tap at assist 3. */
   maxPenalty: 0.15,
-  /** Slow Time: how long before DRAW! the "get ready" pulse starts. */
-  pulseLead: 0.45,
+  /**
+   * Slow Time: the "get ready" pulse starts this long before DRAW!, picked fresh each round
+   * between the two, so the glow says "soon" but can't be counted down to a perfect tap.
+   */
+  pulseLeadMin: 0.45,
+  pulseLeadMax: 1.1,
+  /** How much faster a warned bot reacts to DRAW! (a "get ready" cue shortens reaction a little). */
+  pulseEdge: 0.06,
   /** After a forgiven early tap, taps are ignored this long (so one press can't be both). */
   forgiveLock: 0.25,
   energyWin: 0.3,
@@ -71,6 +77,8 @@ export class QuickDraw {
   round = 1;
   /** Length of this round's wait. Hidden from bots: they only see what is on screen. */
   private waitLen = 0;
+  /** This round's Slow Time lead (hidden, like waitLen). */
+  private pulseLead: number = RULES.pulseLeadMin;
   private fakes: Fake[] = [];
   private fakeId = 0;
   private pendingFake: [boolean, boolean] = [false, false];
@@ -118,12 +126,13 @@ export class QuickDraw {
       this.fakes.push({ at, kind: this.rng.pick(FAKE_KINDS), by: null, id: ++this.fakeId });
       at += RULES.fakeLen + RULES.fakeGap + this.rng.range(0.2, 1.0);
     }
+    this.pulseLead = this.rng.range(RULES.pulseLeadMin, RULES.pulseLeadMax);
     this.events.push({ type: 'ready', round: this.round });
   }
 
   /** Slow Time pulse on this player's side: true just before the real DRAW!. */
   pulse(p: PlayerIndex): boolean {
-    return this.focus[p] && this.phase === 'wait' && this.phaseT >= this.waitLen - RULES.pulseLead;
+    return this.focus[p] && this.phase === 'wait' && this.phaseT >= this.waitLen - this.pulseLead;
   }
 
   step(dt: number, intents: [Intent, Intent]): void {
@@ -325,13 +334,13 @@ export class QuickDrawBot {
         }
       }
       if ((this.mode === null || this.mode === 'jump') && game.pulse(this.p)) {
-        // Slow Time: the pulse is a head start, but the bot still waits for DRAW!.
+        // Slow Time: the bot is warned, but like a person it can't tell how far off DRAW! is,
+        // so it still reacts to DRAW!, just a little faster.
         this.mode = 'pulse';
-        this.tapIn = RULES.pulseLead + Math.max(0.08, this.reaction() - 0.15);
       }
-    } else if (game.phase === 'draw' && (this.mode === null || this.mode === 'fooled' || this.mode === 'jump')) {
+    } else if (game.phase === 'draw' && (this.mode === null || this.mode === 'fooled' || this.mode === 'jump' || this.mode === 'pulse')) {
+      this.tapIn = this.mode === 'pulse' ? Math.max(0.08, this.reaction() - RULES.pulseEdge) : this.reaction();
       this.mode = 'draw';
-      this.tapIn = this.reaction();
     }
     let tap = false;
     if (this.tapIn !== Infinity) {
