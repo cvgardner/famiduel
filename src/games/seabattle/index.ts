@@ -19,6 +19,13 @@ const SX = 24; // small grid
 const SY = 456;
 const SC = 14;
 const SHOT_T = 0.38; // shell flight time
+const BADGE = '#ffd54a';
+const BADGE_INK = '#2b2459';
+const DEEP = '#0a1838';
+const WAVE_TOP = '#11508f';
+const WAVE_LOW = '#0b3566';
+/** What pop-up words land on: the deep sea and the grid's water (tests/contrast.test.ts). */
+export const SURFACES: readonly string[] = [DEEP, WAVE_TOP, WAVE_LOW];
 
 type Mode =
   | { kind: 'cover'; p: PlayerIndex; next: 'place' | 'fire'; t: number }
@@ -56,6 +63,8 @@ class SeaBattleView implements GameInstance {
   ];
   /** The last shot's result alone (the one that ended a turn), for the shooter's own beat. */
   volley = { hits: 0, misses: 0, sunk: 0 };
+  /** Cells each shooter hit this turn, in order: numbered badges once a turn has 2+ hits. */
+  private turnHits: number[][] = [[], []];
   /** Hits in a row this turn (each one earned another shot). Shown once the shell lands. */
   private again = 0;
   /** The header line last drawn (read by the playtest). */
@@ -109,6 +118,7 @@ class SeaBattleView implements GameInstance {
     const p = g.turn;
     this.again = 0;
     this.turnLog[p] = { hits: 0, misses: 0, sunk: 0 };
+    this.turnHits = [[], []];
     this.lastShots[other(p)] = [];
     if (this.bots[p]) this.mode = { kind: 'bot', p, t: 0, aim: null };
     else this.mode = this.twoHumans ? { kind: 'cover', p, next: 'fire', t: 0 } : { kind: 'fire', p, t: 0 };
@@ -449,6 +459,7 @@ class SeaBattleView implements GameInstance {
       fx.shake(big ? 6 : 3, 0.18);
       if (s.result === 'hit') {
         log.hits++;
+        this.turnHits[s.a].push(s.cell);
         this.volley.hits++;
       }
       if (big) this.pop(s.result === 'hitBack' ? 'Hit back!' : 'HIT!', x, y + (y < GY + 70 ? 26 : -24), '#ff8a3d', 24);
@@ -543,7 +554,7 @@ class SeaBattleView implements GameInstance {
     const vc = this.ctx.players[v].color;
     // Deep sea background with the viewer's colour at their edge.
     const grd = gx.createLinearGradient(0, 0, 0, H);
-    grd.addColorStop(0, '#0a1838');
+    grd.addColorStop(0, DEEP);
     grd.addColorStop(1, shade(vc, -0.7));
     gx.fillStyle = grd;
     gx.fillRect(0, 0, W, H);
@@ -682,8 +693,8 @@ class SeaBattleView implements GameInstance {
     const attacker = other(owner);
     rrect(gx, x0 - 4, y0 - 4, size + 8, size + 8, big ? 12 : 6, '#0d3a6b', alpha(this.ctx.players[owner].color, 0.8), big ? 3 : 2);
     const wave = gx.createLinearGradient(x0, y0, x0 + size, y0 + size);
-    wave.addColorStop(0, '#11508f');
-    wave.addColorStop(1, '#0b3566');
+    wave.addColorStop(0, WAVE_TOP);
+    wave.addColorStop(1, WAVE_LOW);
     gx.fillStyle = wave;
     gx.fillRect(x0, y0, size, size);
     for (let k = 1; k < N; k++) {
@@ -755,6 +766,16 @@ class SeaBattleView implements GameInstance {
         }
       }
     }
+    // A turn of 2+ hits numbers each one (1, 2, 3...) so a kid sees every hit called out.
+    const chain = this.turnHits[attacker];
+    if (big && chain.length >= 2)
+      chain.forEach((cell, k) => {
+        if (hidden.has(cell)) return;
+        const bx = x0 + (cell % N) * c + c - 4;
+        const by = y0 + Math.floor(cell / N) * c + 4;
+        circle(gx, bx, by, 8, BADGE, BADGE_INK, 1.5);
+        text(gx, String(k + 1), bx, by + 0.5, { size: 13, color: BADGE_INK, weight: 800 });
+      });
   }
 
   private drawPlaceUi(gx: G, p: PlayerIndex): void {

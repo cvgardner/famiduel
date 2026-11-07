@@ -655,9 +655,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       that no "'s turn" line is drawn (`<game>-bot-thinking.png`).
 
 ## Ideas found 2026-11-01 (Sea Battle hit-again run)
-- [ ] Sea Battle: with hit-again, a bot can chain 4-5 hits on your fleet in one turn; the
+- [x] Sea Battle: with hit-again, a bot can chain 4-5 hits on your fleet in one turn; the
       bot-result beat shows the whole turn's total, but a kid may want each hit called out
       ("hit 3 times!" is there; maybe a small count badge on each new hit).
+      2026-11-07 (F53, PR #114): once a turn has 2+ hits, each hit cell wears a gold badge
+      with its number (1, 2, 3...) at its corner, upright for whoever looks, on the shot sea
+      (the bot's chain on your fleet too); a new turn clears them. Playtest "a hit fires
+      again" checks both badges by pixel and that the next turn starts plain.
 - [ ] Rules audit of the other classic games against the rules families know (Checkers
       forced jumps and kings, Four in a Row, Ping Pong serve every 2 points, Penalty 5 each
       then sudden death), listed in docs so a parent can check "is this the real rule?".
@@ -1003,6 +1007,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (10 games). It found Quick Draw's "they used <power>" (15 px) on the sand in Purple at
       3.0:1 and Pink at 4.1:1; it now goes through `seatPop()` (popColor, then liftOn on both
       sands). Pops passed through a helper's own `color` argument are skipped.
+- [x] 2026-11-07 (F52, PR #113): the pop check also reads pops passed through a helper's own
+      `color` (Sea Battle's pop(), Ping Pong's popBoth(), Minigolf's and Penalty's both()) at
+      each caller, with the caller's size; it fails if a pass-through helper isn't found.
+      Sea Battle now exports SURFACES (deep sea and grid water) and is checked too. No faint
+      pop turned up.
 
 ## Ideas found 2026-11-07 (power band run)
 - [x] 2026-11-07 (F47, PR #108): every power button (the shared `PowerButton` in

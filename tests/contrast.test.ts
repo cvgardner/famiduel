@@ -226,7 +226,7 @@ describe('pop-up words in every action game', () => {
   // Same source check as Sumo's, for every action game against the colours its
   // own play area is painted in (each view exports SURFACES). The playtest only
   // judges the pops a match happens to trigger, so rare ones are covered here.
-  const GAMES = ['airhockey', 'chopchop', 'minigolf', 'penalty', 'pingpong', 'quickdraw', 'snacksnatch', 'snake', 'sumo', 'tanks'];
+  const GAMES = ['airhockey', 'chopchop', 'minigolf', 'penalty', 'pingpong', 'quickdraw', 'seabattle', 'snacksnatch', 'snake', 'sumo', 'tanks'];
   it.each(GAMES)('%s pops read on its own surfaces', async (id) => {
     const fs = await import('node:fs');
     const { POP_OUTLINE, popColor } = await import('../src/engine/fx');
@@ -242,19 +242,42 @@ describe('pop-up words in every action game', () => {
       const seats = /players\[|\bcol\(|\bc\[/.test(expr) ? PLAYER_COLORS.map((c) => (/seatPop\(/.test(expr) && view.seatPop ? view.seatPop(c.hex) : /popColor\(/.test(expr) ? popColor(c.hex) : c.hex)) : [];
       return [...lit, ...named, ...own, ...seats];
     };
-    const pops = [...src.matchAll(/fx\.pop\(([^;]*)\);/g)].map((m) => m[1]);
+    const split = (call: string) => call.split(/,(?![^(]*\))/);
+    // Each pop as [what it says, its colour expression, its size].
+    const pops: [string, string, number][] = [];
+    let passed = 0;
+    for (const m of src.matchAll(/fx\.pop\(([^;]*)\);/g)) {
+      const args = split(m[1]);
+      // A helper passing its own `color` argument on is checked at its callers below.
+      if (/^\s*color\s*$/.test(args[3] ?? '')) {
+        passed++;
+        continue;
+      }
+      pops.push([args[0].trim(), args.slice(3).join(','), Number(args[args.length - 1]) || 22]);
+    }
+    // Helpers such as Sea Battle's pop(), Ping Pong's popBoth() or Minigolf's both():
+    // read the colour and size each caller hands them.
+    const methods = [...src.matchAll(/private (\w+)\(([^)]*)\)[^{]*\{([^}]*)\}/g)].map((m) => ({ name: m[1], params: m[2], body: m[3], call: `this\\.${m[1]}\\(` }));
+    const arrows = [...src.matchAll(/const (\w+) = \(([^)]*)\) => \{([^}]*)\}/g)].map((m) => ({ name: m[1], params: m[2], body: m[3], call: `(?<![.\\w])${m[1]}\\(` }));
+    const helpers = [...methods, ...arrows].filter((h) => /fx\.pop\([^;]*\bcolor\b/.test(h.body));
+    expect(helpers.length, `${id}: every pop that passes \`color\` on sits in a helper found here`).toBeGreaterThanOrEqual(passed > 0 ? 1 : 0);
+    for (const { name, params, call } of helpers) {
+      const names = params.split(',').map((x) => x.trim().split(/[:=?\s]/)[0]);
+      const ci = names.indexOf('color');
+      const si = names.indexOf('size');
+      const sizeDefault = Number(params.match(/size[^=,]*=\s*(\d+)/)?.[1]) || 22;
+      const calls = [...src.matchAll(new RegExp(`${call}([^;]*)\\);`, 'g'))].map((m) => split(m[1]));
+      expect(calls.length, `${id} calls ${name}()`).toBeGreaterThan(0);
+      for (const args of calls) pops.push([args[0].trim(), args[ci], Number(args[si]) || sizeDefault]);
+    }
     expect(pops.length, `${id} has pops`).toBeGreaterThan(0);
     const outline = parseColor(POP_OUTLINE)!;
     const faint: string[] = [];
-    for (const call of pops) {
-      const args = call.split(/,(?![^(]*\))/);
-      const size = Number(args[args.length - 1]) || 22;
-      // A helper passing its own `color` argument on is checked at its callers.
-      if (/^\s*color\s*$/.test(args[3] ?? '')) continue;
-      for (const fill of colour(args.slice(3).join(','))) {
+    for (const [what, expr, size] of pops) {
+      for (const fill of colour(expr)) {
         for (const bg of view.SURFACES!) {
           const r = labelContrast(parseColor(fill)!, rgb(bg), 1, outline);
-          if (r < contrastNeeded(size, 800)) faint.push(`${args[0].trim()} ${fill} on ${bg}: ${r.toFixed(1)}:1`);
+          if (r < contrastNeeded(size, 800)) faint.push(`${what} ${fill} on ${bg}: ${r.toFixed(1)}:1`);
         }
       }
     }
