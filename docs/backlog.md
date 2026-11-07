@@ -279,9 +279,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       name, in the human's colour) because it read the logic's turn, which had already moved
       on. The header now names the seat the screen is showing (bot, and the "Missed…/Direct
       hit!" beat after a human shot).
-- [ ] In-game canvas buttons: Checkers squares (45 units) and Sea Battle grid cells are the
+- [x] In-game canvas buttons: Checkers squares (45 units) and Sea Battle grid cells are the
       smallest canvas targets; check their size on a 320 px phone and whether a mis-tap is
       easy to undo.
+      2026-11-07 (F58): Sea Battle (Checkers is hidden, so skipped): a cell is 27 units, 24 CSS
+      px on a 320×568 phone, under the 44 px guideline but safe because a shot is two taps:
+      the first only aims (a ring), a tap on another cell moves the aim, only a second tap on
+      the aimed cell fires. Playtest "sea battle: on a small phone a cell is a fair target..."
+      pins the size and the stray-tap behaviour (seabattle-small-aim.png). Bigger cells (30
+      units, ~27 px) would need the fleet line, the small grid and the Ready button moved
+      down; not worth it while the two-tap aim makes mis-taps free.
 - [ ] Ages 4-6 guidance asks for 56-64 px primary buttons; consider a "little hands" setting
       that enlarges Ready / power cards (needs a taller intro layout).
 - [x] 2026-10-31 (research run): pause sits on the centre line where both players' hands
