@@ -1317,6 +1317,58 @@ test('sea battle: a hit fires again, a miss passes the turn', async ({ page }) =
   expect(errors).toEqual([]);
 });
 
+test('sea battle: on a small phone a cell is a fair target and a stray tap only aims', async ({ page }) => {
+  // The 10x10 grid is the smallest canvas target in the shown games (27 world units). On a
+  // 320 px phone a cell is ~24 CSS px, under the 44 px guideline, so a shot takes two taps:
+  // the first only aims (a ring), a tap on another cell moves the aim, and only a second tap
+  // on the aimed cell fires. This pins both: the cell size and that a stray tap is free.
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await setPlayers(page, [null, 'easy']);
+  await page.locator('.game-card[data-id="seabattle"]').tap();
+  await introAsPeople(page, [0]);
+  await page.waitForTimeout(2200); // countdown
+  type SeaHook = { runner: null | { game: { aim: number | null; mode: { kind: string; p: number }; shells: unknown[]; game: { turn: number; seas: { marks: number[] }[] } } } };
+  const look = () =>
+    page.evaluate(() => {
+      const v = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner!.game;
+      return { kind: v.mode.kind, p: v.mode.p, still: v.shells.length === 0, aim: v.aim, shots: v.game.seas[1].marks.filter((k) => k !== 0).length };
+    });
+  const box = await worldBox(page);
+  const N = 10, C = 27, GX = (360 - N * C) / 2, GY = 82;
+  const cellPx = (C / 360) * box.width;
+  expect(cellPx, `a grid cell on a 320 px phone is ${cellPx.toFixed(1)} CSS px`).toBeGreaterThanOrEqual(23.5);
+  const tap = async (x: number, y: number) => {
+    const c = { x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height };
+    for (const t of ['pointerdown', 'pointerup']) {
+      await page.evaluate(([tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(78, tt, cx, cy), [t, c.x, c.y] as const);
+      await page.waitForTimeout(60);
+    }
+  };
+  const at = (cell: number) => [GX + (cell % N) * C + C / 2, GY + Math.floor(cell / N) * C + C / 2] as const;
+  await expect.poll(async () => (await look()).kind, { timeout: 5000 }).toBe('place');
+  await page.waitForTimeout(700);
+  await tap(204 + 70, 404 + 29); // Ready with the fleet as dealt
+  await expect.poll(async () => { const s = await look(); return s.kind === 'fire' && s.p === 0 && s.still; }, { timeout: 20_000 }).toBe(true);
+  const before = (await look()).shots;
+  // A stray tap (cell 44) only aims; the neighbour the kid meant (45) moves the aim.
+  await tap(...at(44));
+  await page.waitForTimeout(200);
+  let s = await look();
+  expect(s.aim, 'the first tap aims').toBe(44);
+  expect(s.shots, 'nothing fired on the first tap').toBe(before);
+  await tap(...at(45));
+  await page.waitForTimeout(200);
+  s = await look();
+  expect(s.aim, 'a tap on the next cell moves the aim').toBe(45);
+  expect(s.shots, 'still nothing fired').toBe(before);
+  await page.screenshot({ path: path.join(OUT, 'seabattle-small-aim.png') });
+  await tap(...at(45));
+  await expect.poll(async () => (await look()).shots, { timeout: 3000 }).toBe(before + 1);
+  expect(errors).toEqual([]);
+});
+
 test('sea battle: the first shot says who goes first, and the rematch swaps it', async ({ page }) => {
   // Sea Battle picks its first shooter after both fleets are hidden, so the countdown can't
   // say who starts. The first turn says it instead: "You go first!" for a person, "<bot> goes
