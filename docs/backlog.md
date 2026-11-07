@@ -696,6 +696,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       like they "never lose" (RPS, Mini Golf) or copy your moves (Snake); check our hard RPS
       bot stays near 1/3 per throw against a patterned kid, and that the hard Snake bot never
       mirrors a player's path.
+      2026-11-07 (Snake part): checked, it doesn't. `tests/snake-mirror.test.ts` plays a person
+      with three steering habits against hard Snake (15 matches): the bot's head sat on the
+      mirror of the person's (turned or flipped board) in 18 of 4311 cells (0.4%). RPS part open.
 - [x] 2026-11-01 (20:00 research run): Ping Pong shows where the ball landed. Reviews of
       another 2-player app still say "hard to tell whether the ball has landed yet"; ours
       only had a thin ring that faded as it grew for 0.5 s. Now each bounce leaves a spot on
