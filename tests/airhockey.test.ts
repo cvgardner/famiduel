@@ -292,3 +292,41 @@ describe('air hockey', () => {
     expect(asks(400)).toBe(0); // coming at our own goal
   });
 });
+
+describe('air hockey bot vs a parked paddle', () => {
+  // A person who walks away (or a kid who parks in front of the goal) leaves the
+  // paddle mid-half. Shooting straight at the goal just hits it; the bot now picks a
+  // line round it (banking off a side wall), and normal and hard line up a set shot.
+  const parked = (level: BotLevel, seed: number) => {
+    const rng = makeRng(seed);
+    const g = new AirHockey([player(), player({ bot: level })], false, rng);
+    const bot = new AirHockeyBot(1, level, rng);
+    let t = 0;
+    while (g.winner === null && t < 300) {
+      g.step(DT, [{ tx: 180, ty: H * 0.75, power: false }, bot.think(g, DT)]);
+      t += DT;
+    }
+    return { g, t };
+  };
+  const avg = (level: BotLevel) => {
+    let sum = 0;
+    for (let seed = 1; seed <= 10; seed++) {
+      const { g, t } = parked(level, seed * 13 + 1);
+      // Easy may lose one to its own rebounds now and then (it did before too).
+      if (level === 'easy') expect(g.winner, `${level} seed ${seed}`).not.toBeNull();
+      else expect(g.winner, `${level} seed ${seed}`).toBe(1);
+      sum += t;
+    }
+    return sum / 10;
+  };
+
+  it('hard scores 5 inside about a minute and a half', () => {
+    // Was ~2:15 when it shot straight at the goal.
+    expect(avg('hard')).toBeLessThan(90);
+  }, 60_000);
+
+  it('normal and easy finish well inside 3 minutes on average', () => {
+    expect(avg('normal')).toBeLessThan(150);
+    expect(avg('easy')).toBeLessThan(150);
+  }, 60_000);
+});
