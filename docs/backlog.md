@@ -530,10 +530,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Extend the source check of `fx.pop` colours to every game against its own play
       surfaces (Quick Draw sand, Minigolf grass, Ping Pong table), so rare pops elsewhere
       are covered too; needs each view to export its surface colours.
-- [ ] Purple on the dark floor (#14112b) is about 4.2:1, so a small (15-16 px) pop in a
+- [x] Purple on the dark floor (#14112b) is about 4.2:1, so a small (15-16 px) pop in a
       Purple player's colour ("they used …" in Snake/Tanks) is below 4.5:1; the playtest
       only plays Blue vs Pink. Run one pass with Purple and Mint and give player-colour
       pops a lighter tint or a larger size.
+      2026-11-07 (F31): small player-colour pops in Snake, Tanks and Quick Draw go through
+      `popColor()` (src/engine/fx.ts), which mixes a colour toward white only until it reads
+      at 4.5:1 on the floor (Purple becomes rgb(129,100,255); every other seat colour is
+      unchanged). The Mint vs Orange playtest now also plays those three games Purple vs
+      Mint; a unit test checks every seat colour.
 
 ## Ideas found 2026-11-01 (left-handed run)
 - [ ] Left-handed power buttons: most games put the power button in the player's left
