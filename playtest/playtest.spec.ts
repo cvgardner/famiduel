@@ -666,6 +666,49 @@ test('seat cue: in games where both pieces roam, seats read apart in greyscale (
   expect(errors).toEqual([]);
 });
 
+test('power buttons: each wears a band of its owner\'s colour, even with an empty meter', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, ['normal', 'hard']);
+  for (const id of ['penalty', 'snacksnatch', 'airhockey']) {
+    await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+    await expect(page.locator('#play')).toBeVisible();
+    await page.waitForTimeout(400);
+    type BtnHook = { runner: { game: { ctx: { players: { color: string }[] }; powerBtns: ({ button: { x: number; y: number; r: number } } | null)[] } } };
+    // A button may be dimmed (countdown, not usable yet), so the band is judged by hue:
+    // each sample on it must sit nearer its owner's colour than the other seat's.
+    const verdicts = await page.evaluate(() => {
+      const r = (window as unknown as { __famiduel: BtnHook }).__famiduel.runner.game;
+      const c = document.getElementById('stage') as HTMLCanvasElement;
+      const g = c.getContext('2d')!;
+      const sc = Math.min(c.width / 360, c.height / 640);
+      const ox = (c.width - 360 * sc) / 2;
+      const oy = (c.height - 640 * sc) / 2;
+      const px = (wx: number, wy: number) => Array.from(g.getImageData(Math.round(ox + wx * sc), Math.round(oy + wy * sc), 1, 1).data.slice(0, 3));
+      const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+      const dist = (a: number[], b: number[]) => Math.hypot(...a.map((v, i) => v - b[i]));
+      // Distance to a colour's direction (its shade at any brightness), so dimming doesn't count.
+      const hueOff = (a: number[], b: number[]) => {
+        const k = Math.max(0.05, Math.min(1, a.reduce((s, v, i) => s + v * b[i], 0) / b.reduce((s, v) => s + v * v, 0)));
+        return dist(a, b.map((v) => v * k));
+      };
+      return r.powerBtns.map((b, p) => {
+        if (!b) return 'no button';
+        const { x, y, r: rad } = b.button;
+        const own = hex(r.ctx.players[p].color);
+        const foe = hex(r.ctx.players[1 - p].color);
+        const samples = [px(x - rad - 6, y), px(x + rad + 6, y)];
+        const ok = samples.every((s) => hueOff(s, own) < hueOff(s, foe) && Math.max(...s) - Math.min(...s) > 25);
+        return ok ? 'ok' : `seat ${p}: band ${JSON.stringify(samples)} vs own ${own}`;
+      });
+    });
+    expect(verdicts, `${id}: each band in its owner's colour`).toEqual(['ok', 'ok']);
+    await page.screenshot({ path: path.join(OUT, `power-band-${id}.png`) });
+    await leaveMatch(page);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('seat cue: the intro tells each person which ring is theirs (solid bottom, dashed top)', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
@@ -2036,7 +2079,7 @@ test('contrast: Mint vs Orange, the lightest seats, in every shown game', async 
   // power user's colour, so those small pops are judged in Purple too.
   const runs = [
     ...shown.map((g) => ({ g, a: mint, b: orange, tag: 'mint-orange' })),
-    ...shown.filter((g) => ['snake', 'tanks', 'quickdraw'].includes(g.id)).map((g) => ({ g, a: purple, b: mint, tag: 'purple-mint' })),
+    ...shown.filter((g) => ['snake', 'tanks', 'quickdraw', 'minigolf'].includes(g.id)).map((g) => ({ g, a: purple, b: mint, tag: 'purple-mint' })),
   ];
   for (const { g, a: seatA, b: seatB, tag } of runs) {
     await page.evaluate(([a, b]) => {

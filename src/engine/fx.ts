@@ -1,6 +1,6 @@
 // Juice: particles, pop-up text, screen shake and flashes. Purely visual, so
 // it uses Math.random and never affects a game's result.
-import { contrastRatio, parseColor } from '../core/contrast';
+import { contrastRatio, over, parseColor } from '../core/contrast';
 import { COLORS, text, type G } from './draw';
 import { W, H } from './world';
 
@@ -20,13 +20,23 @@ export const POP_OUTLINE = 'rgba(0,0,0,0.75)';
  * so "they used …" in a Purple player's colour was too faint. Light colours pass as is.
  */
 export function popColor(color: string): string {
+  return liftOn(color, COLORS.bg);
+}
+
+/**
+ * `color` mixed toward white until it reads at `need`:1 on `under` (a CSS colour, maybe
+ * see-through like a dark card's rgba, then judged over `behind`, the brightest thing it
+ * can sit on). Colours that already read come back unchanged.
+ */
+export function liftOn(color: string, under: string, behind = '#ffffff', need = 4.5): string {
   const c = parseColor(color);
-  const bg = parseColor(COLORS.bg);
-  if (!c || !bg || c[3] < 1) return color;
-  const floor: [number, number, number] = [bg[0], bg[1], bg[2]];
+  const u = parseColor(under);
+  const b = parseColor(behind);
+  if (!c || !u || !b || c[3] < 1) return color;
+  const floor = over(u, [b[0], b[1], b[2]]);
   for (let k = 0; k <= 1.0001; k += 0.05) {
     const m = [0, 1, 2].map((i) => Math.round(c[i] + (255 - c[i]) * k)) as [number, number, number];
-    if (contrastRatio(m, floor) >= 4.5) return k === 0 ? color : `rgb(${m[0]},${m[1]},${m[2]})`;
+    if (contrastRatio(m, floor) >= need) return k === 0 ? color : `rgb(${m[0]},${m[1]},${m[2]})`;
   }
   return '#ffffff';
 }
