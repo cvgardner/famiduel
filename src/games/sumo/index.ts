@@ -5,7 +5,7 @@ import { inkOn } from '../../core/contrast';
 import { alpha, circle, COLORS, facing, glow, noGlow, seatRing, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
-import { Button, PowerButton } from '../../engine/widgets';
+import { Button, PowerButton, powerSpot } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { RULES, Sumo, SumoBot, type Intent } from './logic';
 
@@ -49,7 +49,8 @@ class SumoView implements GameInstance {
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
-      return p === 0 ? new PowerButton(40, H - 42, 0, pw, ctx.players[0].color) : new PowerButton(W - 40, 42, 1, pw, ctx.players[1].color);
+      const [x, y] = powerSpot(p, 40, 42, !!ctx.players[p].lefty);
+      return new PowerButton(x, y, p, pw, ctx.players[p].color);
     });
     this.buttons = PLAYERS.map((p) => new Button(W / 2, p === 0 ? H - 66 : 66, 46, p, 'HOLD', ctx.players[p].color, 20));
     this.showBanner(`Round ${this.game.round}`, '#fff', RULES.readyTime);
@@ -452,8 +453,9 @@ class SumoView implements GameInstance {
   private renderScore(gx: G, p: PlayerIndex): void {
     const g = this.game;
     const c = this.ctx.players[p].color;
-    // Round pips sit in the corner away from the power button.
-    const x = p === 0 ? W - 62 : 62;
+    // Round pips sit in the corner away from the power button (mirrored for a lefty, see powerSpot).
+    const right = !this.ctx.players[p].lefty;
+    const x = (p === 0) === right ? W - 62 : 62;
     const y = p === 0 ? H - 42 : 42;
     facing(gx, p, x, y, () => {
       text(gx, this.ctx.players[p].name, x, y - 22, { size: 13, color: c, weight: 800, stroke: 'rgba(0,0,0,0.7)' });
