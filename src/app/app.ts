@@ -14,7 +14,7 @@ import { energyOf } from '../engine/game';
 import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
-import { powerPicHtml } from './powerpic';
+import { powerPicHtml, watchPowerPics } from './powerpic';
 import { demoHelpHtml, demoHtml, firstMatchOf, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
 import { Runner } from './runner';
@@ -87,6 +87,7 @@ export class App {
     this.wirePauseButton($<HTMLButtonElement>('#pauseBtn', root), $('#pauseHint', root));
     applyTheme(this.store.data.settings.theme);
     this.applyBigText();
+    watchPowerPics(root);
     watchSystemTheme(() => this.store.data.settings.theme);
     this.showHome();
   }
