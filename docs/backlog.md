@@ -864,3 +864,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       players up 18% of the time).
 - [ ] Twin Gates is now easier than Switchback for normal and hard bots (3.3 vs 3.8): if hole
       order should stay easiest-first, swap them in `content/minigolf-holes.json`.
+
+## Ideas found 2026-11-07 (waiting line run)
+- [x] 2026-11-07 (F26): Minigolf's waiting strip said "Wait · Bot shoots" for the whole bot
+      turn, so its lining-up pause read like a stuck game. It now shows the board games'
+      `waitingLine()` ("🤖 Bot is thinking…") while a bot lines up, and "Wait · <name>
+      shoots" otherwise; playtest `minigolf-bot-thinking.png`. Penalty needs no line: both
+      seats act on every kick (shooter swipes, keeper dives), so nobody waits.
