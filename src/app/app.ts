@@ -398,7 +398,7 @@ export class App {
           <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${!gesture ? '' : firstMatches || again ? demoHtml(gesture, !!pr.lefty && !bot) : bot ? '' : demoHelpHtml(p)}</div>
           <p class="howto">${meta.howTo}</p>
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
-          ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>` : ''}
+          ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>${bot ? '' : '<p class="pick-desc"></p>'}` : ''}
           ${bot ? botRow(p, bot) : `<button class="btn ready" id="ready${p}" data-p="${p}">${powers.length ? 'Pick a power' : 'Ready!'}</button>`}
           <div class="who">${esc(seatName(this.store.data.profiles, p))}${bot ? ' 🤖' : 'seatRing' in meta && meta.seatRing ? seatCueHtml(p) : ''}</div>
         </div>
@@ -422,7 +422,10 @@ export class App {
         const btn = intro.querySelector<HTMLButtonElement>(`#ready${p}`);
         if (!btn) continue; // a bot's half has its level row instead
         btn.classList.toggle('on', ready[p]);
-        btn.textContent = ready[p] ? 'Ready ✓' : powers.length && !this.picks[p] ? 'Pick a power' : 'Ready!';
+        // Where descriptions show for the picked card only (short phones, Bigger text), the
+        // button tells a person who hasn't picked that a tap shows what a power does.
+        const hidden = !!powers.length && getComputedStyle(intro.querySelector<HTMLElement>(`.power-card[data-p="${p}"] small`)!).display === 'none';
+        btn.textContent = ready[p] ? 'Ready ✓' : powers.length && !this.picks[p] ? (hidden ? 'Tap a power to see it' : 'Pick a power') : 'Ready!';
         btn.disabled = !!powers.length && !this.picks[p];
       }
       if (ready[0] && ready[1]) setTimeout(() => this.startMatch(), 250);
@@ -433,6 +436,11 @@ export class App {
         if (ready[p]) return;
         this.picks[p] = powers.find((pw) => pw.id === card.dataset.id) ?? null;
         intro.querySelectorAll<HTMLElement>(`.power-card[data-p="${p}"]`).forEach((c) => c.classList.toggle('on', c === card));
+        // Short layouts show the picked power's description in the how-to's place (below).
+        const half = card.closest('.half');
+        half?.classList.add('picked');
+        const desc = half?.querySelector<HTMLElement>('.pick-desc');
+        if (desc && this.picks[p]) desc.textContent = `${this.picks[p]!.icon} ${this.picks[p]!.name}: ${this.picks[p]!.desc}`;
         this.sfx.play('tap');
         refresh();
       });
