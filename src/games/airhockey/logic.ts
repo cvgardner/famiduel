@@ -295,10 +295,10 @@ export class AirHockey {
 // Same paddle speed cap as a person. Skill only changes how stale its view of
 // the puck is (reaction time) and how much it misjudges where to hit.
 const BOT = {
-  easy: { react: 0.45, noise: 50, strikeSpeed: 180, windup: 6 },
-  normal: { react: 0.22, noise: 16, strikeSpeed: 260, windup: 16 },
-  hard: { react: 0.12, noise: 6, strikeSpeed: 320, windup: 24 },
-} satisfies Record<BotLevel, { react: number; noise: number; strikeSpeed: number; windup: number }>;
+  easy: { react: 0.45, noise: 50, strikeSpeed: 180, windup: 6, setShot: false },
+  normal: { react: 0.22, noise: 16, strikeSpeed: 260, windup: 16, setShot: true },
+  hard: { react: 0.12, noise: 6, strikeSpeed: 320, windup: 24, setShot: true },
+} satisfies Record<BotLevel, { react: number; noise: number; strikeSpeed: number; windup: number; setShot: boolean }>;
 
 /**
  * The bot's hand. A person's finger has mass: it speeds up and slows down, it can't
@@ -322,6 +322,13 @@ export const HAND = {
   easeDefend: 0.15,
 };
 
+/** A foe paddle that stays within this many units for `BOT_PARKED` seconds counts as parked. */
+const BOT_STILL_R = 8;
+const BOT_PARKED = 1.5;
+/** How close to the spot behind the puck it gets before a set shot at a parked paddle. */
+const BOT_SET_SHOT = 6;
+const BOT_SET_WAIT = 1;
+
 export class AirHockeyBot {
   private seen: { x: number; y: number; vx: number; vy: number }[] = [];
   private jitter = { x: 0, y: 0 };
@@ -342,6 +349,11 @@ export class AirHockeyBot {
   private goal: { x: number; y: number } | null = null;
   private asideT = 0;
   private asideSide = 1;
+  /** Seconds the foe's paddle has stayed (nearly) put, and where it was. */
+  private foeStill = 0;
+  /** Seconds spent nearly lined up for the current shot. */
+  private lineT = 0;
+  private foeAt: { x: number; y: number } | null = null;
 
   constructor(
     readonly p: PlayerIndex,
@@ -350,6 +362,12 @@ export class AirHockeyBot {
   ) {}
 
   think(game: AirHockey, dt: number): Intent {
+    const fp = game.paddles[other(this.p)];
+    if (this.foeAt && Math.hypot(fp.x - this.foeAt.x, fp.y - this.foeAt.y) < BOT_STILL_R) this.foeStill += dt;
+    else {
+      this.foeAt = { x: fp.x, y: fp.y };
+      this.foeStill = 0;
+    }
     const want = this.decide(game, dt);
     const pd = game.paddles[this.p];
     if (!this.hand || pd.frozen > 0) this.hand = { x: pd.x, y: pd.y, vx: 0, vy: 0 };
@@ -506,7 +524,18 @@ export class AirHockeyBot {
           ty = way.y;
         } else {
           this.aroundSide = 0;
-          if (Math.hypot(pd.x - behind.x, pd.y - behind.y) < 20) {
+          // Against a parked paddle it lines up with care, as a person does for a set shot
+          // (not easy: it takes the rough shot it has, which still finds the way round).
+          const parked = this.foeStill >= BOT_PARKED;
+          const careful = parked && cfg.setShot;
+          const off = Math.hypot(pd.x - behind.x, pd.y - behind.y);
+          this.lineT = off < 20 ? this.lineT + dt : 0;
+          // ...but not for ever: after a moment it takes the shot it has.
+          const lined = off < (careful && this.lineT < BOT_SET_WAIT ? BOT_SET_SHOT : 20);
+          if (lined && parked && this.gapTo(game, s, aimX) <= 0) {
+            // Lined up, but the parked paddle sits on the line now: pick another line first.
+            this.pickAim(game);
+          } else if (lined) {
             // Lined up: fire. The direction is fixed now, the target follows the puck.
             this.shot = { phase: 'shoot', t: 0.4, ux: ax / al, uy: ay / al };
             this.mode = 'push';
@@ -586,11 +615,56 @@ export class AirHockeyBot {
     return { x: s.x + px * side * clear - ux * clear, y: s.y + py * side * clear - uy * clear };
   }
 
-  /** Pick a spot to shoot at: either goal post side, a bank shot off a side wall, or the middle; misjudged by the level's noise. */
+  /**
+   * Pick a spot to shoot at: either goal post side, a bank shot off a side wall, or the middle;
+   * misjudged by the level's noise. Against a paddle that has stood still for a while (a
+   * player who walked away, or a kid parked in front of the goal), it does what a person
+   * would: it picks a line that goes round the paddle, banking off a side wall if it must.
+   */
   private pickAim(game: AirHockey): void {
     const cfg = BOT[this.level];
     const half = game.goalAt(this.p === 0 ? 'top' : 'bottom') / 2 - 12;
+    const pk = game.pucks[0];
+    if (pk && this.foeStill >= BOT_PARKED) {
+      // Look for the lines into the goal mouth with the most room past the parked paddle and inside the posts.
+      const lines: { x: number; gap: number }[] = [];
+      for (let x = -W; x <= 2 * W; x += 8) {
+        // Room to spare on both sides: past the paddle, and inside the posts.
+        const inside = half - Math.abs(this.fold(x) - W / 2);
+        const gap = Math.min(this.gapTo(game, pk, x), inside);
+        if (gap > 0) lines.push({ x, gap });
+      }
+      if (lines.length) {
+        lines.sort((u, v) => v.gap - u.gap);
+        this.aim = this.rng.pick(lines.slice(0, 3)).x + this.rng.range(-cfg.noise, cfg.noise) * 0.5;
+        return;
+      }
+    }
     this.aim = this.rng.pick([W / 2 - half, W / 2 + half, -W * 0.35, W * 1.35, W / 2]) + this.rng.range(-cfg.noise, cfg.noise);
+  }
+
+  /** An x past the side walls folded back onto the table, as a bank shot's path is. */
+  private fold(x: number): number {
+    const lo = RULES.wall + RULES.puckR;
+    const span = W - RULES.wall - RULES.puckR - lo;
+    let u = (x - lo) % (2 * span);
+    if (u < 0) u += 2 * span;
+    return lo + (u > span ? 2 * span - u : u);
+  }
+
+  /** How far a shot from the puck at `aimX` on the far goal line (bounces folded in) passes outside the foe paddle's reach; <= 0 means it hits it. */
+  private gapTo(game: AirHockey, pk: { x: number; y: number }, aimX: number): number {
+    const foe = game.paddles[other(this.p)];
+    const aimY = this.p === 0 ? 0 : H;
+    const reach = game.paddleRadius(other(this.p)) + RULES.puckR + 6;
+    let gap = Infinity;
+    for (let i = 1; i <= 40; i++) {
+      const f = i / 40;
+      const x = this.fold(pk.x + (aimX - pk.x) * f);
+      const y = pk.y + (aimY - pk.y) * f;
+      gap = Math.min(gap, Math.hypot(x - foe.x, y - foe.y) - reach);
+    }
+    return gap;
   }
 
   /** Where a puck seen at `s` will cross the line y = `y`, bouncing off the side walls. */

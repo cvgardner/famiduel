@@ -315,8 +315,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the turn-based games.
 
 ## Ideas found 2026-10-31 (pause run)
-- [ ] Same hold-to-confirm for the result screen's "Games" button if kids skip the result
+- [x] Same hold-to-confirm for the result screen's "Games" button if kids skip the result
       before the other player has seen it (check in the playtest how fast the monkey hits it).
+      2026-11-07 (F37, PR #96): simpler than a hold: the result's buttons ignore taps for
+      0.8 s after it appears (dimmed, then fade in), so a last swing or mashed tap where
+      Games / Rematch now sit can't skip it. Playtest "result: a tap meant for the game...".
 - [ ] VoiceOver/TalkBack: the pause button says "press and hold"; a screen reader double
       tap is a click with detail 0, which pauses at once. Check that on a real phone.
 - [ ] Guided Access / screen pinning tip on the home screen for parents of toddlers (the
@@ -509,6 +512,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       stalls (nothing unfinished at 5 min). Two findings, filed as tasks: the Sumo easy bot
       beats an idle player only 8% of the time (it dashes past and teeters itself out), and
       Air Hockey bots need ~2:15 to score 5 past a parked paddle (5-25% of matches over 3 min).
+- [x] 2026-11-07 (F35, PR #94): Air Hockey bots go round a parked paddle. Once the foe's paddle
+      has stood still 1.5 s, the bot picks the line into the goal with the most room past the
+      paddle and inside the posts (usually a bank off a side wall), and normal and hard line up
+      a careful set shot (within 6 units, at most 1 s; easy takes its rough shot). Bot-vs-bot
+      play is unchanged (the paddle is never still that long). `npm run sim -- --idle --game
+      airhockey --n 40`: average match 131/140/134 s -> 109/123/53 s (easy/normal/hard), over
+      3 min 13/25/5% -> 8/3/0%. What's left is the rules, not the bot: after every goal the
+      walked-away player serves, so each goal waits the 7 s stall drift.
+- [ ] Air Hockey: a walked-away player's serve waits the full 7 s drift after every goal (~30 s
+      of a 5-goal match). Could the drift come sooner when that paddle hasn't moved at all
+      since the goal (a person who is there always twitches)? Rule change, so check it in play.
 
 ## Ideas found 2026-10-31 (contrast run)
 - [x] 2026-11-01: Chop Chop's "◀ chop / chop ▶" hints faded to 45% opacity once play
@@ -912,3 +926,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       too (normal beats easy >= 60%, hard beats normal >= 55%, seats swapped, n=20). Today:
       Penalty 95% / 80%, Sea Battle 80% / 85%, Minigolf 95% / 90%. Follows F36's
       tests/bot-levels.test.ts for the 8 sim games.
+## Ideas found 2026-11-07 (store reviews run)
+- [x] 2026-11-07 (F36, PR #95): a rival 2-player app's reviews say its "stronger bot doesn't seem
+      more powerful". `tests/bot-levels.test.ts` now checks the middle step in all 8 action
+      games with the `npm run sim` matches: normal beats easy >= 75% and hard beats normal
+      >= 60% (today 90-100% and 70-100%, Sumo lowest). Every level is a real step today.
+- [ ] Penalty, Minigolf and Sea Battle aren't in `scripts/simlib.ts`, so only hard v easy is
+      tested for them; add the normal step there too (Minigolf: strokes per level from
+      `npm run golf` already go easy > normal > hard).
