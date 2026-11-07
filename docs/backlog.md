@@ -487,8 +487,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       game's bot plays a level picked on its intro that differs from the player sheet's
       (ownBotLevel() in store.ts; "Bot level here: easy" for screen readers). Playtest "bot
       level" checks it and saves bot-level-home-badge.png.
-- [ ] The layout fit test only ran intros with two people; it now runs with a bot too, but
-      not on a tall phone (390×844) where the desktop-size how-to text shows for bots.
+- [x] 2026-11-07 (F44, PR #104): Intros are fit-checked on a tall phone (390×844, where the
+      desktop-size how-to text shows) both with two people (layout test) and with a bot on
+      top (bot level test, plus its 44 px target and font checks). Every intro fits; nothing
+      needed fixing. Saves bot-level-intro-tall.png.
 
 ## Ideas found 2026-10-31 (air hockey stall run)
 - [ ] Other real-time games may stall with an idle player too (Ping Pong serve, Penalty
