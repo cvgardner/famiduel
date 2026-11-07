@@ -216,8 +216,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   - [x] 2026-11-07 (F87): no other seat edge. Mirror matches (equal bots, powers off) at
         n=400 per row with the F86 fix in: every action game and level lands at 44-55% for the
         bottom seat (Air Hockey normal and Snake hard 44%, Ping Pong hard 55%; the spread n=400
-        gives by chance). Whole-match rows dilute a per-round edge (tanks' 64% rounds showed as
-        ~51% matches), so a game with rounds on different layouts needs a per-round check like
+        gives by chance). Whole-match rows dilute a per-round edge (tanks' edge was on 2 of 5 arenas,
+        a small share of matches), so a game with rounds on different layouts needs a per-round check like
         tests/tanks.test.ts's.
   - [x] 2026-11-07 (F85): Snack Snatch serves six snack kinds (new: a wrapped sweet and an orange
         slice, drawn in code). Looks only: every kind scores 1, a mirrored pair shares its kind, and
