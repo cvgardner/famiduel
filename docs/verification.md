@@ -33,6 +33,13 @@ playtest traces the bot paddle in real time and saves `airhockey-bot-path.png` p
 `airhockey-bot-motion.json`. `npm run motion` prints the numbers per level. Reuse it for
 any other real-time bot (Sumo, Ping Pong, Tanks) by recording that bot's position.
 
+## Minigolf strokes table
+
+`npm run golf` plays every hole with two bots of each level over 12 seeds (`--n`, `--hole <id>`)
+and prints par, the hole's stroke cap, and per level the average strokes, the ace rate and
+how often a ball is picked up at the cap. Use it to set a new hole's par and its place in
+`content/minigolf-holes.json` (easiest first), and to check an easy player rarely hits the cap.
+
 In the cloud container set `PW_CHROMIUM=/opt/pw-browsers/chromium`. `PORT=<n>` picks the
 preview port so several checkouts can run at once. `PLAYTEST_SECONDS` (default 8) sets the
 real-time play per scenario.
