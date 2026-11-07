@@ -1032,6 +1032,47 @@ test('tanks: a left-handed player gets FIRE on the left and the stick on the rig
   expect(errors).toEqual([]);
 });
 
+test('tanks: a loaded bouncy shell blinks the FIRE band gold, even for Mint', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  const mint = PLAYER_COLORS.find((c) => c.name === 'Mint')!.hex;
+  await page.evaluate((m) => {
+    (window as unknown as { __famiduel: { store: { data: { profiles: { color: string }[] } } } }).__famiduel.store.data.profiles[0].color = m;
+  }, mint);
+  await setPlayers(page, ['normal', 'hard']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('tanks'));
+  await expect(page.locator('#play')).toBeVisible();
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(3));
+  type BouncyHook = { runner: { game: { game: { tanks: { bouncy: number }[] } } } };
+  // Seat 0 (right-handed) FIRE sits at (288, 584): sample its band left and right.
+  const band = () =>
+    page.evaluate(() => {
+      const r = (window as unknown as { __famiduel: BouncyHook }).__famiduel.runner.game;
+      r.game.tanks[0].bouncy = 99; // keep one loaded however often the bot fires
+      const c = document.getElementById('stage') as HTMLCanvasElement;
+      const g = c.getContext('2d')!;
+      const sc = Math.min(c.width / 360, c.height / 640);
+      const ox = (c.width - 360 * sc) / 2;
+      const oy = (c.height - 640 * sc) / 2;
+      const px = (wx: number, wy: number) => Array.from(g.getImageData(Math.round(ox + wx * sc), Math.round(oy + wy * sc), 1, 1).data.slice(0, 3));
+      return [px(288 - 37.5, 584), px(288 + 37.5, 584)];
+    });
+  const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const off = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i])));
+  const seen = { gold: false, mint: false };
+  for (let i = 0; i < 30 && !(seen.gold && seen.mint); i++) {
+    const [a, b] = await band();
+    if (off(a, hex('#ffd54a')) < 40 && off(b, hex('#ffd54a')) < 40) {
+      if (!seen.gold) await page.screenshot({ path: path.join(OUT, 'tanks-bouncy-band.png') });
+      seen.gold = true;
+    }
+    if (off(a, hex(mint)) < 40 && off(b, hex(mint)) < 40) seen.mint = true;
+    await page.waitForTimeout(70);
+  }
+  expect(seen, 'the band blinks gold and back to the owner\'s Mint').toEqual({ gold: true, mint: true });
+  expect(errors).toEqual([]);
+});
+
 test('sea battle: where the bot hit your fleet stays on screen long enough to find', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);

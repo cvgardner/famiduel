@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CONTROLS_Y, controlsFor, FIRE_R, FIRE_RIM, fireLook, STICK_R } from '../src/games/tanks/controls';
+import { BOUNCY_RIM, bouncyBlink, CONTROLS_Y, controlsFor, FIRE_R, FIRE_RIM, fireLook, STICK_R } from '../src/games/tanks/controls';
 import { PLAYER_COLORS } from '../src/core/colors';
 import { contrastRatio, over, parseColor } from '../src/core/contrast';
 import { W } from '../src/engine/world';
@@ -63,6 +63,31 @@ describe('tank FIRE buttons: whose button is whose', () => {
         expect(contrastRatio(onRim, rim)).toBeGreaterThan(2);
         expect(contrastRatio(onRim, fill)).toBeGreaterThan(1.5);
       }
+    }
+  });
+
+  it('a loaded bouncy shell blinks the band gold, and it shows the owner the rest of the time', () => {
+    const hex = PLAYER_COLORS[0].hex;
+    const rims = Array.from({ length: 40 }, (_, i) => fireLook(hex, true, true, i * 0.05).rim);
+    const gold = rims.filter((r) => r === BOUNCY_RIM).length;
+    expect(gold).toBeGreaterThanOrEqual(15);
+    expect(gold).toBeLessThanOrEqual(25);
+    expect(rims.filter((r) => r === hex).length).toBe(40 - gold);
+    // Blinks: several switches in 2 s, not one long hold.
+    let flips = 0;
+    for (let i = 1; i < rims.length; i++) if (rims[i] !== rims[i - 1]) flips++;
+    expect(flips).toBeGreaterThanOrEqual(6);
+    // No bouncy shell: always the owner's colour.
+    for (let i = 0; i < 40; i++) expect(fireLook(hex, true, false, i * 0.05).rim).toBe(hex);
+    expect(bouncyBlink(0.1)).toBe(true);
+    expect(bouncyBlink(0.3)).toBe(false);
+  });
+
+  it('the gold band is not mistaken for any player colour', () => {
+    const gold = parseColor(BOUNCY_RIM)!.slice(0, 3) as [number, number, number];
+    for (const { hex } of PLAYER_COLORS) {
+      const c = parseColor(hex)!.slice(0, 3) as [number, number, number];
+      expect(Math.abs(gold[0] - c[0]) + Math.abs(gold[1] - c[1]) + Math.abs(gold[2] - c[2])).toBeGreaterThan(60);
     }
   });
 
