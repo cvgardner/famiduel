@@ -166,7 +166,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       12 px (game kinds, power descriptions were 11). A unit test scans every literal text
       size; the playtest records every word drawn while it plays each game and fails on
       one under the floor, and checks menu font sizes on a 320×568 phone.
-- [ ] Accessibility: larger text option (a setting that scales canvas text and menus ~1.25×;
+- [x] Accessibility: larger text option (a setting that scales canvas text and menus ~1.25×;
       needs the intros to fit at that size).
       2026-11-07 (F7a, canvas half): Settings > Look > "Bigger text" draws game words 1.2x
       (`setTextScale`, `scaledSize` in draw.ts; big banners only grow up to 28 units). A
@@ -178,6 +178,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (`--ts` on <html data-bigtext>): home, settings, pause, result. The intro stays at 1x:
       with bigger rules and power cards it overflowed in 8 games at 320x568 and 390x844
       (F7c). The layout playtest runs the intro fit, home and settings again with it on.
+      2026-11-07 (F7c): the intro scales too. With Bigger text on it takes the short-phone
+      layout on every phone (descriptions for the picked power only, a bot's half without the
+      how-to, the middle strip kept to one line at 1x); on an iPhone SE 1st gen (height 600 or
+      less) the intro alone stays 1x. Layout playtest: all intros fit; bigtext-intro-*.png.
 
 ## Content
 - [ ] Mini pool (first update).

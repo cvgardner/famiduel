@@ -46,8 +46,6 @@
 :root { --ts: 1; }
 /* Settings > Bigger text: menu words up to 20 px grow 1.2x (headlines are big already). */
 :root[data-bigtext] { --ts: 1.2; }
-/* The intro (rules and three power cards per half) has no room to spare yet: F7c. */
-:root[data-bigtext] #intro { --ts: 1; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
 body { overscroll-behavior: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
@@ -278,6 +276,24 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   .half.bot .howto, .half.bot .power-card small { display: none; }
   .btn.ready { padding: 10px 16px; font-size: calc(15px * var(--ts)); min-height: 48px; }
   .res-title { font-size: 32px; }
+}
+
+/* Bigger text on any phone: the intro takes the short-phone layout (descriptions for the
+   picked power only, a bot's half without the how-to), which makes room for 1.2x words. */
+:root[data-bigtext] .half { padding: 6px 12px; }
+/* The middle strip is a one-line blurb both players already heard; keep it to one line. */
+:root[data-bigtext] #intro .intro-mid { --ts: 1; padding: 4px 12px; }
+:root[data-bigtext] .half-inner { gap: 6px; }
+:root[data-bigtext] .howto { line-height: 1.25; }
+:root[data-bigtext] .power-card { padding: 6px 4px; }
+:root[data-bigtext] .power-card .picon { font-size: 22px; }
+:root[data-bigtext] .power-card:not(.on) small,
+:root[data-bigtext] .half.bot .howto, :root[data-bigtext] .half.bot .power-card small { display: none; }
+
+/* An iPhone SE (1st gen) tall half has no room for 1.2x rules and power names: the intro
+   keeps its usual size there (still bigger in play and on the other menus). */
+@media (max-height: 600px) {
+  :root[data-bigtext] #intro { --ts: 1; }
 }
 
 /* Small phones: keep the profile sheet's 44px targets on screen. */
