@@ -509,7 +509,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       stalls (nothing unfinished at 5 min). Two findings, filed as tasks: the Sumo easy bot
       beats an idle player only 8% of the time (it dashes past and teeters itself out), and
       Air Hockey bots need ~2:15 to score 5 past a parked paddle (5-25% of matches over 3 min).
-- [x] 2026-11-07 (F34, PR #PRNUM): Sumo bots beat a player who never presses. A foe who hasn't
+- [x] 2026-11-07 (F34, PR #97): Sumo bots beat a player who never presses. A foe who hasn't
       pressed for 2 s (their arrow never stops) is a still mark: every level then allows for
       its own delay and aims at least as well as normal (anticipation 0.7, noise <= 0.25,
       care 0.9). `npm run sim -- --idle --game sumo --n 80`: easy wins 8% -> 93%; kid+3 v easy
