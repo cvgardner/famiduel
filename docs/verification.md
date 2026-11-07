@@ -33,6 +33,13 @@ playtest traces the bot paddle in real time and saves `airhockey-bot-path.png` p
 `airhockey-bot-motion.json`. `npm run motion` prints the numbers per level. Reuse it for
 any other real-time bot (Sumo, Ping Pong, Tanks) by recording that bot's position.
 
+## Bot tables
+
+`npm run sim` plays the real-time action games bot against bot at every level pairing (plus a
+mashing kid), `npm run sim:powers` compares each game's powers, and `npm run sim -- --idle`
+plays every game with one seat that never touches the screen against each bot level: no
+match there should be unfinished, and few should pass 3 minutes.
+
 ## Minigolf strokes table
 
 `npm run golf` plays every hole with two bots of each level over 12 seeds (`--n`, `--hole <id>`)

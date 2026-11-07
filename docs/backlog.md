@@ -493,8 +493,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       wins 10% vs easy with no head start and 49% with the full head start (kid+3).
 - [ ] The air hockey bot still concedes some goals off fast rebounds (it reacts to where
       the puck was 0.1-0.45 s ago). Fine and human-like; recheck if hard looks clumsy.
-- [ ] An idle-seat sim for every real-time game (this run's scratch script) could become a
+- [x] An idle-seat sim for every real-time game (this run's scratch script) could become a
       `npm run sim` table with the bot pace table idea above.
+      2026-11-07 (F32): `npm run sim -- --idle` plays every action game with one seat that never
+      touches the screen (`Idle` in scripts/simlib.ts) against each bot level. n=40: no game
+      stalls (nothing unfinished at 5 min). Two findings, filed as tasks: the Sumo easy bot
+      beats an idle player only 8% of the time (it dashes past and teeters itself out), and
+      Air Hockey bots need ~2:15 to score 5 past a parked paddle (5-25% of matches over 3 min).
 
 ## Ideas found 2026-10-31 (contrast run)
 - [x] 2026-11-01: Chop Chop's "◀ chop / chop ▶" hints faded to 45% opacity once play
