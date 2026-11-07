@@ -7,6 +7,7 @@ import { hashSeed } from '../core/rng';
 import { TOURNAMENT_LENGTH, WINS_NEEDED, champion, lineupSlots, nextGame, tournamentPool, tournamentWins } from '../core/tournament';
 import type { BotLevel, GameResult, PlayerIndex, PlayerInfo, PowerDef } from '../core/types';
 import { Sfx } from '../engine/sfx';
+import { energyOf } from '../engine/game';
 import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
@@ -578,7 +579,9 @@ export class App {
     const players = this.runner.players;
     const seat = (p: PlayerIndex) => {
       const pl = players[p];
-      return howToHalfHtml({ p, name: pl.name, color: pl.color, bot: !!pl.bot, lefty: !!pl.lefty, power: pl.power }, meta);
+      const e = energyOf(this.runner!.game, p);
+      const charge = pl.power && e ? { value: e.value, active: e.active } : null;
+      return howToHalfHtml({ p, name: pl.name, color: pl.color, bot: !!pl.bot, lefty: !!pl.lefty, power: pl.power, charge }, meta);
     };
     modal.classList.add('help');
     modal.innerHTML = `<div class="pause-help">${seat(1)}<div class="intro-mid"><button id="helpBack" class="link">← Menu</button><button id="helpResume" class="btn primary">Resume</button></div>${seat(0)}</div>`;
