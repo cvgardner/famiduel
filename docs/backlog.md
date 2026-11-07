@@ -796,6 +796,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Checkers: the jump trail line is thin on a 320 px phone; if kids still miss a bot's
       jump, replay the last move's hops once (slow) when the person taps a ghost ring.
 
+## Found 2026-11-07 (F61)
+- [x] Minigolf's play-like-a-person row always warned "'Downhill Dash' / 'Bot 2 tees off first'
+      was only seen fading in". Those were the bot-vs-bot match's first frames: the playtest
+      fast-forwarded while the hole card was still fading in. It now waits (`settleFades`, up
+      to 2.5 s) for the card to be fully shown first, so the words are judged at rest (they
+      pass) and the warning is gone. PR (this one).
+
 ## Ideas found 2026-11-01 (Sea Battle first shot run)
 - [x] The two-person look-away cover is the only Sea Battle screen no playtest checks for
       the opening line; a two-people match in the playtest could read it on the cover.

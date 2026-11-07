@@ -166,6 +166,19 @@ async function barPeak(page: Page): Promise<{ top: number; bottom: number }> {
   });
 }
 
+/**
+ * Wait (up to 2.5 s) until no label is still only seen mid-fade, so the contrast probe
+ * gets to judge it fully shown.
+ */
+async function settleFades(page: Page) {
+  const fading = () =>
+    page.evaluate(() =>
+      [...(window as unknown as { __contrast: { seen: Map<string, { best: number; need: number; rest: boolean }> } }).__contrast.seen.values()].some((c) => !c.rest && c.best < c.need),
+    );
+  const end = Date.now() + 2500;
+  while (Date.now() < end && (await fading())) await page.waitForTimeout(100);
+}
+
 /** Tap through the intro like a person: pick a power if offered, then Ready. */
 async function introAsPeople(page: Page, players: (0 | 1)[]) {
   await expect(page.locator('#intro')).toBeVisible();
@@ -2216,6 +2229,9 @@ for (const g of games.games.filter((x) => !x.hidden)) {
     await setPlayers(page, ['normal', 'hard']);
     await page.evaluate((id) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(id), g.id);
     await expect(page.locator('#play')).toBeVisible();
+    // Let the opening card (Minigolf's hole card) finish fading in before jumping ahead, so
+    // its words are judged at rest instead of only from the first faint frames.
+    await settleFades(page);
     await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
     row.finished = await page.locator('#result').isVisible();
     if (row.finished) await shot('result');
