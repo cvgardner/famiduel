@@ -314,6 +314,58 @@ test('ghost finger: shows on a game\'s first matches, then gets out of the way',
   expect(errors).toEqual([]);
 });
 
+test('ghost finger: the first match shows it in play over each person\'s half, then never again', async ({ page }) => {
+  // Backlog 2026-10-31: the intro's finger is small and gone once the ball moves. At a game's
+  // very first match on this phone it loops once more in play, over each person's own half
+  // (the top copy turned to face them), and a seat's first touch clears its own copy.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  type H = { openGame(id: string): void; startMatch(): void; showHome(): void; store: { data: { history: { game: string }[] } } };
+  const start = (id: string) =>
+    page.evaluate((g) => {
+      const a = (window as unknown as { __famiduel: H }).__famiduel;
+      a.openGame(g);
+      a.startMatch();
+    }, id);
+  const copies = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('#play .play-demo')].map((el) => {
+        const r = el.getBoundingClientRect();
+        return { p: Number(el.dataset.p), y: r.top + r.height / 2, gone: el.classList.contains('gone'), rot: getComputedStyle(el).rotate };
+      }),
+    );
+  await start('pingpong');
+  await page.waitForTimeout(2600); // countdown, then the serve
+  let c = await copies();
+  expect(c.map((x) => x.p).sort(), 'one finger per person').toEqual([0, 1]);
+  const vh = page.viewportSize()!.height;
+  const bottom = c.find((x) => x.p === 0)!, top = c.find((x) => x.p === 1)!;
+  expect(bottom.y, "seat 0's finger sits in the bottom half").toBeGreaterThan(vh / 2);
+  expect(top.y, "seat 1's finger sits in the top half").toBeLessThan(vh / 2);
+  expect(top.rot, "seat 1's finger faces them").toBe('180deg');
+  await page.screenshot({ path: path.join(OUT, 'ghost-finger-in-play.png') });
+  // The bottom player touches their half: only their copy goes.
+  await page.evaluate((y) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(81, 'pointerdown', 195, y), Math.round(vh * 0.8));
+  await page.evaluate((y) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(81, 'pointerup', 195, y), Math.round(vh * 0.8));
+  c = await copies();
+  expect(c.find((x) => x.p === 0)!.gone, 'a touch clears that seat\'s finger').toBe(true);
+  expect(c.find((x) => x.p === 1)!.gone, 'the other seat keeps theirs').toBe(false);
+  // It fades away by itself.
+  await expect.poll(async () => (await copies()).length, { timeout: 8000 }).toBe(0);
+  // Second match of the same game: none. A bot seat never gets one.
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.store.data.history.push({ game: 'pingpong' }));
+  await start('pingpong');
+  await page.waitForTimeout(300);
+  expect(await copies(), 'not on a second match').toEqual([]);
+  await setPlayers(page, [null, 'easy']);
+  await start('airhockey');
+  await page.waitForTimeout(300);
+  expect((await copies()).map((x) => x.p), 'only the person gets one vs a bot').toEqual([0]);
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
+  expect(errors).toEqual([]);
+});
+
 test('ghost finger: a "?" brings it back after the first matches, on a small phone', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });

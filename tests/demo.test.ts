@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import games from '../content/games.json';
-import { DEMO_MATCHES, demoHelpHtml, demoHtml, GESTURES, HelpMemory, howToHalfHtml, isGesture, powerStatus, showsDemo } from '../src/app/demo';
+import { DEMO_MATCHES, demoHelpHtml, demoHtml, firstMatchOf, GESTURES, HelpMemory, howToHalfHtml, isGesture, playDemoHtml, powerStatus, showsDemo } from '../src/app/demo';
 
 describe('ghost finger demo', () => {
   it('every game names a known gesture', () => {
@@ -15,6 +15,26 @@ describe('ghost finger demo', () => {
     expect(showsDemo(some, 'sumo')).toBe(true);
     expect(showsDemo([...some, rec('sumo')], 'sumo')).toBe(false);
     expect(showsDemo([...some, rec('sumo')], 'minigolf')).toBe(true);
+  });
+
+  it('shows the in-play finger at a game\'s very first match only, per game', () => {
+    expect(firstMatchOf([], 'pingpong')).toBe(true);
+    expect(firstMatchOf([{ game: 'sumo' }], 'pingpong')).toBe(true);
+    expect(firstMatchOf([{ game: 'pingpong' }], 'pingpong')).toBe(false);
+    const html = playDemoHtml('slide', 1, false, 0.9);
+    expect(html).toContain('class="play-demo p1"');
+    expect(html).toContain('data-p="1"');
+    expect(html).toContain('--at:0.9');
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toContain('g-slide');
+    expect(playDemoHtml('drag', 0)).toContain('--at:0.72');
+  });
+
+  it('a game\'s demoAt keeps the in-play finger on the screen', () => {
+    for (const g of games.games) {
+      const at = (g as { demoAt?: number }).demoAt;
+      if (at !== undefined) expect(at > 0.5 && at < 0.95, g.id).toBe(true);
+    }
   });
 
   it('renders a finger for every gesture, hidden from screen readers', () => {
