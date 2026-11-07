@@ -906,3 +906,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       `waitingLine()` ("🤖 Bot is thinking…") while a bot lines up, and "Wait · <name>
       shoots" otherwise; playtest `minigolf-bot-thinking.png`. Penalty needs no line: both
       seats act on every kick (shooter swipes, keeper dives), so nobody waits.
+
+## Ideas found 2026-11-07 (store reviews run)
+- [x] 2026-11-07 (F36, PR #PRNUM): a rival 2-player app's reviews say its "stronger bot doesn't seem
+      more powerful". `tests/bot-levels.test.ts` now checks the middle step in all 8 action
+      games with the `npm run sim` matches: normal beats easy >= 75% and hard beats normal
+      >= 60% (today 90-100% and 70-100%, Sumo lowest). Every level is a real step today.
+- [ ] Penalty, Minigolf and Sea Battle aren't in `scripts/simlib.ts`, so only hard v easy is
+      tested for them; add the normal step there too (Minigolf: strokes per level from
+      `npm run golf` already go easy > normal > hard).
