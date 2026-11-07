@@ -1054,8 +1054,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Hard Snake turns about 3× as often as Easy/Normal (it re-plans territory every cell);
       fine for strength, but if a kid calls it twitchy, a "turns per second" motion check
       like Tanks' wag measure would show it.
-- [ ] Penalty's first shooter wins ~54% between equal bots. If families feel it, an ABBA
+- [x] Penalty's first shooter wins ~54% between equal bots. If families feel it, an ABBA
       order (A, B, B, A...) is the known fix in real shootouts; measure before changing.
+      2026-11-07 (F95): no edge now. Each seed played twice with the starter forced to each
+      seat (n = 1,200 matches a level): first shooter wins 50.2% (easy), 51.3% (normal),
+      50.8% (hard); bottom seat 48-51%. Within noise (+-1.4%), so ABAB stays.
 - [x] Air Hockey has no landing problem, but Snack Snatch's thrown snacks could show a
       short ground shadow too if kids misjudge where they come down.
       2026-11-07 (F93): no change needed. Snack Snatch's snacks never leave the blanket: the
