@@ -93,7 +93,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .seg button { flex: 1; min-height: 44px; padding: 9px 6px; border-radius: 12px; background: var(--surface-2); font-weight: 800; font-size: calc(13px * var(--ts)); white-space: nowrap; }
 .seg button.on { background: var(--gold); color: var(--gold-ink); box-shadow: 0 3px 0 #c99a12; }
 .seg.mode { flex-wrap: nowrap; gap: 4px; padding: 4px; border-radius: 16px; background: var(--track); box-shadow: inset 0 2px 4px rgba(0,0,0,0.18); }
-.seg.mode button { font-size: calc(15px * var(--ts)); background: transparent; color: var(--dim); border-radius: 12px; }
+.seg.mode button { font-size: calc(15px * var(--ts)); white-space: normal; min-width: 0; line-height: 1.15; background: transparent; color: var(--dim); border-radius: 12px; }
 .seg.mode button.on { background: var(--gold); color: var(--gold-ink); }
 
 /* Players + match night: one scoreboard card. */
@@ -228,6 +228,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .power-card .picon { font-size: 26px; }
 .power-card b { font-size: calc(13px * var(--ts)); }
 .power-card small { font-size: calc(12px * var(--ts)); color: var(--dim); line-height: 1.2; }
+/* Short layouts: the picked power's description, full width under the cards. */
+.pick-desc { display: none; margin: 0; font-weight: 600; font-size: calc(13px * var(--ts)); line-height: 1.25; max-width: 340px; color: rgba(255,255,255,0.85); }
 /* --ink (inkOn) is white or dark, whichever reads on the seat colour: white on Mint was 2.4:1. */
 .btn.ready { min-width: 180px; background: var(--c); color: var(--ink, #fff); }
 .btn.ready.on { background: var(--good, #5eead4); color: #14112b; }
@@ -271,7 +273,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   .assist { font-size: calc(12px * var(--ts)); }
   .power-card { padding: 6px 4px; }
   .power-card .picon { font-size: 22px; }
-  .power-card:not(.on) small { display: none; }
+  /* Short phones have no room for descriptions inside narrow cards. Before a pick the half
+     shows how to play; once a person picks, their power's description takes the how-to's
+     place (full width under the cards), so the half never grows. */
+  .power-card small { display: none; }
+  .half.picked .howto { display: none; }
+  .half.picked .pick-desc { display: block; }
   /* A bot's half only needs its power and level: no how-to, power names only. */
   .half.bot .howto, .half.bot .power-card small { display: none; }
   .btn.ready { padding: 10px 16px; font-size: calc(15px * var(--ts)); min-height: 48px; }
@@ -287,8 +294,9 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 :root[data-bigtext] .howto { line-height: 1.25; }
 :root[data-bigtext] .power-card { padding: 6px 4px; }
 :root[data-bigtext] .power-card .picon { font-size: 22px; }
-:root[data-bigtext] .power-card:not(.on) small,
+:root[data-bigtext] .power-card small, :root[data-bigtext] .half.picked .howto,
 :root[data-bigtext] .half.bot .howto, :root[data-bigtext] .half.bot .power-card small { display: none; }
+:root[data-bigtext] .half.picked .pick-desc { display: block; }
 
 /* An iPhone SE (1st gen) tall half has no room for 1.2x rules and power names: the intro
    keeps its usual size there (still bigger in play and on the other menus). */
