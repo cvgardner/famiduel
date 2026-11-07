@@ -974,6 +974,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Penalty, Minigolf and Sea Battle aren't in `scripts/simlib.ts`, so only hard v easy is
       tested for them; add the normal step there too (Minigolf: strokes per level from
       `npm run golf` already go easy > normal > hard).
+- [x] 2026-11-07 (F49, PR #110): Sumo's push button label takes dark or white ink by the button's own
+      shade and "LET GO" is 19 px bold (white on Mint was 4.3:1, so the Mint-vs-Orange contrast
+      playtest failed whenever someone was holding). tests/contrast.test.ts checks every seat colour.
 
 ## Ideas found 2026-11-07 (minigolf card ink run)
 - [x] 2026-11-07 (F48, PR #109): the playtest summary warned "Bot 2 tees off first" was
