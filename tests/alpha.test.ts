@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { text, type G } from '../src/engine/draw';
+import { atRest, STEADY_MS, text, type G } from '../src/engine/draw';
 import { Button, PowerButton } from '../src/engine/widgets';
 import { Energy } from '../src/core/energy';
 
@@ -52,5 +52,30 @@ describe('text opacity', () => {
     new PowerButton(50, 50, 0, power, '#4f8cff').render(g, charged, 0);
     expect(drawn[0].alpha).toBeCloseTo(0.45);
     expect(g.globalAlpha).toBeCloseTo(0.45);
+  });
+});
+
+describe('contrast probe: a steady faint label is judged', () => {
+  it('fully shown is at rest; a fade never is; the same opacity for a second is', () => {
+    const t = new Map<string, { a: number; since: number; at: number }>();
+    expect(atRest(t, 'Go', 1, 0)).toBe(true);
+    // A fade: opacity changes every 200 ms sample.
+    for (let i = 0; i < 10; i++) expect(atRest(t, 'fade', i / 10, i * 200)).toBe(false);
+    // Held at 50%: at rest once it has held STEADY_MS.
+    const at = (ms: number) => atRest(t, 'hint', 0.5, ms);
+    expect(at(0)).toBe(false);
+    expect(at(200)).toBe(false);
+    for (let ms = 400; ms < STEADY_MS; ms += 200) expect(at(ms)).toBe(false);
+    expect(at(STEADY_MS)).toBe(true);
+    expect(at(STEADY_MS + 200)).toBe(true);
+    // Gone for a while, then back at the same opacity: counts again from the start.
+    expect(at(STEADY_MS + 1500)).toBe(false);
+  });
+});
+
+describe('contrast probe: nearly see-through words', () => {
+  it('are never judged as steady', () => {
+    const t = new Map<string, { a: number; since: number; at: number }>();
+    for (let ms = 0; ms <= 3000; ms += 200) expect(atRest(t, 'ghost', 0.05, ms)).toBe(false);
   });
 });
