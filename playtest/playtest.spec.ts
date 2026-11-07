@@ -639,6 +639,9 @@ test('seat cue: in games where both pieces roam, seats read apart in greyscale (
     await page.evaluate(() => (document.body.style.filter = ''));
     await leaveMatch(page);
   }
+  expect(errors).toEqual([]);
+});
+
 test('result: a tap meant for the game right as the match ends does not skip the result', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
