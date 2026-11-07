@@ -854,3 +854,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       kid with the full head start 0% against the easy bot (`npm run sim`). Decide per game
       whether that is fine (a kid who plays at all does better) or the head start should
       cover mashing too (e.g. Quick Draw forgives early taps at assist 3).
+
+## Ideas found 2026-11-07 (waiting line run)
+- [x] 2026-11-07 (F26): Minigolf's waiting strip said "Wait · Bot shoots" for the whole bot
+      turn, so its lining-up pause read like a stuck game. It now shows the board games'
+      `waitingLine()` ("🤖 Bot is thinking…") while a bot lines up, and "Wait · <name>
+      shoots" otherwise; playtest `minigolf-bot-thinking.png`. Penalty needs no line: both
+      seats act on every kick (shooter swipes, keeper dives), so nobody waits.
