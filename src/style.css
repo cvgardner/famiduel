@@ -141,6 +141,9 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* This game's own bot level, when it differs from the player sheet's (picked on its intro). */
 .gbot { position: absolute; top: -4px; right: -8px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: calc(15px * var(--ts)); line-height: 1;
   background: #14112b; box-shadow: 0 0 0 2px #fff; }
+/* Minigolf until today's course is played on this phone: the opposite corner from the bot badge. */
+.gday { position: absolute; top: -4px; left: -8px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: calc(14px * var(--ts)); line-height: 1;
+  background: #14112b; box-shadow: 0 0 0 2px var(--gold); }
 .gkind { position: relative; font-size: calc(12px * var(--ts)); color: #fff; font-weight: 800; padding: 1px 8px; border-radius: 10px; white-space: nowrap; max-width: 100%; background: rgba(0,0,0,0.28); }
 
 /* Tournament: the featured card. */
