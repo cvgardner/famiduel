@@ -142,6 +142,8 @@ describe('pops in a player colour', () => {
     // Colours that already read keep their exact hue.
     expect(popColor('#15e5b4')).toBe('#15e5b4');
     expect(popColor('#7a5cff')).not.toBe('#7a5cff');
+  });
+});
 
 describe('home game cards', () => {
   it('every card name reads at 4.5:1 on the shade behind it', async () => {
