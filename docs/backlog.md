@@ -649,9 +649,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       fades (e.g. a result transition), make them relative like the buttons.
 
 ## Ideas found 2026-11-01 (shooter beat run)
-- [ ] Sea Battle: the "go again" header after a hit appears only once the shell lands, but the
-      big "HIT!" pop sits over the grid near the top player's side; check the pop reads
-      upright for whoever is shooting when the top player fires (two people).
+- [x] 2026-11-07 (F42, PR #102): Checked: Sea Battle's pops go through `this.pop`, which
+      faces `viewer`, and the viewer in the fire and after-turn screens is the shooter
+      (seabattle/index.ts `get viewer`), so "HIT!" and the new "3 hits!" read upright for the
+      top player when they fire.
 - [x] 2026-11-07 (F42, PR #102): A person's turn of 2+ hits (hit-again) ends with a gold
       "3 hits!" pop over the sea 0.3 s after the last shell lands, upright for the shooter,
       with the score chime; the result stays 0.6 s longer so it's read before the hand-over.
