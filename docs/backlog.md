@@ -986,10 +986,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seat colour on both cards over white, grass and the floor; the Purple-vs-Mint contrast
       playtest now plays Minigolf too, which also caught each player's name on their bottom
       strip (17 px, 4.3:1 in Purple): lifted the same way.
-- [ ] Other words drawn in a player colour on a see-through card (search `players[..].color`
+- [x] (F50, PR #111) Other words drawn in a player colour on a see-through card (search `players[..].color`
       next to an rgba card) could get the same `liftOn` check.
 
-- [x] 2026-11-07 (F50): other words in a seat colour on a see-through layer, checked by hand
 - [x] 2026-11-07 (F50, PR #111): other words in a seat colour on a see-through layer, checked by hand
       with labelContrast for every seat colour: only Ping Pong's "SERVE" hint (14 px, black
       0.75 outline on the green table) was short, Purple at 4.0:1; it now goes through
@@ -1000,6 +999,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (10 games). It found Quick Draw's "they used <power>" (15 px) on the sand in Purple at
       3.0:1 and Pink at 4.1:1; it now goes through `seatPop()` (popColor, then liftOn on both
       sands). Pops passed through a helper's own `color` argument are skipped.
+
 ## Ideas found 2026-11-07 (power band run)
 - [x] 2026-11-07 (F47, PR #108): every power button (the shared `PowerButton` in
       engine/widgets.ts) has a 2.5-unit band of its owner's colour round its dark backing, so
