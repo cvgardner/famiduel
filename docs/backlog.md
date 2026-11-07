@@ -465,6 +465,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       out of its half); on short phones and with Bigger text beside the picked power's words
       under the cards. The intro fit playtest (every power, 3 sizes, both text sizes) passes;
       intro-picked-pic-390.png.
+      2026-11-07 (F77, PR #PRNUM3): Ping Pong (smash streak, the ball slowing on your side, a
+      return bending away from the paddle), Penalty (a shot swinging wide and back, your keeper
+      spreading wide, a fake ball beside the real one) and Snack Snatch (snacks drifting to you,
+      slowing on your side, a snap reaching twice as far) have pictures too. Left: Tanks, Snake,
+      Chop Chop, Quick Draw, Sea Battle.
 - [x] 2026-11-01 (PR #69): Penalty's demo showed only the shooter's swipe. New `kick` gesture
       loops both roles: swipe the ball, then the keeper's tap on a dive button.
 

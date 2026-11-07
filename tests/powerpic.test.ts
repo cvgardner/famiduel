@@ -4,11 +4,11 @@ import games from '../content/games.json';
 import { hasPowerPic, powerPicHtml } from '../src/app/powerpic';
 import { howToHalfHtml } from '../src/app/demo';
 
-const FREE = ['minigolf', 'airhockey', 'sumo'];
+const FREE = ['minigolf', 'airhockey', 'sumo', 'pingpong', 'penalty', 'snacksnatch'];
 const table = (powers as { games: Record<string, { id: string; name: string; icon: string; desc: string }[]> }).games;
 
 describe('power pictures', () => {
-  it('every power of the three free games has a looping picture', () => {
+  it('every power of the pictured games has a looping picture', () => {
     for (const g of FREE) {
       expect(table[g]?.length, g).toBe(3);
       for (const p of table[g]) {
