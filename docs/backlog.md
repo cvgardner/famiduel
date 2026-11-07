@@ -1056,8 +1056,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       like Tanks' wag measure would show it.
 - [ ] Penalty's first shooter wins ~54% between equal bots. If families feel it, an ABBA
       order (A, B, B, A...) is the known fix in real shootouts; measure before changing.
-- [ ] Air Hockey has no landing problem, but Snack Snatch's thrown snacks could show a
+- [x] Air Hockey has no landing problem, but Snack Snatch's thrown snacks could show a
       short ground shadow too if kids misjudge where they come down.
+      2026-11-07 (F93): no change needed. Snack Snatch's snacks never leave the blanket: the
+      pot shoots them flat and they slide and bounce in the plane (logic.ts moveSnack, no
+      height), so there is no landing spot to mark.
 
 ## Found 2026-11-01 23:21 PT run
 - [x] 2026-11-02 (PR #76): The "ping pong: where the ball landed stays" playtest failed main's
