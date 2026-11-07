@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { BIG_TEXT, BIG_TEXT_CAP, MIN_TEXT, readable, scaledSize, setTextScale, textSpan } from '../src/engine/draw';
+import { BIG_TEXT, BIG_TEXT_CAP, MIN_TEXT, NAME_OUTLINE, nameLabel, readable, scaledSize, setTextScale, textSpan } from '../src/engine/draw';
 
 /** Every .ts file under src/. */
 function sources(dir = path.join(__dirname, '../src')): string[] {
@@ -31,7 +31,7 @@ describe('readable canvas text', () => {
   // including screens the playtest may not reach (scorecards, sudden death, handicap notes).
   it(`no game draws words below ${MIN_TEXT} units`, () => {
     const small: string[] = [];
-    const call = /text\(\s*\w+,\s*(['`])((?:(?!\1).)*)\1[^;]*?\bsize:\s*(\d+(?:\.\d+)?)\b/g;
+    const call = /(?:text|nameLabel)\(\s*\w+,\s*(['`])((?:(?!\1).)*)\1[^;]*?\bsize:\s*(\d+(?:\.\d+)?)\b/g;
     for (const file of sources()) {
       const src = fs.readFileSync(file, 'utf8');
       for (const m of src.matchAll(call)) {
@@ -65,5 +65,29 @@ describe('Bigger text', () => {
     expect(textSpan(10, 40, 'left', 0)).toEqual([10, 50]);
     expect(textSpan(10, 40, 'left', 1)).toEqual([-30, 10]);
     expect(textSpan(350, 40, 'right', 1)).toEqual([350, 390]);
+  });
+});
+
+describe('player names', () => {
+  it('nameLabel draws the name bold in the player colour over a dark outline', () => {
+    const calls: string[] = [];
+    const g = {
+      globalAlpha: 1, font: '', textAlign: '', textBaseline: '', fillStyle: '', strokeStyle: '', lineWidth: 0, lineJoin: '',
+      save() {}, restore() {}, translate() {}, rotate() {},
+      measureText: () => ({ width: 40 }),
+      strokeText(str: string) { calls.push(`stroke ${str} ${g.strokeStyle}`); },
+      fillText(str: string) { calls.push(`fill ${str} ${g.fillStyle} ${g.font.split(' ')[0]}`); },
+    };
+    nameLabel(g as never, 'Mia', 100, 100, '#ff5ca8', { size: 18 });
+    expect(calls).toEqual([`stroke Mia ${NAME_OUTLINE}`, 'fill Mia #ff5ca8 800']);
+  });
+
+  it('shown games draw a name in its player colour through nameLabel, not a hand-rolled outline', () => {
+    const odd: string[] = [];
+    for (const file of sources(path.join(__dirname, '../src/games'))) {
+      const src = fs.readFileSync(file, 'utf8');
+      for (const m of src.matchAll(/text\(\s*\w+,[^;]*\b(?:pl|me|them|players\[[^\]]+\])\.name\b[^;]*stroke: 'rgba\(0,\s*0,\s*0,[^;]*;/g)) odd.push(`${path.relative(process.cwd(), file)}: ${m[0].slice(0, 80)}`);
+    }
+    expect(odd).toEqual([]);
   });
 });

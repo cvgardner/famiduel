@@ -1,5 +1,7 @@
 // Juice: particles, pop-up text, screen shake and flashes. Purely visual, so
 // it uses Math.random and never affects a game's result.
+
+import { reducedMotion } from './calm';
 import { contrastRatio, over, parseColor } from '../core/contrast';
 import { COLORS, fitSize, insideX, text, type G } from './draw';
 import { W, H } from './world';
@@ -63,7 +65,9 @@ export class Fx {
     this.floaters.push({ str, x, y, life: 0.9, max: 0.9, color, size, player });
   }
 
+  /** Camera shake; none when the phone asks for reduced motion. */
   shake(amount = 6, time = 0.25): void {
+    if (reducedMotion()) return;
     this.shakeAmp = Math.max(this.shakeAmp, amount);
     this.shakeT = Math.max(this.shakeT, time);
   }

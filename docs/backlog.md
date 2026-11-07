@@ -934,8 +934,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       contrast probe caught "Bot 2" in pink at 3.4:1 on the pink glow of the active panel.
 
 ## Ideas found 2026-11-01 (bot name run)
-- [ ] Other games print the name in the player's colour on a tinted panel; Sumo and Sea
+- [x] Other games print the name in the player's colour on a tinted panel; Sumo and Sea
       Battle already have an outline, but a shared `nameLabel()` would keep them alike.
+      2026-11-07 (F75): `nameLabel()` in engine/draw.ts (bold, the pop's 75% black outline).
+      Sumo, Sea Battle's cover and Rock Paper Scissors (secret pick line, name under the
+      hand) draw names through it; Sea Battle's and RPS's outlines were 35-40% black. A text
+      test fails on a player name drawn with a hand-rolled outline, and the small-text test
+      also reads nameLabel sizes. Minigolf's names sit on dark cards via liftOn (unchanged);
+      the hidden board games are left as they are.
 - [x] Bot names with character: each bot level could have a friendly name and face (e.g. a
       sleepy robot for Easy) so a kid knows which one they are beating, without new words.
       2026-11-07 (F73, PR #134): faces, no new names: Easy 😴, Normal 🤔, Hard 😎
@@ -1146,3 +1152,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       there; the Ready button reads "Tap a power to see it" until a pick, and the picked
       power's description takes the how-to's place under the cards. A playtest picks every
       power in every shown game at 320x568, 360x640 and 390x844, with and without Bigger text.
+- [x] 2026-11-07 (F79): Reduce motion. With the phone's "reduce motion" on, the power pictures
+      (SMIL, which CSS can't stop) pause on the frame 1 s into their loop (`watchPowerPics()` in
+      app/powerpic.ts, a MutationObserver that freezes each picture as it appears, and sets
+      them moving again if the setting is turned off), the camera no longer shakes
+      (`reducedMotion()` in engine/calm.ts, checked in `Fx.shake`), and the ghost finger was
+      already still in CSS. Playtest "reduced motion: ..." checks the picture is paused and
+      looks the same 0.7 s later (reduced-motion-intro.png); unit test for the shake.
