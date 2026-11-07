@@ -452,7 +452,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       4 s". `powerStatus()` in app/demo.ts, `energyOf()` in engine/game.ts; the pause-help
       playtest checks both halves show a state in every game with powers.
 - [x] A short animation of each power in How to play, for kids who picked it without reading.
-      2026-11-07 (F70, PR #PRNUM): the three free games (Minigolf, Air Hockey, Sumo) draw a 2 s
+      2026-11-07 (F70, PR #133): the three free games (Minigolf, Air Hockey, Sumo) draw a 2 s
       looping picture of each power beside the picked power on How to play (inline SVG in
       `app/powerpic.ts`; you in your seat colour, the other player grey): the gust blowing a
       shot past the cup, the cup reeling a ball in, a ball floating through a wall; a paddle
