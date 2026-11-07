@@ -11,7 +11,7 @@ import { energyOf } from '../engine/game';
 import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
-import { demoHelpHtml, demoHtml, HelpMemory, howToHalfHtml, isGesture, showsDemo } from './demo';
+import { demoHelpHtml, demoHtml, HelpMemory, howToHalfHtml, isGesture, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
@@ -385,7 +385,7 @@ export class App {
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>` : ''}
           ${bot ? botRow(p, bot) : `<button class="btn ready" id="ready${p}" data-p="${p}">${powers.length ? 'Pick a power' : 'Ready!'}</button>`}
-          <div class="who">${esc(seatName(this.store.data.profiles, p))}${bot ? ' 🤖' : ''}</div>
+          <div class="who">${esc(seatName(this.store.data.profiles, p))}${bot ? ' 🤖' : 'seatRing' in meta && meta.seatRing ? seatCueHtml(p) : ''}</div>
         </div>
       </div>`;
     };

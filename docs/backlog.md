@@ -449,8 +449,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       games where both pieces roam the same space (Sumo wrestlers, Snake heads, Tanks). Air
       Hockey and Ping Pong paddles never leave their own half, so they don't need it. Playtest
       "seat cue" saves greyscale screenshots (seat-cue-<game>-grey.png).
-- [ ] Seat cue legend: the intro or How to play could show "yours has a solid ring" /
-      "dashed ring" on each half, so a kid knows which is theirs before the first round.
+- [x] 2026-11-07 (F40, PR #100): Seat cue legend. In Sumo, Snake Duel and Tank Duel
+      (`"seatRing": true` in content/games.json) each person's name line on the intro and in
+      How to play reads "◯ yours: solid ring" (bottom) / "dashed ring" (top), drawn like the
+      ring itself. On the name line, not a new line, so the intro still fits a 320×568 phone.
+      Playtest "seat cue: the intro tells each person" saves seat-cue-<game>-intro.png.
 
 ## Ideas found 2026-10-31 (easier bot run)
 - [x] 2026-10-31: Air Hockey stall rule. A puck left on one side (idle player, toddler,
