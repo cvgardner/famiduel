@@ -395,3 +395,28 @@ describe('minigolf powers', { timeout: 60_000 }, () => {
     expect(fired).toContain('magnet');
   });
 });
+
+// F88: does the bottom seat, or whoever tees off first, do better on some hole? A first sim
+// said the bottom seat won only ~40% of decided holes between equal bots (starter = seed
+// parity), but flipping which seeds the bottom seat starts on flipped it to ~60%: it followed
+// the seeds, not the seat. The rules and the bot never look at the seat: the same seed with
+// the seats' roles swapped plays the exact same strokes with the seats swapped, so there is
+// no seat edge to find per hole. Teeing off first is worth ~53-55% of
+// decided holes over all 23 (n ~300 each over two seed ranges), a small, real edge, and the
+// honour rule (lower score tees off next) already hands it to the leader, as in real golf.
+describe('minigolf: neither seat has an edge', { timeout: 60_000 }, () => {
+  it('swapping who tees off swaps the strokes exactly, on every hole', () => {
+    for (const h of HOLES) {
+      for (const seed of [11, 12]) {
+        const strokes = ([0, 1] as PlayerIndex[]).map((starter) => {
+          const rng = makeRng(seed);
+          const g = new Minigolf([player({ bot: 'normal' }), player({ bot: 'normal' })], false, rng, [h.id], starter);
+          const bots = [new MinigolfBot(0, 'normal', rng), new MinigolfBot(1, 'normal', rng)];
+          for (let t = 0; !g.finished && t < 900; t += DT) g.step(DT, [bots[0].think(g, DT), bots[1].think(g, DT)]);
+          return g.card[0].strokes;
+        });
+        expect([strokes[1][1], strokes[1][0]], `${h.name}, seed ${seed}`).toEqual(strokes[0]);
+      }
+    }
+  });
+});
