@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
-import type { BotLevel, PlayerInfo } from '../src/core/types';
+import type { BotLevel, PlayerIndex, PlayerInfo } from '../src/core/types';
 import { HOLES, Minigolf, MinigolfBot, NO_INTENT, RULES, type Intent } from '../src/games/minigolf/logic';
 import { compileCourse, inZone, NO_MODS, pathDist, PHYS, pointInPoly, rollFrame, simulate, startRoll } from '../src/games/minigolf/physics';
 import { DT, player, power } from './helpers';
@@ -103,6 +103,26 @@ describe('minigolf match', { timeout: 60_000 }, () => {
     expect(a.g.card.map((h) => h.strokes)).toEqual(b.g.card.map((h) => h.strokes));
     expect(a.t).toBe(b.t);
   });
+
+  it('each level is a step up: normal beats easy, hard beats normal (seats swapped)', () => {
+    // The middle step too, not just hard v easy (a rival app's reviews: "the stronger bot
+    // doesn't seem more powerful"). tests/bot-levels.test.ts does this for the sim games.
+    // 2026-11-07 (n=20): Penalty 95% / 80%, Sea Battle 80% / 85%, Minigolf 95% / 90%.
+    const share = (a: BotLevel, b: BotLevel) => {
+      let wins = 0;
+      const N = 20;
+      for (let s = 0; s < N; s++) {
+        const aSeat = (s % 2) as PlayerIndex;
+        const lv: [BotLevel, BotLevel] = aSeat === 0 ? [a, b] : [b, a];
+        if (play(lv, 300 + s).g.winner === aSeat) wins++;
+      }
+      return wins / N;
+    };
+    const ne = share('normal', 'easy');
+    const hn = share('hard', 'normal');
+    expect(ne, 'normal v easy').toBeGreaterThanOrEqual(0.6);
+    expect(hn, 'hard v normal').toBeGreaterThanOrEqual(0.55);
+  }, 60_000);
 
   it('a hard bot beats an easy bot most of the time', () => {
     let hardWins = 0;
