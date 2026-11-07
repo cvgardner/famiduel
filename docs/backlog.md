@@ -201,6 +201,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       contrast probe judges a label at rest: a label only ever caught mid-fade is a report
       warning, not a failure (`keepSample` in engine/draw.ts, unit tested).
 - [ ] More tank arenas, more Snack Snatch snack types.
+  - [x] 2026-11-07 (F84): Tank Duel has 8 arenas (new: Pillars, Crosses, Diamonds). Measured with
+        150 rounds of each bot pairing per arena: rounds average 5-10 s like the old five, and
+        self-bonks and seat splits sit inside the old arenas' range (a maze-like "Hallways" try
+        was dropped: the top seat won 98 of 137 normal rounds). tests/tanks.test.ts plays a round
+        on each arena; the playtest saves tanks-arena-<name>.png for each.
 
 ## Ideas found 2026-10-31
 - [x] 2026-10-31: Sumo: a mashing kid never won a match against any bot, even with the
@@ -1099,7 +1104,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       more powerful". `tests/bot-levels.test.ts` now checks the middle step in all 8 action
       games with the `npm run sim` matches: normal beats easy >= 75% and hard beats normal
       >= 60% (today 90-100% and 70-100%, Sumo lowest). Every level is a real step today.
-- [ ] Penalty, Minigolf and Sea Battle aren't in `scripts/simlib.ts`, so only hard v easy is
+- [x] (done in F39, PR #99: tests/bot-levels.test.ts checks normal v easy and hard v normal for them) Penalty, Minigolf and Sea Battle aren't in `scripts/simlib.ts`, so only hard v easy is
       tested for them; add the normal step there too (Minigolf: strokes per level from
       `npm run golf` already go easy > normal > hard).
 - [x] 2026-11-07 (F49, PR #110): Sumo's push button label takes dark or white ink by the button's own
