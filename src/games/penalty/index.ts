@@ -9,6 +9,10 @@ import type { Input } from '../../engine/input';
 import { Button, PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { Penalty, PenaltyBot, RULES, shotFromSwipe, type Dive, type Flight, type Intent, type KickResult, type Shot, type SwipePoint } from './logic';
+const PITCH = '#2f9e4f';
+const PITCH_LIGHT = '#35ab57';
+/** The colours most of the play area is painted in (tests read pops against them). */
+export const SURFACES: readonly string[] = [PITCH, PITCH_LIGHT];
 
 const DIVE_X = [104, 180, 256];
 const DIVE_Y = [H - 52, 52];
@@ -230,7 +234,7 @@ class PenaltyView implements GameInstance {
   private renderPitch(gx: G): void {
     const stripes = 10;
     for (let i = 0; i < stripes; i++) {
-      gx.fillStyle = i % 2 ? '#2f9e4f' : '#35ab57';
+      gx.fillStyle = i % 2 ? PITCH : PITCH_LIGHT;
       gx.fillRect(0, (H / stripes) * i, W, H / stripes + 1);
     }
     const c = [this.ctx.players[0].color, this.ctx.players[1].color];

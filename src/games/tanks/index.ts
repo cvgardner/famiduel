@@ -9,6 +9,9 @@ import { H, MID, W } from '../../engine/world';
 import { CONTROLS_Y, controlsFor, FIRE_R, FIRE_RIM, fireLook, STICK_R, type Controls } from './controls';
 import { COLS, LAYOUTS, ROWS } from './mazes';
 import { ARENA, CELL, IDLE, RULES, TankBot, TankDuel, type Intent, type Tank } from './logic';
+const FLOOR = '#2a2150';
+/** The colours most of the play area is painted in (tests read pops against them). */
+export const SURFACES: readonly string[] = [FLOOR];
 
 /** Mirror a bottom-strip position into player 1's top strip (180° turn). */
 const seat = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
@@ -251,7 +254,7 @@ class TankView implements GameInstance {
     const g = this.game;
     const lay = LAYOUTS[g.layout];
     // Table and control strips
-    gx.fillStyle = '#2a2150';
+    gx.fillStyle = FLOOR;
     gx.fillRect(0, 0, W, H);
     for (const p of PLAYERS) this.drawStripBg(gx, p);
     // Arena floor

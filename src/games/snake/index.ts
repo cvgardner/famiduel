@@ -7,6 +7,9 @@ import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { DX, DY, RULES, SnakeBot, SnakeDuel, type Intent } from './logic';
+const FLOOR = '#0d0b22';
+/** The colours most of the play area is painted in (tests read pops against them). */
+export const SURFACES: readonly string[] = [FLOOR];
 
 const { cell: C, ox: OX, oy: OY, cols: COLS, rows: ROWS } = RULES;
 const AW = COLS * C;
@@ -124,7 +127,7 @@ class SnakeView implements GameInstance {
   render(gx: G): void {
     const g = this.game;
     const col = [this.ctx.players[0].color, this.ctx.players[1].color];
-    gx.fillStyle = '#0d0b22';
+    gx.fillStyle = FLOOR;
     gx.fillRect(0, 0, W, H);
     // Player strips, tinted with each player's colour.
     for (const p of PLAYERS) {

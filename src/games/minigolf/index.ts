@@ -10,6 +10,10 @@ import { H, MID, W } from '../../engine/world';
 import { waitingLine } from '../../core/turnline';
 import { Minigolf, MinigolfBot, RULES, type Intent, type Shot } from './logic';
 import { inZone, moverSegs, PHYS, simulate, type Course, type Pt } from './physics';
+const FLOOR = '#16302a';
+const GREEN = '#3fae5e';
+/** The colours most of the play area is painted in (tests read pops against them). */
+export const SURFACES: readonly string[] = [FLOOR, GREEN];
 
 /** Screen units of pull for a full-power shot. */
 const MAX_PULL = 120;
@@ -281,7 +285,7 @@ class MinigolfView implements GameInstance {
   // ---------- render ----------
   render(gx: G): void {
     const g = this.game;
-    gx.fillStyle = '#16302a';
+    gx.fillStyle = FLOOR;
     gx.fillRect(0, 0, W, H);
     // faint garden dots
     gx.fillStyle = 'rgba(255,255,255,0.035)';
@@ -320,7 +324,7 @@ class MinigolfView implements GameInstance {
     // Floor with mowing stripes.
     gx.save();
     poly(c.border);
-    gx.fillStyle = '#3fae5e';
+    gx.fillStyle = GREEN;
     gx.fill();
     gx.clip();
     gx.fillStyle = 'rgba(255,255,255,0.06)';

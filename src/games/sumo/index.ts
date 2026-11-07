@@ -11,6 +11,8 @@ import { RULES, Sumo, SumoBot, type Intent } from './logic';
 
 const SAND = '#e9cf98';
 const SAND_DARK = '#c9a865';
+/** The colours most of the play area is painted in (tests read pops against them). */
+export const SURFACES: readonly string[] = [SAND, SAND_DARK];
 const ROPE = '#b8893e';
 const SKIN = '#f6d3ad';
 const DUST = '#d8bb84';

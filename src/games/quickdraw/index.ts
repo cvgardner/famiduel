@@ -1,6 +1,6 @@
 // Quick Draw view: a cartoon water-pistol duel in a desert street. Each half is
 // drawn in the bottom player's frame and rotated 180° for the top player.
-import { popColor } from '../../engine/fx';
+import { liftOn, popColor, POP_OUTLINE } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
@@ -8,6 +8,14 @@ import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { QuickDraw, QuickDrawBot, RULES, type FakeKind, type Intent, type RoundResult } from './logic';
+const SAND_NEAR = '#f2cf8f';
+const SAND_FAR = '#e7b56a';
+/** The colours most of the play area is painted in (tests read pops against them). */
+export const SURFACES: readonly string[] = [SAND_NEAR, SAND_FAR];
+/** A seat colour lifted until a small pop reads behind its outline on both sands (Purple "they used" was 3.0:1). */
+export function seatPop(color: string): string {
+  return SURFACES.reduce((c, sand) => liftOn(c, POP_OUTLINE, sand), popColor(color));
+}
 
 /** Local (bottom-player) layout of one half. */
 const L = {
@@ -105,7 +113,7 @@ class QuickDrawView implements GameInstance {
         const s = toScreen(e.p, W / 2, L.cowboyY + 60);
         fx.flash('#ffd54a', 0.1);
         const o = toScreen(other(e.p), W / 2, L.cowboyY + 60);
-        fx.pop(`${pw.icon} they used ${pw.name}`, o.x, o.y, popColor(players[e.p].color), other(e.p), 15);
+        fx.pop(`${pw.icon} they used ${pw.name}`, o.x, o.y, seatPop(players[e.p].color), other(e.p), 15);
         fx.pop(`${pw.icon} ${pw.name}!`, s.x, s.y, COLORS.gold, e.p, 22);
       } else if (e.type === 'round') this.onRound(e.result);
       else if (e.type === 'win' && !this.ended) {
@@ -187,8 +195,8 @@ class QuickDrawView implements GameInstance {
     const c = this.ctx.players[p].color;
     // Sand, sky-ish glow near the player's edge
     const sand = gx.createLinearGradient(0, MID, 0, H);
-    sand.addColorStop(0, '#f2cf8f');
-    sand.addColorStop(1, '#e7b56a');
+    sand.addColorStop(0, SAND_NEAR);
+    sand.addColorStop(1, SAND_FAR);
     gx.fillStyle = sand;
     gx.fillRect(0, MID, W, MID);
     gx.fillStyle = alpha(c, 0.12);

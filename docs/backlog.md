@@ -578,7 +578,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       at full seat colour (PR #82).
 
 ## Ideas found 2026-11-01 (pop outline run)
-- [ ] Extend the source check of `fx.pop` colours to every game against its own play
+- [x] 2026-11-07 (F51, PR #112): Extend the source check of `fx.pop` colours to every game against its own play
       surfaces (Quick Draw sand, Minigolf grass, Ping Pong table), so rare pops elsewhere
       are covered too; needs each view to export its surface colours.
 - [x] Purple on the dark floor (#14112b) is about 4.2:1, so a small (15-16 px) pop in a
@@ -986,7 +986,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seat colour on both cards over white, grass and the floor; the Purple-vs-Mint contrast
       playtest now plays Minigolf too, which also caught each player's name on their bottom
       strip (17 px, 4.3:1 in Purple): lifted the same way.
-- [ ] Other words drawn in a player colour on a see-through card (search `players[..].color`
+- [x] (F50, PR #111) Other words drawn in a player colour on a see-through card (search `players[..].color`
       next to an rgba card) could get the same `liftOn` check.
 
 - [x] 2026-11-07 (F50, PR #111): other words in a seat colour on a see-through layer, checked by hand
@@ -994,6 +994,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       0.75 outline on the green table) was short, Purple at 4.0:1; it now goes through
       `liftOn(colour, SERVE_OUTLINE, TABLE_GREEN)`, tested. Sumo's corner names, Snake and
       Chop Chop's 22 px messages and Sea Battle's "them" already pass.
+- [x] 2026-11-07 (F51, PR #112): every action game's view exports `SURFACES` (the colours its play area
+      is painted in) and tests/contrast.test.ts reads each of its `fx.pop` calls against them
+      (10 games). It found Quick Draw's "they used <power>" (15 px) on the sand in Purple at
+      3.0:1 and Pink at 4.1:1; it now goes through `seatPop()` (popColor, then liftOn on both
+      sands). Pops passed through a helper's own `color` argument are skipped.
+
 ## Ideas found 2026-11-07 (power band run)
 - [x] 2026-11-07 (F47, PR #108): every power button (the shared `PowerButton` in
       engine/widgets.ts) has a 2.5-unit band of its owner's colour round its dark backing, so

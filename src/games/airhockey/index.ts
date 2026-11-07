@@ -6,6 +6,9 @@ import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { AirHockey, AirHockeyBot, RULES, type Intent } from './logic';
+const ICE = '#e9f3ff';
+/** The colours most of the play area is painted in (tests read pops against them). */
+export const SURFACES: readonly string[] = [ICE];
 
 class AirHockeyView implements GameInstance {
   readonly game: AirHockey;
@@ -97,7 +100,7 @@ class AirHockeyView implements GameInstance {
     const g = this.game;
     const [c0, c1] = [this.ctx.players[0].color, this.ctx.players[1].color];
     // Rink
-    gx.fillStyle = '#e9f3ff';
+    gx.fillStyle = ICE;
     gx.fillRect(0, 0, W, H);
     const ice = gx.createLinearGradient(0, 0, 0, H);
     ice.addColorStop(0, alpha(c1, 0.12));
