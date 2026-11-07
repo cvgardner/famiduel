@@ -908,7 +908,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seats act on every kick (shooter swipes, keeper dives), so nobody waits.
 
 ## Ideas found 2026-11-07 (bot levels run)
-- [x] 2026-11-07 (F39, PR #PRNUM): Penalty, Sea Battle and Minigolf now test the middle bot step
+- [x] 2026-11-07 (F39, PR #99): Penalty, Sea Battle and Minigolf now test the middle bot step
       too (normal beats easy >= 60%, hard beats normal >= 55%, seats swapped, n=20). Today:
       Penalty 95% / 80%, Sea Battle 80% / 85%, Minigolf 95% / 90%. Follows F36's
       tests/bot-levels.test.ts for the 8 sim games.
