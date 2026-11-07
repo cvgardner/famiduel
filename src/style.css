@@ -490,3 +490,9 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .grownups ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: calc(14px * var(--ts)); line-height: 1.35; }
 .grownups .gu-lead, .grownups .gu-note { margin: 0; font-size: calc(14px * var(--ts)); line-height: 1.35; }
 .grownups .gu-note { color: var(--dim); font-size: calc(13px * var(--ts)); }
+
+/* Little hands (Settings > Look): ages 4-6 guidance asks for 56-64 px primary buttons, so
+   the intro's Ready button, power cards and bot level buttons are at least 60 px tall. */
+:root[data-bighands] #intro .btn.ready { min-height: 60px; min-width: 200px; }
+:root[data-bighands] #intro .power-card { min-height: 60px; justify-content: center; }
+:root[data-bighands] #intro .botlvl button { min-height: 60px; }

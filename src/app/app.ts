@@ -167,12 +167,18 @@ export class App {
     });
   }
 
-  /** Bigger text: canvas words through the text scale, menus through <html data-bigtext>. */
+  /**
+   * Bigger text: canvas words through the text scale, menus through <html data-bigtext>.
+   * Little hands: <html data-bighands> makes the intro's Ready and power buttons taller.
+   */
   applyBigText(): void {
-    const on = !!this.store.data.settings.bigText;
-    setTextScale(on ? BIG_TEXT : 1);
-    if (on) document.documentElement.dataset.bigtext = '1';
-    else delete document.documentElement.dataset.bigtext;
+    const { bigText, bigButtons } = this.store.data.settings;
+    setTextScale(bigText ? BIG_TEXT : 1);
+    const root = document.documentElement.dataset;
+    if (bigText) root.bigtext = '1';
+    else delete root.bigtext;
+    if (bigButtons) root.bighands = '1';
+    else delete root.bighands;
   }
 
   // ---------- Settings: its own screen, behind the gear on home ----------
@@ -199,7 +205,8 @@ export class App {
             <div class="seg theme-seg" id="themeSeg" role="group" aria-label="Light or dark look">${(['auto', 'light', 'dark'] as const)
               .map((v) => `<button data-v="${v}" class="${theme === v ? 'on' : ''}" aria-pressed="${theme === v}">${v === 'auto' ? 'Auto' : v === 'light' ? '☀️' : '🌙'}</button>`)
               .join('')}</div>
-          </div>` + this.toggle('bigText', '🔠', 'Bigger text', 'Larger words in games and menus', !!settings.bigText), 'Auto follows your phone\'s light or dark mode.')}
+          </div>` + this.toggle('bigText', '🔠', 'Bigger text', 'Larger words in games and menus', !!settings.bigText) +
+          this.toggle('bigButtons', '🖐️', 'Little hands', 'Bigger Ready and power buttons', !!settings.bigButtons), 'Auto follows your phone\'s light or dark mode.')}
       ${group('For grown-ups', `<button class="set-row set-link" id="grownUps"><span class="set-ico" aria-hidden="true">👪</span><span class="set-txt"><b>Grown-ups corner</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
       <footer class="foot">FamiDuel prototype · no ads, no accounts · everything stays on this device</footer>`;
     $('#grownUps').addEventListener('click', () => {
@@ -221,7 +228,7 @@ export class App {
     }
     for (const el of document.querySelectorAll<HTMLInputElement>('.settings input')) {
       el.addEventListener('change', () => {
-        const k = el.dataset.k as 'powers' | 'autoHandicap' | 'sound' | 'haptics' | 'bigText';
+        const k = el.dataset.k as 'powers' | 'autoHandicap' | 'sound' | 'haptics' | 'bigText' | 'bigButtons';
         settings[k] = el.checked;
         this.applyBigText();
         this.sfx.muted = !settings.sound;
