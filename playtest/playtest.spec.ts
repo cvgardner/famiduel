@@ -666,6 +666,49 @@ test('seat cue: in games where both pieces roam, seats read apart in greyscale (
   expect(errors).toEqual([]);
 });
 
+test('power buttons: each wears a band of its owner\'s colour, even with an empty meter', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, ['normal', 'hard']);
+  for (const id of ['penalty', 'snacksnatch', 'airhockey']) {
+    await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+    await expect(page.locator('#play')).toBeVisible();
+    await page.waitForTimeout(400);
+    type BtnHook = { runner: { game: { ctx: { players: { color: string }[] }; powerBtns: ({ button: { x: number; y: number; r: number } } | null)[] } } };
+    // A button may be dimmed (countdown, not usable yet), so the band is judged by hue:
+    // each sample on it must sit nearer its owner's colour than the other seat's.
+    const verdicts = await page.evaluate(() => {
+      const r = (window as unknown as { __famiduel: BtnHook }).__famiduel.runner.game;
+      const c = document.getElementById('stage') as HTMLCanvasElement;
+      const g = c.getContext('2d')!;
+      const sc = Math.min(c.width / 360, c.height / 640);
+      const ox = (c.width - 360 * sc) / 2;
+      const oy = (c.height - 640 * sc) / 2;
+      const px = (wx: number, wy: number) => Array.from(g.getImageData(Math.round(ox + wx * sc), Math.round(oy + wy * sc), 1, 1).data.slice(0, 3));
+      const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+      const dist = (a: number[], b: number[]) => Math.hypot(...a.map((v, i) => v - b[i]));
+      // Distance to a colour's direction (its shade at any brightness), so dimming doesn't count.
+      const hueOff = (a: number[], b: number[]) => {
+        const k = Math.max(0.05, Math.min(1, a.reduce((s, v, i) => s + v * b[i], 0) / b.reduce((s, v) => s + v * v, 0)));
+        return dist(a, b.map((v) => v * k));
+      };
+      return r.powerBtns.map((b, p) => {
+        if (!b) return 'no button';
+        const { x, y, r: rad } = b.button;
+        const own = hex(r.ctx.players[p].color);
+        const foe = hex(r.ctx.players[1 - p].color);
+        const samples = [px(x - rad - 6, y), px(x + rad + 6, y)];
+        const ok = samples.every((s) => hueOff(s, own) < hueOff(s, foe) && Math.max(...s) - Math.min(...s) > 25);
+        return ok ? 'ok' : `seat ${p}: band ${JSON.stringify(samples)} vs own ${own}`;
+      });
+    });
+    expect(verdicts, `${id}: each band in its owner's colour`).toEqual(['ok', 'ok']);
+    await page.screenshot({ path: path.join(OUT, `power-band-${id}.png`) });
+    await leaveMatch(page);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('seat cue: the intro tells each person which ring is theirs (solid bottom, dashed top)', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
@@ -1029,6 +1072,47 @@ test('tanks: a left-handed player gets FIRE on the left and the stick on the rig
   await finger(902, 'pointerup', at(72, 584));
   await expect.poll(async () => (await view()).shells, { timeout: 1000 }).toBeGreaterThan(0);
   await page.screenshot({ path: path.join(OUT, 'tanks-left-handed.png') });
+  expect(errors).toEqual([]);
+});
+
+test('tanks: a loaded bouncy shell blinks the FIRE band gold, even for Mint', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  const mint = PLAYER_COLORS.find((c) => c.name === 'Mint')!.hex;
+  await page.evaluate((m) => {
+    (window as unknown as { __famiduel: { store: { data: { profiles: { color: string }[] } } } }).__famiduel.store.data.profiles[0].color = m;
+  }, mint);
+  await setPlayers(page, ['normal', 'hard']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('tanks'));
+  await expect(page.locator('#play')).toBeVisible();
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(3));
+  type BouncyHook = { runner: { game: { game: { tanks: { bouncy: number }[] } } } };
+  // Seat 0 (right-handed) FIRE sits at (288, 584): sample its band left and right.
+  const band = () =>
+    page.evaluate(() => {
+      const r = (window as unknown as { __famiduel: BouncyHook }).__famiduel.runner.game;
+      r.game.tanks[0].bouncy = 99; // keep one loaded however often the bot fires
+      const c = document.getElementById('stage') as HTMLCanvasElement;
+      const g = c.getContext('2d')!;
+      const sc = Math.min(c.width / 360, c.height / 640);
+      const ox = (c.width - 360 * sc) / 2;
+      const oy = (c.height - 640 * sc) / 2;
+      const px = (wx: number, wy: number) => Array.from(g.getImageData(Math.round(ox + wx * sc), Math.round(oy + wy * sc), 1, 1).data.slice(0, 3));
+      return [px(288 - 37.5, 584), px(288 + 37.5, 584)];
+    });
+  const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const off = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i])));
+  const seen = { gold: false, mint: false };
+  for (let i = 0; i < 30 && !(seen.gold && seen.mint); i++) {
+    const [a, b] = await band();
+    if (off(a, hex('#ffd54a')) < 40 && off(b, hex('#ffd54a')) < 40) {
+      if (!seen.gold) await page.screenshot({ path: path.join(OUT, 'tanks-bouncy-band.png') });
+      seen.gold = true;
+    }
+    if (off(a, hex(mint)) < 40 && off(b, hex(mint)) < 40) seen.mint = true;
+    await page.waitForTimeout(70);
+  }
+  expect(seen, 'the band blinks gold and back to the owner\'s Mint').toEqual({ gold: true, mint: true });
   expect(errors).toEqual([]);
 });
 

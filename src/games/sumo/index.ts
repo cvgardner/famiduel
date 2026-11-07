@@ -1,6 +1,7 @@
 // Sumo view: one big hold button per player becomes intents; state becomes a
 // bouncy top-down ring with squash/stretch wrestlers, dust and shockwaves.
 import { PLAYERS, type PlayerIndex } from '../../core/types';
+import { inkOn } from '../../core/contrast';
 import { alpha, circle, COLORS, facing, glow, noGlow, seatRing, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
@@ -422,7 +423,8 @@ class SumoView implements GameInstance {
     const r = pressed ? btn.r * 0.93 : btn.r;
     const live = g.phase === 'fight' && w.cooldown <= 0;
     circle(gx, btn.x, btn.y + 6, btn.r, 'rgba(0,0,0,0.35)');
-    circle(gx, btn.x, btn.y + (pressed ? 4 : 0), r, live || pressed ? c : shade(c, -0.35), 'rgba(255,255,255,0.6)', 3);
+    const fill = live || pressed ? c : shade(c, -0.35);
+    circle(gx, btn.x, btn.y + (pressed ? 4 : 0), r, fill, 'rgba(255,255,255,0.6)', 3);
     circle(gx, btn.x - r * 0.3, btn.y - r * 0.35 + (pressed ? 4 : 0), r * 0.25, 'rgba(255,255,255,0.25)');
     // Charge arc
     gx.beginPath();
@@ -439,7 +441,10 @@ class SumoView implements GameInstance {
       gx.stroke();
     }
     const label = w.charging ? (w.charge >= 1 ? 'MAX!' : 'LET GO') : 'HOLD';
-    text(gx, label, btn.x, btn.y + (pressed ? 4 : 0), { size: label === 'LET GO' ? 17 : 20, player: p, color: '#fff', stroke: 'rgba(0,0,0,0.4)' });
+    // Ink by the button's own shade (white "LET GO" on Mint was 4.3:1), drawn
+    // 19 px bold or more so it counts as large text on every seat colour.
+    const ink = inkOn(fill);
+    text(gx, label, btn.x, btn.y + (pressed ? 4 : 0), { size: label === 'LET GO' ? 19 : 20, player: p, color: ink, stroke: ink === '#ffffff' ? 'rgba(0,0,0,0.4)' : undefined });
   }
 
   private renderScore(gx: G, p: PlayerIndex): void {

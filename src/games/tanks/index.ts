@@ -494,7 +494,7 @@ class TankView implements GameInstance {
     const ready = live && g.canFire(p);
     const press = this.fireHeld[p] > 0;
     const r = press ? FIRE_R * 0.9 : FIRE_R;
-    const look = fireLook(c, ready);
+    const look = fireLook(c, ready, tk.bouncy > 0, this.t);
     const rr = r + FIRE_RIM;
     circle(gx, f.x, f.y + 4, rr, 'rgba(0,0,0,0.35)');
     if (tk.bouncy > 0) glow(gx, COLORS.gold, 14);

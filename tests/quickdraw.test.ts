@@ -169,8 +169,26 @@ describe('quick draw', () => {
       expect(g.pulse(1)).toBe(false);
     }
     expect(firstPulse).toBeGreaterThan(0);
-    expect(g.t - firstPulse).toBeLessThanOrEqual(RULES.pulseLead + DT);
+    expect(g.t - firstPulse).toBeLessThanOrEqual(RULES.pulseLeadMax + DT);
+    expect(g.t - firstPulse).toBeGreaterThanOrEqual(RULES.pulseLeadMin - DT);
     expect(g.focus[0]).toBe(false); // used up
+  });
+
+  it("slow time's lead changes from round to round, so the glow can't be counted down", () => {
+    const leads = new Set<number>();
+    for (let seed = 1; seed <= 12; seed++) {
+      const g = fresh({ powers: ['slowtime', 'slowtime'] }, seed);
+      g.energy[0].value = 1;
+      g.step(DT, [{ tap: false, power: true }, idle]);
+      let firstPulse = -1;
+      let n = 0;
+      while (g.phase !== 'draw' && n++ < 2000) {
+        g.step(DT, [idle, idle]);
+        if (g.pulse(0) && firstPulse < 0) firstPulse = g.t;
+      }
+      leads.add(Math.round((g.t - firstPulse) * 10));
+    }
+    expect(leads.size).toBeGreaterThanOrEqual(4);
   });
 
   it('double shot forgives one early tap', () => {
