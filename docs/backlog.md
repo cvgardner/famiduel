@@ -863,3 +863,20 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       actually behind the name; Ping Pong's card is a touch deeper (#ff5c7a → #f25070) so its
       white name passes. A unit test holds every card at 4.5:1. The test waits for the neon
       "Duel" to switch on before judging it.
+
+## Ideas found 2026-11-07 (Twin Gates run)
+- [x] 2026-11-07 (F29): Twin Gates' two gaps were 100 units wide with a slider and a windmill
+      in them, so easy players were picked up at the cap (8) in half their holes. The gaps are
+      now 140 (walls end at 110 / start at 250); slider, windmill and sand stay.
+      `npm run golf -- --hole gates --n 60`: easy 6.6 → 5.4 strokes, picked up 50% → 10%;
+      normal 4.6 → 3.3; hard 2.6 → 2.2. Par stays 5 (par 4 would cap at 7 and pick easy
+      players up 18% of the time).
+- [ ] Twin Gates is now easier than Switchback for normal and hard bots (3.3 vs 3.8): if hole
+      order should stay easiest-first, swap them in `content/minigolf-holes.json`.
+
+## Ideas found 2026-11-07 (waiting line run)
+- [x] 2026-11-07 (F26): Minigolf's waiting strip said "Wait · Bot shoots" for the whole bot
+      turn, so its lining-up pause read like a stuck game. It now shows the board games'
+      `waitingLine()` ("🤖 Bot is thinking…") while a bot lines up, and "Wait · <name>
+      shoots" otherwise; playtest `minigolf-bot-thinking.png`. Penalty needs no line: both
+      seats act on every kick (shooter swipes, keeper dives), so nobody waits.
