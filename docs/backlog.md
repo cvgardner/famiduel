@@ -1192,3 +1192,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-07 (F82, PR #142): Reduce motion also softens full-screen flashes (goals, hits): with
       the phone's setting on, `Fx.flash` draws at a quarter of its brightness, so it still
       says something happened without a strobe. Unit test in tests/calm.test.ts.
+- [x] 2026-11-07 (F89): in-game canvas buttons measured on a 320x568 phone. Every Button in
+      play (power buttons 57 px touch area, Penalty dive 64, RPS 89, Snack Snatch 103, Sumo
+      HOLD 117) is a 56 px or bigger target; playtest "layout: every in-game canvas button is a
+      56px touch target" walks each shown game's view for Buttons and fails a smaller one.
+      Tanks FIRE (a 100 px zone plus its side of the strip) and Sea Battle's cells (F58) aren't
+      Buttons and have their own checks. So Little hands (F83) only needs to grow drawn size.

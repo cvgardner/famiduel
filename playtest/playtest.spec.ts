@@ -650,6 +650,47 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
   expect(errors).toEqual([]);
 });
 
+// The canvas buttons in play (power buttons, Sumo's HOLD, Snack Snatch's critters, Penalty's
+// dive buttons, RPS throws) aren't DOM, so the check above can't see them. Each one's touch
+// area (drawn radius plus slop) must stay a little-hand-sized target on a 320x568 phone.
+const MIN_CANVAS_TARGET = 56;
+test('layout: every in-game canvas button is a 56px touch target on a small phone', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  const small: string[] = [];
+  let seen = 0;
+  for (const id of built) {
+    await setPlayers(page, [null, null]);
+    await page.evaluate((g) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g), id);
+    await introAsPeople(page, [0, 1]);
+    await page.waitForTimeout(300);
+    const found = await page.evaluate(() => {
+      const view = (window as unknown as { __famiduel: { runner: { game: unknown } } }).__famiduel.runner!.game;
+      const c = document.getElementById('stage')!.getBoundingClientRect();
+      const scale = Math.min(c.width / 360, c.height / 640);
+      type B = { r: number; slop: number; owner: number; hit: unknown; x: number; y: number };
+      const isButton = (o: unknown): o is B => !!o && typeof o === 'object' && typeof (o as B).hit === 'function' && typeof (o as B).r === 'number' && typeof (o as B).slop === 'number';
+      const out: { where: string; css: number }[] = [];
+      const seen = new Set<unknown>();
+      const walk = (o: unknown, where: string, depth: number) => {
+        if (!o || typeof o !== 'object' || seen.has(o) || depth > 4) return;
+        seen.add(o);
+        if (isButton(o)) return void out.push({ where, css: 2 * (o.r + o.slop) * scale });
+        for (const [k, v] of Object.entries(o as Record<string, unknown>)) if (k !== 'ctx' && k !== 'game') walk(v, `${where}.${k}`, depth + 1);
+      };
+      walk(view, 'view', 0);
+      return out;
+    });
+    seen += found.length;
+    for (const f of found) if (f.css < MIN_CANVAS_TARGET - 0.5) small.push(`${id} ${f.where}: ${Math.round(f.css)}px`);
+    await leaveMatch(page);
+  }
+  expect(seen, 'canvas buttons found').toBeGreaterThan(built.length);
+  expect(small, `canvas buttons whose touch area is under ${MIN_CANVAS_TARGET}px on a 320x568 phone`).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('bot level: picked on the intro, kept per game, fits a small phone', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
