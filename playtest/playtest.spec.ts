@@ -251,6 +251,7 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
         if (bad) clipped.push(`${id} at ${w}x${h}${tag}`);
         await page.screenshot({ path: path.join(OUT, `${id}-intro-clipped-${w}x${h}${big ? '-big' : ''}.png`) });
       }
+      if (big && (id === 'sumo' || id === 'tanks')) await page.screenshot({ path: path.join(OUT, `bigtext-intro-${id}-${w}x${h}.png`) });
       await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
     }
   }
