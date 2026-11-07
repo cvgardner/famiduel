@@ -658,7 +658,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] Sea Battle: with hit-again, a bot can chain 4-5 hits on your fleet in one turn; the
       bot-result beat shows the whole turn's total, but a kid may want each hit called out
       ("hit 3 times!" is there; maybe a small count badge on each new hit).
-      2026-11-07 (F53, PR #TBD): once a turn has 2+ hits, each hit cell wears a gold badge
+      2026-11-07 (F53, PR #114): once a turn has 2+ hits, each hit cell wears a gold badge
       with its number (1, 2, 3...) at its corner, upright for whoever looks, on the shot sea
       (the bot's chain on your fleet too); a new turn clears them. Playtest "a hit fires
       again" checks both badges by pixel and that the next turn starts plain.
