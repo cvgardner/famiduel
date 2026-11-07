@@ -570,7 +570,8 @@ class SeaBattleView implements GameInstance {
     const tc = m.kind === 'over' ? this.ctx.players[g.winner ?? 0].color : this.ctx.players[a].color;
     rrect(gx, 12, 8, W - 24, 62, 18, alpha(tc, 0.28), alpha(tc, 0.9), 2);
     text(gx, title, W / 2, 30, { size: 22, color: '#fff', stroke: 'rgba(0,0,0,0.35)' });
-    text(gx, sub, W / 2, 55, { size: 13, color: COLORS.dim, weight: 700 });
+    // Full white: the dim grey fell to ~4.2:1 on a light seat's (Mint, Orange) header tint.
+    text(gx, sub, W / 2, 55, { size: 13, color: '#ffffff', weight: 700 });
 
     // Big grid
     this.drawSea(gx, lay.big, GX, GY, C, lay.bigShips, true);
@@ -616,8 +617,8 @@ class SeaBattleView implements GameInstance {
     const sunkBy = (p: PlayerIndex) => g.score[p];
     text(gx, 'Ships sunk', 264, 594, { size: 13, color: COLORS.dim, weight: 700 });
     text(gx, `${sunkBy(v)} – ${sunkBy(other(v))}`, 264, 570, { size: 26, color: '#fff' });
-    text(gx, `you`, 236, 548, { size: 13, color: alpha(vc, 0.9) });
-    text(gx, `them`, 292, 548, { size: 13, color: alpha(this.ctx.players[other(v)].color, 0.9) });
+    text(gx, `you`, 236, 548, { size: 13, color: vc });
+    text(gx, `them`, 292, 548, { size: 13, color: this.ctx.players[other(v)].color });
     const btn = this.powerBtn[v];
     if (btn && m.kind !== 'over') {
       if (this.armed && m.kind === 'fire') {

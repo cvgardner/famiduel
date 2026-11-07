@@ -503,7 +503,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-07: The playtest only played Blue vs Pink; a new pass ("contrast: Mint vs
       Orange") plays every shown game with the lightest pair (two people for 5 s, then bots
       to the result) and fails on any label below WCAG contrast. Screenshots
-      `snake-mint-orange.png`, `tanks-mint-orange.png`.
+      `snake-mint-orange.png`, `tanks-mint-orange.png`. It found four labels and they are
+      fixed: Chop Chop "them: N" sits on a dark pill in white, Sea Battle's header sub-line
+      ("Tap a square…", "Now pass the phone") is full white, and its "you"/"them" are drawn
+      at full seat colour (PR #82).
 
 ## Ideas found 2026-11-01 (pop outline run)
 - [ ] Extend the source check of `fx.pop` colours to every game against its own play
