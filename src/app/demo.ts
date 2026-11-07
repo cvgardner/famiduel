@@ -86,7 +86,21 @@ export type HowToSeat = {
   bot: boolean;
   lefty?: boolean;
   power?: { icon: string; name: string; desc: string } | null;
+  /** The power meter right now (0..1 full, seconds still active); left out = not shown. */
+  charge?: { value: number; active: number } | null;
 };
+
+/**
+ * Where a picked power is right now, in words a kid can act on: on, ready to
+ * tap, or how full its meter is. The meter fills from play, not from time, so
+ * it says how full, never "ready in 4 s".
+ */
+export function powerStatus(c: { value: number; active: number }): { cls: 'on' | 'ready' | 'charging'; text: string } {
+  if (c.active > 0) return { cls: 'on', text: '✨ On now!' };
+  if (c.value >= 1) return { cls: 'ready', text: '⚡ Ready! Tap your power button' };
+  const pct = Math.max(0, Math.min(99, Math.floor(c.value * 100)));
+  return { cls: 'charging', text: `Charging: ${pct}%` };
+}
 
 const escHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -96,13 +110,21 @@ const escHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)
  * does) gets the ghost finger, the how-to line and their picked power, facing
  * them. A bot's half just says it is waiting.
  */
+function chargeHtml(c: { value: number; active: number }): string {
+  const st = powerStatus(c);
+  const fill = st.cls === 'charging' ? Math.max(0, Math.min(1, c.value)) : 1;
+  return `<span class="charge ${st.cls}"><span class="charge-bar"><i style="width:${Math.round(fill * 100)}%"></i></span>${st.text}</span>`;
+}
+
 export function howToHalfHtml(seat: HowToSeat, game: { icon: string; name: string; howTo: string; gesture?: string }): string {
   const g = isGesture(game.gesture) ? game.gesture : null;
   const head = `<div class="intro-head"><div class="intro-title">${game.icon} ${game.name}</div>${g && !seat.bot ? demoHtml(g, !!seat.lefty) : ''}</div>`;
   const body = seat.bot
     ? `<p class="howto">🤖 Waiting for you</p>`
     : `<p class="howto">${game.howTo}</p>${
-        seat.power ? `<p class="my-power"><span class="picon">${seat.power.icon}</span> <b>Your power: ${seat.power.name}</b> ${seat.power.desc}</p>` : ''
+        seat.power ? `<p class="my-power"><span class="picon">${seat.power.icon}</span> <b>Your power: ${seat.power.name}</b> ${seat.power.desc}${
+            seat.charge ? chargeHtml(seat.charge) : ''
+          }</p>` : ''
       }`;
   return `<div class="half p${seat.p}${seat.bot ? ' bot' : ''}" style="--c:${seat.color}"><div class="half-inner">${head}${body}<div class="who">${escHtml(seat.name)}${seat.bot ? ' 🤖' : ''}</div></div></div>`;
 }

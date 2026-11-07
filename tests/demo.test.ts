@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import games from '../content/games.json';
-import { DEMO_MATCHES, demoHelpHtml, demoHtml, GESTURES, HelpMemory, howToHalfHtml, isGesture, showsDemo } from '../src/app/demo';
+import { DEMO_MATCHES, demoHelpHtml, demoHtml, GESTURES, HelpMemory, howToHalfHtml, isGesture, powerStatus, showsDemo } from '../src/app/demo';
 
 describe('ghost finger demo', () => {
   it('every game names a known gesture', () => {
@@ -92,11 +92,39 @@ describe('how to play, from the pause menu', () => {
     expect(html).not.toContain(tanks.howTo);
   });
 
+  it("shows how full the picked power's meter is, or that it is ready or on", () => {
+    const power = { icon: '⚡', name: 'Turbo', desc: 'Drive twice as fast for 3 s.' };
+    const at = (value: number, active = 0) => howToHalfHtml({ ...person, power, charge: { value, active } }, tanks);
+    expect(at(0.6)).toContain('Charging: 60%');
+    expect(at(0.6)).toContain('width:60%');
+    expect(at(0)).toContain('Charging: 0%');
+    expect(at(0.999)).toContain('Charging: 99%');
+    expect(at(1)).toContain('charge ready');
+    expect(at(1)).toContain('Ready! Tap your power button');
+    expect(at(0, 2)).toContain('On now!');
+    // No meter when the shell has none to show (classic mode, or no power picked).
+    expect(howToHalfHtml({ ...person, power }, tanks)).not.toContain('class="charge');
+    expect(powerStatus({ value: 0.25, active: 0 }).cls).toBe('charging');
+  });
+
   it('escapes the player name', () => {
     expect(howToHalfHtml({ ...person, name: '<b>Al' }, tanks)).toContain('&#60;b&#62;Al');
   });
 
   it('has a finger for every game', () => {
     for (const g of games.games) expect(howToHalfHtml(person, g), g.id).toContain('class="demo');
+  });
+});
+
+describe('energyOf (the meter the pause help reads)', () => {
+  it("finds a game's power meter through its view, and nothing for a game without one", async () => {
+    const { energyOf } = await import('../src/engine/game');
+    const { Energy } = await import('../src/core/energy');
+    const e = new Energy(0);
+    e.charge(0.4);
+    const withMeter = { update() {}, render() {}, game: { energy: [new Energy(0), e] } };
+    expect(energyOf(withMeter, 1)?.value).toBeCloseTo(0.4);
+    expect(energyOf({ update() {}, render() {}, game: {} }, 0)).toBeNull();
+    expect(energyOf({ update() {}, render() {} }, 0)).toBeNull();
   });
 });

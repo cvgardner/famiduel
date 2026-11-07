@@ -1,6 +1,7 @@
 // The contract every minigame implements. A game is a pure rules module
 // (logic.ts, testable in Node) plus a view (index.ts) that turns fingers and
 // bots into intents and draws the state.
+import type { Energy } from '../core/energy';
 import type { Rng } from '../core/rng';
 import type { GameResult, PlayerIndex, PlayerInfo } from '../core/types';
 import type { G } from './draw';
@@ -29,8 +30,16 @@ export interface GameInstance {
   /** Fixed step, dt = 1/60 s. */
   update(dt: number, input: Input): void;
   render(g: G): void;
+  /** The game's rules object (every view keeps one); see energyOf. */
+  readonly game?: object;
   /** Turn games: who went first this match (null before it is known), so the next one can swap. */
   firstMover?(): PlayerIndex | null;
+}
+
+/** A player's power meter in a running game, if its rules have one (`game.energy`). */
+export function energyOf(inst: GameInstance, p: PlayerIndex): Energy | null {
+  const e = (inst.game as { energy?: readonly Energy[] } | undefined)?.energy?.[p];
+  return e && typeof e.value === 'number' ? e : null;
 }
 
 export type GameDef = {

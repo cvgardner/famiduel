@@ -416,6 +416,7 @@ test('how to play: the pause menu shows each player the finger, the rules and th
           demo: !!h.querySelector('.demo'),
           howto: !!h.querySelector('.howto'),
           power: !!h.querySelector('.my-power'),
+          charge: h.querySelector('.my-power .charge')?.textContent ?? null,
           fits: ir.height <= hr.height + 1 && ir.top >= hr.top - 1 && ir.bottom <= hr.bottom + 1,
         };
       }),
@@ -425,6 +426,7 @@ test('how to play: the pause menu shows each player the finger, the rules and th
       if (!h.demo) problems.push(`${id} half ${i}: no ghost finger`);
       if (!h.howto) problems.push(`${id} half ${i}: no how-to line`);
       if (h.power !== hasPowers) problems.push(`${id} half ${i}: picked power ${h.power ? 'shown without powers' : 'missing'}`);
+      if (hasPowers && !/Charging: \d+%|Ready!|On now!/.test(h.charge ?? '')) problems.push(`${id} half ${i}: no power meter state (${h.charge})`);
       if (!h.fits) problems.push(`${id} half ${i}: how to play doesn't fit a 320x568 phone`);
     }
     if (!(await paused())) problems.push(`${id}: match ran while how to play was up`);

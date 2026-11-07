@@ -171,7 +171,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 
 ## Content
 - [ ] Mini pool (first update).
-- [ ] More minigolf holes (target 18). 10 so far.
+- [x] More minigolf holes (target 18): 22 holes now (checked 2026-11-07; this line said 10).
 - [x] 2026-11-01: two new Minigolf holes, so a 3-hole match repeats less often (8 → 10 holes,
       56 → 120 different courses). River Bridge (par 3): water across the middle with a
       bridge, and a bumper past it that blocks the straight shot. Sand Castle (par 4): a
@@ -374,8 +374,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       game on a 320×568 phone, checks both halves fit with finger, rules and power, that the
       match stays paused and Resume resumes (`pause-help.png`, `pause-help-bot.png`), and the
       44 px target check now covers that screen.
-- [ ] How to play mid-match could also show each power's charge state ("ready in 4 s") and
-      a short animation of the power, for kids who picked it without reading.
+- [x] 2026-11-07: How to play mid-match shows each player's power meter under their picked
+      power: "Charging: 60%" with a small bar, "⚡ Ready! Tap your power
+      button", or "✨ On now!". The meter fills from play, not time, so it never says "ready in
+      4 s". `powerStatus()` in app/demo.ts, `energyOf()` in engine/game.ts; the pause-help
+      playtest checks both halves show a state in every game with powers.
+- [ ] A short animation of each power in How to play, for kids who picked it without reading.
 - [x] 2026-11-01 (PR #69): Penalty's demo showed only the shooter's swipe. New `kick` gesture
       loops both roles: swipe the ball, then the keeper's tap on a dive button.
 
