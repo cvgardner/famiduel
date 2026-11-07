@@ -720,7 +720,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Snack Snatch's power buttons, and Quick Draw's two DRAW pads, if kids mix them up.
 - [x] Tank Duel's FIRE button could flash its band gold while a bouncy shell is loaded
       (the glow does this today, faintly on a light rim like Mint).
-      2026-11-07 (F46, PR #PRNUM): the band blinks gold twice a second while a bouncy shell is
+      2026-11-07 (F46, PR #107): the band blinks gold twice a second while a bouncy shell is
       loaded (gold a quarter second, then the owner's colour), `fireLook(..., bouncy, t)` in
       tanks/controls.ts. Playtest "tanks: a loaded bouncy shell blinks..." samples Mint's band
       and sees both, saving tanks-bouncy-band.png.
