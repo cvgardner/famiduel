@@ -6,7 +6,7 @@
 // - Against a bot (it never peeks): each player taps one of three buttons in
 //   their own half at the same time.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, noGlow, rrect, seatEdges, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, nameLabel, noGlow, rrect, seatEdges, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { drawCover, lookAwayBanner, SecretTurns, toWorld } from '../../engine/secret';
@@ -245,7 +245,7 @@ class RpsView implements GameInstance {
       gx.fillRect(0, 0, W, H);
       lookAwayBanner(gx, them, s.kind === 'secret' ? 'eyes closed!' : 'not yet!');
       if (s.kind === 'secret') {
-        text(gx, `${me.name}, pick in secret`, W / 2, 230, { size: 24, color: me.color, stroke: 'rgba(0,0,0,0.35)' });
+        nameLabel(gx, `${me.name}, pick in secret`, W / 2, 230, me.color, { size: 24 });
         if (this.secret.moved[o]) text(gx, `${them.name} has picked ✓ Then you both reveal`, W / 2, 266, { size: 14, color: COLORS.good, weight: 700 });
         else text(gx, `${them.name} picks next, then you both reveal`, W / 2, 266, { size: 14, color: COLORS.dim, weight: 700 });
         CHOICES.forEach((c, i) => {
@@ -301,7 +301,7 @@ class RpsView implements GameInstance {
     }
     // Name and round wins
     const ny = H - 204;
-    text(gx, `${this.ctx.players[p].name}${this.bots[p] ? ' 🤖' : ''}`, W / 2, ny, { size: 18, color: c });
+    nameLabel(gx, `${this.ctx.players[p].name}${this.bots[p] ? ' 🤖' : ''}`, W / 2, ny, c, { size: 18 });
     for (let i = 0; i < RULES.winRounds; i++) {
       const x = W / 2 + (i - 1) * 38;
       const on = i < g.score[p];

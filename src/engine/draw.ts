@@ -83,12 +83,40 @@ export const smallText = new Map<string, number>();
  * a label that is always faint shows up as faint. `rest` says the label was seen
  * fully faded in at least once; until then only mid-fade samples exist (a hole
  * card cut short by a pause), and the first at-rest sample replaces them.
+ * A label held at the same opacity below 1 for STEADY_MS also counts as at rest: a hint
+ * drawn at a steady 50% is how it always looks, not a fade (`steady` tracks that).
  */
 export const contrastProbe = {
   on: false,
   seen: new Map<string, { best: number; need: number; size: number; rest: boolean }>(),
   last: new Map<string, number>(),
+  steady: new Map<string, { a: number; since: number; at: number }>(),
 };
+
+/** How long a label's opacity must hold still to be judged as it is (ms). */
+export const STEADY_MS = 1000;
+/** Below this opacity a label never counts as steady (it is on its way in or out). */
+export const STEADY_MIN = 0.3;
+
+/**
+ * Whether a label drawn at opacity `a` at time `now` is at rest, given when it was last
+ * seen at a different opacity (updates `track`). Fades change opacity every sample, so
+ * they never hold for STEADY_MS; a label that disappears and comes back starts again.
+ */
+export function atRest(track: Map<string, { a: number; since: number; at: number }>, str: string, a: number, now: number): boolean {
+  if (a >= 0.99) return true;
+  // Nearly see-through words are a fade's first or last frames (or a card held at its
+  // start while a game waits), not a label anyone is meant to read.
+  if (a < STEADY_MIN) return false;
+  const prev = track.get(str);
+  // Samples come every ~200 ms while a label is drawn; a longer gap means it went away.
+  if (!prev || Math.abs(prev.a - a) > 0.01 || now - prev.at > 600) {
+    track.set(str, { a, since: now, at: now });
+    return false;
+  }
+  prev.at = now;
+  return now - prev.since >= STEADY_MS;
+}
 
 function probeContrast(g: G, str: string, x: number, y: number, o: TextOpts): void {
   const now = performance.now();
@@ -121,7 +149,7 @@ function probeContrast(g: G, str: string, x: number, y: number, o: TextOpts): vo
   // The opacity the words are really drawn at: the caller's fade times the label's own.
   const a = g.globalAlpha;
   const ratio = labelContrast(fill, bg, a, o.stroke ? parseColor(o.stroke) : null);
-  const rest = a >= 0.99;
+  const rest = atRest(contrastProbe.steady, str, a, now);
   if (keepSample(contrastProbe.seen.get(str), ratio, rest))
     contrastProbe.seen.set(str, { best: ratio, need: contrastNeeded(size, o.weight ?? 800), size, rest });
 }
@@ -196,6 +224,18 @@ function probeEdge(g: G, str: string, x: number, player: 0 | 1): void {
   const [l, r] = textSpan(x, g.measureText(str).width, g.textAlign, player);
   const over = Math.max(-l, r - W);
   if (over > 1) edgeProbe.over.set(str, Math.max(over, edgeProbe.over.get(str) ?? 0));
+}
+
+/** The dark outline behind a name drawn in its player's colour (same as a pop's). */
+export const NAME_OUTLINE = 'rgba(0,0,0,0.75)';
+
+/**
+ * A player's name in their own colour, on whatever tinted panel or floor the game has.
+ * Every game draws names through this so they look alike and read on light panels too:
+ * bold, with a dark outline (Four in a Row's pink "Bot 2" on its pink glow was 3.4:1).
+ */
+export function nameLabel(g: G, name: string, x: number, y: number, color: string, o: TextOpts = {}): void {
+  text(g, name, x, y, { weight: 800, ...o, color, stroke: NAME_OUTLINE });
 }
 
 export function circle(g: G, x: number, y: number, r: number, fill?: string, stroke?: string, lineWidth = 2): void {

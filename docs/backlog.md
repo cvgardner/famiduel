@@ -314,8 +314,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       pins the size and the stray-tap behaviour (seabattle-small-aim.png). Bigger cells (30
       units, ~27 px) would need the fleet line, the small grid and the Ready button moved
       down; not worth it while the two-tap aim makes mis-taps free.
-- [ ] Ages 4-6 guidance asks for 56-64 px primary buttons; consider a "little hands" setting
+- [x] Ages 4-6 guidance asks for 56-64 px primary buttons; consider a "little hands" setting
       that enlarges Ready / power cards (needs a taller intro layout).
+      2026-11-07 (F80): Settings > Look > "Little hands" (`settings.bigButtons`, <html
+      data-bighands>): the intro's Ready button, power cards and bot level buttons are at least
+      60 px tall (Ready was 48). No taller layout needed: playtest "little hands: ..." opens
+      every shown game at 320x568, 360x640 and 390x844, with and without Bigger text, two
+      people and vs a bot, a power picked in each half, and fails on a button under 56 px or
+      an intro out of its half (bighands-sumo-*.png). In-game buttons are not changed yet.
 - [x] 2026-10-31 (research run): pause sits on the centre line where both players' hands
       rest, and one tap stopped the match for both. Guidance for small hands (Smashing
       Magazine's "A Dad's Plea to Developers of iPad Apps for Children", uxdesign.cc "Design
@@ -928,8 +934,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       contrast probe caught "Bot 2" in pink at 3.4:1 on the pink glow of the active panel.
 
 ## Ideas found 2026-11-01 (bot name run)
-- [ ] Other games print the name in the player's colour on a tinted panel; Sumo and Sea
+- [x] Other games print the name in the player's colour on a tinted panel; Sumo and Sea
       Battle already have an outline, but a shared `nameLabel()` would keep them alike.
+      2026-11-07 (F75): `nameLabel()` in engine/draw.ts (bold, the pop's 75% black outline).
+      Sumo, Sea Battle's cover and Rock Paper Scissors (secret pick line, name under the
+      hand) draw names through it; Sea Battle's and RPS's outlines were 35-40% black. A text
+      test fails on a player name drawn with a hand-rolled outline, and the small-text test
+      also reads nameLabel sizes. Minigolf's names sit on dark cards via liftOn (unchanged);
+      the hidden board games are left as they are.
 - [x] Bot names with character: each bot level could have a friendly name and face (e.g. a
       sleepy robot for Easy) so a kid knows which one they are beating, without new words.
       2026-11-07 (F73, PR #134): faces, no new names: Easy 😴, Normal 🤔, Hard 😎
@@ -949,10 +961,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       white on #14112b, about 7:1), but a probe over all menu text would catch a regression.
 
 ## Ideas found 2026-11-01 (Chop Chop hints run)
-- [ ] The contrast probe keeps a label's best at-rest sample and treats any alpha below 0.99
+- [x] The contrast probe keeps a label's best at-rest sample and treats any alpha below 0.99
       as a fade, so a label drawn at a steady low opacity during play is never judged. A
       "steady" rule (same alpha for ~1 s counts as at rest) would catch the next one; check
       it doesn't flag real fades (Ping Pong tips, Snack Snatch banners) first.
+      2026-11-07 (F81): `atRest()` in engine/draw.ts: a label held at the same opacity
+      (within 0.01) for 1 s counts as at rest and is judged; opacity under 0.3 never does
+      (a fade's ends, or a card held at its start: Minigolf's hole card and "tees off first"
+      read 1.0:1 that way on the first try). Every "play like a person" game and the Mint
+      vs Orange pass still pass with it, so no steady faint label exists today. Unit tests.
 
 ## 2026-11-01 Air Hockey bot motion (Chris: "super spazzy")
 - [x] Measured first (`src/core/motion.ts`): every level flipped direction ~9×/s and
