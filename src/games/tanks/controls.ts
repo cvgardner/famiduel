@@ -28,6 +28,18 @@ export const FIRE_RIM = 5;
  * sits in a band of its owner's colour behind a thin dark gap, so two kids sitting
  * close can tell whose button is whose even when a player's colour is close to red.
  */
-export function fireLook(playerColor: string, ready: boolean): { rim: string; gap: string; fill: string; rimR: number } {
-  return { rim: playerColor, gap: '#14112b', fill: ready ? '#ff5c5c' : '#8a5560', rimR: FIRE_R + FIRE_RIM };
+export function fireLook(playerColor: string, ready: boolean, bouncy = false, t = 0): { rim: string; gap: string; fill: string; rimR: number } {
+  return { rim: bouncy && bouncyBlink(t) ? BOUNCY_RIM : playerColor, gap: '#14112b', fill: ready ? '#ff5c5c' : '#8a5560', rimR: FIRE_R + FIRE_RIM };
+}
+
+/** Gold, the colour of a bouncy shell (COLORS.gold). */
+export const BOUNCY_RIM = '#ffd54a';
+
+/**
+ * While a bouncy shell is loaded the band blinks gold twice a second (gold for a quarter
+ * second, then the owner's colour), so "my next shot bounces" is plain on any colour (the
+ * gold glow alone was faint on Mint), and the band still shows whose button it is half the time.
+ */
+export function bouncyBlink(t: number): boolean {
+  return (((t * 2) % 1) + 1) % 1 < 0.5;
 }
