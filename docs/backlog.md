@@ -1147,3 +1147,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (`reducedMotion()` in engine/calm.ts, checked in `Fx.shake`), and the ghost finger was
       already still in CSS. Playtest "reduced motion: ..." checks the picture is paused and
       looks the same 0.7 s later (reduced-motion-intro.png); unit test for the shake.
+- [x] 2026-11-07 (F82): Reduce motion also softens full-screen flashes (goals, hits): with
+      the phone's setting on, `Fx.flash` draws at a quarter of its brightness, so it still
+      says something happened without a strobe. Unit test in tests/calm.test.ts.
