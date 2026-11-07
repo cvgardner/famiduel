@@ -1092,3 +1092,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seats in Penalty, Snack Snatch and Air Hockey.
 - [x] Quick Draw's two DRAW pads: no band needed, each SQUIRT! button is already filled with
       its owner's colour (quickdraw/index.ts drawButton).
+- [x] 2026-11-07 (F71): home's "Play together / Play the bot" switch wraps its labels onto two
+      lines when they don't fit (Bigger text at 320 px pushed "Play the bot" past the pill).
+      The layout playtest fails on a mode label past its button or the pill.
