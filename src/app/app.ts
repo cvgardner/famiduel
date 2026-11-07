@@ -1,5 +1,7 @@
 // The app shell: home screen with the game grid and family scoreboard, player
 // cards, the split-screen "pick your power" intro, the match and the results.
+import { gateOpens, gateQuestion } from './gate';
+import { makeRng } from '../core/rng';
 import { BIG_TEXT, setTextScale } from '../engine/draw';
 import gamesJson from '../../content/games.json';
 import powersJson from '../../content/powers.json';
@@ -196,7 +198,12 @@ export class App {
               .map((v) => `<button data-v="${v}" class="${theme === v ? 'on' : ''}" aria-pressed="${theme === v}">${v === 'auto' ? 'Auto' : v === 'light' ? '☀️' : '🌙'}</button>`)
               .join('')}</div>
           </div>` + this.toggle('bigText', '🔠', 'Bigger text', 'Larger words in games and menus', !!settings.bigText), 'Auto follows your phone\'s light or dark mode.')}
+      ${group('For grown-ups', `<button class="set-row set-link" id="grownUps"><span class="set-ico" aria-hidden="true">👪</span><span class="set-txt"><b>Grown-ups corner</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
       <footer class="foot">FamiDuel prototype · no ads, no accounts · everything stays on this device</footer>`;
+    $('#grownUps').addEventListener('click', () => {
+      this.sfx.play('tap');
+      this.showGate(() => this.showGrownUps());
+    });
     $('#settingsBack').addEventListener('click', () => {
       this.sfx.play('tap');
       this.showHome();
@@ -220,6 +227,75 @@ export class App {
         this.store.save();
       });
     }
+  }
+
+  /**
+   * Parental gate (gate.ts): a times-table question written in words. The right answer runs
+   * `open`; a wrong one asks a new question. Cancel closes it.
+   */
+  private showGate(open: () => void): void {
+    const modal = $('#modal');
+    const rng = makeRng(Date.now());
+    let q = gateQuestion(rng);
+    modal.classList.remove('hidden', 'help');
+    modal.innerHTML = `<div class="sheet gate">
+      <h2>For grown-ups</h2>
+      <p class="gate-q" id="gateQ">${q.text}</p>
+      <input id="gateIn" class="gate-in" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-labelledby="gateQ"/>
+      <p class="gate-msg" id="gateMsg" aria-live="polite">Type the answer to go on.</p>
+      <div class="gate-btns"><button id="gateCancel" class="btn">Cancel</button><button id="gateOk" class="btn primary">Go on</button></div>
+    </div>`;
+    const input = $<HTMLInputElement>('#gateIn', modal);
+    const close = () => {
+      modal.classList.add('hidden');
+      modal.innerHTML = '';
+    };
+    const tryOpen = () => {
+      if (gateOpens(q, input.value)) {
+        close();
+        open();
+        return;
+      }
+      q = gateQuestion(rng, q);
+      $('#gateQ', modal).textContent = q.text;
+      $('#gateMsg', modal).textContent = 'Not quite. Here is another one.';
+      input.value = '';
+      this.sfx.play('tap');
+    };
+    $('#gateOk', modal).addEventListener('click', tryOpen);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') tryOpen();
+    });
+    $('#gateCancel', modal).addEventListener('click', close);
+  }
+
+  /** Tips for parents, behind the gate: OS-level ways to keep a small kid in the app. */
+  private showGrownUps(): void {
+    const modal = $('#modal');
+    modal.classList.remove('hidden', 'help');
+    modal.innerHTML = `<div class="sheet grownups">
+      <h2>Keep a little one in the game</h2>
+      <p class="gu-lead">Your phone can lock itself to FamiDuel, so a small kid can't swipe out to other apps while you play.</p>
+      <h3>iPhone and iPad: Guided Access</h3>
+      <ol>
+        <li>Open Settings › Accessibility › Guided Access and turn it on (set a passcode).</li>
+        <li>Back in FamiDuel, triple-click the side button (or the Home button) and tap Start.</li>
+        <li>To leave, triple-click again and type your passcode.</li>
+      </ol>
+      <h3>Android: App pinning</h3>
+      <ol>
+        <li>Open Settings › Security (on some phones Security &amp; privacy › More security settings) and turn on App pinning.</li>
+        <li>Open the recent apps, tap FamiDuel's icon at the top of its window and tap Pin.</li>
+        <li>To unpin, swipe up and hold, or hold Back and Overview together.</li>
+      </ol>
+      <p class="gu-note">Names on the menus differ a little between phones. FamiDuel never sees or changes these settings.</p>
+      <button id="guDone" class="btn primary">Done</button>
+    </div>`;
+    $('#guDone', modal).addEventListener('click', () => {
+      this.sfx.play('tap');
+      modal.classList.add('hidden');
+      modal.innerHTML = '';
+    });
   }
 
   // ---------- Tournament: best of 7 across different games ----------

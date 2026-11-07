@@ -2509,3 +2509,45 @@ test.afterAll(() => {
     .err{color:#ff7b8f}.warn{color:#ffd54a}</style><h1>FamiDuel playtest · ${new Date().toISOString()}</h1>${cards}`,
   );
 });
+
+// Grown-ups corner (Settings): behind a parental gate (a times-table question in words), a
+// tip on Guided Access / App pinning. A wrong answer keeps it shut and asks a new question.
+test('grown-ups corner: a parental gate in words, then the keep-them-in-the-app tip', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await page.click('#settingsBtn');
+  await page.locator('#grownUps').scrollIntoViewIfNeeded();
+  await page.locator('#grownUps').tap();
+  const q = page.locator('#gateQ');
+  await expect(q).toBeVisible();
+  const first = (await q.textContent())!;
+  expect(first, 'the question has no digits to copy').not.toMatch(/\d/);
+  await page.screenshot({ path: path.join(OUT, 'grownups-gate-320.png') });
+  const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+  const answer = (t: string) => {
+    const m = /What is (\w+) times (\w+)\?/.exec(t)!;
+    return WORDS.indexOf(m[1]) * WORDS.indexOf(m[2]);
+  };
+  await page.fill('#gateIn', String(answer(first) + 1));
+  await page.locator('#gateOk').tap();
+  await expect(page.locator('#gateMsg')).toHaveText(/Not quite/);
+  await expect(q).not.toHaveText(first);
+  await expect(page.locator('.grownups')).toHaveCount(0);
+  await page.fill('#gateIn', String(answer((await q.textContent())!)));
+  await page.locator('#gateOk').tap();
+  await expect(page.locator('.grownups')).toBeVisible();
+  await expect(page.locator('.grownups')).toContainText('Guided Access');
+  await expect(page.locator('.grownups')).toContainText('App pinning');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), 'tips fit a small phone').toBe(false);
+  await page.screenshot({ path: path.join(OUT, 'grownups-tips-320.png') });
+  await page.locator('#guDone').scrollIntoViewIfNeeded();
+  await page.locator('#guDone').tap();
+  await expect(page.locator('#modal')).toBeHidden();
+  // Cancel closes the gate without opening anything.
+  await page.locator('#grownUps').tap();
+  await page.locator('#gateCancel').tap();
+  await expect(page.locator('#modal')).toBeHidden();
+  await page.click('#settingsBack');
+  expect(errors).toEqual([]);
+});
