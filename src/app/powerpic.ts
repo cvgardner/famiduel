@@ -2,8 +2,8 @@
 // without reading its line. Drawn in code (inline SVG with SMIL animations, no
 // assets), ~2 s a loop. "You" are drawn in the seat colour (`--c` on the half),
 // the other player in grey. Shown on the mid-match "How to play" screen beside
-// the picked power. Started with the three free games; other games show none
-// until they get pictures (see docs/backlog.md).
+// the picked power and on the intro once a power is picked. Every shown game's
+// powers have one; a new power needs one too (tests/powerpic.test.ts).
 
 const DUR = '2s';
 const YOU = 'var(--c, #ffd166)';
@@ -35,6 +35,24 @@ const pong = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1b6b5a"/><r
 const pitch = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2f8f46"/><rect x="14" y="2" width="36" height="9" fill="none" stroke="#fff" stroke-width="1.5"/>`;
 // Snack Snatch: a mat with your critter's mouth at the bottom.
 const mat = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#3a2c5c"/>`;
+
+// Tanks: a dark arena.
+const arena = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2c3b2e" stroke="#7f8f7a" stroke-width="2"/>`;
+// Snake: a dark board.
+const board = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#14202c"/>`;
+// Chop Chop: sky with two trees, theirs on the left, yours on the right.
+const woods = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#9fd3f0"/><rect x="1" y="36" width="62" height="7" rx="3" fill="#5aa04a"/>`;
+// Quick Draw: sand with the signal in the middle.
+const sand = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#e8b878"/><line x1="4" y1="22" x2="60" y2="22" stroke="#b07a40" stroke-width="1" stroke-dasharray="4 3"/>`;
+// Sea Battle: a strip of sea cells.
+const sea = (x0: number, n: number, rows: number) =>
+  Array.from({ length: n * rows }, (_, i) => `<rect x="${x0 + (i % n) * 9}" y="${8 + Math.floor(i / n) * 9}" width="8" height="8" rx="1.5" fill="#1d4f7a"/>`).join('');
+const seaBg = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#0f2c48"/>`;
+const line = (x1: number, y1: number, x2: number, y2: number, stroke: string, w: number, kids = '', extra = '') =>
+  `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${stroke.startsWith('var(') ? `style="stroke:${stroke}"` : `stroke="${stroke}"`} stroke-width="${w}" stroke-linecap="round"${extra}>${kids}</line>`;
+const tank = (x: number, y: number, fill: string, kids = '') => rect(x - 5, y - 4, 10, 8, fill, kids);
+// A trunk with a kid (a dot in the seat colour) beside it.
+const tree = (x: number, fill: string) => `<rect x="${x - 4}" y="6" width="8" height="31" fill="${fill}"/>`;
 
 const PICS: Record<string, Record<string, string>> = {
   minigolf: {
@@ -134,6 +152,118 @@ const PICS: Record<string, Record<string, string>> = {
       circle(32, 6, 3, '#ffb347', anim('opacity', [1, 1, 0, 0, 1], [0, 0.55, 0.6, 0.9, 1])) +
       `<line x1="32" y1="34" x2="32" y2="34" stroke="#ff7eb3" stroke-width="4" stroke-linecap="round">${anim('y2', [34, 34, 22, 22, 34, 34, 7, 34, 34], [0, 0.1, 0.2, 0.25, 0.32, 0.4, 0.55, 0.7, 1])}</line>` +
       rect(22, 34, 20, 8, YOU),
+  },
+  tanks: {
+    // Your shells glow and bounce off the walls.
+    bouncy:
+      arena +
+      tank(12, 34, YOU) +
+      tank(50, 10, THEM) +
+      circle(16, 31, 2.5, '#ffd166', anim('cx', [16, 16, 60, 40, 22, 22], [0, 0.1, 0.4, 0.6, 0.85, 1]) + anim('cy', [31, 31, 18, 3, 18, 18], [0, 0.1, 0.4, 0.6, 0.85, 1]) + anim('opacity', [1, 1, 1, 1, 0, 0], [0, 0.1, 0.6, 0.85, 0.9, 1]), ' stroke="#fff" stroke-width="1"'),
+    // A bubble round you blocks the other tank's shell.
+    shield:
+      arena +
+      tank(50, 10, THEM) +
+      tank(14, 32, YOU) +
+      `<circle cx="14" cy="32" r="10" fill="#8fdcff" fill-opacity="0.25" stroke="#8fdcff" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.15, 0.25, 0.9, 1])}</circle>` +
+      circle(45, 13, 2, '#fff', anim('cx', [45, 45, 23, 23], [0, 0.3, 0.65, 1]) + anim('cy', [13, 13, 26, 26], [0, 0.3, 0.65, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.3, 0.65, 0.7, 1])),
+    // Drop a blinking mine; it goes off under the other tank.
+    mine:
+      arena +
+      circle(30, 30, 3, '#ff5c7a', anim('opacity', [0, 0, 1, 0.3, 1, 0.3, 1, 0, 0], [0, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.66, 1])) +
+      `<circle cx="30" cy="30" r="3" fill="none" stroke="#ffd166" stroke-width="2">${anim('r', [3, 3, 14, 14], [0, 0.62, 0.8, 1])}${anim('opacity', [0, 0, 1, 0, 0], [0, 0.62, 0.64, 0.8, 1])}</circle>` +
+      tank(30, 30, YOU, anim('x', [25, 25, 7, 7], [0, 0.1, 0.35, 1])) +
+      tank(54, 30, THEM, anim('x', [49, 49, 25, 25, 49], [0, 0.35, 0.62, 0.95, 1])),
+  },
+  snake: {
+    // Your snake zooms faster.
+    boost:
+      board +
+      line(6, 30, 6, 30, YOU, 4, anim('x1', [6, 6, 12, 36, 36], [0, 0.05, 0.45, 0.75, 1]) + anim('x2', [14, 14, 26, 58, 58], [0, 0.05, 0.45, 0.75, 1]) + anim('opacity', [1, 1, 1, 1, 0], [0, 0.45, 0.75, 0.85, 1])) +
+      [24, 30, 36].map((y) => line(10, y, 18, y, '#ffd166', 1.5, anim('opacity', [0, 0, 0.9, 0, 0], [0, 0.45, 0.55, 0.75, 1]))).join('') +
+      line(4, 12, 40, 12, THEM, 4),
+    // Pass through one trail.
+    phase:
+      board +
+      line(32, 4, 32, 40, THEM, 4) +
+      line(8, 22, 8, 22, YOU, 4, anim('x1', [8, 8, 30, 30], [0, 0.05, 0.85, 1]) + anim('x2', [16, 16, 56, 56], [0, 0.05, 0.85, 1]) + anim('opacity', [1, 1, 0.4, 0.4, 1, 1, 0], [0, 0.3, 0.38, 0.55, 0.62, 0.85, 1])),
+    // Blow a gap in the trails round your head.
+    bomb:
+      board +
+      line(36, 4, 36, 15, THEM, 4) +
+      line(36, 29, 36, 40, THEM, 4) +
+      line(36, 15, 36, 29, THEM, 4, anim('opacity', [1, 1, 0, 0, 1], [0, 0.35, 0.4, 0.9, 1])) +
+      line(6, 22, 28, 22, YOU, 4) +
+      `<circle cx="30" cy="22" r="3" fill="none" stroke="#ffd166" stroke-width="2.5">${anim('r', [3, 3, 14, 14], [0, 0.3, 0.5, 1])}${anim('opacity', [0, 0, 1, 0, 0], [0, 0.3, 0.32, 0.5, 1])}</circle>`,
+  },
+  chopchop: {
+    // A falling branch breaks on you instead of bonking you: mash away.
+    shield:
+      woods +
+      tree(32, '#8b5a2b') +
+      `<circle cx="44" cy="31" r="8" fill="#ffd166" fill-opacity="0.2" stroke="#ffd166" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.1, 0.2, 0.9, 1])}</circle>` +
+      rect(36, 10, 14, 3, '#5a3a1a', anim('y', [4, 4, 22, 22, 4], [0, 0.25, 0.5, 0.55, 1]) + anim('opacity', [0, 1, 1, 0, 0], [0, 0.25, 0.5, 0.56, 1])) +
+      [-1, 1].map((d) => rect(41, 22, 5, 3, '#5a3a1a', anim('x', [41, 41, 41 + d * 12, 41 + d * 12], [0, 0.5, 0.7, 1]) + anim('y', [22, 22, 30, 30], [0, 0.5, 0.7, 1]) + anim('opacity', [0, 0, 1, 0, 0], [0, 0.5, 0.52, 0.75, 1]))).join('') +
+      circle(44, 31, 4, YOU),
+    // The other tree freezes: no chopping for a moment.
+    freeze:
+      woods +
+      `<rect x="14" y="6" width="8" height="31" fill="#8b5a2b">${anim('fill', ['#8b5a2b', '#8b5a2b', '#8fdcff', '#8fdcff', '#8b5a2b'], [0, 0.2, 0.25, 0.85, 1])}</rect>` +
+      tree(46, '#8b5a2b') +
+      circle(10, 31, 4, THEM) +
+      circle(40, 31, 4, YOU, anim('cx', [40, 41, 40, 41, 40, 41, 40], [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1])),
+    // Your next chops count twice.
+    double:
+      woods +
+      tree(32, '#8b5a2b') +
+      // Each chop knocks out two logs.
+      [0, 0.45].flatMap((t0) => [28, 18].map((y) => `<rect x="28" y="${y}" width="8" height="8" fill="#ffd166" stroke="#8b5a2b" stroke-width="1">${anim('x', [28, 28, 4, 4], [0, t0 + 0.05, t0 + 0.3, 1])}${anim('opacity', [0, 0, 1, 1, 0, 0], [0, t0 + 0.05, t0 + 0.07, t0 + 0.22, t0 + 0.3, 1])}</rect>`)).join('') +
+      circle(44, 31, 4, YOU, anim('cx', [44, 44, 40, 44, 44, 40, 44, 44], [0, 0.03, 0.06, 0.1, 0.48, 0.51, 0.55, 1])),
+  },
+  quickdraw: {
+    // A fake signal that only you know is fake: the other player jumps the gun.
+    fakeout:
+      sand +
+      `<circle cx="32" cy="22" r="7" fill="#ff5c7a" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 2">${anim('opacity', [0, 0, 1, 1, 0, 0], [0, 0.2, 0.25, 0.6, 0.65, 1])}</circle>` +
+      circle(32, 7, 5, THEM, anim('r', [5, 5, 4, 5, 5], [0, 0.35, 0.4, 0.45, 1]) + anim('fill', [THEM, THEM, '#ff5c7a', '#ff5c7a', THEM], [0, 0.39, 0.4, 0.8, 1])) +
+      circle(32, 37, 5, YOU),
+    // Your side glows "get ready" just before the signal.
+    slowtime:
+      sand +
+      `<rect x="2" y="23" width="60" height="19" rx="6" fill="#ffd166">${anim('opacity', [0, 0, 0.45, 0.15, 0.45, 0, 0], [0, 0.2, 0.3, 0.4, 0.5, 0.56, 1])}</rect>` +
+      `<circle cx="32" cy="22" r="7" fill="#5eead4" stroke="#fff" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.55, 0.57, 0.9, 1])}</circle>` +
+      circle(32, 7, 5, THEM) +
+      circle(32, 37, 5, YOU, anim('r', [5, 5, 4, 5, 5], [0, 0.58, 0.61, 0.65, 1])),
+    // One early tap is forgiven.
+    double:
+      sand +
+      `<circle cx="32" cy="37" r="9" fill="none" stroke="#ffd166" stroke-width="1.5">${anim('opacity', [1, 1, 0, 0, 1], [0, 0.25, 0.3, 0.9, 1])}</circle>` +
+      `<circle cx="32" cy="22" r="7" fill="#5eead4" stroke="#fff" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.55, 0.57, 0.9, 1])}</circle>` +
+      circle(32, 7, 5, THEM) +
+      circle(32, 37, 5, YOU, anim('r', [5, 5, 4, 5, 5, 4, 5, 5], [0, 0.2, 0.23, 0.27, 0.6, 0.63, 0.67, 1])),
+  },
+  seabattle: {
+    // Scan a 3x3 patch: a hidden ship shows up.
+    radar:
+      seaBg +
+      sea(5, 6, 3) +
+      `<rect x="13" y="7" width="28" height="28" rx="3" style="fill:${YOU};stroke:${YOU}" fill-opacity="0.2" stroke-width="1.5">${anim('x', [3, 3, 13, 22, 22], [0, 0.1, 0.4, 0.6, 1])}${anim('opacity', [0, 1, 1, 1, 0], [0, 0.1, 0.6, 0.9, 1])}</rect>` +
+      `<rect x="32" y="17" width="8" height="8" rx="1.5" fill="#b8b4cc">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.6, 0.65, 0.9, 1])}</rect>`,
+    // Hit 5 cells of a row at once.
+    airstrike:
+      seaBg +
+      sea(5, 6, 3) +
+      [0, 1, 2, 3, 4].map((i) => `<rect x="${5 + i * 9}" y="17" width="8" height="8" rx="1.5" fill="#ff5c7a">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.25 + i * 0.08, 0.27 + i * 0.08, 0.9, 1])}</rect>`).join('') +
+      rect(0, 18, 8, 6, YOU, anim('x', [-8, -8, 60, 60], [0, 0.2, 0.7, 1])),
+    // A hidden mine in your sea: whoever fires on it gets one of their own ships hit.
+    mine:
+      seaBg +
+      sea(4, 3, 3) +
+      sea(36, 3, 3) +
+      `<rect x="2" y="5" width="30" height="32" rx="4" fill="none" style="stroke:${YOU}" stroke-width="1.5"/>` +
+      circle(17, 21, 2.5, '#ffd166') +
+      `<circle cx="17" cy="21" r="3" fill="none" stroke="#ff5c7a" stroke-width="2">${anim('r', [3, 3, 12, 12], [0, 0.3, 0.5, 1])}${anim('opacity', [0, 0, 1, 0, 0], [0, 0.3, 0.32, 0.5, 1])}</circle>` +
+      `<rect x="45" y="17" width="8" height="8" rx="1.5" fill="#ff5c7a">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.55, 0.6, 0.9, 1])}</rect>`,
   },
   sumo: {
     // Stomp: a shockwave shoves the other wrestler away.
