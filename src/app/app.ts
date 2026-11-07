@@ -14,6 +14,7 @@ import { energyOf } from '../engine/game';
 import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
+import { powerPicHtml } from './powerpic';
 import { demoHelpHtml, demoHtml, firstMatchOf, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
 import { Runner } from './runner';
@@ -474,7 +475,7 @@ export class App {
           <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${!gesture ? '' : firstMatches || again ? demoHtml(gesture, !!pr.lefty && !bot) : bot ? '' : demoHelpHtml(p)}</div>
           <p class="howto">${meta.howTo}</p>
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
-          ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span><b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>${bot ? '' : '<p class="pick-desc"></p>'}` : ''}
+          ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span>${powerPicHtml(id, pw.id)}<b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>${bot ? '' : '<p class="pick-desc"></p>'}` : ''}
           ${bot ? botRow(p, bot) : `<button class="btn ready" id="ready${p}" data-p="${p}">${powers.length ? 'Pick a power' : 'Ready!'}</button>`}
           <div class="who">${esc(seatName(this.store.data.profiles, p))}${bot ? ` 🤖<span class="botface" data-p="${p}">${botFace(bot)}</span>` : 'seatRing' in meta && meta.seatRing ? seatCueHtml(p) : ''}</div>
         </div>
@@ -516,7 +517,12 @@ export class App {
         const half = card.closest('.half');
         half?.classList.add('picked');
         const desc = half?.querySelector<HTMLElement>('.pick-desc');
-        if (desc && this.picks[p]) desc.textContent = `${this.picks[p]!.icon} ${this.picks[p]!.name}: ${this.picks[p]!.desc}`;
+        if (desc && this.picks[p]) {
+          // Shown where the cards have no room for words (short phones, Bigger text), with
+          // the power's looping picture when it has one.
+          const pw = this.picks[p]!;
+          desc.innerHTML = `${powerPicHtml(id, pw.id)}<span class="pick-words">${esc(`${pw.icon} ${pw.name}: ${pw.desc}`)}</span>`;
+        }
         this.sfx.play('tap');
         refresh();
       });
