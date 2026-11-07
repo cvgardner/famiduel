@@ -989,7 +989,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Other words drawn in a player colour on a see-through card (search `players[..].color`
       next to an rgba card) could get the same `liftOn` check.
 
-- [x] 2026-11-07 (F50): other words in a seat colour on a see-through layer, checked by hand
+- [x] 2026-11-07 (F50, PR #111): other words in a seat colour on a see-through layer, checked by hand
       with labelContrast for every seat colour: only Ping Pong's "SERVE" hint (14 px, black
       0.75 outline on the green table) was short, Purple at 4.0:1; it now goes through
       `liftOn(colour, SERVE_OUTLINE, TABLE_GREEN)`, tested. Sumo's corner names, Snake and
