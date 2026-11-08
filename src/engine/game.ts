@@ -36,6 +36,11 @@ export interface GameInstance {
   readonly game?: object;
   /** Turn games: who went first this match (null before it is known), so the next one can swap. */
   firstMover?(): PlayerIndex | null;
+  /**
+   * True when the match opens on a pass-the-phone cover ("Player 2, look away!"). The cover is
+   * its own "ready" step, so the runner skips the "3 2 1" (a turn game needs no GO).
+   */
+  opensOnCover?(): boolean;
 }
 
 /** A player's power meter in a running game, if its rules have one (`game.energy`). */
