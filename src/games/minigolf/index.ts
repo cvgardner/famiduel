@@ -51,6 +51,10 @@ class MinigolfView implements GameInstance {
   ];
   private trail: { x: number; y: number }[] = [];
   private bannerT = 0;
+  /** F173: time left on the last centre pop ("HOLE IN ONE!", "Splash! +1 stroke"); the next
+   * turn's banner waits for it, or "YOUR SHOT!" printed over the rising pop. */
+  private centrePop = 0;
+  private bannerWait = 0;
   private lastWallSfx = 0;
   private flagWiggle = 0;
   private sunkFlash = 0;
@@ -122,7 +126,9 @@ class MinigolfView implements GameInstance {
       this.rotT = Math.min(1, this.rotT + dt / TURN_ANIM);
       this.rot = this.rotFrom + (this.rotTo - this.rotFrom) * ease(this.rotT);
     }
-    this.bannerT = Math.max(0, this.bannerT - dt);
+    this.centrePop = Math.max(0, this.centrePop - dt);
+    if (this.bannerWait > 0) this.bannerWait = Math.max(0, this.bannerWait - dt);
+    else this.bannerT = Math.max(0, this.bannerT - dt);
     this.flagWiggle = Math.max(0, this.flagWiggle - dt);
     this.sunkFlash = Math.max(0, this.sunkFlash - dt);
 
@@ -209,6 +215,7 @@ class MinigolfView implements GameInstance {
     const both = (str: string, x: number, y: number, color: string, size = 26) => {
       fx.pop(str, x, y + 40, color, 0, size);
       fx.pop(str, x, y - 40, color, 1, size);
+      this.centrePop = 0.9;
     };
     for (const e of g.events) {
       if (e.type === 'holeStart') {
@@ -216,6 +223,7 @@ class MinigolfView implements GameInstance {
       } else if (e.type === 'turn') {
         sfx.play('pop');
         this.bannerT = 1.6;
+        this.bannerWait = this.centrePop;
       } else if (e.type === 'shot') {
         sfx.play('hit');
         const s = this.toScreen(e.x, e.y);
@@ -314,7 +322,7 @@ class MinigolfView implements GameInstance {
       gx.fillStyle = 'rgba(8,10,20,0.55)';
       gx.fillRect(0, 0, W, H);
       for (const p of seats) facing(gx, p, W / 2, MID, () => this.drawCard(gx, p));
-    } else if (this.bannerT > 0 && (g.phase === 'turn' || g.phase === 'aim') && !this.pendingShot()) {
+    } else if (this.bannerT > 0 && this.bannerWait <= 0 && (g.phase === 'turn' || g.phase === 'aim') && !this.pendingShot()) {
       for (const p of PLAYERS) facing(gx, p, W / 2, MID, () => this.drawBanner(gx, p));
     }
   }
@@ -728,6 +736,12 @@ class MinigolfView implements GameInstance {
       rrect(gx, 30, y - 26, W - 60, 52, 26, c, '#ffffff', 3);
       text(gx, 'YOUR SHOT!', W / 2, y, { size: 30, color: '#ffffff', stroke: shade(c, -0.5) });
     } else {
+      // F174: playing the bot, its copy of "<person>'s shot" turned upright at the top of the
+      // course, under the person's own name, while their strip already says "Your shot!".
+      if (silentSeat(this.ctx.players, p)) {
+        gx.globalAlpha = 1;
+        return;
+      }
       const y = H - STRIP - 22;
       rrect(gx, 60, y - 15, W - 120, 30, 15, BANNER_CARD, alpha(c, 0.9), 2);
       // Lifted for the dark card: Purple was ~3.5:1 there.

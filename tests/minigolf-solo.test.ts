@@ -43,3 +43,45 @@ describe('Minigolf score strips', () => {
     expect(columns([player({ bot: 'hard' }), player({ bot: null })])).toEqual({ top: true, bottom: true });
   });
 });
+
+/** Every "<name>'s shot" line drawn while the person (seat `person`) is on the tee. */
+function shotLines(players: [PlayerInfo, PlayerInfo]): { str: string; bottom: boolean }[] {
+  const sfx = { play() {} } as unknown as Sfx;
+  const view = GAMES.minigolf.create({ seed: 1, rng: makeRng(1), players, powersOn: false, sfx, fx: new Fx(), end() {} }) as unknown as {
+    game: { phase: string; shooter: number };
+    update(dt: number, input: unknown): void;
+    render(g: unknown): void;
+  };
+  const input = { of: () => [], all: () => [], key: () => false, keyPressed: () => false, tapped: () => undefined };
+  const seen: { str: string; bottom: boolean }[] = [];
+  // Through the hole card to the first turn, while its banner shows.
+  for (let i = 0; i < 60 * 6; i++) {
+    view.update(1 / 60, input);
+    if (view.game.phase !== 'aim' && view.game.phase !== 'turn') continue;
+    const { g, words } = recorder();
+    setReader(soloReader([players[0].bot, players[1].bot]), g as never);
+    try {
+      view.render(g);
+    } finally {
+      setReader(null);
+    }
+    for (const w of words) if (/'s shot$/.test(w.str)) seen.push({ str: w.str, bottom: w.y > 320 });
+  }
+  return seen;
+}
+
+// F174: playing the bot, the bot's half also showed "<person>'s shot" (turned upright at the
+// top), so the person read their turn twice, once under their own name.
+describe('Minigolf: the waiting pill', () => {
+  it('two people: the waiting seat reads whose shot it is', () => {
+    expect(shotLines([player({ bot: null, name: 'Ana' }), player({ bot: null, name: 'Ben' })]).length).toBeGreaterThan(0);
+  });
+  it('one person and a bot: the bot\'s half never says whose shot it is', () => {
+    for (const bots of [[null, 'easy'], ['easy', null]] as const) {
+      const players: [PlayerInfo, PlayerInfo] = [player({ bot: bots[0], name: 'Ana' }), player({ bot: bots[1], name: 'Ben' })];
+      const person = bots[0] ? 1 : 0;
+      const shots = shotLines(players);
+      expect(shots.filter((s) => s.str === `${players[person].name}'s shot`), `bot in seat ${person ? 0 : 1}`).toEqual([]);
+    }
+  });
+});
