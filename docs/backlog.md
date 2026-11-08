@@ -550,7 +550,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       25 s; check the easy bot gives a kid who plays randomly a real chance (bot pace table).
 - [x] 2026-11-07 (F116, dropped: Tic-Tac-Toe is hidden and gets no work). Tic-Tac-Toe never buzzes on a mark (marks play 'tap' / 'pop'); decide whether turn
       games should tick on each move like Four in a Row now does, or stay quiet.
-- [ ] Rock Paper Scissors could get a person too, so the report counts throws per seat.
+- [x] Rock Paper Scissors could get a person too, so the report counts throws per seat.
+      2026-11-07 (F133): done; `rpsPerson` (playtest/person.ts) plays RPS in "play like a
+      person" and in the solo pass (F125), and its moves are counted per seat like Sea Battle's.
 
 ## Ideas found 2026-10-31 (colour-blind run)
 - [x] 2026-11-01 (PR #68): COLORS.good (#4ade80) and COLORS.bad (#ff5c7a) were a red/green pair
@@ -955,8 +957,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       keep their own tally (`soloNight`, home shows "You vs the bot"), so practice never lands on
       the family match night or tips the auto handicap between two people. The result screen's
       bot half reads "Bot wins / Bot lost". A playtest plays every game solo from the switch.
-- [ ] Air hockey "walks away" playtest failed once in a full `npm run verify` (no result after
+- [x] Air hockey "walks away" playtest failed once in a full `npm run verify` (no result after
       fastForward(600)) and passed in 4 reruns, alone and in the full playtest. Watch for flakes.
+      2026-11-07 (F133): no repeat in the week of loop verifies since (it passed again on
+      main tonight); closed. Reopen with the failing log if it comes back.
 - [x] 2026-11-01: Solo: the bot is called "Bot". After "Play the bot" it borrowed the top
       seat's person's name ("Player 2", or a sibling's name like Mia) on the home chip, the
       intro, the result screen, in-game lines ("Mia is thinking…", "Mia goes first") and the
@@ -1430,3 +1434,5 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       same step, so the "Time's up!" pop (rising from the chop count) sat on the "Out of time!"
       banner and the "0 / 50" count at once. The pop is gone (the buzz and banner stay); the
       solo playtest checks no such pop is up when the idle person's time runs out.
+- [x] 2026-11-07 (F133): Backlog sweep: RPS person line (done by F125) and the air hockey
+      "walks away" flake watch (no repeat) ticked with why.
