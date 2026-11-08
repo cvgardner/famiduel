@@ -453,6 +453,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Ping Pong, whose hints sit there, puts it on the paddle row (`"demoAt": 0.9` in
       content/games.json). Playtest "ghost finger: the first match shows it in play..."
       (ghost-finger-in-play.png).
+      2026-11-08 (F137): ~5 s was too long: its dark card sat over Penalty's goal and Snack
+      Snatch's lower lanes after GO. Now it shows through the countdown plus one second of
+      play (PLAY_DEMO_MS 2800); the solo playtest checks every game's copy is gone by then.
 - [x] 2026-11-01: A "?" brings the ghost finger back. After a game's first 3 matches the
       finger used to vanish for good, so a kid who forgot the gesture (or a new kid on the
       phone) had only the how-to text. Each person's intro half now shows a small "?" where
