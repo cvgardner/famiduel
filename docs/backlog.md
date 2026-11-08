@@ -1719,3 +1719,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (63 of 11,442 readable pop frames in six bot matches). The pop now slides sideways, the
       shorter way that stays on screen, until its whole rise misses every shown label
       (clearOfClock, clockSpots): 0 frames. tests/snacksnatch-pop-clock.test.ts.
+- [x] 2026-11-08 (F192, PR #TBD): Tank Duel: two shells meeting popped "clink!" for each seat
+      at the clash ± 13, and shells often meet right at a muzzle, so the word printed on that
+      tank (518 of 6,656 readable frames in ten bot matches). Each seat's copy now starts on
+      the nearest line whose whole rise misses both tanks and their rings (clearOfTanks):
+      5 frames, a tank driving into it. tests/tanks-clink.test.ts.
