@@ -1273,8 +1273,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       it is still a jump in an early rally but a ready paddle reaches it. n=60: Smash 62% easy,
       53% normal, 50% hard; Slow-mo 39-42% and Curve 56-59% unchanged. Test in
       tests/pingpong.test.ts.
-- [ ] Ping Pong Smash does nothing late in a long rally (the ball is already past 640, up to
-      760); if people notice, make it "+X over the current speed" and re-measure.
+- [x] 2026-11-07 (F111): Ping Pong Smash does nothing late in a long rally (the ball is already past 640, up to
+      760); if people notice, make it "+X over the current speed" and re-measure. Now Smash
+      is at least 640 and at least 60 over the rally's speed (820 at the 760 cap). +120 read
+      67% at easy; +60 reads easy 60%, normal 55%, hard 48% (n=80; was 62/53/50).
 
 ## Ideas found 2026-11-07 (easy-level power run)
 - [x] 2026-11-07 (F106): `npm run sim:powers -- --level easy` (the level families with small
