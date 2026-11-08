@@ -1337,6 +1337,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       upside down. A bot's half now faces the person when the other seat is a person
       (`.half.faces`); two bots or two people keep the usual halves. Playtests check the
       bot half's transform on every solo intro and result and on the bot-level intro.
-- [ ] The in-game canvas still draws the top bot's labels (scores, power button names)
-      upside down for a solo player; turning those is a per-game view change (seat text
-      rotation lives in each index.ts), worth it if solo players say so.
+- [x] 2026-11-07 (F118): The in-game canvas still drew the bot seat's labels (countdown,
+      scores, banners, pops) upside down for a solo player. With one person at the table,
+      `text()` now turns every word that would read upside down for them about its own
+      anchor (flipping left/right alignment so it keeps its place), judged from the canvas
+      transform, so words inside a turned half or a turned view are caught too
+      (`setReader()` / `soloReader()` in engine/draw.ts, set by the runner each frame).
+      Pictures, arrows and buttons keep their seat. Solo playtest checks every shown game
+      turned the bot's words and none runs off the screen (`solo-play-<id>.png`).

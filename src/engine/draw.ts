@@ -27,6 +27,39 @@ export function facing(g: G, player: 0 | 1, x: number, y: number, fn: () => void
   g.restore();
 }
 
+/**
+ * Play the bot (F118): when one seat is a bot and the other a person, nobody sits behind
+ * the bot, so every canvas word turns to face the one reader (0 bottom, 1 top), wherever
+ * it is drawn. `base` is the canvas transform the match renders from, so a label's turn
+ * is judged against it (games rotate whole halves, or the whole view, for the top seat).
+ */
+let reader: { seat: 0 | 1; a: number; b: number } | null = null;
+export function setReader(seat: 0 | 1 | null, g?: G): void {
+  if (seat === null || !g) reader = null;
+  else {
+    const m = g.getTransform();
+    reader = { seat, a: m.a, b: m.b };
+  }
+}
+/** The seat whose person reads every label: the only person at the table, else null. */
+export function soloReader(bots: [unknown, unknown]): 0 | 1 | null {
+  if (!bots[0] && bots[1]) return 0;
+  if (bots[0] && !bots[1]) return 1;
+  return null;
+}
+/** Whether words drawn now would read upside down for the reader (null: no reader). */
+function turnedFromReader(g: G): boolean {
+  if (!reader) return false;
+  const m = g.getTransform();
+  const n = Math.hypot(m.a, m.b) * Math.hypot(reader.a, reader.b) || 1;
+  const cos = (m.a * reader.a + m.b * reader.b) / n;
+  if (Math.abs(cos) < 0.5) return false;
+  return (cos < 0) !== (reader.seat === 1);
+}
+/** Reader probe, switched on by the playtest: labels (scores too) turned to face the one reader. */
+export const readerProbe = { on: false, turned: new Set<string>() };
+const FLIP_ALIGN: Record<string, CanvasTextAlign> = { left: 'right', right: 'left', start: 'end', end: 'start', center: 'center' };
+
 export type TextOpts = {
   size?: number;
   color?: string;
@@ -201,8 +234,18 @@ export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}):
     g.font = `${o.weight ?? 800} ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
     g.textAlign = o.align ?? 'center';
     g.textBaseline = 'middle';
+    let seat = o.player ?? 0;
+    if (turnedFromReader(g)) {
+      seat = seat === 1 ? 0 : 1;
+      if (readerProbe.on) readerProbe.turned.add(str);
+      // Turn about the label's own anchor; the flipped alignment keeps the same span on screen.
+      g.translate(x, y);
+      g.rotate(Math.PI);
+      g.translate(-x, -y);
+      g.textAlign = FLIP_ALIGN[g.textAlign] ?? g.textAlign;
+    }
     if (contrastProbe.on && readable(str)) probeContrast(g, str, x, y, { ...o, size });
-    if (edgeProbe.on && readable(str)) probeEdge(g, str, x, o.player ?? 0);
+    if (edgeProbe.on && readable(str)) probeEdge(g, str, x, seat);
     if (o.stroke) {
       g.lineWidth = Math.max(3, size / 6);
       g.strokeStyle = o.stroke;

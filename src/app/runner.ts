@@ -1,7 +1,7 @@
 // Runs one match: countdown, fixed-step updates, then hands the result back.
 import { makeRng } from '../core/rng';
 import type { GameResult, PlayerIndex, PlayerInfo } from '../core/types';
-import { rrect, text, type G } from '../engine/draw';
+import { rrect, setReader, soloReader, text, type G } from '../engine/draw';
 import { Fx } from '../engine/fx';
 import type { GameDef, GameInstance } from '../engine/game';
 import type { Sfx } from '../engine/sfx';
@@ -76,6 +76,15 @@ export class Runner {
   }
 
   render(g: G): void {
+    setReader(soloReader([this.players[0].bot, this.players[1].bot]), g);
+    try {
+      this.renderMatch(g);
+    } finally {
+      setReader(null);
+    }
+  }
+
+  private renderMatch(g: G): void {
     g.save();
     this.fx.applyShake(g);
     this.game.render(g);
