@@ -6,6 +6,8 @@ import { W } from '../../engine/world';
 
 export const STICK_R = 40;
 export const FIRE_R = 34;
+/** FIRE drawn with Settings > Little hands on (its touch zone is already the whole outer strip). */
+export const FIRE_R_BIG = 38;
 export const CONTROLS_Y = 584;
 const STICK_X = 78;
 const FIRE_X = 288;

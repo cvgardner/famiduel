@@ -1054,10 +1054,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Hard Snake turns about 3× as often as Easy/Normal (it re-plans territory every cell);
       fine for strength, but if a kid calls it twitchy, a "turns per second" motion check
       like Tanks' wag measure would show it.
-- [ ] Penalty's first shooter wins ~54% between equal bots. If families feel it, an ABBA
+- [x] Penalty's first shooter wins ~54% between equal bots. If families feel it, an ABBA
       order (A, B, B, A...) is the known fix in real shootouts; measure before changing.
-- [ ] Air Hockey has no landing problem, but Snack Snatch's thrown snacks could show a
+      2026-11-07 (F95): no edge now. Each seed played twice with the starter forced to each
+      seat (n = 1,200 matches a level): first shooter wins 50.2% (easy), 51.3% (normal),
+      50.8% (hard); bottom seat 48-51%. Within noise (+-1.4%), so ABAB stays.
+- [x] Air Hockey has no landing problem, but Snack Snatch's thrown snacks could show a
       short ground shadow too if kids misjudge where they come down.
+      2026-11-07 (F93): no change needed. Snack Snatch's snacks never leave the blanket: the
+      pot shoots them flat and they slide and bounce in the plane (logic.ts moveSnack, no
+      height), so there is no landing spot to mark.
 
 ## Found 2026-11-01 23:21 PT run
 - [x] 2026-11-02 (PR #76): The "ping pong: where the ball landed stays" playtest failed main's
@@ -1205,6 +1211,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       power button that runs off the screen (unless it already did at normal size: Ping Pong)
       or overlaps another canvas button; screenshots little-hands-*.png. Unit test
       tests/littlehands.test.ts.
+- [x] 2026-11-07 (F92): Little hands also grows Penalty's dive buttons (radius 28 -> 32, same
+      64 px touch area) and Tank Duel's FIRE (34 -> 38; its touch zone was already the outer
+      strip). Sea Battle's Ready is already 140x58 and its cells are tapped, so nothing there.
+      The canvas-button playtest checks both grew, dive buttons don't touch, FIRE stays on
+      screen (little-hands-penalty.png, little-hands-tanks.png).
 - [x] 2026-11-07 (F88): Minigolf seat check per hole. No seat edge: the same seed with the
       seats swapped plays the same strokes mirrored (new test in tests/minigolf.test.ts, all
       23 holes). A first sim's "bottom seat wins 40%" followed which seeds it started on
