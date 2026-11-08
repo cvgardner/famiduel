@@ -1548,3 +1548,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] F159: Sea Battle and RPS with two people open on the pass-the-phone cover, and the
       "3 2 1" digit counts down over its "Player 2, look away!" words. A turn game behind a
       cover may not need the countdown at all; left out of the F158 playtest until decided.
+- [x] 2026-11-08 (F160, PR #207): Play the bot showed Snack Snatch's seconds left twice beside
+      the pot: the bot seat's copy turned to face the person and read as a second clock (two
+      pink "0"s at the end in solo-round-snacksnatch.png). A bot seat facing a person draws no
+      clock now (silentSeat); tests/snacksnatch-clock.test.ts counts the copies.
