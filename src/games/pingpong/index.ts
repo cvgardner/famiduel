@@ -245,7 +245,7 @@ class PingPongView implements GameInstance {
       }
     }
     // Serve hint
-    if (g.serving) {
+    if (g.serving && !this.ctx.players[g.server].bot) {
       const p = g.server;
       const y = g.paddles[p].y + fwdSign(p) * 44;
       text(gx, 'SERVE', g.paddles[p].x, y, { size: 14, color: liftOn(c[p], SERVE_OUTLINE, TABLE_GREEN), player: p, stroke: SERVE_OUTLINE });

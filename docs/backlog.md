@@ -1345,3 +1345,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (`setReader()` / `soloReader()` in engine/draw.ts, set by the runner each frame).
       Pictures, arrows and buttons keep their seat. Solo playtest checks every shown game
       turned the bot's words and none runs off the screen (`solo-play-<id>.png`).
+- [x] 2026-11-07 (F119): Playing the bot, the bot's half still showed how-to words nobody
+      reads: Snake's "Tap ◀ ▶ to turn", Chop Chop's chop pills, Ping Pong's SERVE when the
+      bot serves (Penalty and Ping Pong's swipe hints already skipped bots). The solo
+      playtest fails if any of them is drawn for the bot seat.
