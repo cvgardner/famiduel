@@ -376,13 +376,12 @@ export class SnackSnatch {
     let sticky = false;
     for (const p of [0, 1] as PlayerIndex[]) {
       if (!this.stickyOn(p) || Math.abs(sn.y - RULES.gum[p]) >= RULES.stickyRange) continue;
-      // Honey: snacks near you slow right down, and barely move away from you.
+      // Honey: snacks near you slow right down (F106: the same both ways; a stronger pull-back
+      // toward you kept the snacks off the other side and won 91% between easy bots).
       sticky = true;
       const h = Math.exp(-RULES.stickyDamp * dt);
       sn.vx *= h;
-      const towardMe = -fwd(p); // +y for the bottom player
-      if (sn.vy * towardMe < 0) sn.vy *= Math.exp(-RULES.stickyDamp * 2.5 * dt);
-      else sn.vy *= h;
+      sn.vy *= h;
     }
     const sp = Math.hypot(sn.vx, sn.vy);
     // Snacks keep rolling (slowly in honey), and never get too fast.

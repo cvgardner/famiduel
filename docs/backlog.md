@@ -1248,6 +1248,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       you shoot back. Now your cannon rests while the bubble is up (FIRE greys out; a tap in
       its last 0.15 s is buffered as usual). n=60, normal bots: Shield 43%, Bouncy 57%, Mine
       46%, none 54%; no outliers. Test in tests/tanks.test.ts.
+- [x] 2026-11-07 (F104): Snake Phase 68% with the fixed sim. Shorter didn't help (2 s 67%,
+      3 s 68%): the bot (or a person) fires it when boxed in, and a crossing ran on through any
+      number of trail cells in a row, so it tunnelled out through a packed block, or slid
+      along a trail. Now one crossing passes at most 2 trail cells (RULES.phaseCells; a trail
+      is 1 cell wide, so crossing a trail or two side by side still works). n=60, normal bots:
+      Phase 59%, Bomb 56%, none 54%, Boost 31% (Boost is F12, Chris's call). Test in
+      tests/snake.test.ts.
 ## Ideas found 2026-11-07 (palm run)
 - [x] 2026-11-07 (F100): A palm resting in your half no longer takes the paddle in Air Hockey
       and Ping Pong. Both used the first finger down until it lifted, so a hand resting on the
@@ -1257,9 +1264,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       paddle when a palm lands, and a finger that lands after a resting palm takes it.
       tests/palm.test.ts; playtest "a palm resting in your half" (palm-airhockey.png,
       palm-pingpong.png) failed on main (paddle stuck at the palm, x 110).
-- [ ] Other drag controls (Tank Duel stick, Sumo/Snack Snatch anywhere-taps) read every
-      finger of a seat; a resting palm there only counts as one held touch. Check Tanks' stick
-      picks the moving finger too if a kid rests a hand on the FIRE side.
 
 ## Ideas found 2026-11-07 (easy-level Ping Pong run)
 - [x] 2026-11-07 (F107): Ping Pong Smash won 70% between easy bots (85% vs no power; normal
@@ -1269,3 +1273,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tests/pingpong.test.ts.
 - [ ] Ping Pong Smash does nothing late in a long rally (the ball is already past 640, up to
       760); if people notice, make it "+X over the current speed" and re-measure.
+
+## Ideas found 2026-11-07 (easy-level power run)
+- [x] 2026-11-07 (F106): `npm run sim:powers -- --level easy` (the level families with small
+      kids play) had Snack Snatch Sticky at 91% (100% vs no power). Honey held snacks rolling
+      away from you 2.5× harder, so they never reached the other side. Now honey slows a snack
+      the same both ways and lasts 2 s (was 3). n=80: easy Sticky 63%, Magnet 48%, Double 55%;
+      normal 40% / 53% / 63%. Shorter alone (1.5 s: 77%) or a smaller honey zone (stronger,
+      the bot times it better) didn't fix it. Test in tests/snacksnatch.test.ts.
+- [ ] Snack Snatch at hard: Sticky 26%, Double 73% after F106 (main read 49% / 63%); hard is
+      rarely a kid's level, but a stronger pull for Sticky only at hard speeds could fix it.
+- [x] 2026-11-07 (F105): Tank Duel's stick follows the thumb that steers, not a palm resting
+      in the stick zone: Input.holding() keeps the finger holding the stick while it is down
+      (so a thumb holding still isn't robbed by a palm that lands), and hands it to another
+      finger that is steering more recently once that one moves, or at once if the holder never
+      moved (a palm that landed first). Zones are judged where a finger landed. tests/palm.test.ts
+      and playtest "tanks: a palm resting in the stick zone" (palm-tanks.png), which failed on
+      main (stick stuck at the palm). Sumo/Snack Snatch taps count any finger, so a palm there
+      is harmless.
