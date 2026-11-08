@@ -8,6 +8,7 @@ import type { Sfx } from '../engine/sfx';
 import type { Stage } from '../engine/stage';
 import { STEP } from '../engine/stage';
 import { H, MID, W } from '../engine/world';
+import { COUNT_DY } from './demo';
 import { countdownSeats, starterLines } from './starter';
 
 const COUNT_STEP = 0.6;
@@ -97,7 +98,7 @@ export class Runner {
       const k = (this.countdown % COUNT_STEP) / COUNT_STEP;
       const size = 70 + 40 * k;
       for (const p of countdownSeats(this.players)) {
-        text(g, String(n), W / 2, p === 0 ? MID + 120 : MID - 120, { size, color: '#fff', stroke: 'rgba(0,0,0,0.5)', player: p });
+        text(g, String(n), W / 2, p === 0 ? MID + COUNT_DY : MID - COUNT_DY, { size, color: '#fff', stroke: 'rgba(0,0,0,0.5)', player: p });
       }
       // Turn games: say who goes first, on both sides, so a rematch's swap reads as on purpose.
       const lines = this.starterLines();

@@ -440,6 +440,47 @@ test('ghost finger: the first match shows it in play over each person\'s half, t
   expect(errors).toEqual([]);
 });
 
+test('ghost finger: the in-play card never sits on a person\'s "3 2 1" digit, on a small phone', async ({ page }) => {
+  // F152: the card sat at the digit's height (0.72 down) in every game, so "3 2 1" showed
+  // through its dark tile. It moves beside the digit; checked in every shown game, both seats.
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  type H = { openGame(id: string): void; startMatch(): void; showHome(): void; store: { data: { history: { game: string }[] } } };
+  const shown = games.games.filter((g) => !(g as { hidden?: boolean }).hidden).map((g) => g.id);
+  const hits: string[] = [];
+  for (const id of shown) {
+    await page.evaluate((g) => {
+      const a = (window as unknown as { __famiduel: H }).__famiduel;
+      a.store.data.history = [];
+      a.showHome();
+      a.openGame(g);
+      a.startMatch();
+    }, id);
+    await page.waitForTimeout(500); // mid countdown, the card fully in
+    const box = await worldBox(page);
+    const s = box.width / 360;
+    const cards = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('#play .play-demo .demo')].map((el) => {
+        const r = el.getBoundingClientRect();
+        return { p: Number(el.closest<HTMLElement>('.play-demo')!.dataset.p), l: r.left, r: r.right, t: r.top, b: r.bottom };
+      }),
+    );
+    expect(cards.length, `${id}: a finger per person`).toBe(2);
+    for (const c of cards) {
+      // The biggest digit (110 units tall, ~66 wide) at MID ± 120.
+      const cy = box.y + (c.p === 0 ? 440 : 200) * s;
+      const d = { l: box.x + 147 * s, r: box.x + 213 * s, t: cy - 55 * s, b: cy + 55 * s };
+      if (c.l < d.r && c.r > d.l && c.t < d.b && c.b > d.t) hits.push(`${id} seat ${c.p}`);
+    }
+    if (id === 'sumo') await page.screenshot({ path: path.join(OUT, 'ghost-finger-beside-countdown.png') });
+  }
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
+  expect(hits, 'finger cards over a countdown digit').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('ghost finger: a "?" brings it back after the first matches, on a small phone', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });

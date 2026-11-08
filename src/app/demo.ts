@@ -4,6 +4,7 @@
 // content/games.json; the animations themselves are CSS (`.demo` in style.css).
 // It shows for a game's first few matches on this phone, then gets out of the way.
 
+import { H, MID } from '../engine/world';
 import { powerPicHtml } from './powerpic';
 
 export const GESTURES = ['tap', 'tap2', 'sides', 'hold', 'pull', 'swipe', 'slide', 'drag', 'move', 'drop', 'stick', 'kick'] as const;
@@ -47,7 +48,24 @@ export function firstMatchOf(history: readonly { game: string }[], game: string)
 export function playDemoHtml(g: Gesture, p: number, lefty = false, at = 0.72, keeper = false): string {
   // keeper: Penalty's two-role loop starts on its second half (the keeper's dive), for the
   // seat that keeps goal first (F138); the ~2.8 s in play only fits one role.
-  return `<div class="play-demo p${p}${keeper ? ' keeper' : ''}" data-p="${p}" style="--at:${at}" aria-hidden="true">${demoHtml(g, lefty)}</div>`;
+  const side = besideCountdown(at) ? `;--dx:${DEMO_BESIDE_DX}%;--s:${DEMO_BESIDE_SCALE}` : '';
+  return `<div class="play-demo p${p}${keeper ? ' keeper' : ''}" data-p="${p}" style="--at:${at}${side}" aria-hidden="true">${demoHtml(g, lefty)}</div>`;
+}
+
+/** Each person's "3 2 1" digit sits this far from the middle line (world units; runner.ts). */
+export const COUNT_DY = 120;
+
+/**
+ * F152: a finger card at the same height as a person's countdown digit covered "3 2 1"
+ * with its dark tile (the default 0.72 is the digit's height). Such a card moves to the
+ * person's right of the digit, a little smaller, so both read while the finger loops.
+ */
+export const DEMO_BESIDE_DX = 28;
+export const DEMO_BESIDE_SCALE = 1.7;
+
+/** Would a finger card `at` this far down seat 0's screen meet the countdown digit? */
+export function besideCountdown(at: number): boolean {
+  return Math.abs(at - (MID + COUNT_DY) / H) < 0.12;
 }
 
 // Props drawn next to the finger, per gesture: the thing the finger moves.

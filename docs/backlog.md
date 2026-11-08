@@ -1517,3 +1517,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       It now shows once, in the person's half (`countdownSeats()` in src/app/starter.ts, unit
       test; the solo playtests check it from the bottom and the top seat). Two people or two
       bots keep both copies.
+
+## Ideas found 2026-11-08 (finger card run)
+- [x] 2026-11-08 (F152): First match: the in-play finger card sat at each person's countdown
+      digit (0.72 down = MID + 120) in every game but Ping Pong, so "3 2 1" showed through its
+      dark tile. A card at the digit's height now sits to the person's right of it, a little
+      smaller (`besideCountdown()` in src/app/demo.ts); a playtest checks every shown game at
+      320x568, both seats.
