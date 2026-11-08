@@ -870,8 +870,10 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     expect(turned.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half`).toEqual([]);
     // F119: no how-to words in the bot's half (nobody reads them).
     expect(turned.filter((t) => ['Tap ◀ ▶ to turn', '◀ chop', 'chop ▶', 'SERVE', 'Tap a button to dive!'].includes(t)), `${id}: how-to words in the bot's half`).toEqual([]);
-    // F126: Quick Draw's "Round N" line shows once, in the person's half.
-    if (id === 'quickdraw') expect(turned.filter((t) => /^Round \d+$/.test(t)), 'quickdraw: a second "Round" line in the bot\'s half').toEqual([]);
+    // F126/F128: small "Round N" lines and "a – b" score lines show once, in the person's half
+    // (the bot's copy, turned upright, read as a second line or a back-to-front score).
+    expect(turned.filter((t) => /^Round \d+$/.test(t)), `${id}: a second "Round" line in the bot's half`).toEqual([]);
+    expect(turned.filter((t) => /^\d+ – \d+$/.test(t)), `${id}: a back-to-front score in the bot's half`).toEqual([]);
     await page.screenshot({ path: path.join(OUT, `solo-play-${id}.png`) });
     // F122: the first 2.6 s never reach a round end, so play on to the first point (or the
     // match end) with the probe on, and let the banner draw for a moment in real time.
@@ -917,6 +919,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     });
     expect(reached, `${id}: a point, the match end or (turn games) the person's own move`).toBe(true);
     expect(roundWords.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half at the round end`).toEqual([]);
+    expect(roundWords.filter((t) => /^(Round \d+|\d+ – \d+)$/.test(t)), `${id}: a second "Round" or score line in the bot's half at the round end`).toEqual([]);
     await page.screenshot({ path: path.join(OUT, `solo-round-${id}.png`) });
     // The bot wins this one (ended by hand to keep the pass short).
     await page.evaluate(() => {
