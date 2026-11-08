@@ -1385,3 +1385,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       you/your in the bot's half.
 - [x] 2026-11-07 (F127): Backlog sweep: the two open Twin Gates lines from 2026-11-01 were
       already fixed by F29; ticked with today's numbers (easy 5.2 strokes, 8% picked up).
+
+## Ideas found 2026-11-07 (tank mine run)
+- [x] 2026-11-07 (F129): Tank Duel Mine lost to no power between easy bots (46%, n=120): in
+      60 easy matches the other tank never once rolled over a mine, because every bot drove
+      round every mine it saw, and the owner rolled over its own 3 times. A bot now notices
+      the other tank's mine with BOT.spot odds (easy 50%, normal 75%, hard 95%, decided
+      once per mine; its own always), like a kid who missed it going down, and drops a
+      mine when the other tank is in its wake (within 45° behind, under 220) instead of
+      whenever it's close. `sim:powers -- --game tanks --n 120`: easy Mine 46% -> 51% vs
+      none (avg 43% -> 47%), normal 44% -> 47% (avg 43% -> 46%). Unit tests in
+      tests/tanks-route.test.ts.
+- [ ] Tank Duel Mine still rarely hits anyone between bots (tanks fight at range, so few
+      drive through a wake); it may play better against people, who chase. If families
+      never pick it, a bigger blast or a mine that's dropped in front could be a power call.

@@ -48,3 +48,45 @@ describe('tank bot route', () => {
     expect(s.route()).toEqual(first);
   });
 });
+
+// F129: Mine never hit the other tank between easy bots (every bot drove round every
+// mine it saw), so it lost to no power. Like a kid, a bot doesn't always notice the
+// other tank's mine go down; it always knows its own.
+describe('tank bot and mines', () => {
+  const sees = (level: 'easy' | 'normal' | 'hard', owner: 0 | 1, n = 400) => {
+    const bot = new TankBot(0, level, makeRng(3)) as unknown as { sees(m: unknown): boolean };
+    let seen = 0;
+    for (let id = 0; id < n; id++) if (bot.sees({ id, owner, x: 0, y: 0, arm: 0, alive: true })) seen++;
+    return seen / n;
+  };
+
+  it('always knows its own mines', () => {
+    for (const level of ['easy', 'normal', 'hard'] as const) expect(sees(level, 0)).toBe(1);
+  });
+
+  it('notices the other tank\'s mines more often the stronger it is', () => {
+    const [e, n, h] = (['easy', 'normal', 'hard'] as const).map((l) => sees(l, 1));
+    expect(e).toBeGreaterThan(0.35);
+    expect(e).toBeLessThan(0.65);
+    expect(n).toBeGreaterThan(e);
+    expect(h).toBeGreaterThan(n);
+  });
+
+  it('makes its mind up once per mine (no flicker between looks)', () => {
+    const bot = new TankBot(0, 'easy', makeRng(4)) as unknown as { sees(m: unknown): boolean };
+    const m = { id: 7, owner: 1, x: 0, y: 0, arm: 0, alive: true };
+    const first = bot.sees(m);
+    for (let i = 0; i < 20; i++) expect(bot.sees(m)).toBe(first);
+  });
+
+  it('a route goes straight over an unnoticed mine and round a noticed one', () => {
+    const { g, bot, route } = setup(-Math.PI / 2);
+    const [c, r] = [1, 6];
+    Object.assign(g, { mines: [{ id: 1, owner: 1, ...g.arena.center(c, r), arm: 0, alive: true }] });
+    const spotted = (bot as unknown as { spotted: Map<number, boolean> }).spotted;
+    spotted.set(1, false);
+    expect(route()).toContain(r * COLS + c);
+    spotted.set(1, true);
+    expect(route()).not.toContain(r * COLS + c);
+  });
+});
