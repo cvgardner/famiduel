@@ -1595,3 +1595,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       copy turned to face the person and mirrored (its score on the left, kicks running right
       to left, the bot's row first; solo-play-penalty.png). It shows once now, in the person's
       half; tests/penalty-solo.test.ts counts the trackers' score digits.
+- [x] 2026-11-08 (F168, no change): tablets (a rival app's reviews say families pick a tablet
+      for room). At iPad portrait 768x1024 home, intros and Air Hockey / Sumo / Minigolf fill
+      the height with 96 px side bars, buttons and text as on a phone: fine. In landscape
+      (1024x768) the portrait board is a narrow column at about 1.2x with wide bars.
+- [ ] Store wrapper: lock portrait, also on iPad (UIRequiresFullScreen / Capacitor
+      orientation), so a landscape tablet never shows the narrow board (F168). A turned
+      landscape layout would need the world rotated and input remapped: only if families ask.
