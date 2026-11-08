@@ -1545,6 +1545,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       shown game at 320x568, both seats people. It found two more: Ping Pong's "Flick up hard:
       SMASH" hint (now waits for GO) and Snake's "Tap ◀ ▶ to turn" (moved below the digit,
       MID ± 205).
-- [ ] F159: Sea Battle and RPS with two people open on the pass-the-phone cover, and the
-      "3 2 1" digit counts down over its "Player 2, look away!" words. A turn game behind a
-      cover may not need the countdown at all; left out of the F158 playtest until decided.
+- [x] 2026-11-08 (F159, PR #206): Sea Battle and RPS with two people opened on the
+      pass-the-phone cover while the "3 2 1" counted down over "Player 2, look away!". A game
+      that opens on a cover now says so (`opensOnCover()`) and the runner skips the countdown:
+      the cover's own "Tap when only … is looking" is the ready step, and a turn game needs no
+      GO. With a bot (no cover) the countdown stays. The F158 playtest checks both games open
+      on the cover with no digit (countdown-cover-seabattle.png).

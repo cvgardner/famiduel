@@ -87,6 +87,10 @@ class SeaBattleView implements GameInstance {
     this.advance();
   }
 
+  opensOnCover(): boolean {
+    return this.mode.kind === 'cover';
+  }
+
   private get twoHumans(): boolean {
     return this.humans.length === 2;
   }
