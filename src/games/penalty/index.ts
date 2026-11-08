@@ -398,6 +398,8 @@ class PenaltyView implements GameInstance {
     }
     const secs = Math.max(1, Math.ceil(left - 1e-6));
     const kgy = RULES.goalY[k] + (k === 1 ? 74 : -74);
+    // F156: the keeper's "Kick in 3" line waits for GO too (it sat under their "3 2 1" digit).
+    if (this.t === 0) return;
     const kickLine = g.runningUp ? 'Here it comes!' : g.phase === 'ready' ? `Kick in ${Math.ceil(total)}` : `Kick in ${secs}`;
     text(gx, kickLine, W / 2, kgy, { size: g.runningUp ? 20 : 17, player: k, color: g.runningUp ? COLORS.gold : '#fff', stroke: 'rgba(0,0,0,0.5)' });
     // Big seconds beside the ball, for the shooter (the keeper reads their own line).
