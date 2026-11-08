@@ -1619,21 +1619,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       still read as one more button to press. Its band and face draw at 40% like F170; the
       energy ring and the power's icon stay clear (they tell the person what the bot holds
       and when it can fire). tests/controls-dim.test.ts.
-- [x] 2026-11-08 (F172, PR #PRNUM): Play the bot: proof the faint bot buttons are dead. A kid
+- [x] 2026-11-08 (F172, PR #217): Play the bot: proof the faint bot buttons are dead. A kid
       who taps the bot's turn, dive, push, stick / FIRE, frog or power buttons for 30 s of a
       seeded match changes nothing for either seat (Snake, Penalty, Sumo, Tank Duel, Snack
       Snatch; bot in either seat); the same taps on the person's own buttons do change the
       match, so they really land. tests/bot-buttons-dead.test.ts (no code change needed).
 
 ## Ideas found 2026-11-08 (bot buttons run)
-- [x] 2026-11-08 (F173, PR #PRNUM): Minigolf: the turn passed 0.7 s after a sink, so the next
+- [x] 2026-11-08 (F173, PR #218): Minigolf: the turn passed 0.7 s after a sink, so the next
       shooter's "YOUR SHOT!" printed over the still-rising "HOLE IN ONE!" / "Par! Nice." pop in
       the middle of the course (seen in the solo playtest, two people too). The banner now
       waits for the centre pop to clear (about 0.2 s). tests/minigolf-banner.test.ts.
-- [x] 2026-11-08 (F174, PR #PRNUM): Play the bot: Minigolf's bot half showed "<person>'s shot"
+- [x] 2026-11-08 (F174, PR #219): Play the bot: Minigolf's bot half showed "<person>'s shot"
       turned upright at the top of the course while the person's own strip said "Your shot!";
       the bot's half has no waiting pill now. tests/minigolf-solo.test.ts; the solo playtest
       fails on a "'s shot" line in the bot's half.
-- [x] 2026-11-08 (F175, PR #PRNUM): Play the bot: Sea Battle's "Ships sunk" columns read
+- [x] 2026-11-08 (F175, PR #220): Play the bot: Sea Battle's "Ships sunk" columns read
       "you / them"; against a bot the second one says "bot" (as F165 did for Quick Draw and
       Chop Chop). tests/bot-name.test.ts.
