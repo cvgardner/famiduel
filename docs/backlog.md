@@ -516,9 +516,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Now, after two losses in a row to an Easy bot (any game), the result screen offers the
       person "⭐ Want a head start?", one star per offer up to ★★★ (where a masher beats the
       easy Sumo bot 25–60% of the time). See the easier-offer item below.
-- [ ] The playtest monkey and the unit-test "masher" are two models of a mashing kid;
+- [x] The playtest monkey and the unit-test "masher" are two models of a mashing kid;
       share one masher model (tests/helpers) and reuse it for other one-button games
       (Chop Chop, Quick Draw) to measure whether a masher can ever win there.
+      2026-11-08 (F134): the one model is `Masher` in scripts/simlib.ts (bursts of 0.08-0.6 s,
+      gaps 0.05-0.5 s, a finger wandering its own half); Sumo's tests now use it too, and
+      tests/masher.test.ts plays it in Chop Chop and Quick Draw (n=20, both seats): masher v
+      easy 0%, masher with ★★★ v easy 0%, v hard 0% in both. So a head start doesn't help a
+      masher there yet (F21's call). The playtest monkey stays separate on purpose: it drives
+      real pointer events in the browser, the Masher drives game intents.
 - [x] 2026-10-31: Checkers: the playtest's random taps never completed a move (the "later"
       screenshot was the opening position). Done with the item below.
 

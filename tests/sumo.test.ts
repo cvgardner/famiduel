@@ -3,6 +3,7 @@ import { makeRng } from '../src/core/rng';
 import type { BotLevel, PowerDef } from '../src/core/types';
 import { RULES, Sumo, SumoBot, type Intent } from '../src/games/sumo/logic';
 import { DT, player, power } from './helpers';
+import { Masher } from '../scripts/simlib';
 
 function play(levels: [BotLevel, BotLevel], seed: number, opts: { powers?: [PowerDef, PowerDef]; assist?: [number, number] } = {}) {
   const rng = makeRng(seed);
@@ -244,23 +245,13 @@ describe('sumo', () => {
     let total = 0;
     const N = 40;
     for (let s = 0; s < N; s++) {
-      const mash = makeRng(1000 + s);
+      const mash = new Masher(0, makeRng(1000 + s));
       const g = new Sumo([player(), player()], false, makeRng(s));
       while (g.phase !== 'fight') g.step(DT, [idle, idle]);
-      let holdLeft = 0;
-      let gap = 0;
       let t = 0;
       while (g.phase === 'fight' && t < 30) {
-        let hold = false;
-        if (holdLeft > 0) {
-          holdLeft -= DT;
-          hold = true;
-        } else if (gap > 0) gap -= DT;
-        else {
-          holdLeft = mash.range(0.08, 0.6);
-          gap = mash.range(0.05, 0.5);
-        }
-        g.step(DT, [{ hold, power: false }, idle]);
+        mash.tick(DT);
+        g.step(DT, [{ hold: mash.press, power: false }, idle]);
         t += DT;
       }
       total += t;
@@ -278,25 +269,13 @@ describe('sumo', () => {
       const N = 60;
       for (let s = 0; s < N; s++) {
         const rng = makeRng(s);
-        const mash = makeRng(5000 + s);
+        const mash = new Masher(0, makeRng(5000 + s));
         const g = new Sumo([player({ assist }), player({ bot: level })], false, rng);
         const bot = new SumoBot(1, level, rng);
-        let holdLeft = 0;
-        let gap = 0;
         let t = 0;
         while (!g.finished && t < 300) {
-          let hold = false;
-          if (g.phase === 'fight') {
-            if (holdLeft > 0) {
-              holdLeft -= DT;
-              hold = true;
-            } else if (gap > 0) gap -= DT;
-            else {
-              holdLeft = mash.range(0.08, 0.6);
-              gap = mash.range(0.05, 0.5);
-            }
-          }
-          g.step(DT, [{ hold, power: false }, bot.think(g, DT)]);
+          if (g.phase === 'fight') mash.tick(DT);
+          g.step(DT, [{ hold: g.phase === 'fight' && mash.press, power: false }, bot.think(g, DT)]);
           t += DT;
         }
         if (g.winner === 0) wins++;
