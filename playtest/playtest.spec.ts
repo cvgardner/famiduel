@@ -888,7 +888,10 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
       e.on = false;
       return [[...r.turned], [...e.over]];
     });
-    expect(turned.length, `${id}: the bot seat's words were turned to face the person`).toBeGreaterThan(0);
+    // F151: the countdown no longer draws in the bot's half, and Sea Battle and RPS draw no other
+    // canvas words there (their boards and cards are their own), so only the action games must
+    // have turned something; every game's turned words still get the checks below.
+    if (!WAITS_FOR_PERSON.includes(id)) expect(turned.length, `${id}: the bot seat's words were turned to face the person`).toBeGreaterThan(0);
     expect(over, `${id}: no turned word runs off the screen`).toEqual([]);
     // F120: the bot's half never says "you" (the person would read it as their own).
     expect(turned.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half`).toEqual([]);
