@@ -284,6 +284,20 @@ describe('snack snatch', () => {
     expect(honey.y).toBeGreaterThan(plain.y + 40); // it stayed on player 0's side
   });
 
+  it('honey slows a snack the same whichever way it rolls, and lasts 2 s (F106)', () => {
+    expect(power('snacksnatch', 'sticky')!.duration).toBe(2);
+    const run = (vy: number) => {
+      const g = game({ powers: [power('snacksnatch', 'sticky'), null] });
+      const sn = only(g, { x: 30, y: 470, vx: 0, vy });
+      g.energy[0].value = 1;
+      g.step(DT, [{ snap: [false, false], power: true }, idle]);
+      for (let i = 0; i < 10; i++) g.step(DT, [idle, idle]);
+      return Math.abs(sn.vy);
+    };
+    // Rolling away from player 0 (up) is not held back harder than rolling toward them.
+    expect(run(-200)).toBeCloseTo(run(200), 0);
+  });
+
   it('double grab doubles the reach of the next 3 snaps', () => {
     const g = game({ powers: [power('snacksnatch', 'double'), null] });
     g.energy[0].value = 1;

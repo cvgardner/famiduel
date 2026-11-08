@@ -169,8 +169,8 @@
         "id": "sticky",
         "name": "Sticky Snacks",
         "icon": "🍯",
-        "desc": "Snacks slow right down on your side for 3 seconds.",
-        "duration": 3
+        "desc": "Snacks slow right down on your side for 2 seconds.",
+        "duration": 2
       },
       {
         "id": "double",

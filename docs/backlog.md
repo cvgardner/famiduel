@@ -1264,6 +1264,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       paddle when a palm lands, and a finger that lands after a resting palm takes it.
       tests/palm.test.ts; playtest "a palm resting in your half" (palm-airhockey.png,
       palm-pingpong.png) failed on main (paddle stuck at the palm, x 110).
+
+## Ideas found 2026-11-07 (easy-level power run)
+- [x] 2026-11-07 (F106): `npm run sim:powers -- --level easy` (the level families with small
+      kids play) had Snack Snatch Sticky at 91% (100% vs no power). Honey held snacks rolling
+      away from you 2.5× harder, so they never reached the other side. Now honey slows a snack
+      the same both ways and lasts 2 s (was 3). n=80: easy Sticky 63%, Magnet 48%, Double 55%;
+      normal 40% / 53% / 63%. Shorter alone (1.5 s: 77%) or a smaller honey zone (stronger,
+      the bot times it better) didn't fix it. Test in tests/snacksnatch.test.ts.
+- [ ] Snack Snatch at hard: Sticky 26%, Double 73% after F106 (main read 49% / 63%); hard is
+      rarely a kid's level, but a stronger pull for Sticky only at hard speeds could fix it.
 - [x] 2026-11-07 (F105): Tank Duel's stick follows the thumb that steers, not a palm resting
       in the stick zone: Input.holding() keeps the finger holding the stick while it is down
       (so a thumb holding still isn't robbed by a palm that lands), and hands it to another
