@@ -76,3 +76,25 @@ describe("minigolf: today's course", () => {
     expect(s.recordDaily('2026-11-08', [{ name: 'Dad', strokes: 12 }]).best?.strokes).toBe(12);
   });
 });
+
+// F101: the list stays easiest-first at the long end. Twin Gates got easier (wider gates)
+// and played under Switchback at every level (n=24: easy 5.2 vs 5.5, normal 3.1 vs 4.0),
+// so Switchback is now the last hole.
+describe('minigolf: hole order', () => {
+  it('the last hole takes normal bots at least as many strokes as the one before it', () => {
+    const strokes = (id: string) => {
+      let total = 0;
+      let balls = 0;
+      for (let seed = 0; seed < 12; seed++) {
+        const rng = makeRng(900 + seed);
+        const g = new Minigolf([player({ bot: 'normal' }), player({ bot: 'normal' })], false, rng, [id]);
+        const bots = [new MinigolfBot(0, 'normal', rng), new MinigolfBot(1, 'normal', rng)];
+        for (let t = 0; !g.finished && t < 900; t += DT) g.step(DT, [bots[0].think(g, DT), bots[1].think(g, DT)]);
+        for (const st of g.card[0].strokes) (total += st), balls++;
+      }
+      return total / balls;
+    };
+    const [a, b] = HOLES.slice(-2);
+    expect(strokes(b.id)).toBeGreaterThanOrEqual(strokes(a.id));
+  }, 60_000);
+});
