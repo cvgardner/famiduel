@@ -4,6 +4,8 @@ import type { BotLevel, PowerDef } from '../src/core/types';
 import { RULES, Sumo, SumoBot, type Intent } from '../src/games/sumo/logic';
 import { DT, player, power } from './helpers';
 import { Masher } from '../scripts/simlib';
+import { BANNER_MAX, BANNER_OFF } from '../src/games/sumo/index';
+import { MID } from '../src/engine/world';
 
 function play(levels: [BotLevel, BotLevel], seed: number, opts: { powers?: [PowerDef, PowerDef]; assist?: [number, number] } = {}) {
   const rng = makeRng(seed);
@@ -308,4 +310,17 @@ describe('sumo', () => {
       expect(wins / N, level).toBeGreaterThanOrEqual(0.8);
     }
   }, 60_000);
+});
+
+describe('round banner (F140)', () => {
+  it('sits between the wrestlers at the start of a round, clear of both and of its mirrored copy', () => {
+    const g = new Sumo([player({}), player({})], false, makeRng(1));
+    // A glyph's ink plus its outline reaches about 0.6 of the font size either side of y.
+    const half = BANNER_MAX * 0.6;
+    expect(BANNER_OFF - half, 'the two mirrored copies stay apart').toBeGreaterThan(0);
+    for (const w of g.wrestlers) {
+      const gap = Math.abs(w.y - MID) - RULES.bodyR;
+      expect(BANNER_OFF + half, 'the banner stays off the wrestler').toBeLessThan(gap);
+    }
+  });
 });

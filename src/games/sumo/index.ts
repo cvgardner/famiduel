@@ -13,6 +13,14 @@ const SAND = '#e9cf98';
 const SAND_DARK = '#c9a865';
 /** The colours most of the play area is painted in (tests read pops against them). */
 export const SURFACES: readonly string[] = [SAND, SAND_DARK];
+/**
+ * F140: the round banner ("Round 2", "GO!", "Final round!") sits this far from the ring's
+ * centre, between the wrestlers' start spots, so it never covers the wrestler a kid is
+ * looking for (at 56 it sat on each one). BANNER_MAX caps its size so the two mirrored
+ * copies stay apart.
+ */
+export const BANNER_OFF = 26;
+export const BANNER_MAX = 30;
 const ROPE = '#b8893e';
 const SKIN = '#f6d3ad';
 const DUST = '#d8bb84';
@@ -234,10 +242,10 @@ class SumoView implements GameInstance {
       const a = Math.min(1, this.banner * 4);
       const pop = 1 + Math.max(0, this.banner - (this.bannerText === 'GO!' ? 0.4 : 0.9)) * 1.5;
       for (const p of PLAYERS) {
-        const y = p === 0 ? MID + 56 : MID - 56;
+        const y = p === 0 ? MID + BANNER_OFF : MID - BANNER_OFF;
         const fit = Math.min(26, 500 / Math.max(1, this.bannerText.length));
         // Capped so the two mirrored copies never overlap across the middle.
-        text(gx, this.bannerText, W / 2, y, { size: fitSize(gx, this.bannerText, W - 20, Math.round(Math.min(fit * pop, 34))), color: this.bannerColor, stroke: 'rgba(40,20,0,0.75)', player: p, alpha: a });
+        text(gx, this.bannerText, W / 2, y, { size: fitSize(gx, this.bannerText, W - 20, Math.round(Math.min(fit * pop, BANNER_MAX))), color: this.bannerColor, stroke: 'rgba(40,20,0,0.75)', player: p, alpha: a });
       }
     }
   }
