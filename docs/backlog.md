@@ -1300,3 +1300,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       you're in; the daily playtest reads it once the card has faded in.
 - [x] 2026-11-07 (F108, no change needed): Snack Snatch Magnet after F106 is in band: easy
       48% (60% vs Sticky, 53% vs none), normal 53% (`sim:powers -- --game snacksnatch --n 80`).
+- [x] 2026-11-07 (F99): Today's course has at most one long hole (par 4+: Sand Castle,
+      Windmill, Zig Zag, Switchback, Twin Gates; an easy bot takes 4.3-5.3 strokes on each).
+      Over the next 365 days the old picks stacked two long holes on 36 days and three on
+      2; now 158 days have none and 207 one. A second long hole drawn is put aside and drawn
+      again, so days with one or none keep their holes. `tests/daily-golf.test.ts` pins it.
