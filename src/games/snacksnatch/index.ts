@@ -18,6 +18,8 @@ const KINDS = ['#d9a066', '#ff8fc2', '#ff5c7a', '#f4c96b', '#6ec8ff', '#ffa24c']
 
 /** Room between the frog's head and its "Miss!" pop (F176). */
 const MISS_GAP = 16;
+/** F182: the seconds-left's blanket-coloured outline, so it reads over a snack resting under it. */
+const SECONDS_HALO = alpha(BLANKET, 0.9);
 
 class SnackSnatchView implements GameInstance {
   readonly game: SnackSnatch;
@@ -153,6 +155,7 @@ class SnackSnatchView implements GameInstance {
     this.renderPot(gx);
     this.renderClock(gx);
     for (const sn of g.snacks) this.renderSnack(gx, sn);
+    this.renderSeconds(gx);
     for (const p of PLAYERS) for (const c of g.critters[p]) this.renderCritter(gx, c);
     for (const p of PLAYERS) this.renderScore(gx, p);
     for (const p of PLAYERS) this.powerBtns[p]?.render(gx, g.energy[p], this.t);
@@ -259,14 +262,26 @@ class SnackSnatchView implements GameInstance {
     gx.strokeStyle = g.timeLeft <= 5 ? COLORS.bad : '#7a3f1d';
     gx.arc(W / 2, MID, RULES.potR + 10, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac);
     gx.stroke();
+  }
+
+  /**
+   * The seconds left, beside the pot on each player's side. F182: drawn after the snacks, with a
+   * blanket-coloured outline, because snacks often roll to a stop there and hid the number (the
+   * digits stay out of every critter's reach, so they never cover a snack you could gulp).
+   */
+  private renderSeconds(gx: G): void {
+    const g = this.game;
     const sec = Math.max(0, Math.ceil(g.timeLeft));
     const urgent = g.timeLeft <= 5;
     const size = urgent ? 30 + 6 * (g.timeLeft % 1) : 24;
     // Each player reads the clock beside the pot, on their side. F160: a bot's copy would turn
     // to face the person and read as a second clock, so a bot seat facing a person gets none.
     const ink = urgent ? COLORS.bad : 'rgba(90,45,20,0.75)';
-    if (!silentSeat(this.ctx.players, 0)) text(gx, String(sec), W / 2 + 74, MID + 14, { size, color: ink, player: 0 });
-    if (!silentSeat(this.ctx.players, 1)) text(gx, String(sec), W / 2 - 74, MID - 14, { size, color: ink, player: 1 });
+    const seats: [PlayerIndex, number, number][] = [[0, W / 2 + 74, MID + 14], [1, W / 2 - 74, MID - 14]];
+    for (const [p, x, y] of seats) {
+      if (silentSeat(this.ctx.players, p)) continue;
+      text(gx, String(sec), x, y, { size, color: ink, stroke: SECONDS_HALO, player: p });
+    }
   }
 
   private renderSnack(gx: G, sn: Snack): void {
