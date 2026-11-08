@@ -22,6 +22,11 @@ export const DIVE_R_BIG = 32;
 const DIVE_HIT = 36;
 /** F183: the shooter's "<power> ready" line sits this far past the ball, toward the goal. */
 const READY_DY = 66;
+/**
+ * F186: the shooter's "Swipe to pick your shot!" / "Shot picked!" line sits this far past the
+ * ball, toward the goal: past the ready line, short of the keeper's "Kick in" and "coming!" lines.
+ */
+export const PICK_DY = 100;
 const DIVES: Dive[] = [-1, 0, 1];
 /** Lock in the pick as soon as the finger has travelled this far toward the goal. */
 const AUTO_KICK = 150;
@@ -356,9 +361,10 @@ class PenaltyView implements GameInstance {
       }
       if (human) {
         // Says that a shot is picked, never where: the keeper can read this side too.
+        // F186: toward the goal (behind the ball it printed across the shooter's own goal's net).
         const msg = g.picked ? (g.runningUp ? 'Shot locked!' : 'Shot picked! Swipe again to change') : g.runningUp ? 'Quick, swipe!' : 'Swipe to pick your shot!';
         const pulse = g.picked && this.pickedT < 0.3 ? 1 + 0.25 * (1 - this.pickedT / 0.3) : 1;
-        text(gx, msg, W / 2, g.spotY() + back * 70, { size: fitSize(gx, msg, W - 20, Math.round((g.picked && !g.runningUp ? 14 : 16) * pulse)), player: s, color: g.picked ? COLORS.gold : '#fff', stroke: 'rgba(0,0,0,0.45)' });
+        text(gx, msg, W / 2, g.spotY() + this.toward() * PICK_DY, { size: fitSize(gx, msg, W - 20, Math.round((g.picked && !g.runningUp ? 14 : 16) * pulse)), player: s, color: g.picked ? COLORS.gold : '#fff', stroke: 'rgba(0,0,0,0.45)' });
       }
       if (g.armed[s]) {
         const pw = this.ctx.players[s].power!;

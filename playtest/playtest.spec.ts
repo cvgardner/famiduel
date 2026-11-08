@@ -533,6 +533,54 @@ test('quick draw: two people tapping in the same frame, the first touch wins (no
   expect(errors).toEqual([]);
 });
 
+test('ghost finger: Minigolf\'s card stays off the hole card through GO, on a small phone', async ({ page }) => {
+  // F185: the card beside the countdown digit sat on the right end of the hole card, which fades
+  // in at GO while the finger is still out ("Speed Bumps" read "Speed Bump"). Minigolf's card
+  // sits low (demoAt), over the scorecard strip; checked from the countdown to a second after GO.
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  type H = { openGame(id: string): void; startMatch(): void; showHome(): void; store: { data: { history: { game: string }[] } } };
+  await page.evaluate(() => {
+    const a = (window as unknown as { __famiduel: H }).__famiduel;
+    a.store.data.history = [];
+    a.showHome();
+    a.openGame('minigolf');
+    a.startMatch();
+  });
+  const box = await worldBox(page);
+  const s = box.width / 360;
+  // The hole card (minigolf drawIntro): x 40-320, MID + 150 ± 62 for seat 0, turned for seat 1.
+  const card = (p: number) => {
+    const cy = p === 0 ? 320 + 150 : 320 - 150;
+    return { l: box.x + 40 * s, r: box.x + 320 * s, t: box.y + (cy - 62) * s, b: box.y + (cy + 62) * s };
+  };
+  const hits: string[] = [];
+  let seen = 0;
+  for (let i = 0; i < 14; i++) {
+    const cards = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('#play .play-demo')]
+        .filter((el) => Number(getComputedStyle(el).opacity) > 0.05)
+        .map((el) => {
+          const r = el.querySelector('.demo')!.getBoundingClientRect();
+          return { p: Number(el.dataset.p), l: r.left, r: r.right, t: r.top, b: r.bottom };
+        }),
+    );
+    seen += cards.length;
+    for (const c of cards) {
+      const h = card(c.p);
+      if (c.l < h.r && c.r > h.l && c.t < h.b && c.b > h.t) hits.push(`seat ${c.p} at ${i * 200} ms`);
+    }
+    if (i === 10) await page.screenshot({ path: path.join(OUT, 'ghost-finger-minigolf-hole-card.png') });
+    await page.waitForTimeout(200);
+  }
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
+  expect(seen, 'the finger cards showed').toBeGreaterThan(4);
+  expect(hits, 'finger card over the hole card').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('countdown: no game words under a person\'s "3 2 1" digit, on a small phone', async ({ page }) => {
   // F158: Chop Chop's "Round 1" card, Penalty's "Kick in 3" and Quick Draw's "Steady…" sat
   // under the digit (F155-F157, found by eye). Every label drawn during the countdown is
