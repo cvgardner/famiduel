@@ -893,6 +893,43 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
   expect(errors).toEqual([]);
 });
 
+// F121: the person can sit at the top with the bot below (a seat's own bot level), so the
+// bot's words and half turn to face the top instead.
+test('play the bot from the top seat: the bottom bot\'s words face the person up top', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type H = Hook & { runner: { players: { bot: string | null }[] } | null };
+  await setPlayers(page, ['easy', null]);
+  for (const id of ['airhockey', 'sumo', 'snake', 'minigolf'].filter((x) => built.includes(x))) {
+    await page.locator(`.game-card[data-id="${id}"]`).tap();
+    await expect(page.locator('#intro .half.p0'), `${id}: the bottom bot's half faces up`).toHaveCSS('transform', /^matrix\(-1, /);
+    await page.evaluate(() => {
+      const r = (window as unknown as { __reader: { on: boolean; turned: Set<string> } }).__reader;
+      r.turned.clear();
+      r.on = true;
+      const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number> } }).__edges;
+      e.over.clear();
+      e.on = true;
+    });
+    await introAsPeople(page, [1]);
+    expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players.map((p) => p.bot)), id).toEqual(['easy', null]);
+    await page.waitForTimeout(2600);
+    const [turned, over] = await page.evaluate(() => {
+      const r = (window as unknown as { __reader: { on: boolean; turned: Set<string> } }).__reader;
+      const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number> } }).__edges;
+      r.on = false;
+      e.on = false;
+      return [[...r.turned], [...e.over]];
+    });
+    expect(turned.length, `${id}: the bottom bot's words were turned to face the top`).toBeGreaterThan(0);
+    expect(over, `${id}: no turned word runs off the screen`).toEqual([]);
+    await page.screenshot({ path: path.join(OUT, `solo-top-${id}.png`) });
+    await leaveMatch(page);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('seat cue: in games where both pieces roam, seats read apart in greyscale (solid vs dashed ring)', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
