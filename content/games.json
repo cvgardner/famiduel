@@ -1,6 +1,6 @@
 {
   "games": [
-    { "id": "minigolf", "gesture": "pull", "name": "Minigolf", "icon": "⛳", "kind": "Aim · turns", "free": true, "color": "#3fbf6a",
+    { "id": "minigolf", "gesture": "pull", "demoAt": 0.92, "name": "Minigolf", "icon": "⛳", "kind": "Aim · turns", "free": true, "color": "#3fbf6a",
       "blurb": "Fewest strokes over 3 holes wins.", "howTo": "Take turns. Pull back anywhere in your half (or by your ball) and let go. The course turns to face whoever is shooting.",
       "handicap": "Longer aim guide, and strokes off the score" },
     { "id": "airhockey", "gesture": "drag", "name": "Air Hockey", "icon": "🏒", "kind": "Action", "free": true, "color": "#3fa9ff",

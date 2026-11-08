@@ -1686,3 +1686,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seat, two-people playtest), like F183's ready line. It reads past the ball toward the
       goal now (PICK_DY 100), past the ready line and short of the keeper's "Kick in" and
       "coming!" lines, both seats, picked or not, on the run-up too. tests/penalty-pick.test.ts.
+- [x] 2026-11-08 (F185, PR #PRNUM): Minigolf, first match on a phone: the in-play finger card
+      (beside the countdown digit since F152) sat on the right end of the hole card, which
+      fades in at GO while the finger is still out ("Speed Bumps" read "Speed Bump" at
+      320x568). Minigolf's card sits low now (demoAt 0.92, over the scorecard strip, where
+      the pull starts near the tee); the new playtest checks both seats' cards clear the hole
+      card from the countdown to a second after GO.
