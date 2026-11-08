@@ -689,9 +689,11 @@ class MinigolfView implements GameInstance {
     const badges: string[] = [];
     if (g.magnet[p]) badges.push('🧲');
     if (g.ghost[p]) badges.push('👻');
-    if (g.wind[p]) badges.push('🌬️ on you');
+    // F122: a bot facing the one person never says "you" (they'd read it as their own).
+    const quiet = silentSeat(this.ctx.players, p);
+    if (g.wind[p]) badges.push(quiet ? '🌬️ wind' : '🌬️ on you');
     if (g.wind[p]?.dir && myTurn) badges[badges.length - 1] = '🌬️ Wind!';
-    if (badges.length) status = myTurn ? `${badges.join(' ')} · Pull back, let go` : `${badges.join(' ')} next shot`;
+    if (badges.length) status = myTurn ? `${badges.join(' ')} · ${this.bots[p] ? 'Lining up…' : 'Pull back, let go'}` : `${badges.join(' ')} next shot`;
     text(gx, status, x0, y0 + 42, { size: 13, color: sc, align: 'left', weight: 700 });
     // Scores
     const hs = g.phase === 'card' || g.phase === 'over' || g.phase === 'intro' ? '–' : String(g.balls[p].strokes);
@@ -710,6 +712,11 @@ class MinigolfView implements GameInstance {
     const fade = Math.max(0, Math.min(1, k));
     gx.globalAlpha = fade;
     if (p === shooter) {
+      // F122: the bot's own "YOUR SHOT!" would read as the person's; their half says "Bot's shot".
+      if (silentSeat(this.ctx.players, p)) {
+        gx.globalAlpha = 1;
+        return;
+      }
       const y = MID + 70;
       rrect(gx, 30, y - 26, W - 60, 52, 26, c, '#ffffff', 3);
       text(gx, 'YOUR SHOT!', W / 2, y, { size: 30, color: '#ffffff', stroke: shade(c, -0.5) });
