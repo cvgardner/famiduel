@@ -467,7 +467,8 @@ test('ghost finger: the in-play card never sits on a person\'s "3 2 1" digit, on
         return { p: Number(el.closest<HTMLElement>('.play-demo')!.dataset.p), l: r.left, r: r.right, t: r.top, b: r.bottom };
       }),
     );
-    expect(cards.length, `${id}: a finger per person`).toBe(2);
+    // F159: a two-person Sea Battle or RPS opens on the look-away cover: no finger over it.
+    expect(cards.length, `${id}: a finger per person`).toBe(WAITS_FOR_PERSON.includes(id) ? 0 : 2);
     for (const c of cards) {
       // The biggest digit (110 units tall, ~66 wide) at MID ± 120.
       const cy = box.y + (c.p === 0 ? 440 : 200) * s;

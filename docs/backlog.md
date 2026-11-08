@@ -1550,4 +1550,5 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       that opens on a cover now says so (`opensOnCover()`) and the runner skips the countdown:
       the cover's own "Tap when only … is looking" is the ready step, and a turn game needs no
       GO. With a bot (no cover) the countdown stays. The F158 playtest checks both games open
-      on the cover with no digit (countdown-cover-seabattle.png).
+      on the cover with no digit (countdown-cover-seabattle.png), and the first match's
+      in-play ghost finger no longer taps over "look away!" there (the cover says what to tap).
