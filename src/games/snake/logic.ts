@@ -29,6 +29,8 @@ export const RULES = {
   roundOutro: 1.8,
   maxQueue: 2,
   energyPerCell: 0.006,
+  /** Most trail cells one Phase crossing may pass through (F104). */
+  phaseCells: 2,
   energyLose: 0.3,
   boostMult: 1.45,
   bombRadius: 3.3,
@@ -51,6 +53,8 @@ export type Snake = {
   /** Seconds the Phase power stays armed; it ends after one trail is crossed. */
   phase: number;
   phasing: boolean;
+  /** Trail cells crossed in the current crossing (at most RULES.phaseCells). */
+  phased: number;
   moves: number;
   speedMul: number;
   turnAssist: boolean;
@@ -102,7 +106,7 @@ export class SnakeDuel {
   private newSnake(p: PlayerIndex): Snake {
     const a = this.players[p].assist;
     return {
-      x: 0, y: 0, dir: 0, alive: true, acc: 0, queue: [], boost: 0, phase: 0, phasing: false, moves: 0,
+      x: 0, y: 0, dir: 0, alive: true, acc: 0, queue: [], boost: 0, phase: 0, phasing: false, phased: 0, moves: 0,
       speedMul: lerpAssist(a, 1, RULES.assistSpeed),
       turnAssist: a >= RULES.turnAssistAt,
     };
@@ -122,7 +126,7 @@ export class SnakeDuel {
     for (const p of [0, 1] as PlayerIndex[]) {
       const s = this.snakes[p];
       const [x, y, dir] = starts[p];
-      Object.assign(s, { x, y, dir, alive: true, acc: 0, queue: [], boost: 0, phase: 0, phasing: false, moves: 0 });
+      Object.assign(s, { x, y, dir, alive: true, acc: 0, queue: [], boost: 0, phase: 0, phasing: false, phased: 0, moves: 0 });
       this.grid[this.idx(x, y)] = p + 1;
     }
     this.phase = 'intro';
@@ -202,7 +206,7 @@ export class SnakeDuel {
       const y = s.y + DY[s.dir];
       const wall = !this.inside(x, y);
       const filled = !wall && this.grid[this.idx(x, y)] !== 0;
-      const pass = filled && (s.phase > 0 || s.phasing);
+      const pass = filled && canPhase(s);
       next[p] = { x, y, wall, pass, crash: wall || (filled && !pass) };
     }
     if (movers.length === 2) {
@@ -227,6 +231,7 @@ export class SnakeDuel {
       if (n.pass) {
         if (!s.phasing) this.events.push({ type: 'phaseThrough', p, x: n.x, y: n.y });
         s.phasing = true;
+        s.phased++;
       } else {
         if (s.phasing) {
           s.phasing = false;
@@ -273,7 +278,10 @@ export class SnakeDuel {
     const s = this.snakes[p];
     if (!power || !s.alive || !this.energy[p].spend(power.duration ?? 0)) return;
     if (power.id === 'boost') s.boost = power.duration ?? 3;
-    else if (power.id === 'phase') s.phase = power.duration ?? 5;
+    else if (power.id === 'phase') {
+      s.phase = power.duration ?? 5;
+      s.phased = 0;
+    }
     else if (power.id === 'bomb') {
       const r = RULES.bombRadius;
       let cleared = 0;
@@ -365,8 +373,7 @@ export class SnakeBot {
     const x = s.x + DX[dir];
     const y = s.y + DY[dir];
     if (!game.inside(x, y)) return -1e9;
-    const canPhase = s.phase > 0 || s.phasing;
-    if (game.grid[game.idx(x, y)] !== 0 && !canPhase) return -1e9;
+    if (game.grid[game.idx(x, y)] !== 0 && !canPhase(s)) return -1e9;
     let score = flood(game, x, y, cfg.depth);
     if (cfg.avoidHead && o.alive && Math.abs(o.x + DX[o.dir] - x) + Math.abs(o.y + DY[o.dir] - y) === 0) score -= 50;
     else if (cfg.avoidHead && o.alive && Math.abs(o.x - x) + Math.abs(o.y - y) === 1) score -= 8;
@@ -383,6 +390,15 @@ export class SnakeBot {
     if (id === 'boost') return !trapped && this.rng.chance(0.02);
     return false;
   }
+}
+
+/**
+ * True when the snake's next step may pass through a trail cell: Phase is armed or mid-crossing,
+ * and this crossing has not yet passed RULES.phaseCells cells (a crossing goes through one trail,
+ * not along it or through a packed block of trails).
+ */
+export function canPhase(s: Snake): boolean {
+  return (s.phase > 0 || s.phasing) && s.phased < RULES.phaseCells;
 }
 
 /** Count empty cells reachable from (x, y), up to cap. (x, y) itself counts. */
