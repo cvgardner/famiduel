@@ -27,6 +27,9 @@ const READY_DY = 66;
  * ball, toward the goal: past the ready line, short of the keeper's "Kick in" and "coming!" lines.
  */
 export const PICK_DY = 100;
+/** F190: the shooter's "Keeper moved!" pop starts beside the ball, this far to their left. */
+export const EARLY_DX = 96;
+export const EARLY_POP = 'Keeper moved!';
 const DIVES: Dive[] = [-1, 0, 1];
 /** Lock in the pick as soon as the finger has travelled this far toward the goal. */
 const AUTO_KICK = 150;
@@ -175,7 +178,9 @@ class PenaltyView implements GameInstance {
         sfx.play('pop');
         if (e.early) {
           const s = g.shooter;
-          fx.pop('Keeper moved early!', W / 2, s === 0 ? MID + 40 : MID - 40, COLORS.gold, s, 20);
+          // F190: beside the ball, on the side away from the shooter's seconds (it rose from the
+          // middle into "Shot picked!" and the "<power> ready" line).
+          fx.pop(EARLY_POP, W / 2 + (s === 0 ? -EARLY_DX : EARLY_DX), g.spotY(), COLORS.gold, s, 16);
         }
       } else if (e.type === 'result') {
         const s = e.shooter;
