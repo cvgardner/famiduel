@@ -210,3 +210,16 @@ describe('quick draw', () => {
     expect(play(['normal', 'normal'], 8, { powers: ['fakeout', 'double'] }).powersFired).toBeGreaterThan(0);
   });
 });
+
+describe('pre-reader cue (F147)', () => {
+  it('a raised hand sits beside Steady… and Wait for it…, never on a worded fake-out card', async () => {
+    const { WAIT_CUE } = await import('../src/games/quickdraw/index');
+    expect(WAIT_CUE).toBe('✋');
+    const src = (await import('node:fs')).readFileSync('src/games/quickdraw/index.ts', 'utf8');
+    expect(src).toMatch(/'Steady…'[^;]*;\s*waitHand\(gx,/);
+    expect(src).toMatch(/'Wait for it…'[^;]*;\s*waitHand\(gx,/);
+    // The fake-out card's branch draws no hand.
+    const fake = src.slice(src.indexOf('FAKE_TEXT[f.kind]'), src.indexOf("'Wait for it…'"));
+    expect(fake).not.toMatch(/waitHand/);
+  });
+});

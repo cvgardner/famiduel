@@ -32,6 +32,17 @@ const FAKE_TEXT: Record<FakeKind, [string, string]> = {
   tumbleweed: ['', ''],
 };
 
+/**
+ * F147: a raised hand beside "Steady…" and "Wait for it…", so a child who can't read yet
+ * still sees "don't tap" until the red DRAW! card. A worded fake-out card gets none: fooling
+ * the reader is its whole trick.
+ */
+export const WAIT_CUE = '✋';
+function waitHand(gx: G, y: number): void {
+  text(gx, WAIT_CUE, W / 2 - 104, y, { size: 26 });
+  text(gx, WAIT_CUE, W / 2 + 104, y, { size: 26 });
+}
+
 /** Local point in player p's frame to a screen point. */
 const toScreen = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
 
@@ -243,6 +254,7 @@ class QuickDrawView implements GameInstance {
       // "Round 1" above the person's (F123 only folds big banners); the person's half has it.
       if (!silentSeat(this.ctx.players, p)) text(gx, `Round ${g.round}`, W / 2, y - 14, { size: 20, color: 'rgba(80,50,20,0.85)' });
       text(gx, 'Steady…', W / 2, y + 14, { size: 26, color: '#5b3412' });
+      waitHand(gx, y + 14);
     } else if (g.phase === 'wait') {
       const f = g.fake;
       if (f && f.kind !== 'tumbleweed') {
@@ -252,7 +264,10 @@ class QuickDrawView implements GameInstance {
         text(gx, a, W / 2, y - 12, { size: 26 * pop, color: '#c0392b', weight: 900 });
         text(gx, b, W / 2, y + 16, { size: 20 * pop, color: '#5b3412' });
         if (f.by === p && !silentSeat(this.ctx.players, p)) text(gx, '(your fake-out 🎭)', W / 2, y + 48, { size: 13, color: '#5a3400' });
-      } else text(gx, 'Wait for it…', W / 2, y, { size: 20, color: 'rgba(70,40,12,0.8)' });
+      } else {
+        text(gx, 'Wait for it…', W / 2, y, { size: 20, color: 'rgba(70,40,12,0.8)' });
+        waitHand(gx, y);
+      }
     } else if (g.phase === 'draw') {
       const k = Math.min(1, g.phaseT / 0.06);
       glow(gx, '#ff3b2f', 22);
