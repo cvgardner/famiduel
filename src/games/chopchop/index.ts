@@ -27,6 +27,13 @@ const L = {
   powerY: H - 40,
 };
 
+/**
+ * F189: where the "10!" / "20!" milestone pop starts, in the seat's own frame: below the
+ * chopper's "N / 50" count (barY + 30, 28 units tall), so its bright first half-second of
+ * rising (pops float toward the middle) ends just short of the count.
+ */
+export const MILESTONE_Y = MID + 22 + 80;
+
 /** F180: the BONK! pop's distance from the trunk, outside the chopper (at chopperDX). */
 export const BONK_DX = 128;
 /** The between-rounds card's centre, in the seat's own frame. */
@@ -104,7 +111,7 @@ class ChopView implements GameInstance {
         if (e.count > 1) fx.pop('+2', s.x, s.y - (e.p === 0 ? 30 : -30), COLORS.gold, e.p, 18);
         const c = g.choppers[e.p];
         if (c.chops > 0 && c.chops % 10 < e.count) {
-          const m = toScreen(e.p, W / 2, L.barY + 40);
+          const m = toScreen(e.p, W / 2, MILESTONE_Y);
           fx.pop(`${c.chops}!`, m.x, m.y, COLORS.gold, e.p, 26);
           sfx.play('coin');
         }
