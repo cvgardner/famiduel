@@ -1647,6 +1647,20 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       frog's resting head, so the head pulling back from the missed snap slid over it and the
       word sat on the frog's eyes (seen top seat, snacksnatch-vs-bot-later.png). It starts on
       the blanket past the open jaws now and floats on into the field. tests/snacksnatch-miss.test.ts.
+- [x] 2026-11-08 (F177, PR #222): Sumo: a power's name ("💪 Grow!") popped at a fixed spot by
+      the near rope, so a wrestler standing there (often the one who had just grown) covered it.
+      It now starts there only when clear, else steps in toward the middle until the word clears
+      both wrestlers (powerPopY()). tests/sumo-power-pop.test.ts.
+- [x] 2026-11-08 (F179, no change): research, a rival 2-player app's review says "the stronger
+      bot doesn't feel stronger". Ours: `npm run sim` has hard beating easy 90-100% and normal
+      70-100% in every action game, so the levels are well apart.
+- [x] 2026-11-08 (F178, PR #223): Quick Draw: Slow Time's "⏳ get ready…" line sat on the
+      cowboy's hat (between the signal and the cowboy). It now reads left of the cowboy, below
+      the cactus (READY_X). tests/quickdraw-get-ready.test.ts.
+- [x] 2026-11-08 (F180, PR #224): Chop Chop: a bonk ends the round, so the "Bonked!" card
+      comes up at once, and the BONK! pop over the chopper's head rose into the card's top
+      edge. It now starts beside the chopper, low enough to stay under the card (BONK_DX).
+      tests/chopchop-bonk-pop.test.ts.
 - [x] 2026-11-08 (F182, PR #226): Snack Snatch: the seconds-left beside the pot hid under snacks
       that rolled to a stop there (bottom seat's "20" under two candies in a bot match). The
       digits draw after the snacks now, with a blanket-coloured outline; they cover at most the
