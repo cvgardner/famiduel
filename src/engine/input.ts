@@ -19,6 +19,11 @@ export type Pointer = {
   my: number;
 };
 
+/** True once the finger has travelled MOVE_STEP from where it landed. */
+export function hasMoved(p: Pointer): boolean {
+  return p.mx !== p.startX || p.my !== p.startY;
+}
+
 /** A finger must travel this far (world units) to count as moving; palms jitter less. */
 export const MOVE_STEP = 3;
 /** A finger that just landed counts as having moved this many frames ago, so a finger that
@@ -65,6 +70,21 @@ export class Input {
       if (!best || p.movedAt >= best.movedAt) best = p;
     }
     return best;
+  }
+
+  /**
+   * The finger that holds a stick (Tank Duel): like steering(), but the finger already holding
+   * it keeps it while it is down, so a thumb holding the stick still is not robbed by a palm
+   * that lands. Another finger takes over when it is steering more recently and either it has
+   * really moved or the holder never did (a palm that landed first never moves; the thumb
+   * that lands after it takes the stick at once).
+   */
+  holding(player: 0 | 1, currentId: number | null, skip?: (p: Pointer) => boolean): Pointer | undefined {
+    const best = this.steering(player, skip);
+    const cur = currentId === null ? undefined : this.pointers.get(currentId);
+    if (!cur || !cur.down || cur.owner !== player || (skip && skip(cur))) return best;
+    if (!best || best.id === cur.id || best.movedAt <= cur.movedAt) return cur;
+    return hasMoved(best) || !hasMoved(cur) ? best : cur;
   }
 
   /** Any pointer of the player that landed this frame. */

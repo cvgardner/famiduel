@@ -60,3 +60,54 @@ describe('a resting palm never takes the paddle (F100)', () => {
     expect(inp.steering(1)?.id).toBe(2);
   });
 });
+
+describe('a resting palm never takes the Tank Duel stick (F105)', () => {
+  it('palm in the stick zone first: the thumb that lands takes the stick', () => {
+    const inp = new Input();
+    inp.down(1, 20, 630); // palm
+    frames(inp, 30);
+    let held = inp.holding(0, null)?.id ?? null;
+    expect(held).toBe(1);
+    inp.down(2, 78, 584); // thumb lands on the stick
+    held = inp.holding(0, held)?.id ?? null;
+    expect(held).toBe(2);
+    let x = 78;
+    frames(inp, 20, () => {
+      inp.move(2, (x += 2), 584);
+      held = inp.holding(0, held)?.id ?? null;
+    });
+    expect(held).toBe(2);
+  });
+
+  it('a thumb holding the stick still keeps it when a palm lands', () => {
+    const inp = new Input();
+    inp.down(2, 78, 584);
+    let held: number | null = null;
+    frames(inp, 4, () => {
+      inp.move(2, 110, 584); // push right, then hold
+      held = inp.holding(0, held)?.id ?? null;
+    });
+    frames(inp, 60, () => {
+      held = inp.holding(0, held)?.id ?? null;
+    });
+    inp.down(1, 20, 630); // palm lands
+    frames(inp, 60, () => {
+      inp.move(1, 20.5, 630.5); // palm jitter
+      held = inp.holding(0, held)?.id ?? null;
+    });
+    expect(held).toBe(2);
+  });
+
+  it('when the holder lifts, another finger down takes over; skip rejects fingers', () => {
+    const inp = new Input();
+    inp.down(1, 20, 630);
+    inp.down(2, 78, 584);
+    inp.move(2, 100, 584);
+    let held = inp.holding(0, null)?.id ?? null;
+    expect(held).toBe(2);
+    inp.up(2);
+    held = inp.holding(0, held)?.id ?? null;
+    expect(held).toBe(1);
+    expect(inp.holding(0, held, (p) => p.id === 1)).toBeUndefined();
+  });
+});
