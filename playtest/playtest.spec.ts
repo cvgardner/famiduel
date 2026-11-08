@@ -876,6 +876,10 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     // (the bot's copy, turned upright, read as a second line or a back-to-front score).
     expect(turned.filter((t) => /^Round \d+$/.test(t)), `${id}: a second "Round" line in the bot's half`).toEqual([]);
     expect(turned.filter((t) => /^\d+ – \d+$/.test(t)), `${id}: a back-to-front score in the bot's half`).toEqual([]);
+    // F139: Minigolf's hole card and scorecard show once, in the person's half (the bot's
+    // copy covered the far third of the course).
+    const cardWords = /^(HOLE \d+ OF \d+|.*SCORECARD|Par \d+)$/;
+    expect(turned.filter((t) => cardWords.test(t)), `${id}: a hole card in the bot's half`).toEqual([]);
     await page.screenshot({ path: path.join(OUT, `solo-play-${id}.png`) });
     // F137: the first-match ghost finger leaves the person's play area about a second after GO
     // (its card sat over Penalty's goal and Snack Snatch's lower lanes).
@@ -925,6 +929,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     expect(reached, `${id}: a point, the match end or (turn games) the person's own move`).toBe(true);
     expect(roundWords.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half at the round end`).toEqual([]);
     expect(roundWords.filter((t) => /^(Round \d+|\d+ – \d+)$/.test(t)), `${id}: a second "Round" or score line in the bot's half at the round end`).toEqual([]);
+    expect(roundWords.filter((t) => cardWords.test(t)), `${id}: a hole card or scorecard in the bot's half at the round end`).toEqual([]);
     if (id === 'chopchop') {
       // F131: the person sat still, so their time ran out: the round banner says "Out of time!"
       // on its own, with no "Time's up!" pop rising over the chop count and that banner.

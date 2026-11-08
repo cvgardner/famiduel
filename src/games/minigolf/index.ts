@@ -305,11 +305,15 @@ class MinigolfView implements GameInstance {
 
     for (const p of PLAYERS) facing(gx, p, W / 2, MID, () => this.drawStrip(gx, p));
     for (const p of PLAYERS) this.powerBtns[p]?.render(gx, g.energy[p], this.t);
-    if (g.phase === 'intro') for (const p of PLAYERS) facing(gx, p, W / 2, MID, () => this.drawIntro(gx, p));
+    // F139: Play the bot draws the hole card and the scorecard only in the person's half.
+    // The bot's copy covered the far third of the course with the same hole and par
+    // (and a scorecard whose "You" column was the bot's).
+    const seats = PLAYERS.filter((p) => !silentSeat(this.ctx.players, p));
+    if (g.phase === 'intro') for (const p of seats) facing(gx, p, W / 2, MID, () => this.drawIntro(gx, p));
     else if (g.phase === 'card' || g.phase === 'over') {
       gx.fillStyle = 'rgba(8,10,20,0.55)';
       gx.fillRect(0, 0, W, H);
-      for (const p of PLAYERS) facing(gx, p, W / 2, MID, () => this.drawCard(gx, p));
+      for (const p of seats) facing(gx, p, W / 2, MID, () => this.drawCard(gx, p));
     } else if (this.bannerT > 0 && (g.phase === 'turn' || g.phase === 'aim') && !this.pendingShot()) {
       for (const p of PLAYERS) facing(gx, p, W / 2, MID, () => this.drawBanner(gx, p));
     }

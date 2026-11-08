@@ -1446,6 +1446,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       same step, so the "Time's up!" pop (rising from the chop count) sat on the "Out of time!"
       banner and the "0 / 50" count at once. The pop is gone (the buzz and banner stay); the
       solo playtest checks no such pop is up when the idle person's time runs out.
+- [x] 2026-11-08 (F139): Play the bot: Minigolf's hole card (and the scorecard between holes)
+      show only in the person's half. The bot's copy, with the hole name folded by F123, was a
+      big dark card saying just "HOLE 1 OF 3 / Par 2" over the far third of the course, and its
+      scorecard's "You" column was the bot's. The solo playtest fails any hole card or
+      scorecard words in the bot's half, at the start and at the hole end.
 - [x] 2026-11-07 (F133): Backlog sweep: RPS person line (done by F125) and the air hockey
       "walks away" flake watch (no repeat) ticked with why.
 
