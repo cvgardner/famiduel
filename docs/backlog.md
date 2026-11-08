@@ -1499,3 +1499,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (F148): Air Hockey: a power used right after a goal printed its name
       ("🧊 Freeze!") inside the GOAL! banner (born 30 apart, both rising). Pops now start a line
       apart: GOAL! 80, "Your shot!" 130, power 180 from the middle; tests/airhockey.test.ts.
+- [x] 2026-11-08 (F149): Ping Pong printed the rally count ("Rally x5!", "Rally x10! 🔥") right
+      over SMASH!/Curve! (same hit, same spot: ~30 times in 9 bot matches) and "What a rally!"
+      over "Match point!". Words born together now take lanes from the net: POINT! 90, shot
+      words 130, rally count and Match point! 170 (a second Match point! 210). A pop probe in
+      fx.ts (`__pops`) lists pops born together on top of each other; an e2e test plays Ping
+      Pong and Air Hockey at every level and expects none.
+- [ ] The pop probe also finds smaller same-step overlaps elsewhere (9 bot matches a game):
+      Quick Draw and Penalty when both seats fire a power on the same step (2-4), Snack Snatch
+      "+1"/"+3 ×2!" when two snacks land together (~10), Tanks "BONK!"/"Oops! Own shot" (by
+      design, two lines), Minigolf "Splash! +1 stroke"/"Picked up" (1). Add a game to the e2e
+      list once its lanes are fixed.

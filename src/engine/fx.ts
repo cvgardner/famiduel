@@ -43,6 +43,9 @@ export function liftOn(color: string, under: string, behind = '#ffffff', need = 
   return '#ffffff';
 }
 
+/** Test hook (F149): with `on`, pop() lists pops born together on top of each other. */
+export const popProbe = { on: false, hits: [] as string[] };
+
 export class Fx {
   private particles: Particle[] = [];
   private floaters: Floater[] = [];
@@ -63,6 +66,20 @@ export class Fx {
 
   /** Text that rises and fades, readable by the given player. */
   pop(str: string, x: number, y: number, color = '#fff', player: 0 | 1 = 0, size = 22): void {
+    if (popProbe.on) {
+      // Two pops born in the same step for the same seat whose words overlap (an estimate of
+      // their boxes: 0.55 em a character, 0.9 em tall).
+      const box = (s: string, px: number, py: number, sz: number) => {
+        const w = Math.min(W - 16, s.length * sz * 0.55);
+        return [px - w / 2, py - sz * 0.45, px + w / 2, py + sz * 0.45];
+      };
+      const b = box(str, x, y, size);
+      for (const f of this.floaters) {
+        if (f.player !== player || f.life !== f.max) continue;
+        const a = box(f.str, f.x, f.y, f.size);
+        if (a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3]) popProbe.hits.push(`${f.str} | ${str} (seat ${player})`);
+      }
+    }
     this.floaters.push({ str, x, y, life: 0.9, max: 0.9, color, size, player });
   }
 
