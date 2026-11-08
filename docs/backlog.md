@@ -286,7 +286,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       matches feel long, a rally speed-up (puck a little faster after ~30 s without a goal)
       would be the fix.
 - [ ] Add the masher model (tests/sumo.test.ts) as a "kid" row to `npm run sim` for every game.
-- [ ] Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
+- [x] 2026-11-07 (F112, no change needed: now easy Radar beats Airstrike 57% and Mine 60%, normal 53% / 59%,
+      n=200 seeds played from both seats; the bots follow up their radar contacts). Was: Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
       the sloppy easy bot spends more turns targeting, when it never radars. Fine for now;
       recheck if kids pick radar and lose.
 - [x] 2026-11-01 (PR #72): Power balance sim: `npm run sim:powers` (scripts/powers-sim.ts, shared
