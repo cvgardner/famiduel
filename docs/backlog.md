@@ -1657,3 +1657,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (F178, PR #223): Quick Draw: Slow Time's "⏳ get ready…" line sat on the
       cowboy's hat (between the signal and the cowboy). It now reads left of the cowboy, below
       the cactus (READY_X). tests/quickdraw-get-ready.test.ts.
+- [x] 2026-11-08 (F180, PR #224): Chop Chop: a bonk ends the round, so the "Bonked!" card
+      comes up at once, and the BONK! pop over the chopper's head rose into the card's top
+      edge. It now starts beside the chopper, low enough to stay under the card (BONK_DX).
+      tests/chopchop-bonk-pop.test.ts.
