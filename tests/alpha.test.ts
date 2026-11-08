@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { atRest, STEADY_MS, text, type G } from '../src/engine/draw';
 import { Button, PowerButton } from '../src/engine/widgets';
 import { Energy } from '../src/core/energy';
+import { Fx } from '../src/engine/fx';
 
 /** A canvas stand-in that records the opacity every word is drawn at. */
 function fakeCanvas(): { g: G; drawn: { str: string; alpha: number }[] } {
@@ -77,5 +78,30 @@ describe('contrast probe: nearly see-through words', () => {
   it('are never judged as steady', () => {
     const t = new Map<string, { a: number; since: number; at: number }>();
     for (let ms = 0; ms <= 3000; ms += 200) expect(atRest(t, 'ghost', 0.05, ms)).toBe(false);
+  });
+});
+
+describe('effects keep an outer fade', () => {
+  it("sparks and the screen flash multiply the caller's opacity and hand it back", () => {
+    const fills: number[] = [];
+    let alpha = 0.5;
+    const g = {
+      get globalAlpha() { return alpha; },
+      set globalAlpha(v: number) { alpha = v; },
+      fillStyle: '',
+      beginPath() {}, arc() {},
+      fill() { fills.push(alpha); },
+      fillRect() { fills.push(alpha); },
+    } as unknown as G;
+    const fx = new Fx();
+    fx.burst(100, 100, '#fff', 3);
+    fx.flash('#fff');
+    fx.render(g);
+    expect(fills).toHaveLength(4);
+    // Fresh sparks are fully lit and the flash starts at 35%: both at half under a 0.5 fade.
+    for (const a of fills.slice(0, 3)) expect(a).toBeCloseTo(0.5);
+    expect(fills[3]).toBeLessThanOrEqual(0.5 * 0.35 + 1e-9);
+    expect(fills[3]).toBeGreaterThan(0);
+    expect(g.globalAlpha).toBeCloseTo(0.5);
   });
 });

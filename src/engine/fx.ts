@@ -106,14 +106,17 @@ export class Fx {
   }
 
   render(g: G): void {
+    // Every opacity here multiplies the one the caller left (a fading screen fades its
+    // sparks and flash too), and the canvas gets that opacity back afterwards.
+    const base = g.globalAlpha;
     for (const p of this.particles) {
-      g.globalAlpha = Math.max(0, p.life / p.max);
+      g.globalAlpha = base * Math.max(0, p.life / p.max);
       g.fillStyle = p.color;
       g.beginPath();
       g.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       g.fill();
     }
-    g.globalAlpha = 1;
+    g.globalAlpha = base;
     for (const f of this.floaters) {
       // Pops land where things happen, often by a wall: shrink a long one to fit and
       // keep its words on screen (Bigger text makes them wider).
@@ -122,10 +125,10 @@ export class Fx {
     }
     if (this.flashT > 0) {
       // A quarter as bright with reduce motion on: still says "something happened", without a strobe.
-      g.globalAlpha = (this.flashT / 0.18) * 0.35 * (this.flashCalm ? 0.25 : 1);
+      g.globalAlpha = base * (this.flashT / 0.18) * 0.35 * (this.flashCalm ? 0.25 : 1);
       g.fillStyle = this.flashColor;
       g.fillRect(0, 0, W, H);
-      g.globalAlpha = 1;
+      g.globalAlpha = base;
     }
   }
 }

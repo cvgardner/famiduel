@@ -790,9 +790,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       then sudden death), listed in docs so a parent can check "is this the real rule?".
 
 ## Ideas found 2026-11-01 (text alpha run)
-- [ ] Other helpers that set `globalAlpha` to an absolute value (fx particles and flash,
+- [x] Other helpers that set `globalAlpha` to an absolute value (fx particles and flash,
       several games' `= 1` resets) would also cancel an outer fade; if a whole screen ever
       fades (e.g. a result transition), make them relative like the buttons.
+      2026-11-08 (F136): fx (sparks, screen flash) now multiply the caller's opacity and hand
+      it back (tests/alpha.test.ts). The games' own `globalAlpha = 1` resets stay: nothing
+      fades a whole game screen today; make those relative too if a transition ever does.
 
 ## Ideas found 2026-11-01 (shooter beat run)
 - [x] 2026-11-07 (F42, PR #102): Checked: Sea Battle's pops go through `this.pop`, which
