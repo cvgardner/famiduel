@@ -27,6 +27,11 @@ const L = {
   powerY: H - 40,
 };
 
+/** F180: the BONK! pop's distance from the trunk, outside the chopper (at chopperDX). */
+export const BONK_DX = 128;
+/** The between-rounds card's centre, in the seat's own frame. */
+export const CARD_Y = MID + 118;
+
 const toScreen = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
 
 type Chunk = { x: number; y: number; vx: number; vy: number; rot: number; vr: number; t: number; branch: number };
@@ -108,7 +113,11 @@ class ChopView implements GameInstance {
         fx.shake(9, 0.35);
         const s = toScreen(e.p, W / 2 + e.side * L.chopperDX, L.baseY - 30);
         fx.burst(s.x, s.y, '#ffe066', 22, 220, 4);
-        fx.pop('BONK!', s.x, s.y, '#ffffff', e.p, 30);
+        // F180: a bonk ends the round, so the "Bonked!" card comes up at once; a BONK! over the
+        // chopper's head rose into the card's top edge. It starts beside the chopper, low enough
+        // that its whole rise stays under the card.
+        const b = toScreen(e.p, W / 2 + e.side * BONK_DX, L.baseY + 8);
+        fx.pop('BONK!', b.x, b.y, '#ffffff', e.p, 30);
       } else if (e.type === 'timeUp') {
         // F131: running out of time always ends the round on the same step, so the round
         // banner ("Out of time!") says it; a "Time's up!" pop here rose over the chop count
@@ -364,7 +373,7 @@ class ChopView implements GameInstance {
       } else msg = g.choppers[p].outReason === 'bonk' ? 'Bonked!' : g.choppers[p].outReason === 'time' ? 'Out of time!' : 'They got to 50!';
     }
     if (!msg || silentSeat(this.ctx.players, p)) return;
-    const y = MID + 118;
+    const y = CARD_Y;
     rrect(gx, W / 2 - 130, y - 24, 260, 48, 16, 'rgba(10,8,25,0.72)', alpha(this.ctx.players[p].color, 0.9), 2);
     text(gx, msg, W / 2, y, { size: 22, color: col });
   }
