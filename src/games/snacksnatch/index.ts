@@ -16,6 +16,9 @@ export const SURFACES: readonly string[] = [GRASS, BLANKET];
 /** Snack looks: cookie, donut, berry, cracker. */
 const KINDS = ['#d9a066', '#ff8fc2', '#ff5c7a', '#f4c96b', '#6ec8ff', '#ffa24c'];
 
+/** Room between the frog's head and its "Miss!" pop (F176). */
+const MISS_GAP = 16;
+
 class SnackSnatchView implements GameInstance {
   readonly game: SnackSnatch;
   private bots: (SnackSnatchBot | null)[];
@@ -96,7 +99,10 @@ class SnackSnatchView implements GameInstance {
         const c = g.critters[e.p][e.i];
         // F143: was 15 in 75% white (about 13 px on a small phone, hard to spot); a kid
         // should see at a glance why their frog went dizzy.
-        fx.pop('Miss!', c.x, c.restY + fwd(e.p) * 10, '#fff', e.p, 19);
+        // F176: it started 10 in front of the resting head, so the head pulling back from the
+        // missed snap slid over it and the word sat on the frog's eyes. It starts on the
+        // blanket just past the open jaws and floats on into the field, away from the head.
+        fx.pop('Miss!', c.x, g.headY(c) + fwd(e.p) * (RULES.headR + MISS_GAP), '#fff', e.p, 19);
       } else if (e.type === 'grab') {
         sfx.play(e.gold ? 'coin' : 'pop');
         const c = players[e.p].color;
