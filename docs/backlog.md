@@ -1571,14 +1571,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       person's "N / vs N" (solo-play-pingpong.png). A bot's card facing the one person shows
       just its points; tests/pingpong-solo.test.ts counts the "vs" lines. The fake canvas that
       follows transforms now lives in tests/canvasRecorder.ts.
-- [x] 2026-11-08 (F164, PR #TBD): Play the bot: Minigolf's bot strip read "Total | Hole" next to
+- [x] 2026-11-08 (F164, PR #211): Play the bot: Minigolf's bot strip read "Total | Hole" next to
       the person's "Hole | Total" (each turned word keeps its mirrored spot), and Tank Duel's
       bot hearts and shell dots (and Sumo's round pips) filled from the other end than the person's. A bot's half
       facing the one person swaps the Minigolf columns and fills its Tanks rows from the
       person's end (Sumo's pips too); tests/minigolf-solo.test.ts and tests/tanks-solo.test.ts (the fake canvas
       records colours now). Swept the rest: Snack Snatch 👅×N, Chop Chop, Ping Pong and
       Snake have no other side-by-side pairs left in a bot's half.
-- [x] 2026-11-08 (F165, PR #TBD): Play the bot: the person's own half called the bot "them":
+- [x] 2026-11-08 (F165, PR #212): Play the bot: the person's own half called the bot "them":
       Quick Draw's result card read "You — / Them 500 ms" ("They got fooled!") and Chop
       Chop's rival pill "them: 9" (solo-round-quickdraw/chopchop.png). Against a bot they
       say "Bot 500 ms", "Bot got fooled!", "bot: 9"; two people keep "them".
