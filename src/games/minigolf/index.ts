@@ -672,7 +672,10 @@ class MinigolfView implements GameInstance {
     // their Hole / Total columns move left of it and the name starts at the left edge.
     const lefty = !!btn && !!this.ctx.players[p].lefty;
     const x0 = lefty ? 24 : btn ? 74 : 54;
-    const [colHole, colTotal] = lefty ? [216, 266] : [268, 322];
+    let [colHole, colTotal] = lefty ? [216, 266] : [268, 322];
+    // F164: a bot's strip turned to face the one person mirrors its columns (each word turns
+    // about its own anchor), so it read "Total | Hole"; swap them so both strips read "Hole | Total".
+    if (silentSeat(this.ctx.players, p)) [colHole, colTotal] = [colTotal, colHole];
     const name = this.ctx.players[p].name;
     // Lifted for the dark strip: Purple was 4.3:1 there.
     text(gx, name, x0, y0 + 19, { size: 17, color: liftOn(c, STRIP_CARD), align: 'left' });

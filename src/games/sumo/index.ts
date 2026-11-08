@@ -468,10 +468,12 @@ class SumoView implements GameInstance {
     const right = !this.ctx.players[p].lefty;
     const x = (p === 0) === right ? W - 62 : 62;
     const y = p === 0 ? H - 42 : 42;
+    // F164: a bot's pips turned to face the one person would fill from the other end.
+    const quiet = silentSeat(this.ctx.players, p);
     facing(gx, p, x, y, () => {
       nameLabel(gx, this.ctx.players[p].name, x, y - 22, c, { size: 13 });
       for (let i = 0; i < RULES.roundsToWin; i++) {
-        const px = x - 14 + i * 28;
+        const px = x - 14 + (quiet ? RULES.roundsToWin - 1 - i : i) * 28;
         const won = g.score[p] > i;
         circle(gx, px, y + 4, 11, won ? COLORS.gold : 'rgba(255,255,255,0.12)', won ? '#fff' : alpha(c, 0.7), 2.5);
         if (won) text(gx, '★', px, y + 5, { size: 13, color: '#7a4b00' });
