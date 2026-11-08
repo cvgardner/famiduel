@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import games from '../content/games.json';
-import { DEMO_MATCHES, demoHelpHtml, demoHtml, firstMatchOf, GESTURES, HelpMemory, howToHalfHtml, isGesture, playDemoHtml, powerStatus, showsDemo } from '../src/app/demo';
+import { besideCountdown, DEMO_MATCHES, demoHelpHtml, demoHtml, firstMatchOf, GESTURES, HelpMemory, howToHalfHtml, isGesture, playDemoHtml, powerStatus, showsDemo } from '../src/app/demo';
 
 describe('ghost finger demo', () => {
   it('every game names a known gesture', () => {
@@ -31,6 +31,13 @@ describe('ghost finger demo', () => {
     // F138: Penalty's keeper-first seat starts the loop on the dive.
     expect(playDemoHtml('kick', 0, false, 0.72, true)).toContain('class="play-demo p0 keeper"');
     expect(playDemoHtml('kick', 1)).toContain('class="play-demo p1"');
+  });
+
+  it('F152: a finger card at the countdown digit\'s height moves beside it', () => {
+    expect(besideCountdown(0.72)).toBe(true);
+    expect(besideCountdown(0.9)).toBe(false);
+    expect(playDemoHtml('hold', 0)).toContain('--dx:28%');
+    expect(playDemoHtml('slide', 1, false, 0.9)).not.toContain('--dx');
   });
 
   it('a game\'s demoAt keeps the in-play finger on the screen', () => {

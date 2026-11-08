@@ -347,9 +347,10 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   background: rgba(255,255,255,0.07); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.18); pointer-events: none; }
 /* In play, first match only: the same finger, twice the size, over each person's half
    (seat 1's turned to face them). Never takes a touch; gone a second after GO (PLAY_DEMO_MS). */
-.play-demo { position: absolute; left: 50%; top: calc(var(--at, 0.72) * 100%); translate: -50% -50%; pointer-events: none; z-index: 2;
-  scale: 2; animation: play-demo 2.8s ease-in-out forwards; transition: opacity 0.25s; }
-.play-demo.p1 { top: calc((1 - var(--at, 0.72)) * 100%); rotate: 180deg; }
+.play-demo { position: absolute; left: calc(50% + var(--dx, 0%)); top: calc(var(--at, 0.72) * 100%); translate: -50% -50%; pointer-events: none; z-index: 2;
+  scale: var(--s, 2); animation: play-demo 2.8s ease-in-out forwards; transition: opacity 0.25s; }
+/* Seat 1's copy is turned to face them, so their right of the digit is the screen's left (F152). */
+.play-demo.p1 { left: calc(50% - var(--dx, 0%)); top: calc((1 - var(--at, 0.72)) * 100%); rotate: 180deg; }
 .play-demo.gone { opacity: 0 !important; animation: none; }
 .play-demo .demo { background: rgba(10,9,24,0.55); }
 @keyframes play-demo { 0% { opacity: 0; } 8%, 70% { opacity: 0.95; } 100% { opacity: 0; } }
