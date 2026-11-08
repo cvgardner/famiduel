@@ -1317,3 +1317,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       cycling), up to 3 swaps; the 7 stay different and the first draw extra never repeats
       game 7. `swapGame()` / `swapsLeft()` in src/core/tournament.ts, tests in
       tests/tournament.test.ts, playtest "tournament: games can be swapped out" at 320 px.
+- [ ] Rival app reviews say the hard bot "never loses" in Minigolf and RPS. Measured (F114,
+      2026-11-07, 60 random 3-hole matches, seats swapped): hard Minigolf beats normal 88%
+      (draws 8%) and easy 100%; normal beats easy 87%. Hard aces 94-100% of most par-2 holes
+      (`npm run golf`), so a grown-up rarely beats it. RPS hard throws at random (F62). Fine
+      for "Hard", but if families call it unbeatable, soften hard's aim on short holes.
