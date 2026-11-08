@@ -1458,6 +1458,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       ring's centre, right on each wrestler's start spot, the moment a kid looks for theirs.
       It now sits 26 from the centre, between the wrestlers (size capped at 30 so the two
       mirrored copies stay apart); tests/sumo.test.ts checks the geometry.
+- [x] 2026-11-08 (F141): Snake: a crash at the far wall popped "CRASH!" on the wall, and it rose
+      out of the arena over the other seat's turn buttons and power. Crash pops now start
+      where their whole rise stays inside the arena (`crashPopY()`); tests/snake.test.ts.
 - [x] 2026-11-07 (F133): Backlog sweep: RPS person line (done by F125) and the air hockey
       "walks away" flake watch (no repeat) ticked with why.
 
