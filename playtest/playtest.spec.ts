@@ -867,7 +867,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     expect(turned.length, `${id}: the bot seat's words were turned to face the person`).toBeGreaterThan(0);
     expect(over, `${id}: no turned word runs off the screen`).toEqual([]);
     // F120: the bot's half never says "you" (the person would read it as their own).
-    expect(turned.filter((t) => /\byou(r)?\b/i.test(t)), `${id}: "you" words in the bot's half`).toEqual([]);
+    expect(turned.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half`).toEqual([]);
     // F119: no how-to words in the bot's half (nobody reads them).
     expect(turned.filter((t) => ['Tap ◀ ▶ to turn', '◀ chop', 'chop ▶', 'SERVE', 'Tap a button to dive!'].includes(t)), `${id}: how-to words in the bot's half`).toEqual([]);
     await page.screenshot({ path: path.join(OUT, `solo-play-${id}.png`) });
@@ -905,7 +905,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     // Turn games wait for the person's move, so only real-time games must reach a point.
     if (!WAITS_FOR_PERSON.includes(id)) expect(reached, `${id}: a point or the match end within 60 s of play`).toBe(true);
     else console.log(`solo round end: ${id} waits for the person (reached ${reached})`);
-    expect(roundWords.filter((t) => /\byou(r)?\b/i.test(t)), `${id}: "you" words in the bot's half at the round end`).toEqual([]);
+    expect(roundWords.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half at the round end`).toEqual([]);
     await page.screenshot({ path: path.join(OUT, `solo-round-${id}.png`) });
     // The bot wins this one (ended by hand to keep the pass short).
     await page.evaluate(() => {
@@ -966,7 +966,7 @@ test('play the bot from the top seat: the bottom bot\'s words face the person up
     expect(turned.length, `${id}: the bottom bot's words were turned to face the top`).toBeGreaterThan(0);
     expect(over, `${id}: no turned word runs off the screen`).toEqual([]);
     // F120: the bot's half never says "you" (the person would read it as their own).
-    expect(turned.filter((t) => /\byou(r)?\b/i.test(t)), `${id}: "you" words in the bot's half`).toEqual([]);
+    expect(turned.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half`).toEqual([]);
     await page.screenshot({ path: path.join(OUT, `solo-top-${id}.png`) });
     await leaveMatch(page);
   }

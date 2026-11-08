@@ -1375,3 +1375,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       lines still show on both sides). Unit test in tests/reader.test.ts; solo screenshots
       for Sumo and Minigolf show one banner. Small repeated lines (Quick Draw's "Round 1")
       stay.
+- [x] 2026-11-07 (F124, PR #175): Chop Chop's small "them: N" pill in the bot's half (the
+      person's count, from the bot's side) read upright to the person as the bot's own
+      count once F118 turned it. A bot seat facing a person no longer draws it; the
+      person's half still shows both counts. The solo playtests now flag "them" as well as
+      you/your in the bot's half.

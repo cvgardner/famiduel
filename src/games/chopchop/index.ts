@@ -217,11 +217,14 @@ class ChopView implements GameInstance {
     text(gx, `/ ${RULES.goal}`, W / 2 + 40, L.barY + 33, { size: 13, color: '#ffffff' });
     // Round wins
     for (let i = 0; i < RULES.winRounds; i++) circle(gx, bx + bw + 22, L.barY + 4 + i * 20 - 0, 7, i < g.score[p] ? COLORS.gold : 'rgba(255,255,255,0.35)', 'rgba(0,0,0,0.3)', 1.5);
-    // Rival progress, small
+    // Rival progress, small. F124: not in a bot's half facing the one person, where
+    // "them" (the person) read as the bot's own count; the person's half shows both.
     const o = g.choppers[other(p)];
-    // On a dark pill like the goal label: dark text over the sky fell under 4.5:1 with light seats.
-    rrect(gx, bx - 10, L.barY + 20, 74, 20, 10, 'rgba(20,20,40,0.75)');
-    text(gx, `them: ${o.chops}`, bx - 3, L.barY + 30, { size: 13, color: '#ffffff', align: 'left' });
+    if (!silentSeat(this.ctx.players, p)) {
+      // On a dark pill like the goal label: dark text over the sky fell under 4.5:1 with light seats.
+      rrect(gx, bx - 10, L.barY + 20, 74, 20, 10, 'rgba(20,20,40,0.75)');
+      text(gx, `them: ${o.chops}`, bx - 3, L.barY + 30, { size: 13, color: '#ffffff', align: 'left' });
+    }
     // Power status
     if (c.double > 0) text(gx, `✌️ x2 ·${c.double}`, W / 2 + 96, L.barY + 54, { size: 16, color: COLORS.gold, stroke: 'rgba(0,0,0,0.4)' });
     // Tap hints near the player's edge, on a dark pill so they stay readable over the
