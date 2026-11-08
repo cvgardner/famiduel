@@ -1643,3 +1643,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Chop Chop is fast tapping by design, Sumo is hold-to-charge. A "Little hands" auto-fire
       for Tank Duel would change balance vs the bot (it waits a human reaction after reload),
       so it's a call for Chris if families say small kids tire of tapping FIRE.
+- [x] 2026-11-08 (F178, PR #TBD): Quick Draw: Slow Time's "⏳ get ready…" line sat on the
+      cowboy's hat (between the signal and the cowboy). It now reads left of the cowboy, below
+      the cactus (READY_X). tests/quickdraw-get-ready.test.ts.
