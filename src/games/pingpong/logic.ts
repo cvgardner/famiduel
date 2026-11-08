@@ -32,7 +32,7 @@ export const RULES = {
   maxSpeed: 760,
   smashSpeed: 980,
   /** The Smash power's return speed (or the flick's own, if harder): fast, but a ready paddle can still reach it. */
-  powerSmash: 780,
+  powerSmash: 640,
   maxAngle: 0.85,
   /** Extra ball speed per unit of forward paddle speed at contact (a drive). */
   driveK: 0.4,

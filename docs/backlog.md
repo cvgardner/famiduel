@@ -1260,3 +1260,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Other drag controls (Tank Duel stick, Sumo/Snack Snatch anywhere-taps) read every
       finger of a seat; a resting palm there only counts as one held touch. Check Tanks' stick
       picks the moving finger too if a kid rests a hand on the FIRE side.
+
+## Ideas found 2026-11-07 (easy-level Ping Pong run)
+- [x] 2026-11-07 (F107): Ping Pong Smash won 70% between easy bots (85% vs no power; normal
+      63%). The smash return now flies at 640 (was 780; serve 380, +34 a hit, cap 760), so
+      it is still a jump in an early rally but a ready paddle reaches it. n=60: Smash 62% easy,
+      53% normal, 50% hard; Slow-mo 39-42% and Curve 56-59% unchanged. Test in
+      tests/pingpong.test.ts.
+- [ ] Ping Pong Smash does nothing late in a long rally (the ball is already past 640, up to
+      760); if people notice, make it "+X over the current speed" and re-measure.
