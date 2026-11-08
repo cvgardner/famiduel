@@ -1536,3 +1536,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (F156): Penalty's first "Your kick!" / "Save it!" pops were born with the
       view, during the countdown, so they rose and faded (0.9 s) under the dim and the
       "3 2 1" digit and nobody read them. They now pop on the first step after GO.
+- [x] 2026-11-08 (F157): Quick Draw drew its "Round 1" and "Steady…" lines during the
+      countdown, where the top seat's sat beneath its "3 2 1" digit. The signal now starts at
+      GO (the round's own wait starts there anyway), so the digit reads alone.
+- [ ] F158: a playtest that fails on any worded game text inside a person's countdown digit
+      box, in every shown game (F155-F157 were found by eye in 320x568 screenshots).

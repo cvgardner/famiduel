@@ -249,6 +249,9 @@ class QuickDrawView implements GameInstance {
     // person's half. F123 folded the bot copy's big words but left its card and small line
     // upright for the person: a fake-out read "bridge! 🌉" alone, and DRAW! an empty red card.
     if (silentSeat(this.ctx.players, p)) return;
+    // F157: nothing here until GO. Under the countdown the top seat's "Round 1" and
+    // "Steady…" sat beneath its "3 2 1" digit; the round's own wait starts at GO.
+    if (this.t === 0) return;
     if (g.phase === 'ready') {
       // F126: playing the bot, its half's copy of this small line read upright as a second
       // "Round 1" above the person's (F123 only folds big banners); the person's half has it.
