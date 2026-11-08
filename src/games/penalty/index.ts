@@ -49,7 +49,6 @@ class PenaltyView implements GameInstance {
     });
     const diveR = bigHandsOn() ? DIVE_R_BIG : DIVE_R;
     this.diveBtns = PLAYERS.map((p) => DIVE_X.map((x) => new Button(x, DIVE_Y[p], diveR, p, '', ctx.players[p].color, DIVE_HIT - diveR)));
-    this.announce();
   }
 
   private toward(): -1 | 1 {
@@ -61,6 +60,9 @@ class PenaltyView implements GameInstance {
   }
 
   update(dt: number, input: Input): void {
+    // F156: the first kick's "Your kick!" / "Save it!" wait for GO. Born with the view, they
+    // rose and faded (0.9 s) under the countdown's dim and "3 2 1" digit, unread.
+    if (this.t === 0) this.announce();
     this.t += dt;
     const g = this.game;
     const intents = PLAYERS.map((p): Intent => {
