@@ -781,6 +781,8 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
   await expect(page.locator('.botlvl[data-p="1"] button[data-v="easy"]')).toHaveText('😴 Easy');
   await expect(page.locator('.botlvl[data-p="1"] button[data-v="hard"]')).toHaveText('😎 Hard');
   await expect(page.locator('#intro .half.p1 .who')).toContainText('🤖😴');
+  // The person picks the bot's level right way up (F117).
+  await expect(page.locator('#intro .half.p1')).toHaveCSS('transform', 'none');
   await page.screenshot({ path: path.join(OUT, 'bot-level-intro.png') });
   await introAsPeople(page, [0]);
   expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players[1].bot), 'the match uses the picked level').toBe('easy');
@@ -837,6 +839,8 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     await page.locator(`.game-card[data-id="${id}"]`).tap();
     await expect(page.locator('#intro .half.p1.bot'), `${id}: bot half on the intro`).toBeVisible();
     await expect(page.locator('#intro .half.p1 .who'), id).toHaveText('Bot 🤖😴');
+    // F117: nobody sits behind the bot, so its half reads upright for the one person.
+    await expect(page.locator('#intro .half.p1'), `${id}: bot half faces the person`).toHaveCSS('transform', 'none');
     await introAsPeople(page, [0]);
     expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players.map((p) => p.bot)), id).toEqual([null, 'easy']);
     // The bot wins this one (ended by hand to keep the pass short).
@@ -848,6 +852,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     await expect(page.locator('#result .half.p1 .res-title'), id).toHaveText('Bot wins');
     await expect(page.locator('#result .half.p1 .who'), id).toHaveText('Bot 🤖😴 🏆');
     await expect(page.locator('#result .half.p0 .res-title'), id).toHaveText('So close!');
+    await expect(page.locator('#result .half.p1'), `${id}: "Bot wins" reads upright`).toHaveCSS('transform', 'none');
     await expect(page.locator('#result .half.p0 .res-night'), id).toHaveText(`You vs the bot: 0 – ${n}`);
     if (id === 'airhockey') await page.screenshot({ path: path.join(OUT, 'solo-result.png') });
     await page.locator('#homeBtn').tap();

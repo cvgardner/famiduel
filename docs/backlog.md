@@ -1332,3 +1332,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-07 (F116): Backlog sweep: seven stale open lines ticked with why (kid sim rows
       and the rules audit were already done; Checkers / Tic-Tac-Toe / home-group chips dropped
       as hidden board games; the "first" marker dropped as F69; the idle-seat note closed).
+- [x] 2026-11-07 (F117): Playing the bot, its half of the intro and result was turned 180°
+      like a person's, so the one real player picked the bot's level and read "Bot wins"
+      upside down. A bot's half now faces the person when the other seat is a person
+      (`.half.faces`); two bots or two people keep the usual halves. Playtests check the
+      bot half's transform on every solo intro and result and on the bot-level intro.
+- [ ] The in-game canvas still draws the top bot's labels (scores, power button names)
+      upside down for a solo player; turning those is a per-game view change (seat text
+      rotation lives in each index.ts), worth it if solo players say so.
