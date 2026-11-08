@@ -23,7 +23,7 @@ describe('Tank Duel: "clink!" stays off the tanks', () => {
       const view = GAMES.tanks.create({ seed, rng: makeRng(seed), players, powersOn: false, sfx: { play() {} } as unknown as Sfx, fx, end() {} }) as unknown as { game: TankDuel; update(dt: number, i: Input): void };
       const input = { of: () => [], all: () => [], key: () => false, keyPressed: () => false, tapped: () => undefined, holding: () => false, lead: () => 0 } as unknown as Input;
       const g = view.game;
-      for (let i = 0; i < 60 * 180 && !g.finished; i++) {
+      for (let i = 0; i < 60 * 180 && !g.over; i++) {
         view.update(DT, input);
         fx.update(DT);
         const pops = (fx as unknown as { floaters: Floater[] }).floaters.filter((f) => f.str === 'clink!' && f.life >= 0.45);
