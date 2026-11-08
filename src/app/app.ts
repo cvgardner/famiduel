@@ -15,6 +15,7 @@ import { energyOf } from '../engine/game';
 import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
+import { dayKey } from '../games/minigolf/daily';
 import { powerPicHtml, watchPowerPics } from './powerpic';
 import { demoHelpHtml, demoHtml, firstMatchOf, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
@@ -63,6 +64,10 @@ export class App {
   private readonly starters = new StarterLog();
   /** The match on screen was started from the tournament screen. */
   private tourneyMatch = false;
+  /** Minigolf: play today's course (same 3 holes on every phone today) instead of random holes. */
+  private dailyGolf = false;
+  /** The day of the course being played (set at the match start, so midnight can't move it). */
+  private dailyDay: string | null = null;
   private playDemoTimer = 0;
 
   constructor(private readonly root: HTMLElement) {
@@ -494,7 +499,25 @@ export class App {
     };
     const t = this.tourneyMatch ? this.store.data.tournament : null;
     const tag = t ? `<b class="tourney-tag">🏆 Game ${t.played.length + 1}</b> ` : '';
-    intro.innerHTML = `${half(1)}<div class="intro-mid"><button id="introBack" class="link">← Back</button><span>${tag}${meta.blurb}</span></div>${half(0)}`;
+    // Minigolf (not in a tournament) offers today's course: the same 3 holes for everyone today.
+    const daily = id === 'minigolf' && !this.tourneyMatch;
+    const blurb = () => {
+      if (!daily || !this.dailyGolf) return meta.blurb;
+      const best = this.store.dailyBest(dayKey());
+      return best ? `📅 Today's best: ${best.strokes} by ${esc(best.name)}` : "📅 Today's course: same holes all day";
+    };
+    intro.innerHTML = `${half(1)}<div class="intro-mid"><button id="introBack" class="link">← Back</button><span id="introBlurb">${tag}${blurb()}</span>${
+      daily ? `<button id="dailyBtn" class="link daily${this.dailyGolf ? ' on' : ''}" aria-pressed="${this.dailyGolf}">${this.dailyGolf ? '📅 Today ✓' : '📅 Today'}</button>` : ''
+    }</div>${half(0)}`;
+    const dailyBtn = intro.querySelector<HTMLButtonElement>('#dailyBtn');
+    dailyBtn?.addEventListener('click', () => {
+      this.dailyGolf = !this.dailyGolf;
+      dailyBtn.classList.toggle('on', this.dailyGolf);
+      dailyBtn.setAttribute('aria-pressed', String(this.dailyGolf));
+      dailyBtn.textContent = this.dailyGolf ? '📅 Today ✓' : '📅 Today';
+      $('#introBlurb', intro).innerHTML = blurb();
+      this.sfx.play('tap');
+    });
     $('#introBack', intro).addEventListener('click', () => (this.tourneyMatch ? this.showTournament() : this.showHome()));
     for (const b of intro.querySelectorAll<HTMLElement>('.demo-help')) {
       b.addEventListener('click', () => {
@@ -589,7 +612,8 @@ export class App {
     const powersOn = this.store.data.settings.powers && !!this.picks[0] && !!this.picks[1];
     this.show('play');
     this.playDemo(meta.id, meta.gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined);
-    this.runner = new Runner(this.stage, def, seed, players, powersOn, this.sfx, (r) => this.finish(r), false, this.starters.next(meta.id));
+    this.dailyDay = meta.id === 'minigolf' && this.dailyGolf && !this.tourneyMatch ? dayKey() : null;
+    this.runner = new Runner(this.stage, def, seed, players, powersOn, this.sfx, (r) => this.finish(r), false, this.starters.next(meta.id), this.dailyDay ?? undefined);
     this.stage.start();
   }
 
@@ -765,6 +789,14 @@ export class App {
       [this.picks[0]?.id ?? null, this.picks[1]?.id ?? null],
       seats ? [seats[0].bot, seats[1].bot] : undefined,
     );
+    // Today's course: people's totals (not a bot's) can set the day's best on this phone.
+    const daily = this.dailyDay && seats ? this.store.recordDaily(this.dailyDay, ([0, 1] as PlayerIndex[]).filter((p) => !seats[p].bot).map((p) => ({ name: seats[p].name, strokes: r.score[p] }))) : null;
+    const dailyLine = (p: PlayerIndex) => {
+      if (!daily?.best) return '';
+      const mine = daily.newBest && daily.best.name === seats![p].name && daily.best.strokes === r.score[p];
+      return `<div class="res-daily">📅 ${mine ? `New best today: ${daily.best.strokes}!` : `Today's best: ${daily.best.strokes} by ${esc(daily.best.name)}`}</div>`;
+    };
+    this.dailyDay = null;
     const inTourney = this.tourneyMatch && !!this.store.data.tournament && nextGame(this.store.data.tournament) === meta.id;
     if (inTourney) this.store.recordTournament(meta.id, r.winner);
     const tourney = inTourney ? this.store.data.tournament! : null;
@@ -788,6 +820,7 @@ export class App {
         <div class="res-title">${title}</div>
         <div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>
         <div class="who">${esc(seatName(profiles, p))}${seats?.[p].bot ? ` 🤖${botFace(seats[p].bot!)}` : ''}${won ? ' 🏆' : ''}</div>
+        ${dailyLine(p)}
         <div class="res-night">${tw ? `🏆 ${champ === p ? 'Tournament champion!' : 'Tournament:'} ${tw[p]} – ${tw[p === 0 ? 1 : 0]}` : `${solo ? (botHalf ? 'Bot' : 'You vs the bot') : 'Match night'}: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}`}</div>
         ${
           offer?.person === p

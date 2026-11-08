@@ -22,6 +22,8 @@ export type GameContext = {
    * rematch, so starting takes turns; undefined (the first match) = the game's own coin toss.
    */
   starter?: PlayerIndex;
+  /** Minigolf: today's course (a YYYY-MM-DD day key); its holes come from the date, not the seed. */
+  daily?: string;
   /** Call exactly once when the match is decided. The shell shows results. */
   end(result: GameResult): void;
 };

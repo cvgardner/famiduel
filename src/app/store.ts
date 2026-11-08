@@ -134,7 +134,12 @@ type Saved = {
    * auto handicap start OFF; saves from before had them on only because that was the default.
    */
   settingsVersion?: number;
+  /** Minigolf's today's course: the best total by a person on that day (bots don't count). */
+  dailyGolf?: DailyBest | null;
 };
+
+/** The best total on one day's course, and who played it. */
+export type DailyBest = { day: string; strokes: number; name: string };
 
 const SETTINGS_VERSION = 2;
 
@@ -216,6 +221,31 @@ export class Store {
     if (this.data.history.length > HISTORY_CAP) this.data.history.splice(0, this.data.history.length - HISTORY_CAP);
     this.save();
     return rec;
+  }
+
+  /**
+   * A finished round of today's course. People's totals (fewer strokes is better) beat the
+   * day's best or start a new day; returns the best and whether this round set it.
+   */
+  recordDaily(day: string, rounds: { name: string; strokes: number }[]): { best: DailyBest | null; newBest: boolean } {
+    let best = this.data.dailyGolf?.day === day ? this.data.dailyGolf : null;
+    let newBest = false;
+    for (const r of rounds) {
+      if (!best || r.strokes < best.strokes) {
+        best = { day, strokes: r.strokes, name: r.name };
+        newBest = true;
+      }
+    }
+    if (newBest) {
+      this.data.dailyGolf = best;
+      this.save();
+    }
+    return { best, newBest };
+  }
+
+  /** Today's best on the daily course, if anyone played it today. */
+  dailyBest(day: string): DailyBest | null {
+    return this.data.dailyGolf?.day === day ? this.data.dailyGolf : null;
   }
 
   /** Remember a bot level for one game (picked on its intro). */

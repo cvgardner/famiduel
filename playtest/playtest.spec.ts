@@ -2898,3 +2898,84 @@ test('grown-ups corner: a parental gate in words, then the keep-them-in-the-app 
   await page.click('#settingsBack');
   expect(errors).toEqual([]);
 });
+
+// F94: Minigolf's "📅 Today" switch on the intro plays today's course (the same 3 holes on
+// every phone today, whatever the match seed); the strip fits a small phone, also with
+// Bigger text, and a person's total shows as the day's best on the result.
+test("minigolf: today's course plays the same holes, fits, and keeps the day's best", async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type Golf = { __famiduel: Hook & { applyBigText(): void; runner: { game: { game: { holes: { id: string }[] } } } } };
+  const holes = () => page.evaluate(() => (window as unknown as Golf).__famiduel.runner.game.game.holes.map((h) => h.id).join(','));
+  const midFits = () =>
+    page.evaluate(() => {
+      const mid = document.querySelector<HTMLElement>('#intro .intro-mid')!;
+      const out: string[] = [];
+      if (mid.scrollWidth > mid.clientWidth + 1) out.push(`strip ${mid.scrollWidth} > ${mid.clientWidth}`);
+      for (const el of mid.children) {
+        const r = el.getBoundingClientRect();
+        if (r.left < -0.5 || r.right > window.innerWidth + 0.5) out.push(`${el.id || el.className} off screen`);
+      }
+      return out;
+    });
+  for (const big of [false, true]) {
+    await page.evaluate((on) => {
+      const app = (window as unknown as Golf).__famiduel;
+      app.store.data.settings.bigText = on;
+      app.applyBigText();
+    }, big);
+    await setPlayers(page, [null, null]);
+    await openFromHome(page, 'minigolf');
+    const btn = page.locator('#dailyBtn');
+    await expect(btn).toBeVisible();
+    if (!big) {
+      await expect(btn).toHaveText('📅 Today');
+      expect(await midFits(), 'strip before the switch').toEqual([]);
+      await btn.tap();
+    }
+    await expect(btn).toHaveAttribute('aria-pressed', 'true');
+    await expect(btn).toHaveText('📅 Today ✓');
+    await expect(page.locator('#introBlurb')).toContainText('📅 Today');
+    expect(await midFits(), `strip with today's course${big ? ' (Bigger text)' : ''}`).toEqual([]);
+    await page.screenshot({ path: path.join(OUT, `minigolf-daily-intro${big ? '-bigtext' : ''}.png`) });
+    await introAsPeople(page, [0, 1]);
+    const a = await holes();
+    await leaveMatch(page);
+    await openFromHome(page, 'minigolf');
+    await introAsPeople(page, [0, 1]);
+    expect(await holes(), 'the same holes again today').toBe(a);
+    await leaveMatch(page);
+  }
+  // Two bots play it to the end: a bot's total never counts as the day's best.
+  await setPlayers(page, ['normal', 'normal']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('minigolf'));
+  await expect(page.locator('#play')).toBeVisible();
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
+  await expect(page.locator('#result')).toBeVisible();
+  await expect(page.locator('#result .res-daily')).toHaveCount(0);
+  await page.click('#homeBtn');
+  // A person against the bot: an idle person never putts out, so the round's end is handed to
+  // the shell as the game would (the same path a real finish takes); their 9 is today's best.
+  await setPlayers(page, [null, 'normal']);
+  await openFromHome(page, 'minigolf');
+  await expect(page.locator('#dailyBtn')).toHaveAttribute('aria-pressed', 'true');
+  await introAsPeople(page, [0]);
+  await page.evaluate(() => {
+    const runner = (window as unknown as { __famiduel: { runner: { result: unknown; fastForward(s: number): void } } }).__famiduel.runner;
+    runner.result = { winner: 0, score: [9, 11], summary: '9 – 11 strokes' };
+    runner.fastForward(3);
+  });
+  await expect(page.locator('#result')).toBeVisible();
+  await expect(page.locator('#result .half.p0 .res-daily')).toHaveText('📅 New best today: 9!');
+  await expect(page.locator('#result .half.p1 .res-daily')).toContainText("Today's best: 9 by");
+  await expect(page.locator('#result .half.p0 .res-daily')).toContainText('📅');
+  await page.screenshot({ path: path.join(OUT, 'minigolf-daily-result.png') });
+  // Back to random holes with the switch.
+  await page.click('#homeBtn');
+  await openFromHome(page, 'minigolf');
+  await page.locator('#dailyBtn').tap();
+  await expect(page.locator('#dailyBtn')).toHaveText('📅 Today');
+  await expect(page.locator('#introBlurb')).not.toContainText('📅');
+  expect(errors).toEqual([]);
+});

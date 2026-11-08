@@ -1,5 +1,6 @@
 // Minigolf view: the course turns to face whoever is shooting. Pull back
 // (slingshot) anywhere near your ball or in your half, release to putt.
+import { dailyHoleIds } from './daily';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
@@ -56,7 +57,7 @@ class MinigolfView implements GameInstance {
   private ended = false;
 
   constructor(private readonly ctx: GameContext) {
-    this.game = new Minigolf(ctx.players, ctx.powersOn, ctx.rng, undefined, ctx.starter);
+    this.game = new Minigolf(ctx.players, ctx.powersOn, ctx.rng, ctx.daily ? dailyHoleIds(ctx.daily) : undefined, ctx.starter);
     this.bots = PLAYERS.map((p) => (ctx.players[p].bot ? new MinigolfBot(p, ctx.players[p].bot!, ctx.rng) : null));
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;

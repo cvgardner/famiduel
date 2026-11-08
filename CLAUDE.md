@@ -70,5 +70,7 @@ handicap knob and (except Checkers, TTT, RPS) three powers. Known follow-ups:
   saved in the store so a quit game or closed app carries on.
 - Retention direction (Chris, 1 Nov 2026): no new minigame every two weeks (bloat). Lean on
   super powers instead: new powers and/or a rotation keep the app fresh.
-- Not built yet: ads / remove-ads unlock, highlight clips, rivalry cards, daily course,
+- Daily minigolf course: on-device only (intro "📅 Today" switch, day's best kept on the phone);
+  its share link / leaderboard is not built.
+- Not built yet: ads / remove-ads unlock, highlight clips, rivalry cards, daily course sharing,
   Family Wrapped, store wrapper (Capacitor), mini pool.

@@ -115,7 +115,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       guards the order and the playtest checks the grid and saves `home-small-phone.png`.
 - [ ] Rivalry card after a match night (shareable image, behind a parental gate).
 - [ ] Family Wrapped prototype from the on-device match history.
-- [ ] Daily minigolf course (seed from the date) with a "beat my score" link.
+- [x] Daily minigolf course (seed from the date) with a "beat my score" link.
+      2026-11-07 (F94): first half, no link yet. Minigolf's intro has a "📅 Today" switch
+      (not in tournaments): today's course is 3 holes picked from the local date
+      (src/games/minigolf/daily.ts), the same on every phone all day whatever the match seed.
+      The day's best total by a person (bots don't count) is kept on this phone and shown on
+      the intro strip and the result ("New best today: 9!"). Tests tests/daily-golf.test.ts,
+      playtest "minigolf: today's course". Still to do: the "beat my score" link and a
+      friends leaderboard, both sharing, so behind the parental gate.
 - [ ] Remove-ads / unlock-all screen mock (no real purchases yet); free trio badge.
 - [x] 2026-10-31: bot difficulty per game. The bot's level was one setting for all 15 games,
       buried in the player sheet, so a parent whose kid was losing at Checkers had to leave
