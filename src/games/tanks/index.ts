@@ -63,34 +63,44 @@ class TankView implements GameInstance {
     const cs = this.controls[p];
     const base = seat(p, cs.stickX, CONTROLS_Y);
     const fireAt = seat(p, cs.fireX, CONTROLS_Y);
+    // Generous zones: the outer part of your strip on the FIRE side fires, the other side steers.
+    // Zones are judged where a finger landed, so a thumb dragging the stick never fires.
+    const onButton = (x: number, y: number) => !!btn && btn.button.hit(x, y);
+    const fireZone = (x: number, y: number) => {
+      const fx = p === 0 ? x : W - x;
+      const inStrip = p === 0 ? y > ARENA.y + ARENA.h - 10 : y < ARENA.y + 10;
+      return Math.hypot(x - fireAt.x, y - fireAt.y) < this.fireR + 16 || (inStrip && cs.fireSide(fx));
+    };
+    const stickZone = (x: number, y: number) => {
+      const fx = p === 0 ? x : W - x;
+      const inStrip = p === 0 ? y > ARENA.y + ARENA.h - 10 : y < ARENA.y + 10;
+      return Math.hypot(x - base.x, y - base.y) < STICK_R + 40 || (inStrip && cs.stickSide(fx));
+    };
     let fire = false;
     for (const f of input.of(p)) {
-      if (!f.pressed) continue;
-      if (btn && btn.button.hit(f.x, f.y)) continue;
-      // Generous zones: the outer part of your strip on the FIRE side fires, the other side steers.
-      const fx = p === 0 ? f.x : W - f.x;
-      const inStrip = p === 0 ? f.y > ARENA.y + ARENA.h - 10 : f.y < ARENA.y + 10;
-      if (Math.hypot(f.x - fireAt.x, f.y - fireAt.y) < this.fireR + 16 || (inStrip && cs.fireSide(fx))) {
+      if (!f.pressed || onButton(f.x, f.y)) continue;
+      if (fireZone(f.x, f.y)) {
         fire = true;
         this.fireHeld[p] = 0.12;
-      } else if (this.stickFinger[p] === null && (Math.hypot(f.x - base.x, f.y - base.y) < STICK_R + 40 || (inStrip && cs.stickSide(fx)))) {
-        this.stickFinger[p] = f.id;
       }
     }
+    // The stick follows the thumb that is steering, not a palm resting in the stick zone (F105).
+    const stick = input.holding(
+      p,
+      this.stickFinger[p],
+      (f) => onButton(f.startX, f.startY) || fireZone(f.startX, f.startY) || !stickZone(f.startX, f.startY),
+    );
+    this.stickFinger[p] = stick ? stick.id : null;
     let vx = 0;
     let vy = 0;
-    const id = this.stickFinger[p];
-    if (id !== null) {
-      const f = input.pointers.get(id);
-      if (f && f.down) {
-        vx = (f.x - base.x) / STICK_R;
-        vy = (f.y - base.y) / STICK_R;
-        const m = Math.hypot(vx, vy);
-        if (m > 1) {
-          vx /= m;
-          vy /= m;
-        }
-      } else this.stickFinger[p] = null;
+    if (stick) {
+      vx = (stick.x - base.x) / STICK_R;
+      vy = (stick.y - base.y) / STICK_R;
+      const m = Math.hypot(vx, vy);
+      if (m > 1) {
+        vx /= m;
+        vy /= m;
+      }
     }
     const k = KEYS[p];
     const kx = (input.key(k.right) ? 1 : 0) - (input.key(k.left) ? 1 : 0);

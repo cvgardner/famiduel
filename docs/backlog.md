@@ -1257,6 +1257,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       paddle when a palm lands, and a finger that lands after a resting palm takes it.
       tests/palm.test.ts; playtest "a palm resting in your half" (palm-airhockey.png,
       palm-pingpong.png) failed on main (paddle stuck at the palm, x 110).
-- [ ] Other drag controls (Tank Duel stick, Sumo/Snack Snatch anywhere-taps) read every
-      finger of a seat; a resting palm there only counts as one held touch. Check Tanks' stick
-      picks the moving finger too if a kid rests a hand on the FIRE side.
+- [x] 2026-11-07 (F105): Tank Duel's stick follows the thumb that steers, not a palm resting
+      in the stick zone: Input.holding() keeps the finger holding the stick while it is down
+      (so a thumb holding still isn't robbed by a palm that lands), and hands it to another
+      finger that is steering more recently once that one moves, or at once if the holder never
+      moved (a palm that landed first). Zones are judged where a finger landed. tests/palm.test.ts
+      and playtest "tanks: a palm resting in the stick zone" (palm-tanks.png), which failed on
+      main (stick stuck at the palm). Sumo/Snack Snatch taps count any finger, so a palm there
+      is harmless.
