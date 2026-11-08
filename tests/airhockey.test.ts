@@ -360,3 +360,26 @@ describe('air hockey bot vs a parked paddle', () => {
     expect(avg('easy')).toBeLessThan(150);
   }, 60_000);
 });
+
+describe('pops stay apart (F148)', () => {
+  it('GOAL!, "Your shot!" and a power name start a line apart and never meet as they rise', async () => {
+    const { GOAL_POP_Y, SHOT_POP_Y, POWER_POP_Y } = await import('../src/games/airhockey/index');
+    // [start, size]; every pop rises 40 units/s toward the middle for 0.9 s (fx.ts), so two
+    // pops born together keep their gap and only their sizes need room.
+    const pops: [number, number][] = [[GOAL_POP_Y, 40], [SHOT_POP_Y, 26], [POWER_POP_Y, 26]];
+    for (let i = 0; i < pops.length; i++) {
+      for (let j = i + 1; j < pops.length; j++) {
+        const [a, sa] = pops[i];
+        const [b, sb] = pops[j];
+        expect(Math.abs(a - b), `${a} vs ${b}`).toBeGreaterThanOrEqual((sa + sb) / 2 + 12);
+      }
+    }
+    // A pop born up to 0.9 s later than the one nearer the middle could catch it only if it
+    // started nearer; none does, and the nearest still ends inside its own half.
+    expect(GOAL_POP_Y - 0.9 * 40 - 40 / 2).toBeGreaterThan(0);
+    const src = (await import('node:fs')).readFileSync('src/games/airhockey/index.ts', 'utf8');
+    expect(src).toMatch(/fx\.pop\('GOAL!', W \/ 2, MID \+ GOAL_POP_Y/);
+    expect(src).toMatch(/pw\.name\}!`, W \/ 2, e\.p === 0 \? MID \+ POWER_POP_Y/);
+    expect(src).toMatch(/'Your shot!', W \/ 2, e\.p === 0 \? MID \+ SHOT_POP_Y/);
+  });
+});

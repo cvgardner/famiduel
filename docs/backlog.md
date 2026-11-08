@@ -1496,3 +1496,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       who can't read yet had nothing telling them to hold off. A raised hand ✋ now sits on both
       sides of those lines (each seat's half) until the red DRAW! card; a worded fake-out card
       gets none, since fooling the reader is its trick. Source test in tests/quickdraw.test.ts.
+- [x] 2026-11-08 (F148): Air Hockey: a power used right after a goal printed its name
+      ("🧊 Freeze!") inside the GOAL! banner (born 30 apart, both rising). Pops now start a line
+      apart: GOAL! 80, "Your shot!" 130, power 180 from the middle; tests/airhockey.test.ts.
