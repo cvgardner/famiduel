@@ -43,7 +43,12 @@ export function liftOn(color: string, under: string, behind = '#ffffff', need = 
   return '#ffffff';
 }
 
-/** Test hook (F149): with `on`, pop() lists pops born together on top of each other. */
+/** F184: a pop this young (seconds) is still bright, so a new one won't print over it. */
+export const POP_FRESH = 0.55;
+
+const fresh = (f: { life: number; max: number }) => f.max - f.life < POP_FRESH;
+
+/** Test hook (F149): with `on`, pop() lists new pops printed over a still-bright one. */
 export const popProbe = { on: false, hits: [] as string[] };
 
 /** A pop's box, estimated: 0.55 em a character (at most the screen's width), 0.9 em tall. */
@@ -79,20 +84,25 @@ export class Fx {
     // F150: two pops born in the same step for one seat (a power used together with the other
     // seat's, two snacks landing at once) stack like lines of text: the newer one moves down a
     // line in that seat's view, toward its own edge, instead of printing over the first.
+    // F184: a pop still bright from a moment ago counts too (two catches a few frames apart
+    // printed "+3 ×3!" over "×2!"). The newer one goes a line ABOVE it, into the field: the
+    // older one is already rising, and below it is where the player's own piece sits (a
+    // frog's head). A pop already fading out is left to be drawn over.
     const down = player === 0 ? 1 : -1;
     for (let tries = 0; tries < 4; tries++) {
-      const hit = this.floaters.find((f) => f.player === player && f.life === f.max && overlaps(popBox(f.str, f.x, f.y, f.size), popBox(str, x, y, size)));
+      const hit = this.floaters.find((f) => f.player === player && fresh(f) && overlaps(popBox(f.str, f.x, f.y, f.size), popBox(str, x, y, size)));
       if (!hit) break;
       const gap = (hit.size + size) * 0.5 + 4;
-      // No room below at the screen's edge: the line goes above instead.
-      y = hit.y + down * gap;
-      if (y > H - size / 2 || y < size / 2) y = hit.y - down * gap;
+      const dir = hit.life === hit.max ? down : -down;
+      // No room at the screen's edge: the line goes the other way instead.
+      y = hit.y + dir * gap;
+      if (y > H - size / 2 || y < size / 2) y = hit.y - dir * gap;
     }
     y = Math.max(size / 2, Math.min(H - size / 2, y));
     if (popProbe.on) {
       const b = popBox(str, x, y, size);
       for (const f of this.floaters) {
-        if (f.player === player && f.life === f.max && overlaps(popBox(f.str, f.x, f.y, f.size), b)) popProbe.hits.push(`${f.str} | ${str} (seat ${player})`);
+        if (f.player === player && fresh(f) && overlaps(popBox(f.str, f.x, f.y, f.size), b)) popProbe.hits.push(`${f.str} | ${str} (seat ${player})`);
       }
     }
     this.floaters.push({ str, x, y, life: 0.9, max: 0.9, color, size, player });

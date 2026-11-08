@@ -1655,3 +1655,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       line) sat behind them, across their own goal's net (top seat, 320x568 bot match). It
       reads just past the ball toward the goal now, clear of the kick ring and the run-up's
       closing ring, both seats. tests/penalty-ready.test.ts.
+- [x] 2026-11-08 (F184, PR #TBD): Pops from one seat a few frames apart printed over each other
+      (Snack Snatch, Play the bot: "+3 ×3!" on top of the "×2!" of a catch just before), since
+      F150 only stacked pops born in the same step. A new pop now also clears a same-seat pop
+      still in its bright first 0.55 s (POP_FRESH): it takes the line above, into the field
+      (below is where that seat's own piece sits, e.g. a frog's head). Same-step pops still go a
+      line down; popProbe counts both. tests/pops.test.ts.
