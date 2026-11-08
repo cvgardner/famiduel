@@ -318,3 +318,14 @@ describe('snack snatch', () => {
     expect(g.nextReach(0)).toBe(RULES.reach);
   });
 });
+
+describe('snack snatch miss pop (F143)', () => {
+  it('a missed snap pops a big, solid "Miss!" so a kid sees why their frog is dizzy', async () => {
+    const src = (await import('node:fs')).readFileSync('src/games/snacksnatch/index.ts', 'utf8');
+    const call = src.match(/fx\.pop\('Miss!',[^;]*\);/)?.[0];
+    expect(call, 'the miss pop').toBeTruthy();
+    const args = call!.slice(7, -2).split(/,(?![^(]*\))/).map((a) => a.trim());
+    expect(args[3], 'solid white, not see-through').toBe("'#fff'");
+    expect(Number(args[5]), 'at least 18 units (~16 px on a 320 px phone)').toBeGreaterThanOrEqual(18);
+  });
+});
