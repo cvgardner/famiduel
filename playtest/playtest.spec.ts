@@ -814,6 +814,9 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
   expect(errors).toEqual([]);
 });
 
+// Solo games whose next point waits for the person's own move (F122 can't play past it).
+const WAITS_FOR_PERSON = ['seabattle', 'rps'];
+
 test('play the bot: one tap on home makes every game a solo match, with its own tally', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
@@ -868,6 +871,42 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     // F119: no how-to words in the bot's half (nobody reads them).
     expect(turned.filter((t) => ['Tap ◀ ▶ to turn', '◀ chop', 'chop ▶', 'SERVE', 'Tap a button to dive!'].includes(t)), `${id}: how-to words in the bot's half`).toEqual([]);
     await page.screenshot({ path: path.join(OUT, `solo-play-${id}.png`) });
+    // F122: the first 2.6 s never reach a round end, so play on to the first point (or the
+    // match end) with the probe on, and let the banner draw for a moment in real time.
+    const reached = await page.evaluate(async () => {
+      const w = window as unknown as { __famiduel: H & { sfx: { play(n: string): void } }; __reader: { on: boolean; turned: Set<string> } };
+      const app = w.__famiduel;
+      const sfx = app.sfx;
+      const play = sfx.play;
+      let point = false;
+      sfx.play = function (n: string) {
+        if (n === 'score' || n === 'win') point = true;
+        play.call(this, n);
+      };
+      w.__reader.turned.clear();
+      w.__reader.on = true;
+      const frame = () => new Promise((r) => requestAnimationFrame(() => r(null)));
+      try {
+        for (let i = 0; i < 240 && !point && !app.runner!.result; i++) {
+          (app.runner as unknown as { fastForward(s: number): void }).fastForward(0.25);
+          await frame();
+        }
+      } finally {
+        sfx.play = play;
+      }
+      return point || !!app.runner!.result;
+    });
+    await page.waitForTimeout(500);
+    const roundWords = await page.evaluate(() => {
+      const r = (window as unknown as { __reader: { on: boolean; turned: Set<string> } }).__reader;
+      r.on = false;
+      return [...r.turned];
+    });
+    // Turn games wait for the person's move, so only real-time games must reach a point.
+    if (!WAITS_FOR_PERSON.includes(id)) expect(reached, `${id}: a point or the match end within 60 s of play`).toBe(true);
+    else console.log(`solo round end: ${id} waits for the person (reached ${reached})`);
+    expect(roundWords.filter((t) => /\byou(r)?\b/i.test(t)), `${id}: "you" words in the bot's half at the round end`).toEqual([]);
+    await page.screenshot({ path: path.join(OUT, `solo-round-${id}.png`) });
     // The bot wins this one (ended by hand to keep the pass short).
     await page.evaluate(() => {
       (window as unknown as { __famiduel: H }).__famiduel.runner!.result = { winner: 1, score: [0, 1] };

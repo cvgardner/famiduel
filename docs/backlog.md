@@ -1360,3 +1360,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       round result and fake-out note, Minigolf tee-off and leader lines, Penalty kick/save
       pops, Air Hockey's "Your shot!", the countdown's starter line. Both solo playtests fail
       on any you/your word drawn for the bot seat (it found Penalty's "Your kick!").
+- [x] 2026-11-07 (F122, PR #PRNUM): The solo playtest only watched the first 2.6 s, so round-end
+      banners were never read. It now plays each solo game on (0.25 s steps, a frame drawn
+      between) to the first point or match end and re-checks the bot's half for you/your
+      words (`solo-round-<id>.png`). It found Minigolf's "YOUR SHOT!" banner drawn in the
+      bot's half when the bot shoots; that banner now skips a silent bot seat (the person's
+      half says "Bot's shot"), and a bot's wind badge says "🌬️ wind" / "Lining up…"
+      instead of "on you" / "Pull back, let go". Sea Battle and RPS wait for the person's
+      move, so they're only checked up to there (`WAITS_FOR_PERSON`).
