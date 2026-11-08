@@ -25,6 +25,9 @@ const L = {
   btnR: 47,
 };
 
+/** Slow Time's "get ready" line: left of the cowboy (his arm ends at x 147). */
+export const READY_X = 82;
+
 const FAKE_TEXT: Record<FakeKind, [string, string]> = {
   picture: ['DRAW...', 'a picture! 🖍️'],
   bridge: ['DRAW-', 'bridge! 🌉'],
@@ -222,7 +225,9 @@ class QuickDrawView implements GameInstance {
       const k = 0.5 + 0.5 * Math.sin(this.t * 22);
       gx.fillStyle = alpha(COLORS.gold, 0.12 + 0.12 * k);
       gx.fillRect(0, MID, W, MID);
-      text(gx, '⏳ get ready…', W / 2, L.signalY + 44, { size: 18, color: '#5a3400' });
+      // F178: beside the cowboy, clear of his hat and the cactus (it sat on the hat's crown,
+      // between the signal and the cowboy, where a fake-out's card also reaches).
+      text(gx, '⏳ get ready…', READY_X, L.cowboyY - 6, { size: 17, color: '#5a3400' });
     }
     this.drawSignal(gx, p);
     this.drawCowboy(gx, p, c);
