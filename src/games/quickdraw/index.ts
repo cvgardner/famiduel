@@ -234,7 +234,9 @@ class QuickDrawView implements GameInstance {
     const g = this.game;
     const y = L.signalY;
     if (g.phase === 'ready') {
-      text(gx, `Round ${g.round}`, W / 2, y - 14, { size: 20, color: 'rgba(80,50,20,0.85)' });
+      // F126: playing the bot, its half's copy of this small line read upright as a second
+      // "Round 1" above the person's (F123 only folds big banners); the person's half has it.
+      if (!silentSeat(this.ctx.players, p)) text(gx, `Round ${g.round}`, W / 2, y - 14, { size: 20, color: 'rgba(80,50,20,0.85)' });
       text(gx, 'Steady…', W / 2, y + 14, { size: 26, color: '#5b3412' });
     } else if (g.phase === 'wait') {
       const f = g.fake;

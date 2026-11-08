@@ -1386,6 +1386,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-07 (F127): Backlog sweep: the two open Twin Gates lines from 2026-11-01 were
       already fixed by F29; ticked with today's numbers (easy 5.2 strokes, 8% picked up).
 
+- [x] 2026-11-07 (F126, PR #177): Quick Draw's small "Round N" line above "Steady…" still
+      showed twice upright when playing the bot (F123 only folds banners at size 22+). The
+      bot seat facing a person no longer draws it; the solo playtest checks. Snake's corner
+      "Round N" HUD labels stay on both sides (each sits by its own score).
+- [x] 2026-11-07 (F125, PR #178): The solo round-end check (F122) stopped at Sea Battle's and
+      RPS's first turn, which waits for the person. The playtest's person (playtest/person.ts)
+      now plays 8 s of each in real time with the probe on and must make a move, so their
+      shot / throw results and the bot's answers are checked for you/your/them words too.
+
 ## Ideas found 2026-11-07 (tank mine run)
 - [x] 2026-11-07 (F129): Tank Duel Mine lost to no power between easy bots (46%, n=120): in
       60 easy matches the other tank never once rolled over a mine, because every bot drove
