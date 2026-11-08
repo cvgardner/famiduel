@@ -41,7 +41,7 @@ class AirHockeyView implements GameInstance {
       const btn = this.powerBtns[p];
       const fire = btn ? btn.update(input, g.energy[p], KEYS[p].power) : false;
       // Drag anywhere on your half (except the power button) to move the paddle.
-      const finger = input.of(p).find((f) => f.down && !(btn && btn.button.hit(f.startX, f.startY)));
+      const finger = input.steering(p, (f) => !!btn && btn.button.hit(f.startX, f.startY));
       const tgt = this.targets[p];
       if (finger) {
         // Offset so the paddle sits just above the finger and stays visible.
