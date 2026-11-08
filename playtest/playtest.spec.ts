@@ -920,6 +920,16 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     expect(reached, `${id}: a point, the match end or (turn games) the person's own move`).toBe(true);
     expect(roundWords.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half at the round end`).toEqual([]);
     expect(roundWords.filter((t) => /^(Round \d+|\d+ – \d+)$/.test(t)), `${id}: a second "Round" or score line in the bot's half at the round end`).toEqual([]);
+    if (id === 'chopchop') {
+      // F131: the person sat still, so their time ran out: the round banner says "Out of time!"
+      // on its own, with no "Time's up!" pop rising over the chop count and that banner.
+      const end = await page.evaluate(() => {
+        const r = (window as unknown as { __famiduel: { runner: { game: { game: { choppers: { outReason: string | null }[] } }; fx: { floaters: { str: string }[] } } } }).__famiduel.runner;
+        return { why: r.game.game.choppers[0].outReason, pops: r.fx.floaters.map((f) => f.str) };
+      });
+      expect(end.why, 'chopchop: the idle person ran out of time').toBe('time');
+      expect(end.pops, 'chopchop: no "Time\'s up!" pop over the round banner').not.toContain("Time's up!");
+    }
     await page.screenshot({ path: path.join(OUT, `solo-round-${id}.png`) });
     // The bot wins this one (ended by hand to keep the pass short).
     await page.evaluate(() => {

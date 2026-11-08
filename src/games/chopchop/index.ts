@@ -110,9 +110,10 @@ class ChopView implements GameInstance {
         fx.burst(s.x, s.y, '#ffe066', 22, 220, 4);
         fx.pop('BONK!', s.x, s.y, '#ffffff', e.p, 30);
       } else if (e.type === 'timeUp') {
+        // F131: running out of time always ends the round on the same step, so the round
+        // banner ("Out of time!") says it; a "Time's up!" pop here rose over the chop count
+        // and sat on top of that banner. The buzz stays.
         sfx.play('buzz');
-        const s = toScreen(e.p, W / 2, L.barY + 40);
-        fx.pop("Time's up!", s.x, s.y, COLORS.bad, e.p, 26);
       } else if (e.type === 'shieldBreak') {
         sfx.play('bounce');
         const s = toScreen(e.p, W / 2 + e.side * (L.trunkW / 2 + L.branchLen / 2), L.baseY - 20);

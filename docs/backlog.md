@@ -1426,3 +1426,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       to front, "0 – 1" beside "1 – 0"), Quick Draw's score under the stars, Tank Duel's
       "Round N" / arena pill (size 20, under F123's banner fold). The solo playtest now fails
       any game whose bot half shows a "Round N" or "a – b" line, at the start and round end.
+- [x] 2026-11-07 (F131): Chop Chop round end: running out of time always ends the round on the
+      same step, so the "Time's up!" pop (rising from the chop count) sat on the "Out of time!"
+      banner and the "0 / 50" count at once. The pop is gone (the buzz and banner stay); the
+      solo playtest checks no such pop is up when the idle person's time runs out.
