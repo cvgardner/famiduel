@@ -1654,3 +1654,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (F179, no change): research, a rival 2-player app's review says "the stronger
       bot doesn't feel stronger". Ours: `npm run sim` has hard beating easy 90-100% and normal
       70-100% in every action game, so the levels are well apart.
+- [x] 2026-11-08 (F178, PR #223): Quick Draw: Slow Time's "⏳ get ready…" line sat on the
+      cowboy's hat (between the signal and the cowboy). It now reads left of the cowboy, below
+      the cactus (READY_X). tests/quickdraw-get-ready.test.ts.
