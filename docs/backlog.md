@@ -1647,3 +1647,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       frog's resting head, so the head pulling back from the missed snap slid over it and the
       word sat on the frog's eyes (seen top seat, snacksnatch-vs-bot-later.png). It starts on
       the blanket past the open jaws now and floats on into the field. tests/snacksnatch-miss.test.ts.
+- [x] 2026-11-08 (F182, PR #TBD): Snack Snatch: the seconds-left beside the pot hid under snacks
+      that rolled to a stop there (bottom seat's "20" under two candies in a bot match). The
+      digits draw after the snacks now, with a blanket-coloured outline; they cover at most the
+      edge of a snack a critter could gulp. tests/snacksnatch-seconds.test.ts.
