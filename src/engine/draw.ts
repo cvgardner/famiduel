@@ -39,7 +39,21 @@ export function setReader(seat: 0 | 1 | null, g?: G): void {
   else {
     const m = g.getTransform();
     reader = { seat, a: m.a, b: m.b };
+    shownBefore = shownNow;
+    shownNow = new Set();
   }
+}
+/**
+ * F123: big banners both seats draw ("Round 2", "Steady…", "Bot wins the round!") read
+ * upright twice once the bot's half faces the person. The bot seat's copy of a banner the
+ * person's half drew this frame or last is skipped. Only big worded labels (size >= 22, a
+ * letter, 5+ characters), so scores, names and small status lines always show.
+ */
+let shownNow = new Set<string>();
+let shownBefore = new Set<string>();
+const BANNER_SIZE = 22;
+function isBanner(str: string, size: number): boolean {
+  return size >= BANNER_SIZE && str.length >= 5 && /\p{L}/u.test(str);
 }
 /** The seat whose person reads every label: the only person at the table, else null. */
 export function soloReader(bots: [unknown, unknown]): 0 | 1 | null {
@@ -244,7 +258,12 @@ export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}):
     g.textAlign = o.align ?? 'center';
     g.textBaseline = 'middle';
     let seat = o.player ?? 0;
-    if (turnedFromReader(g)) {
+    const turned = turnedFromReader(g);
+    if (reader && isBanner(str, base)) {
+      if (!turned) shownNow.add(str);
+      else if (shownNow.has(str) || shownBefore.has(str)) return;
+    }
+    if (turned) {
       seat = seat === 1 ? 0 : 1;
       if (readerProbe.on) readerProbe.turned.add(str);
       // Turn about the label's own anchor; the flipped alignment keeps the same span on screen.
