@@ -876,6 +876,8 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     await introAsPeople(page, [0]);
     const t0 = Date.now();
     expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players.map((p) => p.bot)), id).toEqual([null, 'easy']);
+    // F151: the "3 2 1" shows once, in the person's half (the bot's copy read as a second digit).
+    expect(await page.evaluate(() => (window as unknown as { __famiduel: { runner: { countdownSeats(): number[] } } }).__famiduel.runner.countdownSeats()), `${id}: countdown in the bot's half`).toEqual([0]);
     // F118: the bot seat's canvas words (countdown, score, pops) turn to face the person too,
     // and keep their place on screen (a flipped left/right label still fits).
     await page.waitForTimeout(2600);
@@ -1035,6 +1037,7 @@ test('play the bot from the top seat: the bottom bot\'s words face the person up
     });
     await introAsPeople(page, [1]);
     expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players.map((p) => p.bot)), id).toEqual(['easy', null]);
+    expect(await page.evaluate(() => (window as unknown as { __famiduel: { runner: { countdownSeats(): number[] } } }).__famiduel.runner.countdownSeats()), `${id}: countdown in the bot's half`).toEqual([1]);
     await page.waitForTimeout(2600);
     const [turned, over] = await page.evaluate(() => {
       const r = (window as unknown as { __reader: { on: boolean; turned: Set<string> } }).__reader;

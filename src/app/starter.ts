@@ -6,6 +6,7 @@
 // is still the game's own seeded coin toss.
 import { shortName } from '../core/turnline';
 import { other, type PlayerIndex } from '../core/types';
+import { silentSeat } from '../engine/draw';
 
 export class StarterLog {
   private last = new Map<string, PlayerIndex>();
@@ -35,4 +36,13 @@ export function starterLines(first: PlayerIndex | null | undefined, names: [stri
   lines[first] = 'You go first!';
   lines[other(first)] = `${shortName(names[first])} goes first`;
   return lines;
+}
+
+/**
+ * The seats that see the "3 2 1" countdown (F151). Both seats in a match between people;
+ * against the bot only the person's seat, since the bot half's copy now turns to face the
+ * person and read as a second upright digit.
+ */
+export function countdownSeats(players: readonly { bot: unknown }[]): PlayerIndex[] {
+  return ([0, 1] as const).filter((p) => !silentSeat(players, p));
 }
