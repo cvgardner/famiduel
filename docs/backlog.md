@@ -1643,6 +1643,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Chop Chop is fast tapping by design, Sumo is hold-to-charge. A "Little hands" auto-fire
       for Tank Duel would change balance vs the bot (it waits a human reaction after reload),
       so it's a call for Chris if families say small kids tire of tapping FIRE.
+- [x] 2026-11-08 (F176, PR #221): Snack Snatch: the "Miss!" pop started just in front of the
+      frog's resting head, so the head pulling back from the missed snap slid over it and the
+      word sat on the frog's eyes (seen top seat, snacksnatch-vs-bot-later.png). It starts on
+      the blanket past the open jaws now and floats on into the field. tests/snacksnatch-miss.test.ts.
 - [x] 2026-11-08 (F177, PR #222): Sumo: a power's name ("💪 Grow!") popped at a fixed spot by
       the near rope, so a wrestler standing there (often the one who had just grown) covered it.
       It now starts there only when clear, else steps in toward the middle until the word clears
