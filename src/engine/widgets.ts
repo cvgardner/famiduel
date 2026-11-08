@@ -1,5 +1,5 @@
 // In-canvas buttons that belong to one player's half.
-import { alpha, circle, COLORS, glow, noGlow, text, type G } from './draw';
+import { alpha, BOT_CONTROLS_ALPHA, circle, COLORS, glow, noGlow, text, type G } from './draw';
 import { H, W } from './world';
 import type { Energy } from '../core/energy';
 import type { PowerDef } from '../core/types';
@@ -111,6 +111,8 @@ export class PowerButton {
     public readonly owner: 0 | 1,
     public readonly power: PowerDef,
     private readonly color: string,
+    /** F170/F171: a bot's button facing the one person: its face is drawn faint (nobody presses it). */
+    private readonly faint = false,
   ) {
     // Grows only as far as the screen edge allows (backing and band included), never below normal.
     const room = Math.min(x, W - x, y, H - y) - 6;
@@ -129,7 +131,14 @@ export class PowerButton {
     const active = energy.active > 0;
     // A thin band of the owner's colour round the dark backing, so a button reads as "mine"
     // even while its meter is empty (two buttons on one phone, kids side by side).
+    // F171: a bot's button (playing the bot) draws its band and face faint, like its other
+    // buttons (F170); the energy ring and the power's icon stay clear, they tell the person
+    // what the bot holds and when it can fire.
+    const a0 = g.globalAlpha;
+    const face = this.faint ? a0 * BOT_CONTROLS_ALPHA : a0;
+    g.globalAlpha = face;
     circle(g, x, y, r + 6, 'rgba(0,0,0,0.45)', alpha(this.color, 0.9), POWER_BAND);
+    g.globalAlpha = a0;
     // energy ring
     g.beginPath();
     g.lineCap = 'round';
@@ -144,9 +153,11 @@ export class PowerButton {
       g.strokeStyle = ready ? COLORS.gold : this.color;
       g.stroke();
     }
+    g.globalAlpha = face;
     if (ready) glow(g, COLORS.gold, 12 + 6 * Math.sin(t * 8));
     circle(g, x, y, r - 2, ready ? alpha(this.color, 0.95) : active ? COLORS.gold : 'rgba(255,255,255,0.08)');
     noGlow(g);
+    g.globalAlpha = a0;
     text(g, this.power.icon, x, y + 1, { size: Math.round((20 * r) / POWER_R), player: this.owner, alpha: ready || active ? 1 : 0.5 });
   }
 }

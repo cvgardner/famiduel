@@ -53,7 +53,7 @@ class TankView implements GameInstance {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
       const s = seat(p, POWER.x, POWER.y);
-      return new PowerButton(s.x, s.y, p, pw, ctx.players[p].color);
+      return new PowerButton(s.x, s.y, p, pw, ctx.players[p].color, silentSeat(ctx.players, p));
     });
   }
 

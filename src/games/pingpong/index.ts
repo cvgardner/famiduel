@@ -62,7 +62,7 @@ class PingPongView implements GameInstance {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
       const [x, y] = powerSpot(p, 38, 26, !!ctx.players[p].lefty);
-      return new PowerButton(x, y, p, pw, ctx.players[p].color);
+      return new PowerButton(x, y, p, pw, ctx.players[p].color, silentSeat(ctx.players, p));
     });
   }
 

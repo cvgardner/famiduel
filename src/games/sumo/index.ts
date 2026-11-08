@@ -58,7 +58,7 @@ class SumoView implements GameInstance {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
       const [x, y] = powerSpot(p, 40, 42, !!ctx.players[p].lefty);
-      return new PowerButton(x, y, p, pw, ctx.players[p].color);
+      return new PowerButton(x, y, p, pw, ctx.players[p].color, silentSeat(ctx.players, p));
     });
     this.buttons = PLAYERS.map((p) => new Button(W / 2, p === 0 ? H - 66 : 66, 46, p, 'HOLD', ctx.players[p].color, 20));
     this.showBanner(`Round ${this.game.round}`, '#fff', RULES.readyTime);

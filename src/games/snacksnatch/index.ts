@@ -39,7 +39,7 @@ class SnackSnatchView implements GameInstance {
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
-      return new PowerButton(W / 2, p === 0 ? H - 36 : 36, p, pw, ctx.players[p].color);
+      return new PowerButton(W / 2, p === 0 ? H - 36 : 36, p, pw, ctx.players[p].color, silentSeat(ctx.players, p));
     });
     this.buttons = PLAYERS.map((p) =>
       this.game.critters[p].map((c) => new Button(c.x, this.bodyY(p), 40, p, '', ctx.players[p].color, 18)) as [Button, Button],

@@ -63,7 +63,7 @@ class MinigolfView implements GameInstance {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
       const [x, y] = powerSpot(p, 38, 31, !!ctx.players[p].lefty);
-      return new PowerButton(x, y, p, pw, ctx.players[p].color);
+      return new PowerButton(x, y, p, pw, ctx.players[p].color, silentSeat(ctx.players, p));
     });
     this.facingP = this.game.leadOff;
     this.rot = this.rotFrom = this.rotTo = this.facingP === 1 ? Math.PI : 0;
