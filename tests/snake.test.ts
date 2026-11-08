@@ -121,6 +121,30 @@ describe('snake duel', () => {
     expect(g.snakes[0].y).toBe(25);
   });
 
+  it('phase crosses a trail, not a packed block of trails (F104)', () => {
+    for (const thick of [RULES.phaseCells, RULES.phaseCells + 1]) {
+      const g = fresh({ powers: ['phase', 'phase'] });
+      g.grid.fill(0);
+      Object.assign(g.snakes[1], { x: 2, y: 2, dir: 2 });
+      Object.assign(g.snakes[0], { x: 10, y: 30, dir: 0, acc: 0 });
+      for (let x = 0; x < RULES.cols; x++) for (let k = 0; k < thick; k++) g.grid[g.idx(x, 27 - k)] = 2;
+      g.energy[0].value = 1;
+      g.step(DT, [{ turn: 0, power: true }, idle]);
+      // Step until it is two cells past the block (or crashed).
+      for (let i = 0; i < 400 && g.phase === 'play' && g.snakes[0].y > 25 - thick; i++) g.step(DT, [idle, idle]);
+      if (thick <= RULES.phaseCells) {
+        // Through the block and out the other side; then the power is used up.
+        expect(g.snakes[0].alive).toBe(true);
+        expect(g.snakes[0].y).toBeLessThan(27 - thick);
+        expect(g.snakes[0].phase).toBe(0);
+      } else {
+        // One cell too thick: it crashes inside the block.
+        expect(g.lastRound).toBe(1);
+        expect(g.snakes[0].y).toBe(27 - RULES.phaseCells + 1);
+      }
+    }
+  });
+
   it('trail bomb clears trails around the head', () => {
     const g = fresh({ powers: ['bomb', 'bomb'] });
     const s = g.snakes[0];
