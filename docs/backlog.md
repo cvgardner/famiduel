@@ -1385,3 +1385,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       you/your in the bot's half.
 - [x] 2026-11-07 (F127): Backlog sweep: the two open Twin Gates lines from 2026-11-01 were
       already fixed by F29; ticked with today's numbers (easy 5.2 strokes, 8% picked up).
+- [x] 2026-11-07 (F126, PR #177): Quick Draw's small "Round N" line above "Steady…" still
+      showed twice upright when playing the bot (F123 only folds banners at size 22+). The
+      bot seat facing a person no longer draws it; the solo playtest checks. Snake's corner
+      "Round N" HUD labels stay on both sides (each sits by its own score).
