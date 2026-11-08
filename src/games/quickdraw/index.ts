@@ -222,7 +222,8 @@ class QuickDrawView implements GameInstance {
       const y = L.cowboyY - 34 + i * 26;
       star(gx, x, y, 10, i < g.score[p] ? COLORS.gold : 'rgba(80,50,20,0.25)');
     }
-    text(gx, `${g.score[p]} – ${g.score[other(p)]}`, W / 2 + 116, L.cowboyY + 52, { size: 13, color: '#4a2c0c' });
+    // F128: the bot's copy of this score, turned upright, read back to front beside the person's.
+    if (!silentSeat(this.ctx.players, p)) text(gx, `${g.score[p]} – ${g.score[other(p)]}`, W / 2 + 116, L.cowboyY + 52, { size: 13, color: '#4a2c0c' });
     // Power badges
     const badges: string[] = [];
     if (g.shots[p] > 0) badges.push(`🎯 x${g.shots[p]}`);

@@ -1421,3 +1421,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Shield 51% (29-34% against the others). Real matches give both seats a power, so the
       "none" column matters less; Shield is the weak pick at normal but the strongest at
       easy (60%). A power call if families find Shield useless against a fast chopper.
+- [x] 2026-11-07 (F128): Play the bot: small per-seat lines the bot's half drew twice now show
+      once, in the person's half: Snake's corner "Round N" and score line (its copy read back
+      to front, "0 – 1" beside "1 – 0"), Quick Draw's score under the stars, Tank Duel's
+      "Round N" / arena pill (size 20, under F123's banner fold). The solo playtest now fails
+      any game whose bot half shows a "Round N" or "a – b" line, at the start and round end.

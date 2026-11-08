@@ -1,7 +1,7 @@
 // Tank Duel view: sticks, FIRE buttons and bots become intents; state becomes toy tanks.
 import { popColor } from '../../engine/fx';
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, glow, line, noGlow, seatRing, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, glow, line, noGlow, seatRing, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { bigHandsOn, PowerButton } from '../../engine/widgets';
@@ -555,6 +555,9 @@ class TankView implements GameInstance {
       const sub = g.phase === 'ready' ? LAYOUTS[g.layout].name : '';
       const a = Math.min(1, (g.phase === 'ready' ? g.phaseT : this.banner.t) * 3);
       for (const p of PLAYERS) {
+        // F128: playing the bot, its copy of this pill read upright as a second "Round N" (and
+        // arena name) above the person's; F123's fold only covers size 22+ banners.
+        if (silentSeat(this.ctx.players, p)) continue;
         const y = p === 0 ? MID + 56 : MID - 56;
         rrect(gx, W / 2 - 92, y - 24, 184, 48, 24, `rgba(42,33,80,${0.78 * a})`);
         text(gx, str, W / 2, y + (sub ? (p === 0 ? -6 : 6) : 0), { size: 20, player: p, color: this.banner.color, alpha: a });
