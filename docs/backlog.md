@@ -1311,3 +1311,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Over the next 365 days the old picks stacked two long holes on 36 days and three on
       2; now 158 days have none and 207 one. A second long hole drawn is put aside and drawn
       again, so days with one or none keep their holes. `tests/daily-golf.test.ts` pins it.
+- [x] 2026-11-07 (F113): Tournament swaps. App Store reviews of a rival 2-player app ask to
+      "veto" tournament games. Before game 1 each of the 7 lineup games is a button (↻):
+      a tap swaps it for the next action game not in the lineup (tap again to keep
+      cycling), up to 3 swaps; the 7 stay different and the first draw extra never repeats
+      game 7. `swapGame()` / `swapsLeft()` in src/core/tournament.ts, tests in
+      tests/tournament.test.ts, playtest "tournament: games can be swapped out" at 320 px.

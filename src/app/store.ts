@@ -1,7 +1,7 @@
 // Player profiles, settings, the current match night and the match history,
 // all kept on the device (localStorage). Nothing leaves the phone.
 import { PLAYER_COLORS, safePair } from '../core/colors';
-import { newTournament, recordGame, type Tournament } from '../core/tournament';
+import { newTournament, recordGame, swapGame, type Tournament } from '../core/tournament';
 import type { BotLevel, GameResult, PlayerIndex } from '../core/types';
 
 /**
@@ -312,6 +312,14 @@ export class Store {
     if (!t) return;
     recordGame(t, game, winner);
     this.save();
+  }
+
+  /** Swap lineup game i before game 1 (see swapGame). */
+  swapTournamentGame(i: number, pool: readonly string[]): boolean {
+    const t = this.data.tournament;
+    if (!t || !swapGame(t, i, pool)) return false;
+    this.save();
+    return true;
   }
 
   endTournament(): void {

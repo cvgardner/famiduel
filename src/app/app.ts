@@ -8,7 +8,7 @@ import gamesJson from '../../content/games.json';
 import powersJson from '../../content/powers.json';
 import { effectiveAssist } from '../core/handicap';
 import { hashSeed } from '../core/rng';
-import { TOURNAMENT_LENGTH, WINS_NEEDED, champion, lineupSlots, nextGame, tournamentPool, tournamentWins } from '../core/tournament';
+import { TOURNAMENT_LENGTH, WINS_NEEDED, champion, lineupSlots, nextGame, swapsLeft, tournamentPool, tournamentWins } from '../core/tournament';
 import type { BotLevel, GameResult, PlayerIndex, PlayerInfo, PowerDef } from '../core/types';
 import { Sfx } from '../engine/sfx';
 import { energyOf } from '../engine/game';
@@ -343,17 +343,23 @@ export class App {
     const next = nextGame(t);
     const nextMeta = META.find((m) => m.id === next);
     const name = (p: PlayerIndex) => esc(seatName(profiles, p));
+    const swaps = champ === null ? swapsLeft(t) : 0;
     const slots = lineupSlots(t)
       .map((s, i) => {
         const m = META.find((x) => x.id === s.game)!;
         const color = s.winner === null ? '' : `style="--w:${profiles[s.winner].color}"`;
         const tag = s.state === 'done' ? (s.winner === null ? 'Draw' : name(s.winner)) : s.state === 'next' ? 'Next' : `Game ${i + 1}`;
-        return `<li class="slot ${s.state}${s.state === 'done' && s.winner !== null ? ' won' : ''}" ${color}><span class="gicon">${m.icon}</span><span class="sname">${m.name}</span><span class="stag">${tag}</span></li>`;
+        const inner = `<span class="gicon">${m.icon}</span><span class="sname">${m.name}</span><span class="stag">${tag}</span>`;
+        // F113: before game 1 each of the 7 is a button that swaps it for a game not in the lineup.
+        const body = swaps > 0 && i < TOURNAMENT_LENGTH ? `<button class="slot-swap" data-i="${i}" aria-label="Swap ${m.name} for another game">${inner}<span class="sswap" aria-hidden="true">↻</span></button>` : inner;
+        return `<li class="slot ${s.state}${s.state === 'done' && s.winner !== null ? ' won' : ''}${body === inner ? '' : ' swappable'}" ${color}>${body}</li>`;
       })
       .join('');
     const head = champ !== null
       ? `<h2 class="tourney-title">🏆 ${name(champ)} wins the tournament!</h2>`
-      : `<h2 class="tourney-title">Tournament</h2><p class="tourney-sub">First to ${WINS_NEEDED} wins. A draw adds a game.</p>`;
+      : `<h2 class="tourney-title">Tournament</h2><p class="tourney-sub">First to ${WINS_NEEDED} wins. A draw adds a game.</p>${
+          swaps > 0 ? `<p class="tourney-sub tourney-swaps">Don't fancy one? Tap it to swap it (${swaps} ${swaps === 1 ? 'swap' : 'swaps'} left).</p>` : ''
+        }`;
     $('#tourney').innerHTML = `
       <div class="tourney">
         ${head}
@@ -366,6 +372,11 @@ export class App {
         </div>
       </div>`;
     $('#tourneyHome').addEventListener('click', () => this.showHome());
+    for (const b of $('#tourney').querySelectorAll<HTMLButtonElement>('.slot-swap'))
+      b.addEventListener('click', () => {
+        if (this.store.swapTournamentGame(Number(b.dataset.i), this.tournamentPool())) this.sfx.play('tap');
+        this.showTournament();
+      });
     $('#tourneyPlay')?.addEventListener('click', () => {
       this.tourneyMatch = true;
       this.openGame(next!);
