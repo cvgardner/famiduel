@@ -1647,3 +1647,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       frog's resting head, so the head pulling back from the missed snap slid over it and the
       word sat on the frog's eyes (seen top seat, snacksnatch-vs-bot-later.png). It starts on
       the blanket past the open jaws now and floats on into the field. tests/snacksnatch-miss.test.ts.
+- [x] 2026-11-08 (F183, PR #TBD): Penalty: the shooter's "Curve Shot ready" (any power's ready
+      line) sat behind them, across their own goal's net (top seat, 320x568 bot match). It
+      reads just past the ball toward the goal now, clear of the kick ring and the run-up's
+      closing ring, both seats. tests/penalty-ready.test.ts.

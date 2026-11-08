@@ -20,6 +20,8 @@ const DIVE_Y = [H - 52, 52];
 export const DIVE_R = 28;
 export const DIVE_R_BIG = 32;
 const DIVE_HIT = 36;
+/** F183: the shooter's "<power> ready" line sits this far past the ball, toward the goal. */
+const READY_DY = 66;
 const DIVES: Dive[] = [-1, 0, 1];
 /** Lock in the pick as soon as the finger has travelled this far toward the goal. */
 const AUTO_KICK = 150;
@@ -360,7 +362,9 @@ class PenaltyView implements GameInstance {
       }
       if (g.armed[s]) {
         const pw = this.ctx.players[s].power!;
-        text(gx, `${pw.icon} ${pw.name} ready`, W / 2, g.spotY() + back * 92, { size: 14, player: s, color: COLORS.gold, stroke: 'rgba(0,0,0,0.5)' });
+        // F183: just past the ball, toward the goal (behind the shooter it printed across their
+        // own goal's net); clear of the kick ring, also the run-up's closing ring.
+        text(gx, `${pw.icon} ${pw.name} ready`, W / 2, g.spotY() + this.toward() * READY_DY, { size: 14, player: s, color: COLORS.gold, stroke: 'rgba(0,0,0,0.5)' });
         // The keeper sees it coming too.
         const k = g.keeper;
         text(gx, `${pw.icon} ${pw.name} coming!`, W / 2, RULES.goalY[k] + (k === 1 ? 98 : -98), { size: 14, player: k, color: COLORS.gold, stroke: 'rgba(0,0,0,0.5)' });
