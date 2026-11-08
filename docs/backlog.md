@@ -1591,7 +1591,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       longest round 46 s anywhere. Head-on draws are the bots' (both race the same cells);
       a much stronger head-on penalty in SnakeBot only cut hard v hard to 30% draws (17%
       head-on), so it was left alone. Revisit if families report many draws against the bot.
-- [x] 2026-11-08 (F167, PR #TBD): Play the bot: Penalty's kick tracker showed twice, the bot's
+- [x] 2026-11-08 (F167, PR #213): Play the bot: Penalty's kick tracker showed twice, the bot's
       copy turned to face the person and mirrored (its score on the left, kicks running right
       to left, the bot's row first; solo-play-penalty.png). It shows once now, in the person's
       half; tests/penalty-solo.test.ts counts the trackers' score digits.
