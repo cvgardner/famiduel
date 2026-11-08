@@ -1490,3 +1490,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Ours, `npm run sim -- --game sumo --n 80`: hard v normal 78%, hard v easy 98%, normal v
       easy 93%, masher with ★★★ v easy 35%. Hard is clearly stronger but normal still wins
       about one match in five, so no change; recheck if families call hard Sumo unbeatable.
+
+## Ideas found 2026-11-08 (pre-reader run)
+- [x] 2026-11-08 (F147): Quick Draw's "Steady…" and "Wait for it…" were words only, so a child
+      who can't read yet had nothing telling them to hold off. A raised hand ✋ now sits on both
+      sides of those lines (each seat's half) until the red DRAW! card; a worded fake-out card
+      gets none, since fooling the reader is its trick. Source test in tests/quickdraw.test.ts.
