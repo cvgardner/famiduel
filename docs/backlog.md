@@ -1512,3 +1512,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       for one seat like lines of text (the newer a line further down in that seat's view, or
       above at the screen's edge), and pops stay on screen. tests/pops.test.ts; the e2e pop
       check covers every action game.
+- [x] 2026-11-08 (F151): Play the bot: the "3 2 1" countdown drew in both halves, and since the
+      bot half turned to face the person (F118) that read as two upright digits in every game.
+      It now shows once, in the person's half (`countdownSeats()` in src/app/starter.ts, unit
+      test; the solo playtests check it from the bottom and the top seat). Two people or two
+      bots keep both copies.

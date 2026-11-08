@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { StarterLog, starterLines } from '../src/app/starter';
+import { StarterLog, countdownSeats, starterLines } from '../src/app/starter';
 import { makeRng } from '../src/core/rng';
 import type { PlayerIndex, PlayerInfo } from '../src/core/types';
 import { Checkers } from '../src/games/checkers/logic';
@@ -99,5 +99,15 @@ describe('the countdown says who goes first', () => {
       const [a, b] = starterLines(make(7), ['A', 'B']);
       expect([a, b].filter((l) => l === 'You go first!'), id).toHaveLength(1);
     }
+  });
+});
+
+describe('the countdown digits (F151)', () => {
+  it('show in both halves between people, and only in the person\'s half against the bot', () => {
+    expect(countdownSeats([{ bot: null }, { bot: null }])).toEqual([0, 1]);
+    expect(countdownSeats([{ bot: null }, { bot: 'easy' }])).toEqual([0]);
+    expect(countdownSeats([{ bot: 'hard' }, { bot: null }])).toEqual([1]);
+    // Two bots (the e2e bot match): nobody's reading, both copies stay.
+    expect(countdownSeats([{ bot: 'easy' }, { bot: 'normal' }])).toEqual([0, 1]);
   });
 });
