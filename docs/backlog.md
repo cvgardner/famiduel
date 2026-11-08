@@ -1583,3 +1583,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Chop's rival pill "them: 9" (solo-round-quickdraw/chopchop.png). Against a bot they
       say "Bot 500 ms", "Bot got fooled!", "bot: 9"; two people keep "them".
       tests/bot-name.test.ts reads both.
+- [x] 2026-11-08 (F166, no change): a rival app's review says its hard snake "copies" the
+      player so rounds can't be won or lost. Ours can't stall: seeded start lanes, a speed ramp
+      and the 9-round cap (100 matches per row, scratch sim): easy v easy rounds avg 12 s, 23%
+      draws; normal v normal 23 s, 5%; hard v hard 11 s, 50% draws (36% head-on) and 43/100
+      matches reach round 9; a seat copying the bot's turns draws 21% (hard) / 61% (easy),
+      longest round 46 s anywhere. Head-on draws are the bots' (both race the same cells);
+      a much stronger head-on penalty in SnakeBot only cut hard v hard to 30% draws (17%
+      head-on), so it was left alone. Revisit if families report many draws against the bot.
+- [x] 2026-11-08 (F167, PR #TBD): Play the bot: Penalty's kick tracker showed twice, the bot's
+      copy turned to face the person and mirrored (its score on the left, kicks running right
+      to left, the bot's row first; solo-play-penalty.png). It shows once now, in the person's
+      half; tests/penalty-solo.test.ts counts the trackers' score digits.
