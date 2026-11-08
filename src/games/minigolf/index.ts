@@ -736,6 +736,12 @@ class MinigolfView implements GameInstance {
       rrect(gx, 30, y - 26, W - 60, 52, 26, c, '#ffffff', 3);
       text(gx, 'YOUR SHOT!', W / 2, y, { size: 30, color: '#ffffff', stroke: shade(c, -0.5) });
     } else {
+      // F174: playing the bot, its copy of "<person>'s shot" turned upright at the top of the
+      // course, under the person's own name, while their strip already says "Your shot!".
+      if (silentSeat(this.ctx.players, p)) {
+        gx.globalAlpha = 1;
+        return;
+      }
       const y = H - STRIP - 22;
       rrect(gx, 60, y - 15, W - 120, 30, 15, BANNER_CARD, alpha(c, 0.9), 2);
       // Lifted for the dark card: Purple was ~3.5:1 there.

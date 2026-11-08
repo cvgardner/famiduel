@@ -1104,6 +1104,8 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     expect(roundWords.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half at the round end`).toEqual([]);
     expect(roundWords.filter((t) => /^(Round \d+|\d+ – \d+)$/.test(t)), `${id}: a second "Round" or score line in the bot's half at the round end`).toEqual([]);
     expect(roundWords.filter((t) => cardWords.test(t)), `${id}: a hole card or scorecard in the bot's half at the round end`).toEqual([]);
+    // F174: Minigolf's "<name>'s shot" pill shows only in the waiting person's half.
+    expect([...turned, ...roundWords].filter((t) => /'s shot$/.test(t)), `${id}: a "'s shot" pill in the bot's half`).toEqual([]);
     if (id === 'chopchop') {
       // F131: the person sat still, so their time ran out: the round banner says "Out of time!"
       // on its own, with no "Time's up!" pop rising over the chop count and that banner.
