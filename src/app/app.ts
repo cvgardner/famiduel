@@ -628,7 +628,10 @@ export class App {
     this.show('play');
     this.dailyDay = meta.id === 'minigolf' && this.dailyGolf && !this.tourneyMatch ? dayKey() : null;
     this.runner = new Runner(this.stage, def, seed, players, powersOn, this.sfx, (r) => this.finish(r), false, this.starters.next(meta.id), this.dailyDay ?? undefined);
-    this.playDemo(meta.id, meta.gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined, this.runner.game.firstMover?.() ?? null);
+    // F159: a match that opens on the pass-the-phone cover gets no in-play finger (it tapped
+    // over "look away!", in the half of the person who should not be looking).
+    const gesture = this.runner.game.opensOnCover?.() ? null : meta.gesture;
+    this.playDemo(meta.id, gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined, this.runner.game.firstMover?.() ?? null);
     this.stage.start();
   }
 

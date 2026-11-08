@@ -52,6 +52,10 @@ class RpsView implements GameInstance {
     this.newRound();
   }
 
+  opensOnCover(): boolean {
+    return this.pass;
+  }
+
   private color(p: PlayerIndex): string {
     return this.ctx.players[p].color;
   }
