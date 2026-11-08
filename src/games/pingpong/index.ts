@@ -4,7 +4,7 @@
 // it back chops, and a sideways or diagonal swipe through the ball curves it. The ball shows its spin, a shadow,
 // a bounce ring on the table and a trail that heats up as the rally grows.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -227,10 +227,14 @@ class PingPongView implements GameInstance {
     for (const p of PLAYERS) {
       const x = p === 0 ? W - 58 : 58;
       const y = p === 0 ? MID + 62 : MID - 62;
+      // F163: a bot's card facing the one person shows just its points. Its "vs N" (the
+      // person's points) turned upright above the number, and the person's own card already
+      // says "vs" the bot.
+      const quiet = silentSeat(this.ctx.players, p);
       facing(gx, p, x, y, () => {
         rrect(gx, x - 30, y - 34, 60, 68, 14, c[p], 'rgba(255,255,255,0.7)', 2);
-        text(gx, String(g.score[p]), x, y - 6, { size: 36, color: '#fff', stroke: 'rgba(0,0,0,0.25)' });
-        text(gx, `vs ${g.score[other(p)]}`, x, y + 21, { size: 13, color: inkOn(c[p]) });
+        text(gx, String(g.score[p]), x, quiet ? y : y - 6, { size: 36, color: '#fff', stroke: 'rgba(0,0,0,0.25)' });
+        if (!quiet) text(gx, `vs ${g.score[other(p)]}`, x, y + 21, { size: 13, color: inkOn(c[p]) });
       });
     }
     // Net: posts stick out over the rails, mesh band across the middle
