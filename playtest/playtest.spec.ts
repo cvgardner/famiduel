@@ -841,8 +841,29 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     await expect(page.locator('#intro .half.p1 .who'), id).toHaveText('Bot 🤖😴');
     // F117: nobody sits behind the bot, so its half reads upright for the one person.
     await expect(page.locator('#intro .half.p1'), `${id}: bot half faces the person`).toHaveCSS('transform', 'none');
+    await page.evaluate(() => {
+      const r = (window as unknown as { __reader: { on: boolean; turned: Set<string> } }).__reader;
+      r.turned.clear();
+      r.on = true;
+      const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number> } }).__edges;
+      e.over.clear();
+      e.on = true;
+    });
     await introAsPeople(page, [0]);
     expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players.map((p) => p.bot)), id).toEqual([null, 'easy']);
+    // F118: the bot seat's canvas words (countdown, score, pops) turn to face the person too,
+    // and keep their place on screen (a flipped left/right label still fits).
+    await page.waitForTimeout(2600);
+    const [turned, over] = await page.evaluate(() => {
+      const r = (window as unknown as { __reader: { on: boolean; turned: Set<string> } }).__reader;
+      const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number> } }).__edges;
+      r.on = false;
+      e.on = false;
+      return [[...r.turned], [...e.over]];
+    });
+    expect(turned.length, `${id}: the bot seat's words were turned to face the person`).toBeGreaterThan(0);
+    expect(over, `${id}: no turned word runs off the screen`).toEqual([]);
+    await page.screenshot({ path: path.join(OUT, `solo-play-${id}.png`) });
     // The bot wins this one (ended by hand to keep the pass short).
     await page.evaluate(() => {
       (window as unknown as { __famiduel: H }).__famiduel.runner!.result = { winner: 1, score: [0, 1] };
