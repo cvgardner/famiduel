@@ -234,6 +234,10 @@ class QuickDrawView implements GameInstance {
   private drawSignal(gx: G, p: PlayerIndex): void {
     const g = this.game;
     const y = L.signalY;
+    // F142: playing the bot, the signal (Steady…, a fake-out card, DRAW!) shows once, in the
+    // person's half. F123 folded the bot copy's big words but left its card and small line
+    // upright for the person: a fake-out read "bridge! 🌉" alone, and DRAW! an empty red card.
+    if (silentSeat(this.ctx.players, p)) return;
     if (g.phase === 'ready') {
       // F126: playing the bot, its half's copy of this small line read upright as a second
       // "Round 1" above the person's (F123 only folds big banners); the person's half has it.

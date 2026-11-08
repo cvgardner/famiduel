@@ -892,6 +892,32 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     // copy covered the far third of the course).
     const cardWords = /^(HOLE \d+ OF \d+|.*SCORECARD|Par \d+)$/;
     expect(turned.filter((t) => cardWords.test(t)), `${id}: a hole card in the bot's half`).toEqual([]);
+    if (id === 'quickdraw') {
+      // F142: the signal (Steady…, Wait for it…, a fake-out card, DRAW!) shows once, in the
+      // person's half: play on in small steps until a worded fake-out has been on screen.
+      const seen = await page.evaluate(async () => {
+        type QD = { phase: string; fake: { kind: string } | null };
+        const w = window as unknown as { __famiduel: { runner: { game: { game: QD }; fastForward(s: number): void } }; __reader: { on: boolean; turned: Set<string> } };
+        const r = w.__famiduel.runner;
+        w.__reader.turned.clear();
+        w.__reader.on = true;
+        const frame = () => new Promise((res) => requestAnimationFrame(() => res(null)));
+        const kinds = new Set<string>();
+        for (let i = 0; i < 1200 && !(kinds.has('fake') && kinds.has('draw')); i++) {
+          r.fastForward(0.05);
+          await frame();
+          const g = r.game.game;
+          if (g.phase === 'wait' && g.fake && g.fake.kind !== 'tumbleweed') kinds.add('fake');
+          if (g.phase === 'wait') kinds.add('wait');
+          if (g.phase === 'draw') kinds.add('draw');
+        }
+        w.__reader.on = false;
+        return { kinds: [...kinds], turned: [...w.__reader.turned] };
+      });
+      expect(seen.kinds.sort(), 'quickdraw: a worded fake-out and a DRAW! were on screen').toEqual(['draw', 'fake', 'wait']);
+      const signal = /^(Steady…|Wait for it…|DRAW!|DRAW-|DRAW\.\.\.|Open the|a picture! 🖍️|bridge! 🌉|DRAW-er! 🗄️)$/;
+      expect(seen.turned.filter((t) => signal.test(t)), 'quickdraw: the signal shows in the bot\'s half too').toEqual([]);
+    }
     await page.screenshot({ path: path.join(OUT, `solo-play-${id}.png`) });
     // F137: the first-match ghost finger leaves the person's play area about a second after GO
     // (its card sat over Penalty's goal and Snack Snatch's lower lanes).
