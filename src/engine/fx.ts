@@ -46,6 +46,16 @@ export function liftOn(color: string, under: string, behind = '#ffffff', need = 
 /** Test hook (F149): with `on`, pop() lists pops born together on top of each other. */
 export const popProbe = { on: false, hits: [] as string[] };
 
+/** A pop's box, estimated: 0.55 em a character (at most the screen's width), 0.9 em tall. */
+function popBox(str: string, x: number, y: number, size: number): [number, number, number, number] {
+  const w = Math.min(W - 16, [...str].length * size * 0.55);
+  return [x - w / 2, y - size * 0.45, x + w / 2, y + size * 0.45];
+}
+
+function overlaps(a: [number, number, number, number], b: [number, number, number, number]): boolean {
+  return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+}
+
 export class Fx {
   private particles: Particle[] = [];
   private floaters: Floater[] = [];
@@ -66,18 +76,23 @@ export class Fx {
 
   /** Text that rises and fades, readable by the given player. */
   pop(str: string, x: number, y: number, color = '#fff', player: 0 | 1 = 0, size = 22): void {
+    // F150: two pops born in the same step for one seat (a power used together with the other
+    // seat's, two snacks landing at once) stack like lines of text: the newer one moves down a
+    // line in that seat's view, toward its own edge, instead of printing over the first.
+    const down = player === 0 ? 1 : -1;
+    for (let tries = 0; tries < 4; tries++) {
+      const hit = this.floaters.find((f) => f.player === player && f.life === f.max && overlaps(popBox(f.str, f.x, f.y, f.size), popBox(str, x, y, size)));
+      if (!hit) break;
+      const gap = (hit.size + size) * 0.5 + 4;
+      // No room below at the screen's edge: the line goes above instead.
+      y = hit.y + down * gap;
+      if (y > H - size / 2 || y < size / 2) y = hit.y - down * gap;
+    }
+    y = Math.max(size / 2, Math.min(H - size / 2, y));
     if (popProbe.on) {
-      // Two pops born in the same step for the same seat whose words overlap (an estimate of
-      // their boxes: 0.55 em a character, 0.9 em tall).
-      const box = (s: string, px: number, py: number, sz: number) => {
-        const w = Math.min(W - 16, s.length * sz * 0.55);
-        return [px - w / 2, py - sz * 0.45, px + w / 2, py + sz * 0.45];
-      };
-      const b = box(str, x, y, size);
+      const b = popBox(str, x, y, size);
       for (const f of this.floaters) {
-        if (f.player !== player || f.life !== f.max) continue;
-        const a = box(f.str, f.x, f.y, f.size);
-        if (a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3]) popProbe.hits.push(`${f.str} | ${str} (seat ${player})`);
+        if (f.player === player && f.life === f.max && overlaps(popBox(f.str, f.x, f.y, f.size), b)) popProbe.hits.push(`${f.str} | ${str} (seat ${player})`);
       }
     }
     this.floaters.push({ str, x, y, life: 0.9, max: 0.9, color, size, player });

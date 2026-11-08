@@ -1505,8 +1505,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       words 130, rally count and Match point! 170 (a second Match point! 210). A pop probe in
       fx.ts (`__pops`) lists pops born together on top of each other; an e2e test plays Ping
       Pong and Air Hockey at every level and expects none.
-- [ ] The pop probe also finds smaller same-step overlaps elsewhere (9 bot matches a game):
-      Quick Draw and Penalty when both seats fire a power on the same step (2-4), Snack Snatch
-      "+1"/"+3 ×2!" when two snacks land together (~10), Tanks "BONK!"/"Oops! Own shot" (by
-      design, two lines), Minigolf "Splash! +1 stroke"/"Picked up" (1). Add a game to the e2e
-      list once its lanes are fixed.
+- [x] 2026-11-08 (F150): The pop probe also found smaller same-step overlaps elsewhere (9 bot
+      matches a game): Quick Draw and Penalty when both seats fire a power on the same step,
+      Snack Snatch "+1"/"+3 ×2!" when two snacks land together (~10), Tanks "BONK!"/"Oops! Own
+      shot", Minigolf "Splash! +1 stroke"/"Picked up". fx.pop() now stacks pops born together
+      for one seat like lines of text (the newer a line further down in that seat's view, or
+      above at the screen's edge), and pops stay on screen. tests/pops.test.ts; the e2e pop
+      check covers every action game.

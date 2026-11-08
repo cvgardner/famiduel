@@ -130,8 +130,9 @@ for (const g of games.games) {
 // F149: words popped on the same hit or point take different lanes. Ping Pong printed
 // "Rally x5!" right over SMASH!/Curve! (~30 times in 9 bot matches) and "What a rally!" over
 // "Match point!"; Air Hockey's power name sat inside GOAL! (F148). The probe in fx.ts lists
-// any two pops born in the same step whose words overlap in the same seat.
-for (const id of ['pingpong', 'airhockey']) {
+// any two pops born in the same step whose words overlap in the same seat. F150: pops born
+// together now stack like lines of text in every game, so every action game is checked.
+for (const id of ['pingpong', 'airhockey', 'sumo', 'penalty', 'snacksnatch', 'snake', 'quickdraw', 'tanks', 'chopchop', 'minigolf', 'seabattle']) {
   test(`pops born together never overlap: ${id}`, async ({ page }) => {
     test.setTimeout(120_000);
     const errors = await boot(page, `POPS-${id}`);
