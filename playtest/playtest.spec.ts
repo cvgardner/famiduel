@@ -467,7 +467,8 @@ test('ghost finger: the in-play card never sits on a person\'s "3 2 1" digit, on
         return { p: Number(el.closest<HTMLElement>('.play-demo')!.dataset.p), l: r.left, r: r.right, t: r.top, b: r.bottom };
       }),
     );
-    expect(cards.length, `${id}: a finger per person`).toBe(2);
+    // F159: a two-person Sea Battle or RPS opens on the look-away cover: no finger over it.
+    expect(cards.length, `${id}: a finger per person`).toBe(WAITS_FOR_PERSON.includes(id) ? 0 : 2);
     for (const c of cards) {
       // The biggest digit (110 units tall, ~66 wide) at MID ± 120.
       const cy = box.y + (c.p === 0 ? 440 : 200) * s;
@@ -491,8 +492,8 @@ test('countdown: no game words under a person\'s "3 2 1" digit, on a small phone
   await setPlayers(page, [null, null]);
   type H = { openGame(id: string): void; startMatch(): void; showHome(): void };
   type Box = { str: string; size: number; l: number; t: number; r: number; b: number };
-  // Sea Battle and RPS open on the pass-the-phone cover with two people; the digit over the
-  // cover is its own question (F159), so they're left out here.
+  // Sea Battle and RPS open on the pass-the-phone cover with two people: they skip the
+  // countdown (F159), checked after the loop.
   const shown = games.games.filter((g) => !(g as { hidden?: boolean }).hidden && !WAITS_FOR_PERSON.includes(g.id)).map((g) => g.id);
   const hits: string[] = [];
   let digits = 0;
@@ -531,7 +532,30 @@ test('countdown: no game words under a person\'s "3 2 1" digit, on a small phone
     }
     if (id === 'chopchop') await page.screenshot({ path: path.join(OUT, 'countdown-clear-chopchop.png') });
   }
+  // F159: a game that opens on "look away!" shows the cover at once, with no "3 2 1" over it.
+  const covered: string[] = [];
+  for (const id of WAITS_FOR_PERSON) {
+    const seen = await page.evaluate(async (g) => {
+      const a = (window as unknown as { __famiduel: H }).__famiduel;
+      a.showHome();
+      a.openGame(g);
+      a.startMatch();
+      const w = window as unknown as { __boxes: { on: boolean; boxes: Box[] } };
+      const frame = () => new Promise((res) => requestAnimationFrame(() => res(null)));
+      await frame();
+      w.__boxes.boxes = [];
+      w.__boxes.on = true;
+      await frame();
+      await frame();
+      w.__boxes.on = false;
+      return w.__boxes.boxes.map((b) => ({ str: b.str, size: b.size }));
+    }, id);
+    if (seen.some((b) => /^[1-3]$/.test(b.str) && b.size >= 70)) covered.push(`${id}: a countdown digit over the cover`);
+    if (!seen.some((b) => /look away/i.test(b.str))) covered.push(`${id}: no "look away" cover at the start`);
+    if (id === 'seabattle') await page.screenshot({ path: path.join(OUT, 'countdown-cover-seabattle.png') });
+  }
   await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
+  expect(covered, 'two-person turn games open on the cover, no countdown').toEqual([]);
   expect(digits, 'the probe saw the countdown digits').toBeGreaterThan(shown.length);
   expect([...new Set(hits)], 'game words under a countdown digit').toEqual([]);
   expect(errors).toEqual([]);
