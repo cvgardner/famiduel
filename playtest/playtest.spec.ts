@@ -259,6 +259,14 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
           return { shown: !!d, fits: head.scrollWidth <= head.clientWidth + 1 && (!dr || (dr.left >= hr.left && dr.right <= hr.right)) };
         }),
       );
+      // F145: the middle strip's "← Back" stays on one line (beside a two-line blurb it wrapped
+      // into an arrow over the word on a 320 px phone).
+      const backLines = await page.evaluate(() => {
+        const r = document.createRange();
+        r.selectNodeContents(document.getElementById('introBack')!);
+        return new Set([...r.getClientRects()].map((c) => Math.round(c.top))).size;
+      });
+      if (backLines !== 1) clipped.push(`${id} at ${w}x${h}${tag}: "← Back" wraps onto ${backLines} lines`);
       if (demo.some((d) => !d.shown)) clipped.push(`${id} at ${w}x${h}${tag}: no ghost finger on a first match`);
       if (demo.some((d) => !d.fits)) clipped.push(`${id} at ${w}x${h}${tag}: ghost finger pushes the title off the phone`);
       if (bad || demo.some((d) => !d.shown || !d.fits)) {
