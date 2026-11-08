@@ -3094,3 +3094,51 @@ for (const id of ['airhockey', 'pingpong'] as const) {
     expect(errors).toEqual([]);
   });
 }
+
+// F113: before game 1 a family can swap lineup games they don't fancy (up to 3); the
+// lineup still fits a small phone, with Bigger text too, and the 7 stay different.
+test('tournament: games can be swapped out before game 1, on a small phone', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  await page.click('#tourneyBtn');
+  await expect(page.locator('#tourney')).toBeVisible();
+  const swaps = page.locator('#tourney .slot-swap');
+  await expect(swaps).toHaveCount(7);
+  await expect(page.locator('.tourney-swaps')).toContainText('3 swaps left');
+  const names = () => page.locator('#tourney .slot .sname').allTextContents();
+  const before = await names();
+  await swaps.nth(2).tap();
+  await expect(page.locator('.tourney-swaps')).toContainText('2 swaps left');
+  const after = await names();
+  expect(after[2], 'game 3 was swapped').not.toBe(before[2]);
+  expect(new Set(after.slice(0, 7)).size, 'the 7 are still different').toBe(7);
+  expect(after.filter((_n, i) => i !== 2 && i < 7)).toEqual(before.filter((_n, i) => i !== 2 && i < 7));
+  for (const big of [false, true]) {
+    await page.evaluate((on) => {
+      const app = (window as unknown as { __famiduel: { store: { data: { settings: { bigText: boolean } } }; applyBigText(): void; showTournament(): void } }).__famiduel;
+      app.store.data.settings.bigText = on;
+      app.applyBigText();
+      app.showTournament();
+    }, big);
+    const off = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('#tourney .slot, #tourney .tourney-swaps, #tourneyPlay')]
+        .filter((el) => {
+          const r = el.getBoundingClientRect();
+          return r.left < -0.5 || r.right > window.innerWidth + 0.5 || el.scrollWidth > el.clientWidth + 1;
+        })
+        .map((el) => el.className || el.id),
+    );
+    expect(off, `lineup fits${big ? ' (Bigger text)' : ''}`).toEqual([]);
+    await page.screenshot({ path: path.join(OUT, `tournament-swap${big ? '-bigtext' : ''}.png`), fullPage: true });
+  }
+  await swaps.nth(0).tap();
+  await swaps.nth(0).tap();
+  await expect(page.locator('.tourney-swaps')).toHaveCount(0);
+  await expect(page.locator('#tourney .slot-swap')).toHaveCount(0);
+  // Game 1 is whatever slot 1 now holds.
+  const first = (await names())[0];
+  await expect(page.locator('#tourneyPlay')).toContainText(first);
+  expect(errors).toEqual([]);
+});

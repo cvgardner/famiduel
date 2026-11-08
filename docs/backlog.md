@@ -1123,6 +1123,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       players up 18% of the time).
 - [ ] Twin Gates is now easier than Switchback for normal and hard bots (3.3 vs 3.8): if hole
       order should stay easiest-first, swap them in `content/minigolf-holes.json`.
+      2026-11-07 (F101, dropped): n=24 reads easy 5.2 vs 5.5, normal 3.1 vs 4.0, hard 2.2 vs
+      3.0, but the list is ordered by par (tests/minigolf.test.ts: pars never go down) and
+      Twin Gates is par 5. Swapping needs Twin Gates at par 4 (cap 7 picks up easy players
+      ~18%), so it's a par call, left as is.
 
 ## Ideas found 2026-11-07 (waiting line run)
 - [x] 2026-11-07 (F26): Minigolf's waiting strip said "Wait · Bot shoots" for the whole bot
@@ -1308,3 +1312,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Over the next 365 days the old picks stacked two long holes on 36 days and three on
       2; now 158 days have none and 207 one. A second long hole drawn is put aside and drawn
       again, so days with one or none keep their holes. `tests/daily-golf.test.ts` pins it.
+- [x] 2026-11-07 (F113): Tournament swaps. App Store reviews of a rival 2-player app ask to
+      "veto" tournament games. Before game 1 each of the 7 lineup games is a button (↻):
+      a tap swaps it for the next action game not in the lineup (tap again to keep
+      cycling), up to 3 swaps; the 7 stay different and the first draw extra never repeats
+      game 7. `swapGame()` / `swapsLeft()` in src/core/tournament.ts, tests in
+      tests/tournament.test.ts, playtest "tournament: games can be swapped out" at 320 px.
+- [ ] Rival app reviews say the hard bot "never loses" in Minigolf and RPS. Measured (F114,
+      2026-11-07, 60 random 3-hole matches, seats swapped): hard Minigolf beats normal 88%
+      (draws 8%) and easy 100%; normal beats easy 87%. Hard aces 94-100% of most par-2 holes
+      (`npm run golf`), so a grown-up rarely beats it. RPS hard throws at random (F62). Fine
+      for "Hard", but if families call it unbeatable, soften hard's aim on short holes.

@@ -3,12 +3,15 @@ import gamesJson from '../content/games.json';
 import { groupOf } from '../src/app/homegroups';
 import { GAMES } from '../src/games/registry';
 import {
+  MAX_SWAPS,
   TOURNAMENT_LENGTH,
   champion,
   lineupSlots,
   newTournament,
   nextGame,
   recordGame,
+  swapGame,
+  swapsLeft,
   tournamentPool,
   tournamentWins,
 } from '../src/core/tournament';
@@ -75,4 +78,35 @@ describe('7-game tournament', () => {
     const t = newTournament(['a', 'b', 'c'], 9);
     for (let i = 1; i < t.lineup.length; i++) expect(t.lineup[i]).not.toBe(t.lineup[i - 1]);
   });
+
+  it('before game 1 a family can swap up to 3 lineup games; the 7 stay different action games (F113)', () => {
+    for (let seed = 0; seed < 40; seed++) {
+      const t = newTournament(pool, seed, 0);
+      expect(swapsLeft(t)).toBe(MAX_SWAPS);
+      for (let k = 0; k < MAX_SWAPS; k++) {
+        const i = (seed + k * 3) % TOURNAMENT_LENGTH;
+        const before = t.lineup[i];
+        expect(swapGame(t, i, pool)).toBe(true);
+        expect(t.lineup[i]).not.toBe(before);
+        const seven = t.lineup.slice(0, TOURNAMENT_LENGTH);
+        expect(new Set(seven).size).toBe(TOURNAMENT_LENGTH);
+        expect(seven.every((g) => pool.includes(g))).toBe(true);
+        expect(t.lineup[TOURNAMENT_LENGTH]).not.toBe(t.lineup[TOURNAMENT_LENGTH - 1]);
+      }
+      expect(swapsLeft(t)).toBe(0);
+      expect(swapGame(t, 0, pool)).toBe(false);
+    }
+  });
+
+  it('no swaps once game 1 is played, and old saves without a count can swap', () => {
+    const t = newTournament(pool, 5, 0);
+    delete t.swaps;
+    expect(swapsLeft(t)).toBe(MAX_SWAPS);
+    recordGame(t, nextGame(t)!, 0);
+    expect(swapsLeft(t)).toBe(0);
+    const before = [...t.lineup];
+    expect(swapGame(t, 3, pool)).toBe(false);
+    expect(t.lineup).toEqual(before);
+  });
 });
+

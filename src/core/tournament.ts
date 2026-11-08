@@ -7,6 +7,8 @@ import type { PlayerIndex } from './types';
 export const TOURNAMENT_KINDS = ['Action', 'Aim · turns', 'Reaction', 'Timing', 'Frantic'];
 export const TOURNAMENT_LENGTH = 7;
 export const WINS_NEEDED = 4;
+/** Before game 1 a family may swap this many lineup games for games not in it (F113). */
+export const MAX_SWAPS = 3;
 
 export type TournamentGame = { game: string; winner: PlayerIndex | null };
 export type Tournament = {
@@ -14,6 +16,8 @@ export type Tournament = {
   /** Every game in play order. The first 7 are the lineup; draws push the next ones in. */
   lineup: string[];
   played: TournamentGame[];
+  /** Lineup games swapped out before game 1 (older saves: none). */
+  swaps?: number;
 };
 
 /** The pool: games of a tournament kind that can be played, in a fixed order. */
@@ -78,4 +82,30 @@ export function lineupSlots(t: Tournament): { game: string; winner: PlayerIndex 
     if (done) return { game, winner: done.winner, state: 'done' };
     return { game, winner: null, state: i === t.played.length ? 'next' : 'later' };
   });
+}
+
+/** Swaps left before game 1 (none once a game is played). */
+export function swapsLeft(t: Tournament): number {
+  return t.played.length ? 0 : Math.max(0, MAX_SWAPS - (t.swaps ?? 0));
+}
+
+/**
+ * Swap lineup game i (one of the 7) for the next pool game, in pool order after it, that
+ * isn't in the 7, so the 7 stay all different; tapping again keeps cycling. Only before
+ * game 1 and while swaps are left. Returns whether it swapped.
+ */
+export function swapGame(t: Tournament, i: number, pool: readonly string[]): boolean {
+  if (swapsLeft(t) <= 0 || i < 0 || i >= TOURNAMENT_LENGTH) return false;
+  const seven = t.lineup.slice(0, TOURNAMENT_LENGTH);
+  const from = Math.max(0, pool.indexOf(t.lineup[i]));
+  for (let k = 1; k <= pool.length; k++) {
+    const g = pool[(from + k) % pool.length];
+    if (seven.includes(g)) continue;
+    // The game after the 7 (a draw's extra) never repeats the 7th back to back.
+    if (i === TOURNAMENT_LENGTH - 1 && t.lineup[TOURNAMENT_LENGTH] === g) continue;
+    t.lineup[i] = g;
+    t.swaps = (t.swaps ?? 0) + 1;
+    return true;
+  }
+  return false;
 }
