@@ -1,6 +1,6 @@
 import './style.css';
 import { App } from './app/app';
-import { contrastProbe, edgeProbe, readerProbe, smallText } from './engine/draw';
+import { boxProbe, contrastProbe, edgeProbe, readerProbe, smallText } from './engine/draw';
 import { keepPortrait } from './engine/portrait';
 import { popProbe } from './engine/fx';
 
@@ -14,3 +14,4 @@ keepPortrait(root, () => app.stage.resize());
 (window as unknown as { __edges: typeof edgeProbe }).__edges = edgeProbe;
 (window as unknown as { __reader: typeof readerProbe }).__reader = readerProbe;
 (window as unknown as { __pops: typeof popProbe }).__pops = popProbe;
+(window as unknown as { __boxes: typeof boxProbe }).__boxes = boxProbe;

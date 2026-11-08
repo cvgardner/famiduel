@@ -129,6 +129,26 @@ export function scaledSize(size: number): number {
  */
 export const edgeProbe = { on: false, over: new Map<string, number>() };
 
+/**
+ * Box probe (F158): while on, every label drawn lists the box its ink covers, in canvas
+ * pixels (after the letterbox scale and any turn), with its base size. The playtest uses
+ * it to find game words under the countdown's "3 2 1" digit.
+ */
+export const boxProbe = { on: false, boxes: [] as { str: string; size: number; l: number; t: number; r: number; b: number }[] };
+
+function probeBox(g: G, str: string, x: number, y: number, size: number): void {
+  const m = g.measureText(str);
+  const xs = [x - m.actualBoundingBoxLeft, x + m.actualBoundingBoxRight];
+  const ys = [y - m.actualBoundingBoxAscent, y + m.actualBoundingBoxDescent];
+  const t = g.getTransform();
+  const pts = xs.flatMap((px) => ys.map((py) => t.transformPoint({ x: px, y: py })));
+  const l = Math.min(...pts.map((q) => q.x));
+  const r = Math.max(...pts.map((q) => q.x));
+  const top = Math.min(...pts.map((q) => q.y));
+  const b = Math.max(...pts.map((q) => q.y));
+  boxProbe.boxes.push({ str, size, l, t: top, r, b });
+}
+
 /** Readable strings drawn below MIN_TEXT since the last clear (read by the playtest). */
 export const smallText = new Map<string, number>();
 
@@ -272,6 +292,7 @@ export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}):
       g.translate(-x, -y);
       g.textAlign = FLIP_ALIGN[g.textAlign] ?? g.textAlign;
     }
+    if (boxProbe.on && g.globalAlpha > 0.05) probeBox(g, str, x, y, base);
     if (contrastProbe.on && readable(str)) probeContrast(g, str, x, y, { ...o, size });
     if (edgeProbe.on && readable(str)) probeEdge(g, str, x, seat);
     if (o.stroke) {

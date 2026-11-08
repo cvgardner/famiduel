@@ -1540,5 +1540,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (F157): Quick Draw drew its "Round 1" and "Steady…" lines during the
       countdown, where the top seat's sat beneath its "3 2 1" digit. The signal now starts at
       GO (the round's own wait starts there anyway), so the digit reads alone.
-- [ ] F158: a playtest that fails on any worded game text inside a person's countdown digit
-      box, in every shown game (F155-F157 were found by eye in 320x568 screenshots).
+- [x] 2026-11-08 (F158): A playtest boxes every label drawn during the countdown (draw.ts
+      `boxProbe`, `__boxes`) and fails on any that meets a person's "3 2 1" digit, in every
+      shown game at 320x568, both seats people. It found two more: Ping Pong's "Flick up hard:
+      SMASH" hint (now waits for GO) and Snake's "Tap ◀ ▶ to turn" (moved below the digit,
+      MID ± 205).
+- [ ] F159: Sea Battle and RPS with two people open on the pass-the-phone cover, and the
+      "3 2 1" digit counts down over its "Player 2, look away!" words. A turn game behind a
+      cover may not need the countdown at all; left out of the F158 playtest until decided.

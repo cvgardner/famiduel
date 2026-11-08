@@ -279,7 +279,8 @@ class SnakeView implements GameInstance {
       for (const p of PLAYERS) {
         // How-to words are for people; nobody reads a bot's (F119).
         if (this.bots[p]) continue;
-        const y = p === 0 ? MID + 88 : MID - 88;
+        // F158: below the "3 2 1" digit (at 88 it sat on the digit's ink), above the HUD line.
+        const y = p === 0 ? MID + 205 : MID - 205;
         text(gx, 'Tap ◀ ▶ to turn', W / 2, y, { size: 13, color: alpha('#ffffff', 0.7), player: p });
       }
     }

@@ -249,7 +249,8 @@ class PingPongView implements GameInstance {
       text(gx, `Rally ${g.hits}`, W - 72, MID - 24, { size: 15, color: hot, stroke: 'rgba(0,0,0,0.8)', player: 1 });
     }
     // How-to hint for people at the start of the match
-    if (g.score[0] + g.score[1] === 0 && g.t < 7) {
+    // F158: the hints wait for GO; under the countdown "Flick up hard" sat on the "3 2 1" digit.
+    if (g.score[0] + g.score[1] === 0 && g.t > 0 && g.t < 7) {
       const a = Math.min(1, (7 - g.t) / 0.8);
       for (const p of PLAYERS) {
         if (this.ctx.players[p].bot) continue;
