@@ -1651,7 +1651,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       that rolled to a stop there (bottom seat's "20" under two candies in a bot match). The
       digits draw after the snacks now, with a blanket-coloured outline; they cover at most the
       edge of a snack a critter could gulp. tests/snacksnatch-seconds.test.ts.
-- [x] 2026-11-08 (F183, PR #TBD): Penalty: the shooter's "Curve Shot ready" (any power's ready
+- [x] 2026-11-08 (F183, PR #227): Penalty: the shooter's "Curve Shot ready" (any power's ready
       line) sat behind them, across their own goal's net (top seat, 320x568 bot match). It
       reads just past the ball toward the goal now, clear of the kick ring and the run-up's
       closing ring, both seats. tests/penalty-ready.test.ts.
