@@ -833,15 +833,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       line from tee to cup, so the only ace comes off the right wall. `npm run golf`: easy
       2.9 strokes (0% aces), normal 1.8 (17%), hard 1.3 (71%), none picked up. Unit tests:
       no straight ace, and every ace in an angle/power sweep banks off the right wall.
-- [ ] Minigolf: Twin Gates (easy 5.3, normal 4.2 strokes) and Switchback are long for a small
+- [x] Minigolf: Twin Gates (easy 5.3, normal 4.2 strokes) and Switchback are long for a small
       kid with a 6-stroke cap; check the cap is hit rarely with the head start on.
       2026-11-07: checked (easy bots, 12 seeds; the head start doesn't change a bot's shots,
       only the net score): a flat cap of 6 picked up 71% of balls on Twin Gates (par 5) and
       13-21% on the par 4s. The cap is now 6 or par + 3, whichever is more (`Minigolf.cap`):
       Twin Gates 50%, Switchback 4%, Zig Zag 4%; the "Picked up · N" pop shows the hole's cap.
-- [ ] Twin Gates is still the one hole an easy bot can't finish half the time (6.6 strokes
+- [x] Twin Gates is still the one hole an easy bot can't finish half the time (6.6 strokes
       on par 5, picked up at 8 in 50%). Soften it (a wider gate) or move it out of a small
       kid's draw, measured with easy bots over 12 seeds.
+      2026-11-07 (F127 sweep): done by F29 (gaps 100 -> 140, see the Twin Gates run below);
+      `npm run golf -- --hole gates --n 24` now reads easy 5.2 strokes, picked up 8%
+      (normal 3.1, hard 2.2), so both Twin Gates lines are closed.
 
 ## Ideas found 2026-11-01 (FIRE rim run)
 - [x] The same owner-colour band could go on other shared-looking buttons: Penalty's and
@@ -1380,3 +1383,5 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       count once F118 turned it. A bot seat facing a person no longer draws it; the
       person's half still shows both counts. The solo playtests now flag "them" as well as
       you/your in the bot's half.
+- [x] 2026-11-07 (F127): Backlog sweep: the two open Twin Gates lines from 2026-11-01 were
+      already fixed by F29; ticked with today's numbers (easy 5.2 strokes, 8% picked up).
