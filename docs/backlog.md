@@ -1451,6 +1451,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       big dark card saying just "HOLE 1 OF 3 / Par 2" over the far third of the course, and its
       scorecard's "You" column was the bot's. The solo playtest fails any hole card or
       scorecard words in the bot's half, at the start and at the hole end.
+- [x] 2026-11-08 (F140): Sumo's round banner ("Round 2", "GO!", "Final round!") sat 56 from the
+      ring's centre, right on each wrestler's start spot, the moment a kid looks for theirs.
+      It now sits 26 from the centre, between the wrestlers (size capped at 30 so the two
+      mirrored copies stay apart); tests/sumo.test.ts checks the geometry.
 - [x] 2026-11-07 (F133): Backlog sweep: RPS person line (done by F125) and the air hockey
       "walks away" flake watch (no repeat) ticked with why.
 
