@@ -2919,6 +2919,11 @@ test("minigolf: today's course plays the same holes, fits, and keeps the day's b
       }
       return out;
     });
+  // F96: before anyone plays today's course, home's Minigolf card wears a 📅 (no other card does).
+  await expect(page.locator('.game-card[data-id="minigolf"] .gday')).toHaveCount(1);
+  await expect(page.locator('.gday')).toHaveCount(1);
+  await page.locator('.game-card[data-id="minigolf"]').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: path.join(OUT, 'minigolf-daily-home-badge.png') });
   for (const big of [false, true]) {
     await page.evaluate((on) => {
       const app = (window as unknown as Golf).__famiduel;
@@ -2971,8 +2976,10 @@ test("minigolf: today's course plays the same holes, fits, and keeps the day's b
   await expect(page.locator('#result .half.p1 .res-daily')).toContainText("Today's best: 9 by");
   await expect(page.locator('#result .half.p0 .res-daily')).toContainText('📅');
   await page.screenshot({ path: path.join(OUT, 'minigolf-daily-result.png') });
-  // Back to random holes with the switch.
+  // F96: home's Minigolf card wore a 📅 until today's course was played; now it's gone.
   await page.click('#homeBtn');
+  await expect(page.locator('.game-card[data-id="minigolf"] .gday')).toHaveCount(0);
+  // Back to random holes with the switch.
   await openFromHome(page, 'minigolf');
   await page.locator('#dailyBtn').tap();
   await expect(page.locator('#dailyBtn')).toHaveText('📅 Today');

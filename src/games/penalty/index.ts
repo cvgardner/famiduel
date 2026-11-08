@@ -468,16 +468,18 @@ class PenaltyView implements GameInstance {
       gx.fillStyle = '#fff';
       gx.beginPath();
       const d = DIVES[i];
+      // The arrow grows with the button (Settings > Little hands draws it bigger).
+      const k = b.r / DIVE_R;
       if (d === 0) {
         // Jump: an upward chevron toward the shooter
         const s = p === 0 ? -1 : 1;
-        gx.moveTo(b.x, b.y + s * 10);
-        gx.lineTo(b.x - 10, b.y - s * 6);
-        gx.lineTo(b.x + 10, b.y - s * 6);
+        gx.moveTo(b.x, b.y + s * 10 * k);
+        gx.lineTo(b.x - 10 * k, b.y - s * 6 * k);
+        gx.lineTo(b.x + 10 * k, b.y - s * 6 * k);
       } else {
-        gx.moveTo(b.x + d * 12, b.y);
-        gx.lineTo(b.x - d * 6, b.y - 10);
-        gx.lineTo(b.x - d * 6, b.y + 10);
+        gx.moveTo(b.x + d * 12 * k, b.y);
+        gx.lineTo(b.x - d * 6 * k, b.y - 10 * k);
+        gx.lineTo(b.x - d * 6 * k, b.y + 10 * k);
       }
       gx.fill();
       gx.globalAlpha = 1;
