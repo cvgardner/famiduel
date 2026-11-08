@@ -99,6 +99,21 @@ export class Fx {
       if (y > H - size / 2 || y < size / 2) y = hit.y - dir * gap;
     }
     y = Math.max(size / 2, Math.min(H - size / 2, y));
+    // Still on one (a crowd of pops, or the screen's edge): take the nearest free line,
+    // looking into the field first.
+    const clear = (cy: number) =>
+      !this.floaters.some((f) => f.player === player && fresh(f) && overlaps(popBox(f.str, f.x, f.y, f.size), popBox(str, x, cy, size)));
+    if (!clear(y)) {
+      const from = y;
+      for (let n = 1; n <= 60; n++) {
+        const tries = [from - down * n * 4, from + down * n * 4].filter((cy) => cy >= size / 2 && cy <= H - size / 2);
+        const free = tries.find(clear);
+        if (free !== undefined) {
+          y = free;
+          break;
+        }
+      }
+    }
     if (popProbe.on) {
       const b = popBox(str, x, y, size);
       for (const f of this.floaters) {

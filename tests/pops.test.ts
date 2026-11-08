@@ -69,3 +69,21 @@ describe('a pop a moment later stacks too, until the first one fades (F184)', ()
     expect(floaters(fx)[1].y).toBeLessThan(floaters(fx)[0].y);
   });
 });
+
+// F184: a stream of catches (Snack Snatch's frenzy) left a pop on another after the four
+// line-steps; the nearest free line is taken instead.
+describe('a crowd of pops on one spot never overlaps (F184)', () => {
+  for (const player of [0, 1] as const) {
+    it(`seat ${player}`, () => {
+      const fx = new Fx();
+      popProbe.hits = [];
+      popProbe.on = true;
+      for (let i = 0; i < 8; i++) {
+        fx.pop(i % 2 ? '+1 ×3!' : '+1', 100, player === 0 ? H - 30 : 30, '#fff', player, 22);
+        if (i % 3 === 2) fx.update(1 / 60);
+      }
+      popProbe.on = false;
+      expect(popProbe.hits).toEqual([]);
+    });
+  }
+});

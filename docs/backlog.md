@@ -1679,4 +1679,5 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       F150 only stacked pops born in the same step. A new pop now also clears a same-seat pop
       still in its bright first 0.55 s (POP_FRESH): it takes the line above, into the field
       (below is where that seat's own piece sits, e.g. a frog's head). Same-step pops still go a
-      line down; popProbe counts both. tests/pops.test.ts.
+      line down; if still crowded (a frenzy of catches) the nearest free line is taken.
+      popProbe counts both. tests/pops.test.ts.
