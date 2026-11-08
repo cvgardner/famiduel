@@ -2,7 +2,7 @@
 // bouncy top-down ring with squash/stretch wrestlers, dust and shockwaves.
 import { PLAYERS, type PlayerIndex } from '../../core/types';
 import { inkOn } from '../../core/contrast';
-import { alpha, circle, COLORS, facing, glow, noGlow, fitSize, nameLabel, seatRing, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, noGlow, fitSize, nameLabel, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button, PowerButton, powerSpot } from '../../engine/widgets';
@@ -451,6 +451,9 @@ class SumoView implements GameInstance {
       gx.strokeStyle = w.charge >= 1 ? COLORS.gold : '#fff';
       gx.stroke();
     }
+    // F162: a bot's button facing the one person says nothing (HOLD / LET GO are how-to words
+    // nobody at the table reads; the charge ring still shows the bot winding up).
+    if (silentSeat(this.ctx.players, p)) return;
     const label = w.charging ? (w.charge >= 1 ? 'MAX!' : 'LET GO') : 'HOLD';
     // Ink by the button's own shade (white "LET GO" on Mint was 4.3:1), drawn
     // 19 px bold or more so it counts as large text on every seat colour.

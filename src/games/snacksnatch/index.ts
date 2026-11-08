@@ -419,7 +419,8 @@ class SnackSnatchView implements GameInstance {
         gx.lineCap = 'round';
         gx.stroke();
       }
-      text(gx, 'TAP', c.x, by + 14 + press, { size: 14, color: inkOn(col) });
+      // F162: no "TAP" on a bot's hippo facing the one person (a how-to word nobody reads).
+      if (!silentSeat(this.ctx.players, c.p)) text(gx, 'TAP', c.x, by + 14 + press, { size: 14, color: inkOn(col) });
     });
   }
 
