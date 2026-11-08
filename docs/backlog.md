@@ -1566,3 +1566,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       at the table reads (F119; Quick Draw's bot button was already blank). A bot's button
       facing the one person carries no word now (Sumo's charge ring still shows it winding up);
       the solo playtest's how-to list fails on HOLD, LET GO and TAP in the bot's half.
+- [x] 2026-11-08 (F163, PR #210): Play the bot: Ping Pong's bot score card turned upright with
+      its "vs N" (the person's points) above the number, a back-to-front card next to the
+      person's "N / vs N" (solo-play-pingpong.png). A bot's card facing the one person shows
+      just its points; tests/pingpong-solo.test.ts counts the "vs" lines. The fake canvas that
+      follows transforms now lives in tests/canvasRecorder.ts.
