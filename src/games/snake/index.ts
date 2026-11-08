@@ -30,6 +30,21 @@ function turnRect(p: PlayerIndex, turn: -1 | 1): Rect {
 const cx = (x: number) => OX + x * C + C / 2;
 const cy = (y: number) => OY + y * C + C / 2;
 
+/** How far a pop rises in its 0.9 s (fx.ts: 40 a second), and half a 22-unit word's height. */
+const POP_RISE = 36;
+const POP_HALF = 13;
+/**
+ * F141: where a "CRASH!" pop starts so it stays inside the arena for its whole rise. A
+ * crash at the far wall used to pop on the wall and float up over the other seat's turn
+ * buttons. Pops rise toward the crasher's far side (up for seat 0, down for seat 1).
+ */
+export function crashPopY(y: number, p: PlayerIndex): number {
+  const top = OY + POP_HALF + (p === 0 ? POP_RISE : 0);
+  const bottom = OY + AH - POP_HALF - (p === 1 ? POP_RISE : 0);
+  return Math.min(bottom, Math.max(top, y));
+}
+export const ARENA_Y: readonly [number, number] = [OY, OY + AH];
+
 class SnakeView implements GameInstance {
   readonly game: SnakeDuel;
   private bots: (SnakeBot | null)[];
@@ -88,7 +103,7 @@ class SnakeView implements GameInstance {
         fx.shake(8, 0.3);
         fx.burst(cx(e.x), cy(e.y), players[e.p].color, 34, 260, 4);
         fx.burst(cx(e.x), cy(e.y), '#ffffff', 12, 160, 3);
-        fx.pop('CRASH!', cx(e.x), cy(e.y), '#ffffff', e.p, 22);
+        fx.pop('CRASH!', cx(e.x), crashPopY(cy(e.y), e.p), '#ffffff', e.p, 22);
       } else if (e.type === 'headon') {
         sfx.play('buzz');
         fx.flash('#ffffff', 0.2);

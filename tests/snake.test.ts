@@ -162,3 +162,22 @@ describe('snake duel', () => {
     expect(powersFired).toBeGreaterThan(0);
   });
 });
+
+describe('crash pop (F141)', () => {
+  it('stays inside the arena for its whole rise, wherever the crash is', async () => {
+    const { crashPopY, ARENA_Y } = await import('../src/games/snake/index');
+    const [top, bottom] = ARENA_Y;
+    for (const p of [0, 1] as const) {
+      for (let row = -1; row <= RULES.rows; row++) {
+        const y = RULES.oy + row * RULES.cell + RULES.cell / 2;
+        const start = crashPopY(y, p);
+        const end = start + (p === 0 ? -36 : 36);
+        expect(Math.min(start, end) - 13, `seat ${p} row ${row}`).toBeGreaterThanOrEqual(top);
+        expect(Math.max(start, end) + 13, `seat ${p} row ${row}`).toBeLessThanOrEqual(bottom);
+      }
+      // A crash in the middle pops where it happened.
+      const mid = (top + bottom) / 2;
+      expect(crashPopY(mid, p)).toBe(mid);
+    }
+  });
+});
