@@ -646,7 +646,8 @@ class SeaBattleView implements GameInstance {
     text(gx, 'Ships sunk', 264, 594, { size: 13, color: COLORS.dim, weight: 700 });
     text(gx, `${sunkBy(v)} – ${sunkBy(other(v))}`, 264, 570, { size: 26, color: '#fff' });
     text(gx, `you`, 236, 548, { size: 13, color: vc });
-    text(gx, `them`, 292, 548, { size: 13, color: this.ctx.players[other(v)].color });
+    // F175: playing the bot, the other column names it (as Quick Draw and Chop Chop do, F165).
+    text(gx, this.ctx.players[other(v)].bot ? 'bot' : 'them', 292, 548, { size: 13, color: this.ctx.players[other(v)].color });
     const btn = this.powerBtn[v];
     if (btn && m.kind !== 'over') {
       if (this.armed && m.kind === 'fire') {

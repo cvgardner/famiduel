@@ -1634,3 +1634,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       turned upright at the top of the course while the person's own strip said "Your shot!";
       the bot's half has no waiting pill now. tests/minigolf-solo.test.ts; the solo playtest
       fails on a "'s shot" line in the bot's half.
+- [x] 2026-11-08 (F175, PR #PRNUM): Play the bot: Sea Battle's "Ships sunk" columns read
+      "you / them"; against a bot the second one says "bot" (as F165 did for Quick Draw and
+      Chop Chop). tests/bot-name.test.ts.

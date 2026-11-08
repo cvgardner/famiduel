@@ -77,3 +77,38 @@ describe('Tank Duel names the bot\'s score and leaves its button wordless', () =
     expect(ws.filter((w) => w.startsWith('⏱')).length).toBe(1);
   });
 });
+
+/** Sea Battle's words once the person's fleet is hidden and play has started. */
+function seaWords(players: [PlayerInfo, PlayerInfo]): string[] {
+  const sfx = { play() {} } as unknown as Sfx;
+  const view = GAMES.seabattle.create({ seed: 1, rng: makeRng(1), players, powersOn: false, sfx, fx: new Fx(), end() {} }) as unknown as {
+    game: { placeRandom(p: 0 | 1): void; setReady(p: 0 | 1): void };
+    advance(): void;
+    update(dt: number, input: unknown): void;
+    render(g: unknown): void;
+  };
+  // The person hides their fleet; the view then lets the bot place and passes to the fire turn.
+  view.game.placeRandom(0);
+  view.game.setReady(0);
+  view.advance();
+  const input = { of: () => [], all: () => [], key: () => false, keyPressed: () => false, tapped: () => undefined };
+  for (let i = 0; i < 120; i++) view.update(1 / 60, input);
+  const { g, words: w } = recorder();
+  setReader(soloReader([players[0].bot, players[1].bot]), g);
+  try {
+    view.render(g);
+  } finally {
+    setReader(null);
+  }
+  return w.map((x) => x.str);
+}
+
+// F175: playing the bot, Sea Battle's "Ships sunk" columns read "you / them".
+describe('Sea Battle names the bot over the sunk count', () => {
+  it('"bot" against a bot', () => {
+    const w = seaWords(solo);
+    expect(w).toContain('Ships sunk');
+    expect(w).toContain('bot');
+    expect(w).not.toContain('them');
+  });
+});
