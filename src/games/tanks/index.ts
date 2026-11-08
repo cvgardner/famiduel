@@ -1,7 +1,7 @@
 // Tank Duel view: sticks, FIRE buttons and bots become intents; state becomes toy tanks.
 import { popColor } from '../../engine/fx';
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, glow, line, noGlow, seatRing, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, glow, line, noGlow, seatRing, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { bigHandsOn, PowerButton } from '../../engine/widgets';
@@ -486,6 +486,10 @@ class TankView implements GameInstance {
     const g = this.game;
     const c = this.ctx.players[p].color;
     const live = !g.over && g.phase === 'play';
+    // F170: a bot's stick and FIRE button are drawn faint (nobody at the table presses
+    // them); its reload ring, shells and hearts stay bright.
+    const a0 = gx.globalAlpha;
+    gx.globalAlpha = a0 * controlsAlpha(this.ctx.players, p);
     // Stick
     const cs = this.controls[p];
     const b = seat(p, cs.stickX, CONTROLS_Y);
@@ -519,6 +523,7 @@ class TankView implements GameInstance {
     noGlow(gx);
     circle(gx, f.x, f.y, r + 1, look.fill, look.gap, 2.5);
     circle(gx, f.x, f.y - r * 0.25, r * 0.7, 'rgba(255,255,255,0.12)');
+    gx.globalAlpha = a0;
     if (tk.reload > 0) {
       gx.beginPath();
       gx.arc(f.x, f.y, rr + 4, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - tk.reload / RULES.reload));

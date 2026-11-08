@@ -2,7 +2,7 @@
 // bouncy top-down ring with squash/stretch wrestlers, dust and shockwaves.
 import { PLAYERS, type PlayerIndex } from '../../core/types';
 import { inkOn } from '../../core/contrast';
-import { alpha, circle, COLORS, facing, glow, noGlow, fitSize, nameLabel, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, facing, glow, noGlow, fitSize, nameLabel, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button, PowerButton, powerSpot } from '../../engine/widgets';
@@ -433,10 +433,14 @@ class SumoView implements GameInstance {
     const pressed = btn.held || w.charging;
     const r = pressed ? btn.r * 0.93 : btn.r;
     const live = g.phase === 'fight' && w.cooldown <= 0;
+    // F170: a bot's button is drawn faint (nobody at the table presses it); its charge ring stays bright.
+    const a0 = gx.globalAlpha;
+    gx.globalAlpha = a0 * controlsAlpha(this.ctx.players, p);
     circle(gx, btn.x, btn.y + 6, btn.r, 'rgba(0,0,0,0.35)');
     const fill = live || pressed ? c : shade(c, -0.35);
     circle(gx, btn.x, btn.y + (pressed ? 4 : 0), r, fill, 'rgba(255,255,255,0.6)', 3);
     circle(gx, btn.x - r * 0.3, btn.y - r * 0.35 + (pressed ? 4 : 0), r * 0.25, 'rgba(255,255,255,0.25)');
+    gx.globalAlpha = a0;
     // Charge arc
     gx.beginPath();
     gx.lineWidth = 7;

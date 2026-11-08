@@ -3,7 +3,7 @@
 // runs out; the ball is struck on zero, so the keeper always knows when it
 // comes. The keeper taps a dive button.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, fitSize, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, facing, glow, line, noGlow, fitSize, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { bigHandsOn, Button, PowerButton, powerSpot } from '../../engine/widgets';
@@ -462,10 +462,11 @@ class PenaltyView implements GameInstance {
     const keeping = g.keeper === p && (g.phase === 'aim' || g.phase === 'flight' || g.phase === 'ready');
     const live = keeping && g.dive === null && g.phase !== 'ready';
     const col = this.ctx.players[p].color;
+    const dim = controlsAlpha(this.ctx.players, p);
     for (let i = 0; i < 3; i++) {
       const b = this.diveBtns[p][i];
       const chosen = keeping && g.dive === DIVES[i];
-      gx.globalAlpha = live || chosen ? 1 : 0.3;
+      gx.globalAlpha = (live || chosen ? 1 : 0.3) * dim;
       circle(gx, b.x, b.y + 4, b.r, 'rgba(0,0,0,0.3)');
       if (live) glow(gx, col, 8 + 4 * Math.sin(this.t * 8));
       circle(gx, b.x, b.y, b.held ? b.r * 0.92 : b.r, chosen ? COLORS.gold : col, 'rgba(255,255,255,0.6)', 2);

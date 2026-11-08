@@ -2,7 +2,10 @@ import type { G } from '../src/engine/draw';
 
 type M = { a: number; b: number; c: number; d: number; e: number; f: number };
 
-/** A canvas that follows transforms and records where words land (anything else is a no-op). */
+/**
+ * A canvas that follows transforms and records where words land, plus each fill() with the
+ * centre of the last arc or roundRect and the opacity it was drawn at (anything else is a no-op).
+ */
 export function recorder() {
   let m: M = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
   const stack: M[] = [];
@@ -10,6 +13,9 @@ export function recorder() {
   const mul = (n: M) => {
     m = { a: m.a * n.a + m.c * n.b, b: m.b * n.a + m.d * n.b, c: m.a * n.c + m.c * n.d, d: m.b * n.c + m.d * n.d, e: m.a * n.e + m.c * n.f + m.e, f: m.b * n.e + m.d * n.f + m.f };
   };
+  const fills: { x: number; y: number; alpha: number }[] = [];
+  let at = { x: 0, y: 0 };
+  const pt = (x: number, y: number) => (at = { x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f });
   const noop = () => {};
   const base: Record<string, unknown> = {
     globalAlpha: 1,
@@ -21,6 +27,9 @@ export function recorder() {
     getTransform: () => ({ ...m }),
     measureText: (s: string) => ({ width: s.length * 10 }),
     fillText: (str: string, x: number, y: number) => words.push({ str, x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f, upright: m.a > 0, color: base.fillStyle }),
+    arc: (x: number, y: number) => pt(x, y),
+    roundRect: (x: number, y: number, w: number, h: number) => pt(x + w / 2, y + h / 2),
+    fill: () => fills.push({ ...at, alpha: base.globalAlpha as number }),
     createLinearGradient: () => ({ addColorStop: noop }),
     createRadialGradient: () => ({ addColorStop: noop }),
   };
@@ -28,6 +37,6 @@ export function recorder() {
     get: (t, k: string) => (k in t ? t[k] : noop),
     set: (t, k: string, v) => ((t[k] = v), true),
   });
-  return { g: g as unknown as G, words };
+  return { g: g as unknown as G, words, fills };
 }
 

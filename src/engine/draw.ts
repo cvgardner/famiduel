@@ -79,6 +79,16 @@ export function silentSeat(players: readonly { bot: unknown }[], p: 0 | 1): bool
   return !!players[p].bot && !players[p === 0 ? 1 : 0].bot;
 }
 
+/**
+ * F170: playing the bot, its own touch buttons (Snake's turns, Penalty's dives, Tank Duel's
+ * stick and FIRE, Sumo's push) are drawn this much fainter, so a kid doesn't take them for
+ * buttons to press; rings that show the bot winding up stay bright. Two bots or two people: 1.
+ */
+export const BOT_CONTROLS_ALPHA = 0.4;
+export function controlsAlpha(players: readonly { bot: unknown }[], p: 0 | 1): number {
+  return silentSeat(players, p) ? BOT_CONTROLS_ALPHA : 1;
+}
+
 /** Reader probe, switched on by the playtest: labels (scores too) turned to face the one reader. */
 export const readerProbe = { on: false, turned: new Set<string>() };
 const FLIP_ALIGN: Record<string, CanvasTextAlign> = { left: 'right', right: 'left', start: 'end', end: 'start', center: 'center' };
