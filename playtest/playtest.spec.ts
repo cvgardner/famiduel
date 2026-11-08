@@ -481,6 +481,62 @@ test('ghost finger: the in-play card never sits on a person\'s "3 2 1" digit, on
   expect(errors).toEqual([]);
 });
 
+test('countdown: no game words under a person\'s "3 2 1" digit, on a small phone', async ({ page }) => {
+  // F158: Chop Chop's "Round 1" card, Penalty's "Kick in 3" and Quick Draw's "Steady…" sat
+  // under the digit (F155-F157, found by eye). Every label drawn during the countdown is
+  // boxed by the draw probe; none may meet a digit's ink, in any shown game, both seats.
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  type H = { openGame(id: string): void; startMatch(): void; showHome(): void };
+  type Box = { str: string; size: number; l: number; t: number; r: number; b: number };
+  // Sea Battle and RPS open on the pass-the-phone cover with two people; the digit over the
+  // cover is its own question (F159), so they're left out here.
+  const shown = games.games.filter((g) => !(g as { hidden?: boolean }).hidden && !WAITS_FOR_PERSON.includes(g.id)).map((g) => g.id);
+  const hits: string[] = [];
+  let digits = 0;
+  for (const id of shown) {
+    await page.evaluate((g) => {
+      const a = (window as unknown as { __famiduel: H }).__famiduel;
+      a.showHome();
+      a.openGame(g);
+      a.startMatch();
+    }, id);
+    await page.waitForTimeout(200);
+    const boxes = await page.evaluate(async () => {
+      const w = window as unknown as { __boxes: { on: boolean; boxes: Box[] } };
+      const frame = () => new Promise((res) => requestAnimationFrame(() => res(null)));
+      const all: Box[] = [];
+      // Two moments of the countdown: the big "3" and the smaller "2".
+      for (const wait of [0, 700]) {
+        await new Promise((res) => setTimeout(res, wait));
+        w.__boxes.boxes = [];
+        w.__boxes.on = true;
+        await frame();
+        await frame();
+        w.__boxes.on = false;
+        all.push(...w.__boxes.boxes);
+      }
+      return all;
+    });
+    const isDigit = (b: Box) => /^[1-3]$/.test(b.str) && b.size >= 70;
+    const ds = boxes.filter(isDigit);
+    digits += ds.length;
+    for (const d of ds) {
+      for (const b of boxes) {
+        if (isDigit(b) || !b.str.trim()) continue;
+        if (b.l < d.r - 1 && b.r > d.l + 1 && b.t < d.b - 1 && b.b > d.t + 1) hits.push(`${id}: "${b.str}" under the ${d.str}`);
+      }
+    }
+    if (id === 'chopchop') await page.screenshot({ path: path.join(OUT, 'countdown-clear-chopchop.png') });
+  }
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
+  expect(digits, 'the probe saw the countdown digits').toBeGreaterThan(shown.length);
+  expect([...new Set(hits)], 'game words under a countdown digit').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('ghost finger: a "?" brings it back after the first matches, on a small phone', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
