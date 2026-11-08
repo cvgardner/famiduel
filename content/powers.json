@@ -59,7 +59,7 @@
         "id": "shield",
         "name": "Shield",
         "icon": "🫧",
-        "desc": "A bubble blocks every shell and blast for 3 seconds.",
+        "desc": "A bubble blocks every shell and blast for 3 seconds. Your cannon rests while it is up.",
         "duration": 3
       },
       {

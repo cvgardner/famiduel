@@ -1240,5 +1240,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Double 47% (were 83% / 70%); Ping Pong Smash 64%, Slow-mo 37%; Air Hockey Split 63%.
       Outliers left: Tanks Shield 73% (beats every power), Snake Phase 69%, Chop Chop Freeze
       69% / Double 70% (only because "none" loses 90%; one on one they are 48-65%).
-- [ ] Tanks Shield 73% with the fixed sim: shorten it or let one shell break it; measure with
-      `npm run sim:powers -- --game tanks --n 60`.
+- [x] 2026-11-07 (F103): Tanks Shield 73% with the fixed sim. Shorter didn't help (2 s 69%,
+      2.5 s 71%): the bot (or a person) pops it as a shell comes, so it saved a bonk AND let
+      you shoot back. Now your cannon rests while the bubble is up (FIRE greys out; a tap in
+      its last 0.15 s is buffered as usual). n=60, normal bots: Shield 43%, Bouncy 57%, Mine
+      46%, none 54%; no outliers. Test in tests/tanks.test.ts.
