@@ -2987,6 +2987,46 @@ test("minigolf: today's course plays the same holes, fits, and keeps the day's b
   expect(errors).toEqual([]);
 });
 
+test('tanks: a palm resting in the stick zone never takes the stick from the thumb that steers (F105)', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 390, height: 844 });
+  await boot(page, errors);
+  type H = Hook & { runner: { countdown: number; game: { stickVec: { x: number; y: number }[] } } | null };
+  await setPlayers(page, [null, 'easy']);
+  await page.locator('.game-card[data-id="tanks"]').tap();
+  await introAsPeople(page, [0]);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.countdown), { timeout: 6000, message: 'the countdown ends' }).toBeLessThanOrEqual(0);
+  await installFingers(page);
+  const box = await worldBox(page);
+  const at = (x: number, y: number) => ({ x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height });
+  const finger = async (fid: number, t: string, x: number, y: number) => {
+    const c = at(x, y);
+    await page.evaluate(([i, tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(i, tt, cx, cy), [fid, t, c.x, c.y] as const);
+  };
+  const frames = (n: number) => page.evaluate((k) => new Promise((r) => { let i = 0; const f = () => (++i >= k ? r(null) : requestAnimationFrame(f)); requestAnimationFrame(f); }), n);
+  const stick = () => page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.game.stickVec[0]);
+  // 1. A palm rests in the stick zone first (strip edge, left), then the thumb lands on the stick and pushes up.
+  await finger(400, 'pointerdown', 24, 630);
+  await frames(20);
+  await finger(401, 'pointerdown', 78, 584);
+  for (let i = 1; i <= 8; i++) {
+    await finger(401, 'pointermove', 78, 584 - i * 5);
+    await frames(2);
+  }
+  let v = await stick();
+  expect(v.y, 'the stick follows the thumb pushing up, not the palm that landed first').toBeLessThan(-0.8);
+  // 2. The thumb holds still; the palm lifts and lands again: the thumb keeps the stick.
+  await finger(400, 'pointerup', 24, 630);
+  await finger(400, 'pointerdown', 130, 632);
+  await frames(30);
+  v = await stick();
+  expect(v.y, 'a palm landing while the thumb holds still does not take the stick').toBeLessThan(-0.8);
+  await page.screenshot({ path: path.join(OUT, 'palm-tanks.png') });
+  await finger(401, 'pointerup', 78, 544);
+  await finger(400, 'pointerup', 130, 632);
+  expect(errors).toEqual([]);
+});
+
 for (const id of ['airhockey', 'pingpong'] as const) {
   test(`${id}: a palm resting in your half never takes the paddle from the finger that plays`, async ({ page }) => {
     const errors: string[] = [];
