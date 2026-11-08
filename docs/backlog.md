@@ -1393,3 +1393,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       RPS's first turn, which waits for the person. The playtest's person (playtest/person.ts)
       now plays 8 s of each in real time with the probe on and must make a move, so their
       shot / throw results and the bot's answers are checked for you/your/them words too.
+
+## Ideas found 2026-11-07 (chop chop double run)
+- [x] 2026-11-07 (F130): Chop Chop's timer drained faster the higher your count, so Double
+      Chop's 4 bonus chops sped up your own timer: a hidden cost that hurt most at easy,
+      where rounds end on time. It now drains by the chops you've made (trunk position),
+      so play without Double is unchanged. `sim:powers -- --game chopchop --n 120`: easy
+      Double 40% -> 45% average, 45% -> 52% vs none; normal unchanged. Unit test in
+      tests/chopchop.test.ts.
+- [ ] Chop Chop at normal: normal bots rarely run out of time, so a round is a race to 50
+      and any power beats none ~90% (none 11%), Double 71% and Freeze 67% on average,
+      Shield 51% (29-34% against the others). Real matches give both seats a power, so the
+      "none" column matters less; Shield is the weak pick at normal but the strongest at
+      easy (60%). A power call if families find Shield useless against a fast chopper.

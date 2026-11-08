@@ -126,7 +126,9 @@ export class ChopChop {
 
   drain(p: PlayerIndex): number {
     const c = this.choppers[p];
-    return RULES.drain0 * (1 + c.chops * RULES.drainGrow) * c.drainMul;
+    // Grows with the chops you've made (idx), not your score: Double Chop's bonus
+    // chops used to speed up your own timer too.
+    return RULES.drain0 * (1 + c.idx * RULES.drainGrow) * c.drainMul;
   }
 
   step(dt: number, intents: [Intent, Intent]): void {

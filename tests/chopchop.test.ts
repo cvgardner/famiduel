@@ -151,6 +151,20 @@ describe('chop chop', () => {
     expect(g.choppers[0].chops).toBe(4 * 2 + 2);
   });
 
+  it("double chop's bonus chops don't speed up your own timer (F130)", () => {
+    // Both seats make the same 6 chops; seat 0's count twice for 4 of them. The timer
+    // drains by the chops you've made, so both bars drain alike.
+    const g = fresh({ powers: ['double', 'double'] });
+    g.energy[0].value = 1;
+    g.step(DT, [{ chop: 0, power: true }, idle]);
+    for (let i = 0; i < 6; i++) {
+      for (let k = 0; k < 20; k++) g.step(DT, [idle, idle]);
+      g.step(DT, [{ chop: safe(g, 0), power: false }, { chop: safe(g, 1), power: false }]);
+    }
+    expect(g.choppers[0].chops).toBeGreaterThan(g.choppers[1].chops);
+    expect(g.drain(0)).toBeCloseTo(g.drain(1), 9);
+  });
+
   it('bots use powers', () => {
     expect(play(['normal', 'normal'], 8, { powers: ['freeze', 'double'] }).powersFired).toBeGreaterThan(0);
   });
