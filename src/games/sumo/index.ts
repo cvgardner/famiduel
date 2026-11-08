@@ -162,7 +162,9 @@ class SumoView implements GameInstance {
         b.sv -= 6;
         const msg = e.left > 0 ? 'Saved by the rope!' : 'Last rope save!';
         const ty = e.y + (e.p === 0 ? -44 : 44);
-        fx.pop(msg, Math.max(90, Math.min(W - 90, e.x)), ty, e.left > 0 ? '#fff' : '#ff8a5c', e.p, 18);
+        const tx = Math.max(90, Math.min(W - 90, e.x));
+        // F181: the rope bounces the wrestler back in, often into the words above them.
+        fx.pop(msg, tx, this.clearPopY(e.p, msg, 18, tx, ty, 12), e.left > 0 ? '#fff' : '#ff8a5c', e.p, 18);
       } else if (e.type === 'shrink') {
         sfx.play('buzz');
         fx.pop('The ring shrinks!', W / 2, MID + 40, '#ff8a5c', 0, 22);
@@ -202,8 +204,17 @@ class SumoView implements GameInstance {
    * rise, clears both wrestlers.
    */
   powerPopY(p: PlayerIndex, word: string, size: number, grow: boolean): number {
+    // Outward only a little: the seat's HOLD button and score sit just past the spot.
+    return this.clearPopY(p, word, size, W / 2, p === 0 ? H - 150 : 150, 2, grow);
+  }
+
+  /**
+   * F177/F181: the first y at or near `home` (stepping 14 at a time, toward the middle, and
+   * outward at most `outward` steps) where a pop at x clears both wrestlers over its whole
+   * rise, where they stand now and where they will be half a second on.
+   */
+  clearPopY(p: PlayerIndex, word: string, size: number, x: number, home: number, outward: number, grow = false): number {
     const g = this.game;
-    const home = p === 0 ? H - 150 : 150;
     const toMid = p === 0 ? -1 : 1;
     const rise = 40 * 0.9;
     const half = size * 0.45;
@@ -214,14 +225,17 @@ class SumoView implements GameInstance {
       return PLAYERS.every((q) => {
         const wr = g.wrestlers[q];
         const r = q === p && grow ? RULES.bodyR * RULES.growScale : g.radius(q);
-        const nx = Math.max(W / 2 - w, Math.min(W / 2 + w, wr.x));
-        const ny = Math.max(top, Math.min(bot, wr.y));
-        return Math.hypot(wr.x - nx, wr.y - ny) > r;
+        return [0, 0.25, 0.5].every((t) => {
+          const wx = wr.x + wr.vx * t;
+          const wy = wr.y + wr.vy * t;
+          const nx = Math.max(x - w, Math.min(x + w, wx));
+          const ny = Math.max(top, Math.min(bot, wy));
+          return Math.hypot(wx - nx, wy - ny) > r;
+        });
       });
     };
     for (let step = 0; step <= 12; step++) {
-      // Outward only a little: the seat's HOLD button and score sit just past the spot.
-      for (const y of step <= 2 ? [home + toMid * step * 14, home - toMid * step * 14] : [home + toMid * step * 14]) {
+      for (const y of step <= outward ? [home + toMid * step * 14, home - toMid * step * 14] : [home + toMid * step * 14]) {
         if (y > half && y < H - half && clear(y)) return y;
       }
     }
