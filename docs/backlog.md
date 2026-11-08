@@ -1248,6 +1248,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       you shoot back. Now your cannon rests while the bubble is up (FIRE greys out; a tap in
       its last 0.15 s is buffered as usual). n=60, normal bots: Shield 43%, Bouncy 57%, Mine
       46%, none 54%; no outliers. Test in tests/tanks.test.ts.
+- [x] 2026-11-07 (F104): Snake Phase 68% with the fixed sim. Shorter didn't help (2 s 67%,
+      3 s 68%): the bot (or a person) fires it when boxed in, and a crossing ran on through any
+      number of trail cells in a row, so it tunnelled out through a packed block, or slid
+      along a trail. Now one crossing passes at most 2 trail cells (RULES.phaseCells; a trail
+      is 1 cell wide, so crossing a trail or two side by side still works). n=60, normal bots:
+      Phase 59%, Bomb 56%, none 54%, Boost 31% (Boost is F12, Chris's call). Test in
+      tests/snake.test.ts.
 ## Ideas found 2026-11-07 (palm run)
 - [x] 2026-11-07 (F100): A palm resting in your half no longer takes the paddle in Air Hockey
       and Ping Pong. Both used the first finger down until it lifted, so a hand resting on the
