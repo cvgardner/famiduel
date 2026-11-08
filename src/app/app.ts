@@ -392,11 +392,13 @@ export class App {
   private card(m: GameMeta): string {
     const ready = m.id in GAMES;
     const own = ready ? ownBotLevel(this.store.data.profiles, m.id) : null;
+    // Minigolf wears a 📅 until someone on this phone has played today's course.
+    const daily = ready && m.id === 'minigolf' && !this.store.dailyBest(dayKey());
     return `<button class="game-card${ready ? '' : ' soon'}${cardInk(m.color) === DARK_INK ? ' light-card' : ''}" data-id="${m.id}" data-ready="${ready ? 1 : 0}" style="--c:${m.color};--ink:${cardInk(m.color)}" ${ready ? '' : 'aria-disabled="true"'}>
-      <span class="gicon" aria-hidden="true">${m.icon}${own ? `<span class="gbot" data-v="${own}">🤖</span>` : ''}</span>
+      <span class="gicon" aria-hidden="true">${m.icon}${own ? `<span class="gbot" data-v="${own}">🤖</span>` : ''}${daily ? '<span class="gday">📅</span>' : ''}</span>
       <span class="gname">${m.name}</span>
       <span class="gkind">${ready ? m.kind : 'Coming soon'}</span>
-      ${own ? `<span class="sr-only">Bot level here: ${own}</span>` : ''}
+      ${own ? `<span class="sr-only">Bot level here: ${own}</span>` : ''}${daily ? `<span class="sr-only">Today's course not played yet</span>` : ''}
     </button>`;
   }
 
