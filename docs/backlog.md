@@ -1619,6 +1619,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       still read as one more button to press. Its band and face draw at 40% like F170; the
       energy ring and the power's icon stay clear (they tell the person what the bot holds
       and when it can fire). tests/controls-dim.test.ts.
+- [x] 2026-11-08 (F172, PR #PRNUM): Play the bot: proof the faint bot buttons are dead. A kid
+      who taps the bot's turn, dive, push, stick / FIRE, frog or power buttons for 30 s of a
+      seeded match changes nothing for either seat (Snake, Penalty, Sumo, Tank Duel, Snack
+      Snatch; bot in either seat); the same taps on the person's own buttons do change the
+      match, so they really land. tests/bot-buttons-dead.test.ts (no code change needed).
 
 ## Ideas found 2026-11-08 (bot buttons run)
 - [x] 2026-11-08 (F173, PR #PRNUM): Minigolf: the turn passed 0.7 s after a sink, so the next
