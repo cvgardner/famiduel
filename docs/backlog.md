@@ -1121,11 +1121,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       `npm run golf -- --hole gates --n 60`: easy 6.6 → 5.4 strokes, picked up 50% → 10%;
       normal 4.6 → 3.3; hard 2.6 → 2.2. Par stays 5 (par 4 would cap at 7 and pick easy
       players up 18% of the time).
-- [x] 2026-11-07 (F101): Twin Gates is now easier than Switchback for normal and hard bots (3.3 vs 3.8): if hole
-      order should stay easiest-first, swap them in `content/minigolf-holes.json`. Swapped:
-      n=24 seeds a level read easy 5.2 vs 5.5, normal 3.1 vs 4.0, hard 2.2 vs 3.0, so
-      Switchback is the last hole; a test pins the last hole as the hardest of the two for
-      normal bots. Pars kept (Twin Gates 5, Switchback 4).
+- [ ] Twin Gates is now easier than Switchback for normal and hard bots (3.3 vs 3.8): if hole
+      order should stay easiest-first, swap them in `content/minigolf-holes.json`.
 
 ## Ideas found 2026-11-07 (waiting line run)
 - [x] 2026-11-07 (F26): Minigolf's waiting strip said "Wait · Bot shoots" for the whole bot

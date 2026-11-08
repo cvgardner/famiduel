@@ -337,6 +337,23 @@
       "movers": []
     },
     {
+      "id": "switchback",
+      "name": "Switchback",
+      "par": 4,
+      "tee": [262, 522],
+      "cup": [262, 128],
+      "walls": [
+        { "kind": "border", "closed": true, "pts": [[40, 565], [320, 565], [320, 80], [40, 80]] },
+        { "kind": "inner", "closed": true, "pts": [[125, 425], [320, 425], [320, 437], [125, 437]] },
+        { "kind": "inner", "closed": true, "pts": [[40, 305], [235, 305], [235, 317], [40, 317]] },
+        { "kind": "inner", "closed": true, "pts": [[125, 185], [320, 185], [320, 197], [125, 197]] }
+      ],
+      "zones": [
+        { "type": "sand", "circle": [80, 250, 22] }
+      ],
+      "movers": []
+    },
+    {
       "id": "gates",
       "name": "Twin Gates",
       "par": 5,
@@ -356,23 +373,6 @@
         { "type": "slider", "a": [150, 400], "b": [210, 400], "travel": [40, 0], "period": 2.6 },
         { "type": "windmill", "x": 180, "y": 240, "len": 46, "blades": 3, "speed": -1.9 }
       ]
-    },
-    {
-      "id": "switchback",
-      "name": "Switchback",
-      "par": 4,
-      "tee": [262, 522],
-      "cup": [262, 128],
-      "walls": [
-        { "kind": "border", "closed": true, "pts": [[40, 565], [320, 565], [320, 80], [40, 80]] },
-        { "kind": "inner", "closed": true, "pts": [[125, 425], [320, 425], [320, 437], [125, 437]] },
-        { "kind": "inner", "closed": true, "pts": [[40, 305], [235, 305], [235, 317], [40, 317]] },
-        { "kind": "inner", "closed": true, "pts": [[125, 185], [320, 185], [320, 197], [125, 197]] }
-      ],
-      "zones": [
-        { "type": "sand", "circle": [80, 250, 22] }
-      ],
-      "movers": []
     }
   ]
 }
