@@ -127,6 +127,40 @@ for (const g of games.games) {
   });
 }
 
+// F149: words popped on the same hit or point take different lanes. Ping Pong printed
+// "Rally x5!" right over SMASH!/Curve! (~30 times in 9 bot matches) and "What a rally!" over
+// "Match point!"; Air Hockey's power name sat inside GOAL! (F148). The probe in fx.ts lists
+// any two pops born in the same step whose words overlap in the same seat.
+for (const id of ['pingpong', 'airhockey']) {
+  test(`pops born together never overlap: ${id}`, async ({ page }) => {
+    test.setTimeout(120_000);
+    const errors = await boot(page, `POPS-${id}`);
+    const hits: string[] = [];
+    for (const level of ['easy', 'normal', 'hard']) {
+      await page.evaluate(([gameId, lvl]) => {
+        const app = (window as unknown as { __famiduel: { store: { data: { profiles: { bot: string | null }[] }; save(): void }; showHome(): void; openGame(id: string): void } }).__famiduel;
+        app.store.data.profiles[0].bot = lvl;
+        app.store.data.profiles[1].bot = lvl;
+        app.store.save();
+        app.showHome();
+        app.openGame(gameId);
+      }, [id, level]);
+      await expect(page.locator('#play')).toBeVisible();
+      hits.push(...(await page.evaluate(() => {
+        const w = window as unknown as { __famiduel: { runner: { fastForward(s: number): void } }; __pops: { on: boolean; hits: string[] } };
+        w.__pops.hits = [];
+        w.__pops.on = true;
+        w.__famiduel.runner.fastForward(900);
+        w.__pops.on = false;
+        return w.__pops.hits;
+      })));
+      await expect(page.locator('#result')).toBeVisible();
+    }
+    expect(hits).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+}
+
 test.describe('a flat phone that flips to landscape', () => {
   test.use({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
   test('keeps the table portrait and taps land where the finger is', async ({ page }) => {

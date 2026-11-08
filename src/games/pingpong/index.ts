@@ -21,6 +21,16 @@ export const TABLE_GREEN = '#1d7a52';
 export const SERVE_OUTLINE = 'rgba(0,0,0,0.75)';
 /** The colours most of the play area is painted in (tests read pops against them). */
 export const SURFACES: readonly string[] = [FLOOR, TABLE_GREEN];
+/**
+ * Pop lanes, measured from the net into each seat's half. Words born on the same hit or point
+ * take different lanes (F149: "Rally x5!" printed over SMASH!/Curve!, "What a rally!" over
+ * "Match point!"): POINT! 90, shot words and "What a rally!" 130, rally count and
+ * "Match point!" 170, a second "Match point!" 210 (the paddles sit at 574).
+ */
+export const POINT_LANE = 90;
+export const SHOT_LANE = 130;
+export const LANE_GAP = 40;
+export const RALLY_LANE = SHOT_LANE + LANE_GAP;
 
 type Trail = { x: number; y: number; color: string };
 
@@ -100,7 +110,8 @@ class PingPongView implements GameInstance {
       } else if (e.type === 'rally') {
         sfx.play('power');
         const words: Record<number, string> = { 5: 'Rally x5!', 10: 'Rally x10! 🔥', 15: 'On fire! x15', 20: 'Legendary x20!' };
-        this.popBoth(words[e.hits] ?? `Rally x${e.hits}!`, COLORS.gold, e.hits >= 10 ? 24 : 20);
+        // F149: the rally count lands on the same hit as SMASH!/Curve!, so it gets its own lane.
+        this.popBoth(words[e.hits] ?? `Rally x${e.hits}!`, COLORS.gold, e.hits >= 10 ? 24 : 20, RALLY_LANE);
         if (e.hits >= 10) fx.shake(3, 0.15);
       } else if (e.type === 'table') {
         sfx.play('tap');
@@ -120,10 +131,10 @@ class PingPongView implements GameInstance {
         fx.shake(5, 0.2);
         fx.flash(col(e.scorer), 0.14);
         fx.burst(e.x, e.y, col(e.scorer), 26, 260, 4);
-        fx.pop('POINT!', W / 2, MID + 90, col(e.scorer), 0, 34);
-        fx.pop('POINT!', W / 2, MID - 90, col(e.scorer), 1, 34);
+        fx.pop('POINT!', W / 2, MID + POINT_LANE, col(e.scorer), 0, 34);
+        fx.pop('POINT!', W / 2, MID - POINT_LANE, col(e.scorer), 1, 34);
         if (e.rally >= 10) this.popBoth(`What a rally! ${e.rally} hits`, COLORS.gold, 18);
-        this.matchPointPops();
+        this.matchPointPops(RALLY_LANE);
       } else if (e.type === 'power') {
         sfx.play('power');
         const pw = this.ctx.players[e.p].power!;
@@ -146,18 +157,22 @@ class PingPongView implements GameInstance {
     } else this.trail = [];
   }
 
-  private popBoth(str: string, color: string, size: number): void {
-    this.ctx.fx.pop(str, W / 2, MID + 130, color, 0, size);
-    this.ctx.fx.pop(str, W / 2, MID - 130, color, 1, size);
+  private popBoth(str: string, color: string, size: number, dy = SHOT_LANE): void {
+    this.ctx.fx.pop(str, W / 2, MID + dy, color, 0, size);
+    this.ctx.fx.pop(str, W / 2, MID - dy, color, 1, size);
   }
 
-  private matchPointPops(): void {
+  /** At the hard cap both seats can be a point from winning: the second line sits a lane further out. */
+  private matchPointPops(dy: number): void {
     const s = this.game.score;
     for (const p of PLAYERS) {
       const mine = s[p] + 1;
       const theirs = s[other(p)];
       const wouldWin = (mine >= RULES.winScore && mine - theirs >= RULES.winBy) || mine >= RULES.hardCap;
-      if (wouldWin && this.game.winner === null) this.popBoth('Match point!', this.ctx.players[p].color, 22);
+      if (wouldWin && this.game.winner === null) {
+        this.popBoth('Match point!', this.ctx.players[p].color, 22, dy);
+        dy += LANE_GAP;
+      }
     }
   }
 
