@@ -1692,3 +1692,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       320x568). Minigolf's card sits low now (demoAt 0.92, over the scorecard strip, where
       the pull starts near the tee); the new playtest checks both seats' cards clear the hole
       card from the countdown to a second after GO.
+- [x] 2026-11-08 (F187, PR #PRNUM): Quick Draw: taps were timed to the 1/60 s step, so two
+      people tapping inside one step read "Exact tie!" and the round was void (a bot match
+      showed "You 317 ms / Bot 317 ms"; for two adults about 1 round in 6). A touch now keeps
+      its event time (Pointer.at) and the stage stamps each step's end (Input.clock), so
+      Input.lead() says how far inside the step the finger landed; Quick Draw's tap time uses
+      it and the first touch wins. Bots and keys keep step times (they still tie in one
+      step). Unit tests (tests/quickdraw.test.ts, tests/core.test.ts) and a playtest that
+      lands both fingers between two frames, each seat first.

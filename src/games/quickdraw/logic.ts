@@ -66,7 +66,12 @@ export type Event =
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'win'; p: PlayerIndex | null };
 
-export type Intent = { tap: boolean; power: boolean };
+/**
+ * `early`: how long before the end of this step a person's touch landed (seconds, at most one
+ * step; negative if it landed after, in a slow frame; F187). Steps are 1/60 s, so without it
+ * two people tapping in the same step tied.
+ */
+export type Intent = { tap: boolean; power: boolean; early?: number };
 
 export class QuickDraw {
   score: [number, number] = [0, 0];
@@ -192,8 +197,10 @@ export class QuickDraw {
     // DRAW! is up: record taps, then decide once no later tap could still win.
     for (const p of [0, 1] as PlayerIndex[]) {
       if (intents[p].tap && this.taps[p] === null && this.lock[p] <= 0) {
-        this.taps[p] = this.phaseT;
-        this.events.push({ type: 'shot', p, time: this.phaseT });
+        // F187: the touch's own time (never before DRAW!). A later touch can't beat it: any
+        // touch not yet seen landed after this frame began, so after phaseT.
+        this.taps[p] = Math.max(0, this.phaseT - Math.min(dt, intents[p].early ?? 0));
+        this.events.push({ type: 'shot', p, time: this.taps[p]! });
       }
     }
     const eff = (p: PlayerIndex) => (this.taps[p] === null ? Infinity : this.taps[p]! + this.penalty[p]);

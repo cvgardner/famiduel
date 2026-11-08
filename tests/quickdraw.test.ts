@@ -109,6 +109,38 @@ describe('quick draw', () => {
     expect(g.last?.times[0]).toBeGreaterThan(0.2);
   });
 
+  // F187: steps are 1/60 s; two people tapping inside one step read "Exact tie!" (void round).
+  it('two taps in the same step: the earlier touch wins, by its own time', () => {
+    for (const [e0, e1, winner] of [[0.004, 0.012, 1], [0.015, 0.002, 0], [-0.02, -0.005, 1]] as const) {
+      const g = fresh();
+      until(g, 'draw');
+      for (let i = 0; i < 15; i++) g.step(DT, [idle, idle]);
+      const before = g.phaseT;
+      g.step(DT, [{ ...tap, early: e0 }, { ...tap, early: e1 }]);
+      expect(g.last?.reason).toBe('faster');
+      expect(g.last?.winner).toBe(winner);
+      expect(g.last?.times[0]).toBeCloseTo(before + DT - e0, 9);
+      expect(g.last?.times[1]).toBeCloseTo(before + DT - e1, 9);
+    }
+  });
+
+  it('a touch time never reaches back before DRAW!, nor more than one step', () => {
+    const g = fresh();
+    until(g, 'draw');
+    const t0 = g.phaseT;
+    g.step(DT, [{ ...tap, early: 5 }, idle]);
+    expect(g.taps[0]).toBeGreaterThanOrEqual(0);
+    expect(g.taps[0]).toBeCloseTo(Math.max(0, t0), 9);
+  });
+
+  it('bots and keys (no touch time) still tie in one step, as before', () => {
+    const g = fresh();
+    until(g, 'draw');
+    for (let i = 0; i < 15; i++) g.step(DT, [idle, idle]);
+    g.step(DT, [tap, tap]);
+    expect(g.last?.reason).toBe('tie');
+  });
+
   it('tapping before DRAW! loses the round', () => {
     const g = fresh();
     until(g, 'wait');

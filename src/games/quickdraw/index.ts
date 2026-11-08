@@ -1,5 +1,6 @@
 // Quick Draw view: a cartoon water-pistol duel in a desert street. Each half is
 // drawn in the bottom player's frame and rotated 180° for the top player.
+import { STEP } from '../../engine/stage';
 import { liftOn, popColor, POP_OUTLINE } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
@@ -84,8 +85,11 @@ class QuickDrawView implements GameInstance {
       if (bot) return bot.think(g, dt);
       const btn = this.powerBtns[p];
       const power = btn ? btn.update(input, g.energy[p], KEYS[p].power) : false;
-      const tap = input.of(p).some((f) => f.pressed && !(btn && btn.button.hit(f.x, f.y))) || input.keyPressed(KEYS[p].action);
-      return { tap, power };
+      const fingers = input.of(p).filter((f) => f.pressed && !(btn && btn.button.hit(f.x, f.y)));
+      const tap = fingers.length > 0 || input.keyPressed(KEYS[p].action);
+      // F187: how far into this 1/60 s step the touch landed, so two taps in one step don't tie.
+      const early = fingers.length ? Math.max(...fingers.map((f) => input.lead(f, STEP))) : 0;
+      return { tap, power, early };
     }) as [Intent, Intent];
     for (const p of PLAYERS) if (intents[p].tap) this.press[p] = 0.12;
     g.step(dt, intents);

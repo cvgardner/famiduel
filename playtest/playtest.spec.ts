@@ -482,6 +482,57 @@ test('ghost finger: the in-play card never sits on a person\'s "3 2 1" digit, on
   expect(errors).toEqual([]);
 });
 
+test('quick draw: two people tapping in the same frame, the first touch wins (no "Exact tie!")', async ({ page }) => {
+  // F187: taps were timed to the 1/60 s step, so two fingers landing inside one step read
+  // "Exact tie!" and the round was void. The touch event's own time now breaks it.
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  for (const first of [1, 0]) {
+    await page.evaluate(() => {
+      const a = (window as unknown as { __famiduel: { store: { data: { history: { game: string }[] } }; showHome(): void; openGame(id: string): void; startMatch(): void } }).__famiduel;
+      a.store.data.history.push({ game: 'quickdraw' });
+      a.showHome();
+      a.openGame('quickdraw');
+      a.startMatch();
+    });
+    const box = await worldBox(page);
+    const s = box.width / 360;
+    const at = (x: number, y: number) => ({ x: box.x + x * s, y: box.y + y * s });
+    const result = await page.evaluate(
+      async ([pts, firstSeat]) => {
+        type Logic = { phase: string; last: { winner: number | null; reason: string; times: (number | null)[] } | null };
+        const w = window as unknown as { __famiduel: { runner: { game: { game: Logic } } }; __finger: (...a: unknown[]) => void };
+        const g = () => w.__famiduel.runner.game.game;
+        const frame = () => new Promise((res) => requestAnimationFrame(() => res(null)));
+        for (let i = 0; i < 1200 && g().phase !== 'draw'; i++) await frame();
+        if (g().phase !== 'draw') return null;
+        await new Promise((res) => setTimeout(res, 150)); // a human reaction into DRAW!
+        // Both fingers land between two frames, the first seat's a moment earlier.
+        const order = firstSeat === 1 ? [pts[1], pts[0]] : [pts[0], pts[1]];
+        w.__finger(91, 'pointerdown', order[0].x, order[0].y);
+        const t = performance.now();
+        while (performance.now() - t < 3) {
+          // a few ms apart, still inside one 1/60 s step
+        }
+        w.__finger(92, 'pointerdown', order[1].x, order[1].y);
+        w.__finger(91, 'pointerup', order[0].x, order[0].y);
+        w.__finger(92, 'pointerup', order[1].x, order[1].y);
+        for (let i = 0; i < 30 && !g().last; i++) await frame();
+        return g().last;
+      },
+      [[at(180, 470), at(180, 170)], first] as const,
+    );
+    expect(result, 'the round reached DRAW! and ended').not.toBeNull();
+    expect(result!.reason, `seat ${first} first: decided, not a tie`).toBe('faster');
+    expect(result!.winner, `seat ${first} touched first`).toBe(first);
+    await page.screenshot({ path: path.join(OUT, `quickdraw-same-frame-seat${first}.png`) });
+    await page.evaluate(() => (window as unknown as { __famiduel: { showHome(): void } }).__famiduel.showHome());
+  }
+  expect(errors).toEqual([]);
+});
+
 test('ghost finger: Minigolf\'s card stays off the hole card through GO, on a small phone', async ({ page }) => {
   // F185: the card beside the countdown digit sat on the right end of the hole card, which fades
   // in at GO while the finger is still out ("Speed Bumps" read "Speed Bump"). Minigolf's card
