@@ -528,8 +528,12 @@ class TankView implements GameInstance {
     }
     text(gx, 'FIRE', f.x, f.y, { size: 17, player: p, color: '#ffffff', stroke: 'rgba(0,0,0,0.35)' });
     const left = RULES.maxShells - g.shellsOf(p);
+    // F164: a bot's row turned to face the one person would fill from the other end (its
+    // shells and hearts sit mirrored), so it fills from the same end as the person's.
+    const quiet = silentSeat(this.ctx.players, p);
+    const slot = (i: number, n: number) => (quiet ? n - 1 - i : i);
     for (let i = 0; i < RULES.maxShells; i++) {
-      const o = seat(p, cs.fireX - 16 + i * 16, CONTROLS_Y - this.fireR - FIRE_RIM - 15);
+      const o = seat(p, cs.fireX - 16 + slot(i, RULES.maxShells) * 16, CONTROLS_Y - this.fireR - FIRE_RIM - 15);
       circle(gx, o.x, o.y, 5, i < left ? (tk.bouncy > 0 ? COLORS.gold : '#ffffff') : 'rgba(255,255,255,0.18)', 'rgba(0,0,0,0.3)', 1.5);
     }
     // Hearts (armor left), readable from either side
@@ -537,7 +541,7 @@ class TankView implements GameInstance {
     const n = tk.armor;
     const step = Math.min(16, 120 / n);
     for (let i = 0; i < n; i++) {
-      const o = seat(p, HEARTS.x + (i - (n - 1) / 2) * step, HEARTS.y);
+      const o = seat(p, HEARTS.x + (slot(i, n) - (n - 1) / 2) * step, HEARTS.y);
       text(gx, '♥', o.x, o.y, { size: 17, player: p, color: i < hearts ? '#ff5c7a' : 'rgba(255,255,255,0.18)', stroke: i < hearts ? 'rgba(0,0,0,0.3)' : undefined });
     }
     // Bonks scored, or the clock near the end
