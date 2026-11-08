@@ -278,6 +278,28 @@ describe('button', () => {
   });
 });
 
+describe('touch lead (F187)', () => {
+  it('says how long before the step ends a finger landed, within one step', async () => {
+    const { Input, MAX_LAG } = await import('../src/engine/input');
+    const input = new Input();
+    input.down(1, 100, 500, 1000);
+    input.down(2, 100, 100, 1012);
+    input.down(3, 100, 100, 900);
+    input.down(4, 100, 100);
+    const f = (id: number) => input.pointers.get(id)!;
+    expect(input.lead(f(1), 1 / 60)).toBe(0); // no step clock yet
+    input.clock = 1016;
+    expect(input.lead(f(1), 1 / 60)).toBeCloseTo(0.016, 9);
+    expect(input.lead(f(2), 1 / 60)).toBeCloseTo(0.004, 9);
+    expect(input.lead(f(3), 1 / 60)).toBeCloseTo(1 / 60, 9); // capped at one step
+    expect(input.lead(f(4), 1 / 60)).toBe(0); // no touch time
+    input.down(5, 100, 100, 1020); // after this step (a slow frame's first step): negative
+    expect(input.lead(f(5), 1 / 60)).toBeCloseTo(-0.004, 9);
+    input.down(6, 100, 100, 2000); // never more than the stage's catch-up cap
+    expect(input.lead(f(6), 1 / 60)).toBeCloseTo(-MAX_LAG, 9);
+  });
+});
+
 describe('make the bot easier offer', () => {
   const mem = () => {
     const m = new Map<string, string>();

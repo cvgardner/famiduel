@@ -1,7 +1,7 @@
 // Fits the W × H world into the canvas (letterboxed), turns DOM pointer and
 // key events into world-space Input, and runs a fixed-step loop.
 import { COLORS, type G } from './draw';
-import { Input } from './input';
+import { Input, MAX_LAG } from './input';
 import { currentTurn, unturn } from './portrait';
 import { H, W } from './world';
 
@@ -32,7 +32,7 @@ export class Stage {
         // Synthetic pointers (tests) have no capture target.
       }
       const p = pos(e);
-      this.input.down(e.pointerId, p.x, p.y);
+      this.input.down(e.pointerId, p.x, p.y, e.timeStamp);
     });
     canvas.addEventListener('pointermove', (e) => {
       const p = pos(e);
@@ -82,9 +82,11 @@ export class Stage {
     this.acc = 0;
     const frame = (now: number) => {
       this.raf = requestAnimationFrame(frame);
-      this.acc += Math.min(0.1, (now - this.last) / 1000);
+      this.acc += Math.min(MAX_LAG, (now - this.last) / 1000);
       this.last = now;
       while (this.acc >= STEP) {
+        // F187: the real time this step ends at, for sub-step touch times (Input.lead).
+        this.input.clock = now - (this.acc - STEP) * 1000;
         this.step();
         this.acc -= STEP;
       }
