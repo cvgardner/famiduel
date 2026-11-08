@@ -1709,3 +1709,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seat's copy now takes the nearest line clear of both wrestlers (clearPopY, as F177/F181)
       and of the other seat's copy, at the clash's x, else the middle, else the far side
       (clashPops): 2% of frames. tests/sumo-clash-pop.test.ts.
+- [x] 2026-11-08 (F191, PR #TBD): Snack Snatch: a "Miss!" or "+1" by the pot started on a
+      seconds-left label (the frogs nearest the pot reach right past them) and rose across it
+      (63 of 11,442 readable pop frames in six bot matches). The pop now slides sideways, the
+      shorter way that stays on screen, until its whole rise misses every shown label
+      (clearOfClock, clockSpots): 0 frames. tests/snacksnatch-pop-clock.test.ts.

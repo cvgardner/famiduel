@@ -20,6 +20,13 @@ const KINDS = ['#d9a066', '#ff8fc2', '#ff5c7a', '#f4c96b', '#6ec8ff', '#ffa24c']
 const MISS_GAP = 16;
 /** F182: the seconds-left's blanket-coloured outline, so it reads over a snack resting under it. */
 const SECONDS_HALO = alpha(BLANKET, 0.9);
+/** Where each seat's seconds-left sits, beside the pot on its side. */
+export function clockSpots(): [PlayerIndex, number, number][] {
+  return [[0, W / 2 + 74, MID + 14], [1, W / 2 - 74, MID - 14]];
+}
+/** Half the size of a seconds-left label at its biggest (two digits, the last-5-s pulse at 36). */
+const CLOCK_HALF_W = 22;
+const CLOCK_HALF_H = 17;
 
 class SnackSnatchView implements GameInstance {
   readonly game: SnackSnatch;
@@ -104,13 +111,16 @@ class SnackSnatchView implements GameInstance {
         // F176: it started 10 in front of the resting head, so the head pulling back from the
         // missed snap slid over it and the word sat on the frog's eyes. It starts on the
         // blanket just past the open jaws and floats on into the field, away from the head.
-        fx.pop('Miss!', c.x, g.headY(c) + fwd(e.p) * (RULES.headR + MISS_GAP), '#fff', e.p, 19);
+        const my = g.headY(c) + fwd(e.p) * (RULES.headR + MISS_GAP);
+        fx.pop('Miss!', this.clearOfClock('Miss!', c.x, my, 19, e.p), my, '#fff', e.p, 19);
       } else if (e.type === 'grab') {
         sfx.play(e.gold ? 'coin' : 'pop');
         const c = players[e.p].color;
         fx.burst(e.x, e.y, e.gold ? COLORS.gold : c, e.gold ? 22 : 10, e.gold ? 240 : 150, e.gold ? 4 : 3);
         const label = e.combo > 1 ? `+${e.value} ×${e.combo}!` : `+${e.value}`;
-        fx.pop(label, e.x, e.y + fwd(e.p) * 20, e.gold ? COLORS.gold : '#fff', e.p, e.gold ? 28 : 22);
+        const size = e.gold ? 28 : 22;
+        const ly = e.y + fwd(e.p) * 20;
+        fx.pop(label, this.clearOfClock(label, e.x, ly, size, e.p), ly, e.gold ? COLORS.gold : '#fff', e.p, size);
         this.scoreBump[e.p] = 1;
         this.chew[e.p][e.i] = 1;
         if (e.gold) fx.shake(4, 0.15);
@@ -269,6 +279,29 @@ class SnackSnatchView implements GameInstance {
    * blanket-coloured outline, because snacks often roll to a stop there and hid the number (the
    * digits stay out of every critter's reach, so they never cover a snack you could gulp).
    */
+  /**
+   * F191: a "Miss!" or "+1" by the pot started on a seconds-left label (the frogs nearest the
+   * pot reach right past them) and rose across it. The pop slides sideways, the shorter way that
+   * stays on screen, until its whole rise (fx floats it 40/s for 0.9 s) misses every shown label.
+   */
+  private clearOfClock(str: string, x: number, y: number, size: number, p: PlayerIndex): number {
+    const half = ([...str].length * size * 0.55) / 2;
+    const rise = p === 0 ? -36 : 36;
+    // One stacked line either way too: fx moves a pop a line off one still bright there (F184).
+    const line = size + 4;
+    const top = Math.min(y, y + rise) - size * 0.45 - line;
+    const bot = Math.max(y, y + rise) + size * 0.45 + line;
+    const labels = clockSpots().filter(([q]) => !silentSeat(this.ctx.players, q));
+    const blocked = (cx: number) => labels.some(([, lx, ly]) => Math.abs(cx - lx) < half + CLOCK_HALF_W && top < ly + CLOCK_HALF_H && ly - CLOCK_HALF_H < bot);
+    if (!blocked(x)) return x;
+    for (let d = 2; d <= W; d += 2) {
+      for (const cx of x < W / 2 ? [x - d, x + d] : [x + d, x - d]) {
+        if (cx - half >= 4 && cx + half <= W - 4 && !blocked(cx)) return cx;
+      }
+    }
+    return x;
+  }
+
   private renderSeconds(gx: G): void {
     const g = this.game;
     const sec = Math.max(0, Math.ceil(g.timeLeft));
@@ -277,8 +310,7 @@ class SnackSnatchView implements GameInstance {
     // Each player reads the clock beside the pot, on their side. F160: a bot's copy would turn
     // to face the person and read as a second clock, so a bot seat facing a person gets none.
     const ink = urgent ? COLORS.bad : 'rgba(90,45,20,0.75)';
-    const seats: [PlayerIndex, number, number][] = [[0, W / 2 + 74, MID + 14], [1, W / 2 - 74, MID - 14]];
-    for (const [p, x, y] of seats) {
+    for (const [p, x, y] of clockSpots()) {
       if (silentSeat(this.ctx.players, p)) continue;
       text(gx, String(sec), x, y, { size, color: ink, stroke: SECONDS_HALO, player: p });
     }
