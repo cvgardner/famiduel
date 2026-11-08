@@ -1556,3 +1556,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the pot: the bot seat's copy turned to face the person and read as a second clock (two
       pink "0"s at the end in solo-round-snacksnatch.png). A bot seat facing a person draws no
       clock now (silentSeat); tests/snacksnatch-clock.test.ts counts the copies.
+- [x] 2026-11-08 (F161, PR #208): Play the bot: Chop Chop's bot count read "/ 50  1". Its
+      words turn to face the person, but each turns about its own spot, so the "/ 50" label
+      kept the mirrored place left of the count (solo-play-chopchop.png). A bot's half facing
+      the one person puts it on the other side; tests/chopchop-solo.test.ts reads both seats'
+      "N / 50" left to right, with people and with a bot on either seat.
