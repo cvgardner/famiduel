@@ -1619,3 +1619,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       still read as one more button to press. Its band and face draw at 40% like F170; the
       energy ring and the power's icon stay clear (they tell the person what the bot holds
       and when it can fire). tests/controls-dim.test.ts.
+- [x] 2026-11-08 (F176, PR #PRNUM): Snack Snatch: the "Miss!" pop started just in front of the
+      frog's resting head, so the head pulling back from the missed snap slid over it and the
+      word sat on the frog's eyes (seen top seat, snacksnatch-vs-bot-later.png). It starts on
+      the blanket past the open jaws now and floats on into the field. tests/snacksnatch-miss.test.ts.
