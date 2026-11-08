@@ -182,6 +182,19 @@ describe('ping pong', () => {
     expect(RULES.powerSmash).toBeGreaterThan(RULES.serveSpeed + 6 * RULES.speedUp);
   });
 
+  it('Smash still speeds the ball up late in a long rally (F111)', () => {
+    const g = new PingPong([player({ power: power('pingpong', 'smash') }), player()], true, makeRng(6));
+    g.energy[0].value = 1;
+    rallyToward(g, 0);
+    g.rally = RULES.maxSpeed; // a long rally: blocks already fly at 760, past the 640 smash
+    g.step(DT, [{ tx: 180, power: true }, still()]);
+    for (let i = 0; i < 200 && g.ball.vy > 0; i++) g.step(DT, [still(), still()]);
+    const sp = Math.hypot(g.ball.vx, g.ball.vy);
+    expect(sp).toBeCloseTo(RULES.maxSpeed + RULES.powerSmashOver, 3); // 820: fast, still returnable
+    expect(sp).toBeLessThanOrEqual(RULES.smashSpeed + 1e-6);
+    expect(g.ball.smash).toBe(true);
+  });
+
   it('Slow-mo slows the ball coming toward you, not away', () => {
     const g = new PingPong([player({ power: power('pingpong', 'slowmo') }), player()], true, makeRng(7));
     g.energy[0].value = 1;

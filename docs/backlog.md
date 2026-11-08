@@ -286,7 +286,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       matches feel long, a rally speed-up (puck a little faster after ~30 s without a goal)
       would be the fix.
 - [ ] Add the masher model (tests/sumo.test.ts) as a "kid" row to `npm run sim` for every game.
-- [ ] Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
+- [x] 2026-11-07 (F112, no change needed: now easy Radar beats Airstrike 57% and Mine 60%, normal 53% / 59%,
+      n=200 seeds played from both seats; the bots follow up their radar contacts). Was: Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
       the sloppy easy bot spends more turns targeting, when it never radars. Fine for now;
       recheck if kids pick radar and lose.
 - [x] 2026-11-01 (PR #72): Power balance sim: `npm run sim:powers` (scripts/powers-sim.ts, shared
@@ -1273,8 +1274,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       it is still a jump in an early rally but a ready paddle reaches it. n=60: Smash 62% easy,
       53% normal, 50% hard; Slow-mo 39-42% and Curve 56-59% unchanged. Test in
       tests/pingpong.test.ts.
-- [ ] Ping Pong Smash does nothing late in a long rally (the ball is already past 640, up to
-      760); if people notice, make it "+X over the current speed" and re-measure.
+- [x] 2026-11-07 (F111): Ping Pong Smash does nothing late in a long rally (the ball is already past 640, up to
+      760); if people notice, make it "+X over the current speed" and re-measure. Now Smash
+      is at least 640 and at least 60 over the rally's speed (820 at the 760 cap). +120 read
+      67% at easy; +60 reads easy 60%, normal 55%, hard 48% (n=80; was 62/53/50).
 
 ## Ideas found 2026-11-07 (easy-level power run)
 - [x] 2026-11-07 (F106): `npm run sim:powers -- --level easy` (the level families with small
