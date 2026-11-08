@@ -1224,6 +1224,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       strip). Sea Battle's Ready is already 140x58 and its cells are tapped, so nothing there.
       The canvas-button playtest checks both grew, dive buttons don't touch, FIRE stays on
       screen (little-hands-penalty.png, little-hands-tanks.png).
+      2026-11-07 (F97): the dive arrows grow with their button (x r/28), so a big button doesn't
+      keep a small arrow.
 - [x] 2026-11-07 (F88): Minigolf seat check per hole. No seat edge: the same seed with the
       seats swapped plays the same strokes mirrored (new test in tests/minigolf.test.ts, all
       23 holes). A first sim's "bottom seat wins 40%" followed which seeds it started on
