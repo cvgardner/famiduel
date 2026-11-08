@@ -282,6 +282,8 @@ class QuickDrawView implements GameInstance {
     } else if (g.phase === 'result' && g.last && !silentSeat(this.ctx.players, p)) {
       const r = g.last;
       const won = r.winner === p;
+      // F165: against a bot the card names it ("Bot 420 ms", "Bot got fooled!"), not "them".
+      const bot = !!this.ctx.players[other(p)].bot;
       let title: string;
       let color = won ? '#1f7a3a' : '#a02a1f';
       if (r.winner === null) {
@@ -289,13 +291,14 @@ class QuickDrawView implements GameInstance {
         title = r.reason === 'bothEarly' ? 'Both too early!' : r.reason === 'tooSlow' ? 'Nobody drew!' : 'Exact tie!';
       } else if (r.reason === 'faster') title = won ? 'You win the round!' : 'Splashed!';
       else if (r.early === p) title = r.reason === 'fooled' ? 'Fooled you! 🙈' : 'Too early!';
-      else title = r.reason === 'fooled' ? 'They got fooled!' : 'They were too early!';
+      else if (r.reason === 'fooled') title = bot ? 'Bot got fooled!' : 'They got fooled!';
+      else title = bot ? 'Bot was too early!' : 'They were too early!';
       rrect(gx, 24, y - 36, W - 48, 80, 16, 'rgba(255,248,230,0.95)', alpha(this.ctx.players[p].color, 0.9), 3);
       text(gx, title, W / 2, y - 14, { size: 22, color });
       const mine = r.times[p];
       const theirs = r.times[other(p)];
       text(gx, `You ${ms(mine)}`, W / 2 - 74, y + 16, { size: 17, color: shade(this.ctx.players[p].color, -0.65) });
-      text(gx, `Them ${ms(theirs)}`, W / 2 + 74, y + 16, { size: 17, color: shade(this.ctx.players[other(p)].color, -0.65) });
+      text(gx, `${bot ? 'Bot' : 'Them'} ${ms(theirs)}`, W / 2 + 74, y + 16, { size: 17, color: shade(this.ctx.players[other(p)].color, -0.65) });
       const pen = r.penalty[p];
       if (pen > 0.001 && mine !== null) text(gx, `+${Math.round(pen * 1000)} ms handicap`, W / 2 - 74, y + 32, { size: 13, color: '#4a2c0c' });
       const penO = r.penalty[other(p)];

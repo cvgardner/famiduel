@@ -227,7 +227,7 @@ class ChopView implements GameInstance {
     if (!silentSeat(this.ctx.players, p)) {
       // On a dark pill like the goal label: dark text over the sky fell under 4.5:1 with light seats.
       rrect(gx, bx - 10, L.barY + 20, 74, 20, 10, 'rgba(20,20,40,0.75)');
-      text(gx, `them: ${o.chops}`, bx - 3, L.barY + 30, { size: 13, color: '#ffffff', align: 'left' });
+      text(gx, `${this.ctx.players[other(p)].bot ? 'bot' : 'them'}: ${o.chops}`, bx - 3, L.barY + 30, { size: 13, color: '#ffffff', align: 'left' });
     }
     // Power status
     if (c.double > 0) text(gx, `✌️ x2 ·${c.double}`, W / 2 + 96, L.barY + 54, { size: 16, color: COLORS.gold, stroke: 'rgba(0,0,0,0.4)' });
