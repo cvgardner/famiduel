@@ -56,6 +56,15 @@ function turnedFromReader(g: G): boolean {
   if (Math.abs(cos) < 0.5) return false;
   return (cos < 0) !== (reader.seat === 1);
 }
+/**
+ * F120: a bot seat facing a person at the table gets no words addressed to "you" (round
+ * banners like "You win the round!", "You go first!"): with F118 the person reads that
+ * half upright and would take them as their own. Two bots or two people: every seat speaks.
+ */
+export function silentSeat(players: readonly { bot: unknown }[], p: 0 | 1): boolean {
+  return !!players[p].bot && !players[p === 0 ? 1 : 0].bot;
+}
+
 /** Reader probe, switched on by the playtest: labels (scores too) turned to face the one reader. */
 export const readerProbe = { on: false, turned: new Set<string>() };
 const FLIP_ALIGN: Record<string, CanvasTextAlign> = { left: 'right', right: 'left', start: 'end', end: 'start', center: 'center' };

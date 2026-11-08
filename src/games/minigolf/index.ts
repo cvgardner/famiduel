@@ -2,7 +2,7 @@
 // (slingshot) anywhere near your ball or in your half, release to putt.
 import { dailyHoleIds } from './daily';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -737,8 +737,10 @@ class MinigolfView implements GameInstance {
     text(gx, g.hole.name, W / 2, y - 10, { size: 28, color: '#ffffff' });
     text(gx, `Par ${g.hole.par}`, W / 2, y + 18, { size: 15, color: COLORS.gold });
     const lead = g.leadOff;
-    const who = lead === p ? 'You tee off first' : `${this.ctx.players[lead].name} tees off first`;
-    text(gx, who, W / 2, y + 42, { size: 14, color: liftOn(this.ctx.players[lead].color, INTRO_CARD), weight: 700 });
+    if (!silentSeat(this.ctx.players, p)) {
+      const who = lead === p ? 'You tee off first' : `${this.ctx.players[lead].name} tees off first`;
+      text(gx, who, W / 2, y + 42, { size: 14, color: liftOn(this.ctx.players[lead].color, INTRO_CARD), weight: 700 });
+    }
     gx.globalAlpha = 1;
   }
 
@@ -791,7 +793,7 @@ class MinigolfView implements GameInstance {
     const msg = final
       ? tp < tq ? 'You win! 🏆' : tq < tp ? `${this.ctx.players[q].name} wins!` : 'All square: a draw!'
       : tp < tq ? `You lead by ${tq - tp}` : tq < tp ? `${this.ctx.players[q].name} leads by ${tp - tq}` : 'All square!';
-    text(gx, msg, W / 2, y0 + hgt + 20, { size: 18, color: '#ffffff', stroke: 'rgba(0,0,0,0.5)' });
+    if (!silentSeat(this.ctx.players, p)) text(gx, msg, W / 2, y0 + hgt + 20, { size: 18, color: '#ffffff', stroke: 'rgba(0,0,0,0.5)' });
     text(gx, 'Lowest total wins', W / 2, y0 + hgt + 40, { size: 13, color: COLORS.dim, weight: 600 });
   }
 }

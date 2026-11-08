@@ -1,7 +1,7 @@
 // Runs one match: countdown, fixed-step updates, then hands the result back.
 import { makeRng } from '../core/rng';
 import type { GameResult, PlayerIndex, PlayerInfo } from '../core/types';
-import { rrect, setReader, soloReader, text, type G } from '../engine/draw';
+import { rrect, setReader, silentSeat, soloReader, text, type G } from '../engine/draw';
 import { Fx } from '../engine/fx';
 import type { GameDef, GameInstance } from '../engine/game';
 import type { Sfx } from '../engine/sfx';
@@ -102,7 +102,7 @@ export class Runner {
       const lines = this.starterLines();
       for (const p of [0, 1] as const) {
         const line = lines[p];
-        if (!line) continue;
+        if (!line || silentSeat(this.players, p)) continue;
         const mine = line === 'You go first!';
         const y = p === 0 ? MID + 200 : MID - 200;
         // A solid pill, so the game's own turn line underneath doesn't show through.

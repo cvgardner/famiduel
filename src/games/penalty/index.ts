@@ -3,7 +3,7 @@
 // runs out; the ball is struck on zero, so the keeper always knows when it
 // comes. The keeper taps a dive button.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, fitSize, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, line, noGlow, fitSize, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { bigHandsOn, Button, PowerButton, powerSpot } from '../../engine/widgets';
@@ -132,8 +132,9 @@ class PenaltyView implements GameInstance {
     const s = g.shooter;
     const k = g.keeper;
     const ys = (p: PlayerIndex) => (p === 0 ? MID + 70 : MID - 70);
-    fx.pop(g.suddenDeath ? 'Sudden death! Your kick' : 'Your kick!', W / 2, ys(s), this.ctx.players[s].color, s, 26);
-    fx.pop(g.suddenDeath ? 'Sudden death! Save it' : 'Save it!', W / 2, ys(k), this.ctx.players[k].color, k, 26);
+    const players = this.ctx.players;
+    if (!silentSeat(players, s)) fx.pop(g.suddenDeath ? 'Sudden death! Your kick' : 'Your kick!', W / 2, ys(s), players[s].color, s, 26);
+    if (!silentSeat(players, k)) fx.pop(g.suddenDeath ? 'Sudden death! Save it' : 'Save it!', W / 2, ys(k), players[k].color, k, 26);
   }
 
   private handleEvents(): void {

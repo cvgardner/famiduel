@@ -2,7 +2,7 @@
 // drawn in the bottom player's frame and rotated 180° for the top player.
 import { liftOn, popColor, POP_OUTLINE } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -244,7 +244,7 @@ class QuickDrawView implements GameInstance {
         rrect(gx, 24, y - 34, W - 48, 68, 16, 'rgba(255,248,230,0.95)', '#c0392b', 3);
         text(gx, a, W / 2, y - 12, { size: 26 * pop, color: '#c0392b', weight: 900 });
         text(gx, b, W / 2, y + 16, { size: 20 * pop, color: '#5b3412' });
-        if (f.by === p) text(gx, '(your fake-out 🎭)', W / 2, y + 48, { size: 13, color: '#5a3400' });
+        if (f.by === p && !silentSeat(this.ctx.players, p)) text(gx, '(your fake-out 🎭)', W / 2, y + 48, { size: 13, color: '#5a3400' });
       } else text(gx, 'Wait for it…', W / 2, y, { size: 20, color: 'rgba(70,40,12,0.8)' });
     } else if (g.phase === 'draw') {
       const k = Math.min(1, g.phaseT / 0.06);
@@ -254,7 +254,7 @@ class QuickDrawView implements GameInstance {
       text(gx, 'DRAW!', W / 2, y + 2, { size: 52 * (0.6 + 0.4 * k), color: '#fff3d6', weight: 900, stroke: '#7a1a10' });
     } else if (g.phase === 'result' && g.last && g.phaseT < 0.45 && g.last.reason === 'faster') {
       text(gx, 'DRAW!', W / 2, y, { size: 40, color: 'rgba(192,57,43,0.5)', weight: 900 });
-    } else if (g.phase === 'result' && g.last) {
+    } else if (g.phase === 'result' && g.last && !silentSeat(this.ctx.players, p)) {
       const r = g.last;
       const won = r.winner === p;
       let title: string;

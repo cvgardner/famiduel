@@ -1,6 +1,6 @@
 // Air Hockey view: fingers and bots become intents, state becomes pixels.
 import { PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, glow, line, noGlow, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -82,7 +82,7 @@ class AirHockeyView implements GameInstance {
         fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 50 : MID - 50, COLORS.gold, e.p, 26);
       } else if (e.type === 'nudge') {
         // Only the player holding the puck needs to read it, upright on their side.
-        fx.pop('Your shot!', W / 2, e.p === 0 ? MID + 130 : MID - 130, '#2b2459', e.p, 26);
+        if (!silentSeat(this.ctx.players, e.p)) fx.pop('Your shot!', W / 2, e.p === 0 ? MID + 130 : MID - 130, '#2b2459', e.p, 26);
       } else if (e.type === 'drift') {
         sfx.play('whoosh');
         fx.burst(e.x, e.y, '#bfe9ff', 10, 140, 3);

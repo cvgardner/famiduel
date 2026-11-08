@@ -1353,3 +1353,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       below. New playtest plays Air Hockey, Sumo, Snake and Minigolf that way: the bottom
       bot's intro half turns up, its canvas words turn to face the top, none runs off the
       screen (`solo-top-<id>.png`).
+- [x] 2026-11-07 (F120): With F118 the bot's half read upright, so its words addressed to
+      "you" ("You win the round!", "Your kick!", "You go first!", "You tee off first")
+      looked like they were for the person. A bot seat facing a person now gets none of
+      them (`silentSeat()` in engine/draw.ts): Snake and Chop Chop round banners, Quick Draw
+      round result and fake-out note, Minigolf tee-off and leader lines, Penalty kick/save
+      pops, Air Hockey's "Your shot!", the countdown's starter line. Both solo playtests fail
+      on any you/your word drawn for the bot seat (it found Penalty's "Your kick!").
