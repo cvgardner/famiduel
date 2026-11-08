@@ -48,7 +48,7 @@ class ChopView implements GameInstance {
     this.powerBtns = PLAYERS.map((p) => {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
-      return new PowerButton(W / 2, p === 0 ? L.powerY : H - L.powerY, p, pw, ctx.players[p].color);
+      return new PowerButton(W / 2, p === 0 ? L.powerY : H - L.powerY, p, pw, ctx.players[p].color, silentSeat(ctx.players, p));
     });
   }
 

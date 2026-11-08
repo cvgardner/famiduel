@@ -1615,3 +1615,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (draw.ts controlsAlpha); the bot's charge / reload rings, shells and hearts stay bright.
       Snack Snatch's frogs stay as they are: they are the bot's characters, not just buttons.
       Two people or two bots: unchanged. tests/controls-dim.test.ts.
+- [x] 2026-11-08 (F171, PR #216): Play the bot: the bot's power button (every action game)
+      still read as one more button to press. Its band and face draw at 40% like F170; the
+      energy ring and the power's icon stay clear (they tell the person what the bot holds
+      and when it can fire). tests/controls-dim.test.ts.

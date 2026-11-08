@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
-import type { PlayerInfo } from '../src/core/types';
+import type { PlayerInfo, PowerDef } from '../src/core/types';
+import powers from '../content/powers.json';
 import { BOT_CONTROLS_ALPHA, setReader, soloReader } from '../src/engine/draw';
 import { W, H } from '../src/engine/world';
 import { Fx } from '../src/engine/fx';
@@ -58,6 +59,41 @@ describe('Play the bot: the bot\'s own buttons are drawn faint', () => {
         expect(brightness(id, bots, person)).toEqual(two(person));
         // Two bots (a demo): nobody at the table, both seats stay bright.
         expect(brightness(id, ['easy', 'easy'], botSeat)).toEqual(two(botSeat));
+      }
+    });
+  }
+});
+
+/** The brightest fill drawn on seat p's power button, with every seat holding the game's first power. */
+function powerBrightness(id: string, bots: [string | null, string | null], p: 0 | 1): number {
+  const pw = (powers.games as Record<string, PowerDef[]>)[id][0];
+  const players: [PlayerInfo, PlayerInfo] = [player({ bot: bots[0] as never, power: pw }), player({ bot: bots[1] as never, power: pw })];
+  const sfx = { play() {} } as unknown as Sfx;
+  const view = GAMES[id].create({ seed: 1, rng: makeRng(1), players, powersOn: true, sfx, fx: new Fx(), end() {} }) as unknown as View;
+  const { g, fills } = recorder();
+  setReader(soloReader([players[0].bot, players[1].bot]), g);
+  try {
+    view.render(g);
+  } finally {
+    setReader(null);
+  }
+  const b = (view.powerBtns as ({ button: Pt } | null)[])[p]!.button;
+  const on = fills.filter((f) => Math.hypot(f.x - b.x, f.y - b.y) < 3);
+  expect(on.length, `${id} seat ${p} power button`).toBeGreaterThan(0);
+  return Math.max(...on.map((f) => f.alpha));
+}
+
+// F171: the bot's power button read as one more button to press; its face is faint now
+// (the energy ring and the power's icon stay clear).
+describe('Play the bot: the bot\'s power button is drawn faint', () => {
+  for (const id of ['airhockey', 'snake', 'sumo', 'snacksnatch', 'pingpong', 'minigolf', 'chopchop', 'tanks', 'penalty', 'quickdraw']) {
+    it(id, () => {
+      for (const botSeat of [0, 1] as const) {
+        const person = botSeat === 0 ? 1 : 0;
+        const bots: [string | null, string | null] = botSeat === 0 ? ['easy', null] : [null, 'easy'];
+        expect(powerBrightness(id, bots, botSeat)).toBeCloseTo(powerBrightness(id, [null, null], botSeat) * BOT_CONTROLS_ALPHA);
+        expect(powerBrightness(id, bots, person)).toBe(powerBrightness(id, [null, null], person));
+        expect(powerBrightness(id, ['easy', 'easy'], botSeat)).toBe(powerBrightness(id, [null, null], botSeat));
       }
     });
   }

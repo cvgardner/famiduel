@@ -45,7 +45,7 @@ class PenaltyView implements GameInstance {
       const pw = ctx.players[p].power;
       if (!ctx.powersOn || !pw) return null;
       const [x, y] = powerSpot(p, 34, 28, !!ctx.players[p].lefty);
-      return new PowerButton(x, y, p, pw, ctx.players[p].color);
+      return new PowerButton(x, y, p, pw, ctx.players[p].color, silentSeat(ctx.players, p));
     });
     const diveR = bigHandsOn() ? DIVE_R_BIG : DIVE_R;
     this.diveBtns = PLAYERS.map((p) => DIVE_X.map((x) => new Button(x, DIVE_Y[p], diveR, p, '', ctx.players[p].color, DIVE_HIT - diveR)));
