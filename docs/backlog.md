@@ -285,7 +285,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       returning it; people vs a bot don't play that long. If bot-vs-bot (tournament demo)
       matches feel long, a rally speed-up (puck a little faster after ~30 s without a goal)
       would be the fix.
-- [ ] Add the masher model (tests/sumo.test.ts) as a "kid" row to `npm run sim` for every game.
+- [x] 2026-11-07 (F116, already done): `npm run sim` has "kid" and "kid+3" rows for every game (scripts/simlib.ts Masher). Was: Add the masher model (tests/sumo.test.ts) as a "kid" row to `npm run sim` for every game.
 - [x] 2026-11-07 (F112, no change needed: now easy Radar beats Airstrike 57% and Mine 60%, normal 53% / 59%,
       n=200 seeds played from both seats; the bots follow up their radar contacts). Was: Sea Battle: easy radar is still a bit weaker than airstrike (40/60 bot-vs-bot) because
       the sloppy easy bot spends more turns targeting, when it never radars. Fine for now;
@@ -546,9 +546,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (`seabattle-bot-hit.png`).
 
 ## Ideas found 2026-10-31 (board person run)
-- [ ] Checkers vs the normal bot: the person (random legal moves) is down a few pieces within
+- [x] 2026-11-07 (F116, dropped: Checkers is hidden and gets no work since 2026-11-01). Checkers vs the normal bot: the person (random legal moves) is down a few pieces within
       25 s; check the easy bot gives a kid who plays randomly a real chance (bot pace table).
-- [ ] Tic-Tac-Toe never buzzes on a mark (marks play 'tap' / 'pop'); decide whether turn
+- [x] 2026-11-07 (F116, dropped: Tic-Tac-Toe is hidden and gets no work). Tic-Tac-Toe never buzzes on a mark (marks play 'tap' / 'pop'); decide whether turn
       games should tick on each move like Four in a Row now does, or stay quiet.
 - [ ] Rock Paper Scissors could get a person too, so the report counts throws per seat.
 
@@ -777,7 +777,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       with its number (1, 2, 3...) at its corner, upright for whoever looks, on the shot sea
       (the bot's chain on your fleet too); a new turn clears them. Playtest "a hit fires
       again" checks both badges by pixel and that the next turn starts plain.
-- [ ] Rules audit of the other classic games against the rules families know (Checkers
+- [x] 2026-11-07 (F116, already done in docs/rules.md: every game's familiar rule vs ours). Rules audit of the other classic games against the rules families know (Checkers
       forced jumps and kings, Four in a Row, Ping Pong serve every 2 points, Penalty 5 each
       then sudden death), listed in docs so a parent can check "is this the real rule?".
 
@@ -817,7 +817,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tested: the groups flatten back to the exact list order). The layout playtest checks
       the three headings show, each sits right above its own cards, and saves
       `home-groups.png` scrolled to the board games.
-- [ ] Idle-seat stalls: Ping Pong serves itself, Penalty has a shot clock and Quick Draw a
+- [x] 2026-11-07 (F116, a closed note, nothing to do). Idle-seat stalls: Ping Pong serves itself, Penalty has a shot clock and Quick Draw a
       draw timeout, so the "idle player stalls the match" worry is covered for those; Tanks
       and Snack Snatch have match clocks. Only a turn game left waiting (Minigolf putt,
       Sea Battle shot) can wait forever, which is fine with a person there.
@@ -880,7 +880,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2026-11-07 (F64): the playtest "with two people, the first look-away cover says who goes
       first" reads the cover's words off the canvas ("You go first!", the shooter's name, the
       look-away line) and saves seabattle-first-cover.png. It already said it; no app change.
-- [ ] Turn games could show a small "first" marker beside the starter's score for the whole
+- [x] 2026-11-07 (F116, dropped as F69: it would mislead, since Minigolf's tee-off moves by honour and Penalty alternates). Turn games could show a small "first" marker beside the starter's score for the whole
       match (like a serve dot in Ping Pong), so a parent glancing in mid-match knows too.
 
 ## Ideas found 2026-11-01 (rematch starter run)
@@ -987,7 +987,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       before launch, but a save migration would be needed after.
 
 ## Ideas found 2026-11-01 (home groups run)
-- [ ] The group headings could be tappable chips at the top of home ("Action · Board ·
+- [x] 2026-11-07 (F116, dropped: home has two groups now (Action, Take turns) and the board games are hidden). The group headings could be tappable chips at the top of home ("Action · Board ·
       Extras") that scroll to their group, so the board games are one tap away on a small
       phone.
 - [x] The home screen (DOM) is still not contrast-checked (`domContrast(page, '#home')` would do it, in light and dark theme); the headings use `--dim` (62%
@@ -1329,3 +1329,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       playing (F113): the swapped-in game is new to the lineup, the other 6 stay, "2 swaps
       left", Play and the intro name it, a quit game keeps the swaps, they end once game 1
       is played, and the finished lineup still shows it first.
+- [x] 2026-11-07 (F116): Backlog sweep: seven stale open lines ticked with why (kid sim rows
+      and the rules audit were already done; Checkers / Tic-Tac-Toe / home-group chips dropped
+      as hidden board games; the "first" marker dropped as F69; the idle-seat note closed).
