@@ -1561,3 +1561,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       kept the mirrored place left of the count (solo-play-chopchop.png). A bot's half facing
       the one person puts it on the other side; tests/chopchop-solo.test.ts reads both seats'
       "N / 50" left to right, with people and with a bot on either seat.
+- [x] 2026-11-08 (F162, PR #209): Play the bot: the bot's big buttons still said HOLD / LET GO
+      (Sumo) and TAP (Snack Snatch hippos), turned upright for the person: how-to words nobody
+      at the table reads (F119; Quick Draw's bot button was already blank). A bot's button
+      facing the one person carries no word now (Sumo's charge ring still shows it winding up);
+      the solo playtest's how-to list fails on HOLD, LET GO and TAP in the bot's half.
