@@ -129,8 +129,11 @@ class SumoView implements GameInstance {
         if (big) {
           fx.shake(Math.min(12, 4 + e.strength / 80), 0.25);
           const word = e.strength > 600 ? 'KA-BOOM!' : 'BONK!';
-          fx.pop(word, e.x, e.y - 30, COLORS.gold, 0, 26);
-          fx.pop(word, e.x, e.y + 30, COLORS.gold, 1, 26);
+          // F188: beside the clash, clear of both wrestlers (at the impact ± 30 it printed
+          // across the two faces), and of the other seat's copy.
+          const at = this.clashPops(word, 26, e.x, e.y);
+          fx.pop(word, at.x, at.y[0], COLORS.gold, 0, 26);
+          fx.pop(word, at.x, at.y[1], COLORS.gold, 1, 26);
         }
       } else if (e.type === 'out') {
         sfx.play('splash');
@@ -212,16 +215,44 @@ class SumoView implements GameInstance {
    * F177/F181: the first y at or near `home` (stepping 14 at a time, toward the middle, and
    * outward at most `outward` steps) where a pop at x clears both wrestlers over its whole
    * rise, where they stand now and where they will be half a second on.
+   * `other`: a same-size pop already placed for the other seat (F188), whose rise it must clear.
    */
-  clearPopY(p: PlayerIndex, word: string, size: number, x: number, home: number, outward: number, grow = false): number {
+  clearPopY(p: PlayerIndex, word: string, size: number, x: number, home: number, outward: number, grow = false, other?: { seat: PlayerIndex; y: number }): number {
+    return this.findPopY(p, word, size, x, home, outward, grow, other) ?? home;
+  }
+
+  /**
+   * F188: where a clash's two pops go: at the clash's x if both seats' copies find a clear
+   * line there, else nearer the middle, else on the far side of the ring from the clash.
+   */
+  clashPops(word: string, size: number, cx: number, cy: number): { x: number; y: [number, number] } {
+    const w = ([...word].length * size * 0.55) / 2 + 8;
+    const xs = [Math.max(w, Math.min(W - w, cx)), W / 2, cx < W / 2 ? W - w : w];
+    for (const x of xs) {
+      const y0 = this.findPopY(0, word, size, x, cy - 30, 12);
+      if (y0 === null) continue;
+      const y1 = this.findPopY(1, word, size, x, cy + 30, 12, false, { seat: 0, y: y0 });
+      if (y1 !== null) return { x, y: [y0, y1] };
+    }
+    return { x: xs[0], y: [cy - 30, cy + 30] };
+  }
+
+  private findPopY(p: PlayerIndex, word: string, size: number, x: number, home: number, outward: number, grow = false, other?: { seat: PlayerIndex; y: number }): number | null {
     const g = this.game;
-    const toMid = p === 0 ? -1 : 1;
     const rise = 40 * 0.9;
     const half = size * 0.45;
     const w = Math.min(W - 16, [...word].length * size * 0.55) / 2;
+    const band = (q: PlayerIndex, y: number) => {
+      const dir = q === 0 ? -1 : 1;
+      return [Math.min(y, y + dir * rise) - half - 6, Math.max(y, y + dir * rise) + half + 6];
+    };
+    const toMid = p === 0 ? -1 : 1;
     const clear = (y: number) => {
-      const top = Math.min(y, y + toMid * rise) - half - 6;
-      const bot = Math.max(y, y + toMid * rise) + half + 6;
+      const [top, bot] = band(p, y);
+      if (other) {
+        const [ot, ob] = band(other.seat, other.y);
+        if (top < ob && ot < bot) return false;
+      }
       return PLAYERS.every((q) => {
         const wr = g.wrestlers[q];
         const r = q === p && grow ? RULES.bodyR * RULES.growScale : g.radius(q);
@@ -239,7 +270,7 @@ class SumoView implements GameInstance {
         if (y > half && y < H - half && clear(y)) return y;
       }
     }
-    return home;
+    return null;
   }
 
   private animate(dt: number): void {

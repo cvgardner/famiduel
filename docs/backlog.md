@@ -1704,3 +1704,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       chopper's own "N / 50" count (barY + 40, the count sits at barY + 30) and rose over it
       (bot match, 320x568). It starts below the count now (MILESTONE_Y, barY + 80), so its
       bright first half-second ends short of it, both seats. tests/chopchop-milestone.test.ts.
+- [x] 2026-11-08 (F188, PR #233): Sumo: a big hit's "BONK!" / "KA-BOOM!" popped at the impact
+      point ± 30, across both wrestlers' faces (73% of readable frames in bot matches). Each
+      seat's copy now takes the nearest line clear of both wrestlers (clearPopY, as F177/F181)
+      and of the other seat's copy, at the clash's x, else the middle, else the far side
+      (clashPops): 2% of frames. tests/sumo-clash-pop.test.ts.
