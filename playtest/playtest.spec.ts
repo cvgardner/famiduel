@@ -1623,9 +1623,13 @@ test('tanks: a left-handed player gets FIRE on the left and the stick on the rig
       const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
       // Seat 0 (lefty) FIRE at (72, 584); seat 1's (bot, right-handed) turned 180° lands at (72, 56).
       const off = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i])));
+      // F170: the bot's buttons are drawn at 40% (nobody at the table presses them), so its
+      // band is its colour at 40% over the strip, sampled beside the button at (20, 56).
+      const bg = px(20, 56);
+      const faint = hex(r.ctx.players[1].color).map((v, i) => 0.4 * v + 0.6 * bg[i]);
       return [
         [px(72 - 37.5, 584), px(72 + 37.5, 584)].map((p) => off(p, hex(r.ctx.players[0].color))),
-        [px(72 - 37.5, 56), px(72 + 37.5, 56)].map((p) => off(p, hex(r.ctx.players[1].color))),
+        [px(72 - 37.5, 56), px(72 + 37.5, 56)].map((p) => off(p, faint)),
       ];
     });
   await expect.poll(async () => Math.max(...(await rimCheck()).flat()), { timeout: 3000, message: 'both FIRE buttons ringed in their owner\'s colour' }).toBeLessThan(40);
