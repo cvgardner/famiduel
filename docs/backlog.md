@@ -1349,3 +1349,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       reads: Snake's "Tap ◀ ▶ to turn", Chop Chop's chop pills, Ping Pong's SERVE when the
       bot serves (Penalty and Ping Pong's swipe hints already skipped bots). The solo
       playtest fails if any of them is drawn for the bot seat.
+- [x] 2026-11-07 (F121): A seat's own bot level lets the person sit at the top with the bot
+      below. New playtest plays Air Hockey, Sumo, Snake and Minigolf that way: the bottom
+      bot's intro half turns up, its canvas words turn to face the top, none runs off the
+      screen (`solo-top-<id>.png`).
