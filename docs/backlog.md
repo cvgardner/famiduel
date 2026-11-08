@@ -1470,6 +1470,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (about 13 px on a 320 px phone, over the tablecloth's edge), so a kid hardly saw why
       their frog went dizzy. It is now "Miss!" at 19 in solid white with the pop outline;
       tests/snacksnatch.test.ts holds the size and colour, the contrast test still passes.
+- [x] 2026-11-08 (F144): no other card left behind a folded banner in the bot's half: every
+      backplate under a size-22+ banner (Snake and Chop Chop round cards, Tank Duel's pill,
+      Minigolf's shot banner and hole card) already skips a silent seat; Sumo, Penalty and
+      Air Hockey banners have no backplate. Quick Draw's was the last one (F142).
 - [x] 2026-11-07 (F133): Backlog sweep: RPS person line (done by F125) and the air hockey
       "walks away" flake watch (no repeat) ticked with why.
 
