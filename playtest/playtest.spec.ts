@@ -389,7 +389,8 @@ test('ghost finger: the first match shows it in play over each person\'s half, t
       }),
     );
   await start('pingpong');
-  await page.waitForTimeout(2600); // countdown, then the serve
+  const t0 = Date.now();
+  await page.waitForTimeout(900); // mid countdown
   let c = await copies();
   expect(c.map((x) => x.p).sort(), 'one finger per person').toEqual([0, 1]);
   const vh = page.viewportSize()!.height;
@@ -404,8 +405,8 @@ test('ghost finger: the first match shows it in play over each person\'s half, t
   c = await copies();
   expect(c.find((x) => x.p === 0)!.gone, 'a touch clears that seat\'s finger').toBe(true);
   expect(c.find((x) => x.p === 1)!.gone, 'the other seat keeps theirs').toBe(false);
-  // It fades away by itself.
-  await expect.poll(async () => (await copies()).length, { timeout: 8000 }).toBe(0);
+  // It fades away by itself, about a second after GO (F137: it hid goals and snacks).
+  await expect.poll(async () => (await copies()).length, { message: 'the finger is gone about a second after GO', timeout: Math.max(200, 3800 - (Date.now() - t0)) }).toBe(0);
   // Second match of the same game: none. A bot seat never gets one.
   await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.store.data.history.push({ game: 'pingpong' }));
   await start('pingpong');
@@ -853,6 +854,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
       e.on = true;
     });
     await introAsPeople(page, [0]);
+    const t0 = Date.now();
     expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players.map((p) => p.bot)), id).toEqual([null, 'easy']);
     // F118: the bot seat's canvas words (countdown, score, pops) turn to face the person too,
     // and keep their place on screen (a flipped left/right label still fits).
@@ -875,6 +877,9 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     expect(turned.filter((t) => /^Round \d+$/.test(t)), `${id}: a second "Round" line in the bot's half`).toEqual([]);
     expect(turned.filter((t) => /^\d+ – \d+$/.test(t)), `${id}: a back-to-front score in the bot's half`).toEqual([]);
     await page.screenshot({ path: path.join(OUT, `solo-play-${id}.png`) });
+    // F137: the first-match ghost finger leaves the person's play area about a second after GO
+    // (its card sat over Penalty's goal and Snack Snatch's lower lanes).
+    await expect.poll(() => page.locator('#play .play-demo').count(), { message: `${id}: ghost finger gone about a second after GO`, timeout: Math.max(200, 3800 - (Date.now() - t0)) }).toBe(0);
     // F122: the first 2.6 s never reach a round end, so play on to the first point (or the
     // match end) with the probe on, and let the banner draw for a moment in real time.
     // F125: Sea Battle and RPS wait for the person's move, so a person plays a few turns

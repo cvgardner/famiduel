@@ -23,13 +23,17 @@ export function showsDemo(history: readonly { game: string }[], game: string): b
   return true;
 }
 
-/** How long the in-play finger stays over a person's half at their first match (ms). */
-export const PLAY_DEMO_MS = 5200;
+/**
+ * How long the in-play finger stays over a person's half at their first match (ms):
+ * the 1.8 s countdown plus one second of play. Any longer and its dark card hid the
+ * person's goal or the first snacks while play was already on (F137).
+ */
+export const PLAY_DEMO_MS = 2800;
 
 /**
  * The very first match of a game on this phone also shows the finger once more in
- * play, over each person's own half, through the countdown and the first moments
- * (the intro's copy is small and gone by the time the ball moves).
+ * play, over each person's own half, through the countdown and the first second of
+ * play (the intro's copy is small and gone by the time the ball moves).
  */
 export function firstMatchOf(history: readonly { game: string }[], game: string): boolean {
   return !history.some((h) => h.game === game);
