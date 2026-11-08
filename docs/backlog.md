@@ -1681,3 +1681,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (below is where that seat's own piece sits, e.g. a frog's head). Same-step pops still go a
       line down; if still crowded (a frenzy of catches) the nearest free line is taken.
       popProbe counts both. tests/pops.test.ts.
+- [x] 2026-11-08 (F189, PR #PRNUM): Chop Chop: the "10!" / "20!" milestone pop started on the
+      chopper's own "N / 50" count (barY + 40, the count sits at barY + 30) and rose over it
+      (bot match, 320x568). It starts below the count now (MILESTONE_Y, barY + 80), so its
+      bright first half-second ends short of it, both seats. tests/chopchop-milestone.test.ts.
