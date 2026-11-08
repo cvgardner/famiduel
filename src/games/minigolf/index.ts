@@ -737,8 +737,10 @@ class MinigolfView implements GameInstance {
     text(gx, g.hole.name, W / 2, y - 10, { size: 28, color: '#ffffff' });
     text(gx, `Par ${g.hole.par}`, W / 2, y + 18, { size: 15, color: COLORS.gold });
     const lead = g.leadOff;
-    const who = lead === p ? 'You tee off first' : `${this.ctx.players[lead].name} tees off first`;
-    if (!silentSeat(this.ctx.players, p)) text(gx, who, W / 2, y + 42, { size: 14, color: liftOn(this.ctx.players[lead].color, INTRO_CARD), weight: 700 });
+    if (!silentSeat(this.ctx.players, p)) {
+      const who = lead === p ? 'You tee off first' : `${this.ctx.players[lead].name} tees off first`;
+      text(gx, who, W / 2, y + 42, { size: 14, color: liftOn(this.ctx.players[lead].color, INTRO_CARD), weight: 700 });
+    }
     gx.globalAlpha = 1;
   }
 
