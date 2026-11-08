@@ -94,7 +94,9 @@ class SnackSnatchView implements GameInstance {
       } else if (e.type === 'miss') {
         sfx.play('buzz');
         const c = g.critters[e.p][e.i];
-        fx.pop('miss', c.x, c.restY + fwd(e.p) * 10, 'rgba(255,255,255,0.75)', e.p, 15);
+        // F143: was 15 in 75% white (about 13 px on a small phone, hard to spot); a kid
+        // should see at a glance why their frog went dizzy.
+        fx.pop('Miss!', c.x, c.restY + fwd(e.p) * 10, '#fff', e.p, 19);
       } else if (e.type === 'grab') {
         sfx.play(e.gold ? 'coin' : 'pop');
         const c = players[e.p].color;

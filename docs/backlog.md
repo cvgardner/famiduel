@@ -1466,6 +1466,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       words but left its card upright: a fake-out read "bridge! 🌉" alone and DRAW! was an
       empty red card. The solo playtest plays on to a worded fake-out and a DRAW! and fails
       any signal words in the bot's half (failed on main with "Wait for it…", "DRAW-er!").
+- [x] 2026-11-08 (F143, PR #TBD): Snack Snatch's miss pop was "miss" at 15 units in 75% white
+      (about 13 px on a 320 px phone, over the tablecloth's edge), so a kid hardly saw why
+      their frog went dizzy. It is now "Miss!" at 19 in solid white with the pop outline;
+      tests/snacksnatch.test.ts holds the size and colour, the contrast test still passes.
 - [x] 2026-11-07 (F133): Backlog sweep: RPS person line (done by F125) and the air hockey
       "walks away" flake watch (no repeat) ticked with why.
 
