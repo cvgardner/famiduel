@@ -1528,3 +1528,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       1.3 s after the match's "3 2 1 GO", so GO was followed by a wait in which Chop Chop's
       chops did nothing. Round 1 now starts at GO (its card still shows during the countdown);
       later rounds keep their card. Unit tests in tests/chopchop.test.ts and tests/snake.test.ts.
+
+## Ideas found 2026-11-08 (countdown run)
+- [x] 2026-11-08 (F155): Chop Chop's "Round 1" card (left from F153 to show during the
+      countdown) sat right under each person's "3 2 1" digit (both at MID ± 120), so it read
+      "Rou 1". Round 1 has no card now; later rounds keep theirs (`roundCard()`, unit test).

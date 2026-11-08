@@ -349,7 +349,9 @@ class ChopView implements GameInstance {
     const g = this.game;
     let msg: string | null = null;
     let col = '#ffffff';
-    if (g.phase === 'intro') msg = `Round ${g.round}`;
+    // F155: round 1 starts at GO (F153), so its card only ever showed under the countdown's
+    // "3 2 1" digit, which hid its middle ("Rou 1"). Later rounds keep their card.
+    if (g.phase === 'intro') msg = roundCard(g.round);
     else if (g.phase === 'over' && !g.done) {
       const w = g.lastRound;
       if (w === null || w === undefined) msg = 'Tie round!';
@@ -363,6 +365,11 @@ class ChopView implements GameInstance {
     rrect(gx, W / 2 - 130, y - 24, 260, 48, 16, 'rgba(10,8,25,0.72)', alpha(this.ctx.players[p].color, 0.9), 2);
     text(gx, msg, W / 2, y, { size: 22, color: col });
   }
+}
+
+/** The between-rounds card's words; none for round 1, which starts at GO (F155). */
+export function roundCard(round: number): string | null {
+  return round > 1 ? `Round ${round}` : null;
 }
 
 const def: GameDef = { id: 'chopchop', create: (ctx) => new ChopView(ctx) };

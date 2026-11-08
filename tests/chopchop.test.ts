@@ -185,3 +185,12 @@ describe('chop chop', () => {
     expect(play(['normal', 'normal'], 8, { powers: ['freeze', 'double'] }).powersFired).toBeGreaterThan(0);
   });
 });
+
+describe('round card (F155)', () => {
+  it('round 1 has no card (it starts at GO, so the card only sat under the countdown digit); later rounds keep theirs', async () => {
+    const { roundCard } = await import('../src/games/chopchop/index');
+    expect(roundCard(1)).toBeNull();
+    expect(roundCard(2)).toBe('Round 2');
+    expect(roundCard(3)).toBe('Round 3');
+  });
+});
