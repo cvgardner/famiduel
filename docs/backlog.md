@@ -1624,3 +1624,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seeded match changes nothing for either seat (Snake, Penalty, Sumo, Tank Duel, Snack
       Snatch; bot in either seat); the same taps on the person's own buttons do change the
       match, so they really land. tests/bot-buttons-dead.test.ts (no code change needed).
+
+## Ideas found 2026-11-08 (bot buttons run)
+- [x] 2026-11-08 (F173, PR #PRNUM): Minigolf: the turn passed 0.7 s after a sink, so the next
+      shooter's "YOUR SHOT!" printed over the still-rising "HOLE IN ONE!" / "Par! Nice." pop in
+      the middle of the course (seen in the solo playtest, two people too). The banner now
+      waits for the centre pop to clear (about 0.2 s). tests/minigolf-banner.test.ts.
