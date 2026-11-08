@@ -1442,3 +1442,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       solo playtest checks no such pop is up when the idle person's time runs out.
 - [x] 2026-11-07 (F133): Backlog sweep: RPS person line (done by F125) and the air hockey
       "walks away" flake watch (no repeat) ticked with why.
+
+## Ideas found 2026-11-08 (masher run)
+- [x] 2026-11-08 (F135): a rival app's reviews say its hard Sumo "needs near-perfect timing".
+      Ours, `npm run sim -- --game sumo --n 80`: hard v normal 78%, hard v easy 98%, normal v
+      easy 93%, masher with ★★★ v easy 35%. Hard is clearly stronger but normal still wins
+      about one match in five, so no change; recheck if families call hard Sumo unbeatable.
