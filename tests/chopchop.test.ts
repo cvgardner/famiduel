@@ -39,6 +39,22 @@ function safe(g: ChopChop, p: 0 | 1): -1 | 1 {
 }
 
 describe('chop chop', () => {
+  it('F153: round 1 starts at GO (the runner counted down) and a chop on the first step counts; later rounds keep the card', () => {
+    const g = new ChopChop([player(), player()], false, makeRng(3));
+    const c = g.choppers[0];
+    const side = g.branch(0, 0) !== -1 && g.branch(0, 1) !== -1 ? -1 : 1;
+    g.step(DT, [{ chop: side, power: false }, idle]);
+    expect(g.phase).toBe('play');
+    expect(c.chops).toBe(1);
+    expect(g.events.some((e) => e.type === 'roundStart')).toBe(true);
+    // Round 2 still opens with its "Round 2" card for RULES.intro seconds.
+    let n = 0;
+    while (g.round === 1 && n++ < 20000) g.step(DT, [idle, idle]);
+    expect(g.round).toBe(2);
+    expect(g.phase).toBe('intro');
+    expect(g.phaseT).toBeGreaterThan(RULES.intro - 2 * DT);
+  });
+
   it('bot vs bot finishes in sane time', () => {
     for (const seed of [1, 2, 3, 4]) {
       const { g, t } = play(['normal', 'normal'], seed);

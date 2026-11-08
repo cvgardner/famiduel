@@ -130,7 +130,9 @@ export class SnakeDuel {
       this.grid[this.idx(x, y)] = p + 1;
     }
     this.phase = 'intro';
-    this.phaseT = RULES.roundIntro;
+    // F153: round 1 follows the match's own "3 2 1 GO", so it starts at GO (its card made
+    // GO a 1.3 s wait in which taps did nothing); later rounds keep their card.
+    this.phaseT = this.round === 1 ? 0 : RULES.roundIntro;
     this.roundT = 0;
   }
 
@@ -168,11 +170,11 @@ export class SnakeDuel {
     }
     if (this.phase === 'intro') {
       this.phaseT -= dt;
-      if (this.phaseT <= 0) {
-        this.phase = 'play';
-        this.events.push({ type: 'roundStart', round: this.round });
-      }
-      return;
+      if (this.phaseT > 0) return;
+      this.phase = 'play';
+      this.events.push({ type: 'roundStart', round: this.round });
+      // Round 1 plays this very step, so a tap at GO counts.
+      if (this.round > 1) return;
     }
     if (this.phase === 'over') {
       this.phaseT -= dt;
