@@ -313,6 +313,21 @@ describe('tank duel', () => {
     expect(g.shells[1].maxBounces).toBe(RULES.bounces);
   });
 
+  it('Shield: your cannon rests while the bubble is up (F103), then fires again', () => {
+    const g = fresh(['shield', null]);
+    g.energy[0].value = 1;
+    g.step(DT, [{ ...IDLE, power: true }, IDLE]);
+    expect(g.tanks[0].shield).toBeGreaterThan(2.9);
+    expect(g.canFire(0)).toBe(false);
+    for (let i = 0; i < 60; i++) g.step(DT, [{ ...IDLE, fire: i % 10 === 0 }, IDLE]);
+    expect(g.shellsOf(0)).toBe(0);
+    for (let i = 0; i < 200 && g.tanks[0].shield > 0; i++) g.step(DT, idle2);
+    expect(g.tanks[0].shield).toBe(0);
+    expect(g.canFire(0)).toBe(true);
+    g.step(DT, [{ ...IDLE, fire: true }, IDLE]);
+    expect(g.shellsOf(0)).toBe(1);
+  });
+
   it('Shield: a bubble blocks shells for 3 seconds', () => {
     const g = fresh([null, 'shield']);
     g.energy[1].value = 1;

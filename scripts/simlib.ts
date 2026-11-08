@@ -138,8 +138,11 @@ export function playMatch(spec: Spec, levels: [SimLevel, SimLevel], seed: number
 export function pairing(spec: Spec, levels: [SimLevel, SimLevel], n: number, powersOn = false, picks: [PowerDef | null, PowerDef | null] = [null, null]) {
   let wins = 0, seat0Wins = 0, draws = 0, unfinished = 0, time = 0, long = 0;
   for (let i = 0; i < n; i++) {
+    // Each seed is played both ways round, so a seed that favours one seat (who starts, a
+    // lucky spawn) favours each side once and cancels out. Swapping seats on alternate
+    // seeds instead let seed parity decide (Quick Draw rows summed past 100%).
     const swap = i % 2 === 1;
-    const r = playMatch(spec, swap ? [levels[1], levels[0]] : levels, 1000 + i, powersOn, swap ? [picks[1], picks[0]] : picks);
+    const r = playMatch(spec, swap ? [levels[1], levels[0]] : levels, 1000 + (i >> 1), powersOn, swap ? [picks[1], picks[0]] : picks);
     time += r.t;
     if (r.t > LONG_T) long++;
     if (!r.finished) unfinished++;

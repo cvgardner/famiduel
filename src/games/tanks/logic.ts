@@ -270,7 +270,8 @@ export class TankDuel {
   }
 
   canFire(p: PlayerIndex): boolean {
-    return this.tanks[p].reload <= 0 && this.shellsOf(p) < RULES.maxShells;
+    // No firing under a Shield bubble (F103): the bubble saved a bonk AND let you shoot back, 73% in sim:powers.
+    return this.tanks[p].shield <= 0 && this.tanks[p].reload <= 0 && this.shellsOf(p) < RULES.maxShells;
   }
 
   /** Where a shell fired now would start. */
