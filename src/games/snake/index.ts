@@ -1,7 +1,7 @@
 // Snake Duel view: two turn buttons per player, a neon grid arena, juice on every crash.
 import { popColor } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, noGlow, seatRing, rrect, silentSeat, seatEdges, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, facing, glow, noGlow, seatRing, rrect, silentSeat, seatEdges, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -225,6 +225,8 @@ class SnakeView implements GameInstance {
   }
 
   private drawControls(gx: G, p: PlayerIndex, c: string): void {
+    const a0 = gx.globalAlpha;
+    gx.globalAlpha = a0 * controlsAlpha(this.ctx.players, p);
     for (const turn of [-1, 1] as const) {
       const r = turnRect(p, turn);
       const pressed = this.pressT[p][turn === -1 ? 0 : 1] > 0;
@@ -233,6 +235,7 @@ class SnakeView implements GameInstance {
       rrect(gx, r.x, r.y + sink, r.w, r.h, 18, pressed ? shade(c, 0.25) : alpha(c, 0.85), 'rgba(255,255,255,0.55)', 2);
       facing(gx, p, r.x + r.w / 2, r.y + r.h / 2 + sink, () => turnArrow(gx, r.x + r.w / 2, r.y + r.h / 2 + sink, turn));
     }
+    gx.globalAlpha = a0;
     // Round wins as pips, between the buttons and toward the middle of the screen.
     const g = this.game;
     const yy = p === 0 ? H - 9 : 9;

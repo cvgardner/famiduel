@@ -1609,6 +1609,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       saw two scores. Its button is wordless now (like Sumo's HOLD, F162), its line reads
       "bot: N bonks", and the clock / sudden-bonk lines show once, in the person's half.
       tests/bot-name.test.ts; the solo playtest fails on FIRE or a bare bonk count there.
-- [ ] Play the bot: the bot's own touch buttons (Snake's turns, Penalty's dive arrows, Snack
-      Snatch frogs, the tank stick) are drawn as bright as the person's, inviting a kid to tap
-      a half that does nothing. Try a dimmer bot seat (todo F170).
+- [x] 2026-11-08 (F170, PR #215): Play the bot: the bot's own touch buttons were drawn as
+      bright as the person's, inviting a kid to tap a half that does nothing. Snake's turns,
+      Penalty's dives, Tank Duel's stick and FIRE and Sumo's push button now draw at 40%
+      (draw.ts controlsAlpha); the bot's charge / reload rings, shells and hearts stay bright.
+      Snack Snatch's frogs stay as they are: they are the bot's characters, not just buttons.
+      Two people or two bots: unchanged. tests/controls-dim.test.ts.
