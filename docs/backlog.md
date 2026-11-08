@@ -1265,6 +1265,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tests/palm.test.ts; playtest "a palm resting in your half" (palm-airhockey.png,
       palm-pingpong.png) failed on main (paddle stuck at the palm, x 110).
 
+## Ideas found 2026-11-07 (easy-level Ping Pong run)
+- [x] 2026-11-07 (F107): Ping Pong Smash won 70% between easy bots (85% vs no power; normal
+      63%). The smash return now flies at 640 (was 780; serve 380, +34 a hit, cap 760), so
+      it is still a jump in an early rally but a ready paddle reaches it. n=60: Smash 62% easy,
+      53% normal, 50% hard; Slow-mo 39-42% and Curve 56-59% unchanged. Test in
+      tests/pingpong.test.ts.
+- [ ] Ping Pong Smash does nothing late in a long rally (the ball is already past 640, up to
+      760); if people notice, make it "+X over the current speed" and re-measure.
+
 ## Ideas found 2026-11-07 (easy-level power run)
 - [x] 2026-11-07 (F106): `npm run sim:powers -- --level easy` (the level families with small
       kids play) had Snack Snatch Sticky at 91% (100% vs no power). Honey held snacks rolling

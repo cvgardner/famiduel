@@ -176,6 +176,12 @@ describe('ping pong', () => {
     expect(g.paddles[0].smash).toBe(false);
   });
 
+  it('Smash is fast but returnable: 640, well above an early rally (F107)', () => {
+    // 780 won 70% between easy bots (85% vs no power); 640 reads 62% easy, 53% normal, 50% hard.
+    expect(RULES.powerSmash).toBe(640);
+    expect(RULES.powerSmash).toBeGreaterThan(RULES.serveSpeed + 6 * RULES.speedUp);
+  });
+
   it('Slow-mo slows the ball coming toward you, not away', () => {
     const g = new PingPong([player({ power: power('pingpong', 'slowmo') }), player()], true, makeRng(7));
     g.energy[0].value = 1;
