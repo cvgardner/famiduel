@@ -33,6 +33,18 @@ function fresh(opts: { assist?: [number, number]; powers?: [string, string] } = 
 }
 
 describe('snake duel', () => {
+  it('F153: round 1 starts at GO (the runner counted down); later rounds keep the card', () => {
+    const g = new SnakeDuel([player(), player()], false, makeRng(3));
+    g.step(DT, [idle, idle]);
+    expect(g.phase).toBe('play');
+    expect(g.events.some((e) => e.type === 'roundStart')).toBe(true);
+    let n = 0;
+    while (g.round === 1 && n++ < 20000) g.step(DT, [idle, idle]);
+    expect(g.round).toBe(2);
+    expect(g.phase).toBe('intro');
+    expect(g.phaseT).toBeGreaterThan(RULES.roundIntro - 2 * DT);
+  });
+
   it('bot vs bot finishes a best-of-5 in sane time', () => {
     for (const seed of [1, 2, 3, 4]) {
       const { g, t } = play(['normal', 'normal'], seed);

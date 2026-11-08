@@ -1524,3 +1524,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       dark tile. A card at the digit's height now sits to the person's right of it, a little
       smaller (`besideCountdown()` in src/app/demo.ts); a playtest checks every shown game at
       320x568, both seats.
+- [x] 2026-11-08 (F153): Chop Chop and Snake opened round 1 with their own "Round 1" card for
+      1.3 s after the match's "3 2 1 GO", so GO was followed by a wait in which Chop Chop's
+      chops did nothing. Round 1 now starts at GO (its card still shows during the countdown);
+      later rounds keep their card. Unit tests in tests/chopchop.test.ts and tests/snake.test.ts.
