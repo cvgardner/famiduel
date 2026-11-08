@@ -1323,3 +1323,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (draws 8%) and easy 100%; normal beats easy 87%. Hard aces 94-100% of most par-2 holes
       (`npm run golf`), so a grown-up rarely beats it. RPS hard throws at random (F62). Fine
       for "Hard", but if families call it unbeatable, soften hard's aim on short holes.
+
+## Ideas found 2026-11-07 (19:17 run)
+- [x] 2026-11-07 (F115): The e2e bot-vs-bot tournament test now swaps game 1 before
+      playing (F113): the swapped-in game is new to the lineup, the other 6 stay, "2 swaps
+      left", Play and the intro name it, a quit game keeps the swaps, they end once game 1
+      is played, and the finished lineup still shows it first.

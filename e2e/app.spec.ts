@@ -172,6 +172,19 @@ test('7-game tournament: bots play it through to a champion, and a quit game wai
   await expect(page.locator('#tourney')).toBeVisible();
   await expect(page.locator('.lineup .slot')).toHaveCount(7);
   await expect(page.locator('.slot.next')).toHaveCount(1);
+  // F113: before game 1, tapping a game swaps it for one not in the lineup (3 swaps).
+  await expect(page.locator('.slot-swap')).toHaveCount(7);
+  await expect(page.locator('.tourney-swaps')).toContainText('3 swaps left');
+  const before = (await page.locator('.lineup .sname').allTextContents());
+  await page.locator('.slot-swap').first().click();
+  const after = await page.locator('.lineup .sname').allTextContents();
+  const swappedIn = after[0];
+  expect(swappedIn).not.toBe(before[0]);
+  expect(before).not.toContain(swappedIn);
+  expect(after.slice(1)).toEqual(before.slice(1));
+  expect(new Set(after).size).toBe(7);
+  await expect(page.locator('.tourney-swaps')).toContainText('2 swaps left');
+  await expect(page.locator('#tourneyPlay')).toContainText(swappedIn);
   // Quitting the first game leaves it next in line.
   const first = await page.locator('#tourneyPlay').textContent();
   await page.click('#tourneyPlay');
@@ -181,18 +194,25 @@ test('7-game tournament: bots play it through to a champion, and a quit game wai
   await page.click('#quitBtn');
   await expect(page.locator('#tourney')).toBeVisible();
   await expect(page.locator('#tourneyPlay')).toHaveText(first!);
+  await expect(page.locator('.slot-swap')).toHaveCount(7); // a quit game isn't game 1 played
   for (let i = 0; i < 20; i++) {
     if (!(await page.locator('#tourneyPlay').count())) break;
     await page.click('#tourneyPlay');
     await expect(page.locator('#play')).toBeVisible();
+    // Game 1 is the swapped-in game.
+    if (i === 0) await expect(page.locator('.intro-title').first()).toContainText(swappedIn);
     await page.evaluate(() => (window as unknown as { __famiduel: { runner: { fastForward(s: number): void } } }).__famiduel.runner.fastForward(900));
     await expect(page.locator('#result')).toBeVisible();
     await expect(page.locator('.res-night').first()).toContainText('Tournament');
     await page.click('#tourneyNextBtn');
     await expect(page.locator('#tourney')).toBeVisible();
+    // Swapping ends once game 1 is played.
+    if (i === 0) await expect(page.locator('.slot-swap')).toHaveCount(0);
   }
   await expect(page.locator('.tourney-title')).toContainText('wins the tournament');
   await expect(page.locator('#tourneyAgain')).toBeVisible();
+  // The finished lineup still shows the swapped-in game first.
+  await expect(page.locator('.lineup .sname').first()).toHaveText(swappedIn);
   // Home offers a fresh tournament again.
   await page.click('#tourneyHome');
   await expect(page.locator('#tourneyBtn')).toContainText('7-game tournament');
