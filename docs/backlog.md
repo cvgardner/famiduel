@@ -1637,3 +1637,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (F175, PR #220): Play the bot: Sea Battle's "Ships sunk" columns read
       "you / them"; against a bot the second one says "bot" (as F165 did for Quick Draw and
       Chop Chop). tests/bot-name.test.ts.
+- [ ] Research (Xbox Accessibility Guideline 107, input): avoid repeated quick presses and
+      long holds, or offer a lighter option ("auto fire", "press instead of hold"). Ours: Tank
+      Duel's FIRE needs a fresh tap per shell (a held FIRE could fire as each reload ends),
+      Chop Chop is fast tapping by design, Sumo is hold-to-charge. A "Little hands" auto-fire
+      for Tank Duel would change balance vs the bot (it waits a human reaction after reload),
+      so it's a call for Chris if families say small kids tire of tapping FIRE.
