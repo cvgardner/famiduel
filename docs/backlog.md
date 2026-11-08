@@ -1408,6 +1408,19 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Tank Duel Mine still rarely hits anyone between bots (tanks fight at range, so few
       drive through a wake); it may play better against people, who chase. If families
       never pick it, a bigger blast or a mine that's dropped in front could be a power call.
+
+## Ideas found 2026-11-07 (chop chop double run)
+- [x] 2026-11-07 (F130): Chop Chop's timer drained faster the higher your count, so Double
+      Chop's 4 bonus chops sped up your own timer: a hidden cost that hurt most at easy,
+      where rounds end on time. It now drains by the chops you've made (trunk position),
+      so play without Double is unchanged. `sim:powers -- --game chopchop --n 120`: easy
+      Double 40% -> 45% average, 45% -> 52% vs none; normal unchanged. Unit test in
+      tests/chopchop.test.ts.
+- [ ] Chop Chop at normal: normal bots rarely run out of time, so a round is a race to 50
+      and any power beats none ~90% (none 11%), Double 71% and Freeze 67% on average,
+      Shield 51% (29-34% against the others). Real matches give both seats a power, so the
+      "none" column matters less; Shield is the weak pick at normal but the strongest at
+      easy (60%). A power call if families find Shield useless against a fast chopper.
 - [x] 2026-11-07 (F128): Play the bot: small per-seat lines the bot's half drew twice now show
       once, in the person's half: Snake's corner "Round N" and score line (its copy read back
       to front, "0 – 1" beside "1 – 0"), Quick Draw's score under the stars, Tank Duel's
