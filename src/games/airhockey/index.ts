@@ -9,6 +9,11 @@ import { AirHockey, AirHockeyBot, RULES, type Intent } from './logic';
 const ICE = '#e9f3ff';
 /** The colours most of the play area is painted in (tests read pops against them). */
 export const SURFACES: readonly string[] = [ICE];
+/** Where each seat's pops are born, measured from the middle line into that seat's half. Pops
+ * rise toward the middle for 0.9 s, so a nearer one must start a full line clear of the next. */
+export const GOAL_POP_Y = 80;
+export const SHOT_POP_Y = 130;
+export const POWER_POP_Y = 180;
 
 class AirHockeyView implements GameInstance {
   readonly game: AirHockey;
@@ -73,16 +78,18 @@ class AirHockeyView implements GameInstance {
         fx.shake(10, 0.35);
         fx.flash(this.ctx.players[e.scorer].color);
         fx.burst(e.x, e.scorer === 0 ? 10 : H - 10, this.ctx.players[e.scorer].color, 40, 360, 5);
-        fx.pop('GOAL!', W / 2, MID + 80, COLORS.gold, 0, 40);
-        fx.pop('GOAL!', W / 2, MID - 80, COLORS.gold, 1, 40);
+        fx.pop('GOAL!', W / 2, MID + GOAL_POP_Y, COLORS.gold, 0, 40);
+        fx.pop('GOAL!', W / 2, MID - GOAL_POP_Y, COLORS.gold, 1, 40);
       } else if (e.type === 'power') {
         sfx.play('power');
         const pw = this.ctx.players[e.p].power!;
         fx.flash('#ffd54a', 0.12);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 50 : MID - 50, COLORS.gold, e.p, 26);
+        // F148: below "Your shot!" (130) and the GOAL! banner (80), so a power used right after a
+        // goal no longer prints over GOAL! (it sat at 50, inside the banner as both rose).
+        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + POWER_POP_Y : MID - POWER_POP_Y, COLORS.gold, e.p, 26);
       } else if (e.type === 'nudge') {
         // Only the player holding the puck needs to read it, upright on their side.
-        if (!silentSeat(this.ctx.players, e.p)) fx.pop('Your shot!', W / 2, e.p === 0 ? MID + 130 : MID - 130, '#2b2459', e.p, 26);
+        if (!silentSeat(this.ctx.players, e.p)) fx.pop('Your shot!', W / 2, e.p === 0 ? MID + SHOT_POP_Y : MID - SHOT_POP_Y, '#2b2459', e.p, 26);
       } else if (e.type === 'drift') {
         sfx.play('whoosh');
         fx.burst(e.x, e.y, '#bfe9ff', 10, 140, 3);
