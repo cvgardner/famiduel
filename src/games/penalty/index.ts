@@ -498,6 +498,9 @@ class PenaltyView implements GameInstance {
   /** Kick dots for both players, readable from p's seat, between their goal and buttons. */
   private renderTracker(gx: G, p: PlayerIndex): void {
     const g = this.game;
+    // F167: playing the bot, the tracker shows once, in the person's half. The bot's copy,
+    // turned to face the person, read mirrored (its score on the left, kicks right to left).
+    if (silentSeat(this.ctx.players, p)) return;
     const cy = p === 0 ? H - 108 : 108;
     facing(gx, p, W / 2, cy, () => {
       rrect(gx, W / 2 - 112, cy - 19, 224, 38, 10, 'rgba(10,30,15,0.45)');
