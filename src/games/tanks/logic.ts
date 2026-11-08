@@ -598,11 +598,13 @@ export function traceShot(game: TankDuel, p: PlayerIndex, a: number, maxT = 2.4)
 // thinks ahead, and how quickly its thumb follows the reload ring (trigger).
 // Like a person, it can't tap the moment the gun is ready: it waits at least
 // HUMAN.reaction after the ring fills, and never taps faster than HUMAN.tapGap.
+// Like a kid, it doesn't always see the other tank's mine go down (spot = the chance
+// it notices each one and drives round it); it always knows its own.
 export const BOT = {
-  easy: { react: 0.6, noise: 0.16, depth: 0, angles: 48, trigger: 0.32 },
-  normal: { react: 0.35, noise: 0.085, depth: 1, angles: 72, trigger: 0.26 },
-  hard: { react: 0.2, noise: 0.045, depth: 2, angles: 96, trigger: HUMAN.reaction },
-} satisfies Record<BotLevel, { react: number; noise: number; depth: number; angles: number; trigger: number }>;
+  easy: { react: 0.6, noise: 0.16, depth: 0, angles: 48, trigger: 0.32, spot: 0.5 },
+  normal: { react: 0.35, noise: 0.085, depth: 1, angles: 72, trigger: 0.26, spot: 0.75 },
+  hard: { react: 0.2, noise: 0.045, depth: 2, angles: 96, trigger: HUMAN.reaction, spot: 0.95 },
+} satisfies Record<BotLevel, { react: number; noise: number; depth: number; angles: number; trigger: number; spot: number }>;
 
 type Mode = 'aim' | 'move' | 'dodge';
 const ROUTE_STEPS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]] as const;
@@ -625,6 +627,8 @@ export class TankBot {
   private aimNoise = 0;
   /** Looks in a row that found no shot while still lined up on the last one. */
   private lostShot = 0;
+  /** The other tank's mines by id: whether this bot noticed it go down (decided once). */
+  private spotted = new Map<number, boolean>();
 
   constructor(
     readonly p: PlayerIndex,
@@ -742,7 +746,10 @@ export class TankBot {
     this.path = this.route(game, me, foe);
     this.pathI = 1;
     const dist = Math.hypot(foe.x - me.x, foe.y - me.y);
-    if (ready && powerId === 'mine' && (dist < 150 || this.rng.chance(0.15))) this.wantPower = true;
+    // A mine goes down behind you, so drop it when the other tank is in your wake
+    // (following your route), where it is likely to roll over it.
+    const wake = Math.abs(wrapAngle(Math.atan2(foe.y - me.y, foe.x - me.x) - (me.a + Math.PI))) < Math.PI / 4;
+    if (ready && powerId === 'mine' && ((wake && dist < 220) || this.rng.chance(0.05))) this.wantPower = true;
     if (ready && powerId === 'bouncy' && this.rng.chance(0.25)) this.wantPower = true;
   }
 
@@ -785,11 +792,23 @@ export class TankBot {
    * routes the bot keeps the one it is already driving, then the one that needs
    * the least turning from where it's facing.
    */
+  /** Does this bot know about mine m? Its own always; the other's with BOT.spot odds. */
+  private sees(m: Mine): boolean {
+    if (m.owner === this.p) return true;
+    let seen = this.spotted.get(m.id);
+    if (seen === undefined) {
+      seen = this.rng.chance(BOT[this.level].spot);
+      this.spotted.set(m.id, seen);
+    }
+    return seen;
+  }
+
   private route(game: TankDuel, from: Tank, to: Tank): number[] {
     const [sc, sr] = game.arena.cellOf(from.x, from.y);
     const [gc, gr] = game.arena.cellOf(to.x, to.y);
     const blocked = new Set<number>();
     for (const m of game.mines) {
+      if (!this.sees(m)) continue;
       const [mc, mr] = game.arena.cellOf(m.x, m.y);
       blocked.add(mr * COLS + mc);
     }
