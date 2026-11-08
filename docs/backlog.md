@@ -1408,6 +1408,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Tank Duel Mine still rarely hits anyone between bots (tanks fight at range, so few
       drive through a wake); it may play better against people, who chase. If families
       never pick it, a bigger blast or a mine that's dropped in front could be a power call.
+
 ## Ideas found 2026-11-07 (chop chop double run)
 - [x] 2026-11-07 (F130): Chop Chop's timer drained faster the higher your count, so Double
       Chop's 4 bonus chops sped up your own timer: a hidden cost that hurt most at easy,
