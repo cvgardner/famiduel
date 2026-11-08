@@ -178,7 +178,8 @@ class SumoView implements GameInstance {
         sfx.play('power');
         const pw = players[e.p].power!;
         fx.flash('#ffd54a', 0.12);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? H - 150 : 150, COLORS.gold, e.p, 24);
+        const word = `${pw.icon} ${pw.name}!`;
+        fx.pop(word, W / 2, this.powerPopY(e.p, word, 24, pw.id === 'grow'), COLORS.gold, e.p, 24);
         if (pw.id === 'grow') this.bodies[e.p].sv += 8;
         if (pw.id === 'slip') {
           const foe = g.wrestlers[e.p === 0 ? 1 : 0];
@@ -192,6 +193,39 @@ class SumoView implements GameInstance {
         }
       }
     }
+  }
+
+  /**
+   * F177: where a power's name pops for seat p. It used to start at a fixed spot by the near
+   * rope, so a wrestler standing there (often the one who just grew) covered the word. Start at
+   * that spot when it is clear, else step in toward the middle until the pop, over its whole
+   * rise, clears both wrestlers.
+   */
+  powerPopY(p: PlayerIndex, word: string, size: number, grow: boolean): number {
+    const g = this.game;
+    const home = p === 0 ? H - 150 : 150;
+    const toMid = p === 0 ? -1 : 1;
+    const rise = 40 * 0.9;
+    const half = size * 0.45;
+    const w = Math.min(W - 16, [...word].length * size * 0.55) / 2;
+    const clear = (y: number) => {
+      const top = Math.min(y, y + toMid * rise) - half - 6;
+      const bot = Math.max(y, y + toMid * rise) + half + 6;
+      return PLAYERS.every((q) => {
+        const wr = g.wrestlers[q];
+        const r = q === p && grow ? RULES.bodyR * RULES.growScale : g.radius(q);
+        const nx = Math.max(W / 2 - w, Math.min(W / 2 + w, wr.x));
+        const ny = Math.max(top, Math.min(bot, wr.y));
+        return Math.hypot(wr.x - nx, wr.y - ny) > r;
+      });
+    };
+    for (let step = 0; step <= 12; step++) {
+      // Outward only a little: the seat's HOLD button and score sit just past the spot.
+      for (const y of step <= 2 ? [home + toMid * step * 14, home - toMid * step * 14] : [home + toMid * step * 14]) {
+        if (y > half && y < H - half && clear(y)) return y;
+      }
+    }
+    return home;
   }
 
   private animate(dt: number): void {
