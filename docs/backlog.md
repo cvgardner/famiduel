@@ -1630,3 +1630,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       shooter's "YOUR SHOT!" printed over the still-rising "HOLE IN ONE!" / "Par! Nice." pop in
       the middle of the course (seen in the solo playtest, two people too). The banner now
       waits for the centre pop to clear (about 0.2 s). tests/minigolf-banner.test.ts.
+- [x] 2026-11-08 (F174, PR #PRNUM): Play the bot: Minigolf's bot half showed "<person>'s shot"
+      turned upright at the top of the course while the person's own strip said "Your shot!";
+      the bot's half has no waiting pill now. tests/minigolf-solo.test.ts; the solo playtest
+      fails on a "'s shot" line in the bot's half.
