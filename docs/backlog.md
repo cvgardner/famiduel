@@ -1666,3 +1666,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       frames in head-start bot matches) the words sat on a wrestler. clearPopY() (shared with
       F177's power pop) looks half a second ahead too: now 0 of 572.
       tests/sumo-rope-pop.test.ts.
+- [x] 2026-11-08 (F182, PR #226): Snack Snatch: the seconds-left beside the pot hid under snacks
+      that rolled to a stop there (bottom seat's "20" under two candies in a bot match). The
+      digits draw after the snacks now, with a blanket-coloured outline; they cover at most the
+      edge of a snack a critter could gulp. tests/snacksnatch-seconds.test.ts.

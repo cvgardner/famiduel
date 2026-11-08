@@ -33,7 +33,7 @@ function clocks(players: [PlayerInfo, PlayerInfo]): number {
   const { g, words } = recorder();
   setReader(soloReader([players[0].bot, players[1].bot]), g);
   try {
-    (view as unknown as { renderClock(g: G): void }).renderClock(g);
+    (view as unknown as { renderSeconds(g: G): void }).renderSeconds(g);
   } finally {
     setReader(null);
   }
