@@ -49,7 +49,6 @@ class PenaltyView implements GameInstance {
     });
     const diveR = bigHandsOn() ? DIVE_R_BIG : DIVE_R;
     this.diveBtns = PLAYERS.map((p) => DIVE_X.map((x) => new Button(x, DIVE_Y[p], diveR, p, '', ctx.players[p].color, DIVE_HIT - diveR)));
-    this.announce();
   }
 
   private toward(): -1 | 1 {
@@ -61,6 +60,9 @@ class PenaltyView implements GameInstance {
   }
 
   update(dt: number, input: Input): void {
+    // F156: the first kick's "Your kick!" / "Save it!" wait for GO. Born with the view, they
+    // rose and faded (0.9 s) under the countdown's dim and "3 2 1" digit, unread.
+    if (this.t === 0) this.announce();
     this.t += dt;
     const g = this.game;
     const intents = PLAYERS.map((p): Intent => {
@@ -396,6 +398,8 @@ class PenaltyView implements GameInstance {
     }
     const secs = Math.max(1, Math.ceil(left - 1e-6));
     const kgy = RULES.goalY[k] + (k === 1 ? 74 : -74);
+    // F156: the keeper's "Kick in 3" line waits for GO too (it sat under their "3 2 1" digit).
+    if (this.t === 0) return;
     const kickLine = g.runningUp ? 'Here it comes!' : g.phase === 'ready' ? `Kick in ${Math.ceil(total)}` : `Kick in ${secs}`;
     text(gx, kickLine, W / 2, kgy, { size: g.runningUp ? 20 : 17, player: k, color: g.runningUp ? COLORS.gold : '#fff', stroke: 'rgba(0,0,0,0.5)' });
     // Big seconds beside the ball, for the shooter (the keeper reads their own line).

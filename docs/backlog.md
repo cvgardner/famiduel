@@ -1533,3 +1533,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (F155): Chop Chop's "Round 1" card (left from F153 to show during the
       countdown) sat right under each person's "3 2 1" digit (both at MID ± 120), so it read
       "Rou 1". Round 1 has no card now; later rounds keep theirs (`roundCard()`, unit test).
+- [x] 2026-11-08 (F156): Penalty's first "Your kick!" / "Save it!" pops were born with the
+      view, during the countdown, so they rose and faded (0.9 s) under the dim and the
+      "3 2 1" digit and nobody read them. They now pop on the first step after GO, and the
+      keeper's "Kick in 3" line (under their digit too) also starts at GO.
