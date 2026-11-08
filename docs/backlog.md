@@ -306,7 +306,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-02 (PR #75): Ping Pong Smash won 71-74%: the power sent the ball at the top smash
       speed (980) every time. It now returns at 780, or faster if your own flick was harder
       (n=100, normal bots: smash 63%, slow-mo 44%, curve 49%; `npm run swipes` unchanged).
-- [ ] Quick Draw Slow Time wins 74%; Ping Pong Smash 71% (Slow-mo 34%); Tanks Shield 68%;
+- [x] 2026-11-07 (F102): re-read with seeds played both ways (below). Was: Quick Draw Slow Time wins 74%; Ping Pong Smash 71% (Slow-mo 34%); Tanks Shield 68%;
       Air Hockey Split 33% (loses to None 40/60).
 - [x] 2026-11-07 (F20, PR #105): Quick Draw bots jump the gun like people: each round a bot
       may twitch during the wait with nothing on screen (easy 10%, normal 4%, hard 1%; about
@@ -1229,3 +1229,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (flipping them flipped it to 60%). Teeing off first wins ~53-55% of decided holes
       between normal bots (n ~300, two seed ranges); small, and the honour rule gives it to
       the leader as in real golf, so no change.
+
+## Ideas found 2026-11-07 (sim seed run)
+- [x] 2026-11-07 (F102): `pairing()` (scripts/simlib.ts, used by `npm run sim` and
+      `npm run sim:powers`) swapped seats on alternate seeds, so a seed that favours one seat
+      (Quick Draw's wait, a spawn) was counted for whichever power sat there: Quick Draw rows
+      summed past 100% (Slow Time beat none 85% while none beat Slow Time 70%; Slow Time read
+      83%). Now every seed is played both ways round; tests/sim-pairing.test.ts checks a pair
+      read from either side adds up. Re-read, n=40, normal bots: Quick Draw Slow Time 61%,
+      Double 47% (were 83% / 70%); Ping Pong Smash 64%, Slow-mo 37%; Air Hockey Split 63%.
+      Outliers left: Tanks Shield 73% (beats every power), Snake Phase 69%, Chop Chop Freeze
+      69% / Double 70% (only because "none" loses 90%; one on one they are 48-65%).
+- [ ] Tanks Shield 73% with the fixed sim: shorten it or let one shell break it; measure with
+      `npm run sim:powers -- --game tanks --n 60`.
