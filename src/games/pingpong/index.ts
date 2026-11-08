@@ -66,7 +66,7 @@ class PingPongView implements GameInstance {
       const fire = btn ? btn.update(input, g.energy[p], KEYS[p].power) : false;
       // Drag anywhere in your half: the paddle follows your finger's x, and pushing the
       // finger toward the net lunges the paddle forward.
-      const finger = input.of(p).find((f) => f.down && !(btn && btn.button.hit(f.startX, f.startY)));
+      const finger = input.steering(p, (f) => !!btn && btn.button.hit(f.startX, f.startY));
       const fs = fwdSign(p);
       if (finger) this.targets[p] = finger.x;
       let lunge = this.fingers[p].lunge(finger, dt);

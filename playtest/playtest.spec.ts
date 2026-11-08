@@ -2986,3 +2986,49 @@ test("minigolf: today's course plays the same holes, fits, and keeps the day's b
   await expect(page.locator('#introBlurb')).not.toContainText('📅');
   expect(errors).toEqual([]);
 });
+
+for (const id of ['airhockey', 'pingpong'] as const) {
+  test(`${id}: a palm resting in your half never takes the paddle from the finger that plays`, async ({ page }) => {
+    const errors: string[] = [];
+    await page.setViewportSize({ width: 390, height: 844 });
+    await boot(page, errors);
+    type H = Hook & { runner: { fastForward(s: number): void; game: { game: { paddles: { x: number }[] } } } | null };
+    await setPlayers(page, [null, 'easy']);
+    await page.locator(`.game-card[data-id="${id}"]`).tap();
+    await introAsPeople(page, [0]);
+    await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.fastForward(4));
+    await installFingers(page);
+    const box = await worldBox(page);
+    const at = (x: number, y: number) => ({ x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height });
+    const finger = async (fid: number, t: string, x: number, y: number) => {
+      const c = at(x, y);
+      await page.evaluate(([i, tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(i, tt, cx, cy), [fid, t, c.x, c.y] as const);
+    };
+    const frames = (n: number) => page.evaluate((k) => new Promise((r) => { let i = 0; const f = () => (++i >= k ? r(null) : requestAnimationFrame(f)); requestAnimationFrame(f); }), n);
+    const paddleX = () => page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.game.game.paddles[0].x);
+    const drag = async (fx: number, toX: number, y: number) => {
+      for (let i = 1; i <= 16; i++) {
+        await finger(301, 'pointermove', fx + ((toX - fx) * i) / 16, y);
+        await frames(2);
+      }
+      await frames(40); // let the paddle catch up
+    };
+    // 1. The palm rests first (bottom edge, left of centre), then the finger lands and drags right.
+    await finger(300, 'pointerdown', 110, 626);
+    await frames(30);
+    await finger(301, 'pointerdown', 180, 540);
+    await drag(180, 290, 540);
+    const afterRight = await paddleX();
+    expect(afterRight, 'the paddle followed the dragging finger, not the palm that landed first').toBeGreaterThan(240);
+    // 2. Mid-rally the palm lifts and lands again on the other side; the finger drags left.
+    await finger(300, 'pointerup', 110, 626);
+    await finger(300, 'pointerdown', 300, 626);
+    await drag(290, 80, 540);
+    const afterLeft = await paddleX();
+    expect(afterLeft, 'a palm landing mid-rally did not pull the paddle to it').toBeLessThan(130);
+    await page.screenshot({ path: path.join(OUT, `palm-${id}.png`) });
+    await finger(301, 'pointerup', 80, 540);
+    await finger(300, 'pointerup', 300, 626);
+    expect(errors).toEqual([]);
+  });
+}

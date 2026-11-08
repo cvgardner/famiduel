@@ -1232,3 +1232,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (flipping them flipped it to 60%). Teeing off first wins ~53-55% of decided holes
       between normal bots (n ~300, two seed ranges); small, and the honour rule gives it to
       the leader as in real golf, so no change.
+
+## Ideas found 2026-11-07 (palm run)
+- [x] 2026-11-07 (F100): A palm resting in your half no longer takes the paddle in Air Hockey
+      and Ping Pong. Both used the first finger down until it lifted, so a hand resting on the
+      phone's edge before the match froze the paddle there. Now `Input.steering()` picks the
+      seat's finger that moved last (3 world units counts as a move, so a palm's jitter
+      doesn't); a fresh landing counts as 12 frames old, so a finger playing now keeps the
+      paddle when a palm lands, and a finger that lands after a resting palm takes it.
+      tests/palm.test.ts; playtest "a palm resting in your half" (palm-airhockey.png,
+      palm-pingpong.png) failed on main (paddle stuck at the palm, x 110).
+- [ ] Other drag controls (Tank Duel stick, Sumo/Snack Snatch anywhere-taps) read every
+      finger of a seat; a resting palm there only counts as one held touch. Check Tanks' stick
+      picks the moving finger too if a kid rests a hand on the FIRE side.
