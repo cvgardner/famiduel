@@ -1123,6 +1123,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       players up 18% of the time).
 - [ ] Twin Gates is now easier than Switchback for normal and hard bots (3.3 vs 3.8): if hole
       order should stay easiest-first, swap them in `content/minigolf-holes.json`.
+      2026-11-07 (F101, dropped): n=24 reads easy 5.2 vs 5.5, normal 3.1 vs 4.0, hard 2.2 vs
+      3.0, but the list is ordered by par (tests/minigolf.test.ts: pars never go down) and
+      Twin Gates is par 5. Swapping needs Twin Gates at par 4 (cap 7 picks up easy players
+      ~18%), so it's a par call, left as is.
 
 ## Ideas found 2026-11-07 (waiting line run)
 - [x] 2026-11-07 (F26): Minigolf's waiting strip said "Wait · Bot shoots" for the whole bot
