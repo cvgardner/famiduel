@@ -12,7 +12,19 @@ export type Pointer = {
   /** True only on the frame the finger landed / lifted. */
   pressed: boolean;
   released: boolean;
+  /** Frame this finger last really moved (a landing counts as LANDING_AGE frames older). */
+  movedAt: number;
+  /** Where it was when its movement was last counted. */
+  mx: number;
+  my: number;
 };
+
+/** A finger must travel this far (world units) to count as moving; palms jitter less. */
+export const MOVE_STEP = 3;
+/** A finger that just landed counts as having moved this many frames ago, so a finger that
+ * is steering now keeps the paddle when a palm lands, but a palm that has rested for longer
+ * loses it to a fresh finger. */
+export const LANDING_AGE = 12;
 
 /**
  * One frame of input in world coordinates. Games read it in update(); the
@@ -23,6 +35,8 @@ export class Input {
   readonly pointers = new Map<number, Pointer>();
   readonly keys = new Set<string>();
   readonly keysPressed = new Set<string>();
+  /** Fixed updates so far; endFrame() counts them. */
+  frame = 0;
 
   all(): Pointer[] {
     return [...this.pointers.values()];
@@ -36,6 +50,21 @@ export class Input {
   held(player: 0 | 1): Pointer | undefined {
     const list = this.of(player).filter((p) => p.down);
     return list[list.length - 1];
+  }
+
+  /**
+   * The finger that steers a dragged paddle (Air Hockey, Ping Pong): of the player's fingers
+   * still down (minus any `skip` rejects, e.g. one that landed on the power button), the one
+   * that moved last. A palm resting on the screen then never takes the paddle from a finger
+   * that is playing, whichever landed first.
+   */
+  steering(player: 0 | 1, skip?: (p: Pointer) => boolean): Pointer | undefined {
+    let best: Pointer | undefined;
+    for (const p of this.of(player)) {
+      if (!p.down || (skip && skip(p))) continue;
+      if (!best || p.movedAt >= best.movedAt) best = p;
+    }
+    return best;
   }
 
   /** Any pointer of the player that landed this frame. */
@@ -53,7 +82,10 @@ export class Input {
 
   // --- used by the stage ---
   down(id: number, x: number, y: number): void {
-    this.pointers.set(id, { id, x, y, startX: x, startY: y, owner: ownerOf(y), down: true, pressed: true, released: false });
+    this.pointers.set(id, {
+      id, x, y, startX: x, startY: y, owner: ownerOf(y), down: true, pressed: true, released: false,
+      movedAt: this.frame - LANDING_AGE, mx: x, my: y,
+    });
   }
 
   move(id: number, x: number, y: number): void {
@@ -61,6 +93,11 @@ export class Input {
     if (p && p.down) {
       p.x = x;
       p.y = y;
+      if (Math.hypot(x - p.mx, y - p.my) >= MOVE_STEP) {
+        p.movedAt = this.frame;
+        p.mx = x;
+        p.my = y;
+      }
     }
   }
 
@@ -74,6 +111,7 @@ export class Input {
 
   /** Call after each fixed update: clears one-frame flags and lifted fingers. */
   endFrame(): void {
+    this.frame++;
     for (const [id, p] of this.pointers) {
       if (!p.down) this.pointers.delete(id);
       else p.pressed = false;
