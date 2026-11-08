@@ -214,8 +214,11 @@ class ChopView implements GameInstance {
     text(gx, '⏱', bx - 18, L.barY, { size: 16 });
     text(gx, `${c.chops}`, W / 2, L.barY + 30, { size: 28, color: '#ffffff', stroke: 'rgba(0,0,0,0.45)' });
     // A dark pill keeps the small goal label readable over sky, trunk or a flying chunk.
-    rrect(gx, W / 2 + 24, L.barY + 23, 32, 20, 10, 'rgba(20,20,40,0.75)');
-    text(gx, `/ ${RULES.goal}`, W / 2 + 40, L.barY + 33, { size: 13, color: '#ffffff' });
+    // F161: a bot's half facing the one person has its words turned to them, so the goal
+    // goes on the other side of the count (at +40 it showed left of it: "/ 50  1").
+    const gs = silentSeat(this.ctx.players, p) ? -1 : 1;
+    rrect(gx, W / 2 + gs * 40 - 16, L.barY + 23, 32, 20, 10, 'rgba(20,20,40,0.75)');
+    text(gx, `/ ${RULES.goal}`, W / 2 + gs * 40, L.barY + 33, { size: 13, color: '#ffffff' });
     // Round wins
     for (let i = 0; i < RULES.winRounds; i++) circle(gx, bx + bw + 22, L.barY + 4 + i * 20 - 0, 7, i < g.score[p] ? COLORS.gold : 'rgba(255,255,255,0.35)', 'rgba(0,0,0,0.3)', 1.5);
     // Rival progress, small. F124: not in a bot's half facing the one person, where

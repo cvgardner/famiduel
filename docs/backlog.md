@@ -1548,3 +1548,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] F159: Sea Battle and RPS with two people open on the pass-the-phone cover, and the
       "3 2 1" digit counts down over its "Player 2, look away!" words. A turn game behind a
       cover may not need the countdown at all; left out of the F158 playtest until decided.
+- [x] 2026-11-08 (F161, PR #208): Play the bot: Chop Chop's bot count read "/ 50  1". Its
+      words turn to face the person, but each turns about its own spot, so the "/ 50" label
+      kept the mirrored place left of the count (solo-play-chopchop.png). A bot's half facing
+      the one person puts it on the other side; tests/chopchop-solo.test.ts reads both seats'
+      "N / 50" left to right, with people and with a bot on either seat.
