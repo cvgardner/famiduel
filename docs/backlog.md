@@ -1461,6 +1461,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (F141): Snake: a crash at the far wall popped "CRASH!" on the wall, and it rose
       out of the arena over the other seat's turn buttons and power. Crash pops now start
       where their whole rise stays inside the arena (`crashPopY()`); tests/snake.test.ts.
+- [x] 2026-11-08 (F142, PR #TBD): Play the bot: Quick Draw's signal (Steady…, Wait for it…, a
+      fake-out card, DRAW!) shows only in the person's half. F123 folded the bot copy's big
+      words but left its card upright: a fake-out read "bridge! 🌉" alone and DRAW! was an
+      empty red card. The solo playtest plays on to a worded fake-out and a DRAW! and fails
+      any signal words in the bot's half (failed on main with "Wait for it…", "DRAW-er!").
 - [x] 2026-11-07 (F133): Backlog sweep: RPS person line (done by F125) and the air hockey
       "walks away" flake watch (no repeat) ticked with why.
 
