@@ -810,6 +810,9 @@ export class App {
     const daily = this.dailyDay && seats ? this.store.recordDaily(this.dailyDay, ([0, 1] as PlayerIndex[]).filter((p) => !seats[p].bot).map((p) => ({ name: seats[p].name, strokes: r.score[p] }))) : null;
     const dailyLine = (p: PlayerIndex) => {
       if (!daily?.best) return '';
+      // F146: playing the bot, the day's best shows once, in the person's half (the bot's half
+      // repeated it, "Today's best: 9 by Mia" above Mia's own "New best today: 9!").
+      if (seats?.[p].bot && !seats?.[p === 0 ? 1 : 0].bot) return '';
       const mine = daily.newBest && daily.best.name === seats![p].name && daily.best.strokes === r.score[p];
       return `<div class="res-daily">📅 ${mine ? `New best today: ${daily.best.strokes}!` : `Today's best: ${daily.best.strokes} by ${esc(daily.best.name)}`}</div>`;
     };

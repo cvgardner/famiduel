@@ -1478,6 +1478,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       beside a two-line blurb (Chop Chop, Minigolf, Penalty, Snack Snatch, Sumo at 320-360 px).
       It now stays on one line (`white-space: nowrap`); the layout playtest fails any intro
       whose Back link wraps, at three phone sizes, with and without Bigger text.
+- [x] 2026-11-08 (F146, PR #TBD): Play the bot on today's minigolf course: the result's bot half
+      repeated the day's best ("📅 Today's best: 9 by Player 1") right above the person's own
+      "New best today: 9!". It now shows once, in the person's half; two people keep a line
+      each. The daily playtest checks one line in a solo result.
 - [x] 2026-11-07 (F133): Backlog sweep: RPS person line (done by F125) and the air hockey
       "walks away" flake watch (no repeat) ticked with why.
 

@@ -3183,8 +3183,9 @@ test("minigolf: today's course plays the same holes, fits, and keeps the day's b
   });
   await expect(page.locator('#result')).toBeVisible();
   await expect(page.locator('#result .half.p0 .res-daily')).toHaveText('📅 New best today: 9!');
-  await expect(page.locator('#result .half.p1 .res-daily')).toContainText("Today's best: 9 by");
-  await expect(page.locator('#result .half.p0 .res-daily')).toContainText('📅');
+  // F146: once, in the person's half; the bot's half doesn't repeat it.
+  await expect(page.locator('#result .res-daily')).toHaveCount(1);
+  await expect(page.locator('#result .half.p1 .res-daily')).toHaveCount(0);
   await page.screenshot({ path: path.join(OUT, 'minigolf-daily-result.png') });
   // F96: home's Minigolf card wore a 📅 until today's course was played; now it's gone.
   await page.click('#homeBtn');
