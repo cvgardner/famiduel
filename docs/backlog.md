@@ -1578,3 +1578,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       person's end (Sumo's pips too); tests/minigolf-solo.test.ts and tests/tanks-solo.test.ts (the fake canvas
       records colours now). Swept the rest: Snack Snatch 👅×N, Chop Chop, Ping Pong and
       Snake have no other side-by-side pairs left in a bot's half.
+- [x] 2026-11-08 (F165, PR #TBD): Play the bot: the person's own half called the bot "them":
+      Quick Draw's result card read "You — / Them 500 ms" ("They got fooled!") and Chop
+      Chop's rival pill "them: 9" (solo-round-quickdraw/chopchop.png). Against a bot they
+      say "Bot 500 ms", "Bot got fooled!", "bot: 9"; two people keep "them".
+      tests/bot-name.test.ts reads both.
