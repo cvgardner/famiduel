@@ -1,7 +1,7 @@
 // Chop Chop view: each player has a tree in their own half. Each half is drawn
 // in the bottom player's frame and rotated 180° for the top player.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -354,7 +354,7 @@ class ChopView implements GameInstance {
         col = this.ctx.players[p].color;
       } else msg = g.choppers[p].outReason === 'bonk' ? 'Bonked!' : g.choppers[p].outReason === 'time' ? 'Out of time!' : 'They got to 50!';
     }
-    if (!msg) return;
+    if (!msg || silentSeat(this.ctx.players, p)) return;
     const y = MID + 118;
     rrect(gx, W / 2 - 130, y - 24, 260, 48, 16, 'rgba(10,8,25,0.72)', alpha(this.ctx.players[p].color, 0.9), 2);
     text(gx, msg, W / 2, y, { size: 22, color: col });

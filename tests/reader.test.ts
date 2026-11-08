@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { facing, setReader, soloReader, text, type G } from '../src/engine/draw';
+import { facing, setReader, silentSeat, soloReader, text, type G } from '../src/engine/draw';
 
 type M = { a: number; b: number; c: number; d: number; e: number; f: number };
 
@@ -64,5 +64,13 @@ describe('Play the bot: canvas words face the one person (F118)', () => {
     text(g, 'Bot score', 20, 600, { player: 0 });
     text(g, 'Mine', 180, 40, { player: 1 });
     expect(drawn.map((d) => d.upright)).toEqual([false, false]);
+  });
+
+  it('a bot facing a person gets no words addressed to "you" (F120)', () => {
+    expect(silentSeat([{ bot: null }, { bot: 'easy' }], 1)).toBe(true);
+    expect(silentSeat([{ bot: null }, { bot: 'easy' }], 0)).toBe(false);
+    expect(silentSeat([{ bot: 'hard' }, { bot: null }], 0)).toBe(true);
+    expect(silentSeat([{ bot: 'easy' }, { bot: 'easy' }], 0)).toBe(false);
+    expect(silentSeat([{ bot: null }, { bot: null }], 1)).toBe(false);
   });
 });
