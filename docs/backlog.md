@@ -1602,3 +1602,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Store wrapper: lock portrait, also on iPad (UIRequiresFullScreen / Capacitor
       orientation), so a landscape tablet never shows the narrow board (F168). A turned
       landscape layout would need the world rotated and input remapped: only if families ask.
+
+## Ideas found 2026-11-08 (bigger-text solo run)
+- [x] 2026-11-08 (F169, PR #TBD): Play the bot: Tank Duel's bot half drew an upright FIRE on its
+      button and a second "0 bonks" line (and a second clock near time-up), so the one person
+      saw two scores. Its button is wordless now (like Sumo's HOLD, F162), its line reads
+      "bot: N bonks", and the clock / sudden-bonk lines show once, in the person's half.
+      tests/bot-name.test.ts; the solo playtest fails on FIRE or a bare bonk count there.
+- [ ] Play the bot: the bot's own touch buttons (Snake's turns, Penalty's dive arrows, Snack
+      Snatch frogs, the tank stick) are drawn as bright as the person's, inviting a kid to tap
+      a half that does nothing. Try a dimmer bot seat (todo F170).

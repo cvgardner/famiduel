@@ -526,11 +526,13 @@ class TankView implements GameInstance {
       gx.lineWidth = 3;
       gx.stroke();
     }
-    text(gx, 'FIRE', f.x, f.y, { size: 17, player: p, color: '#ffffff', stroke: 'rgba(0,0,0,0.35)' });
+    // F169: a bot's button facing the one person says nothing (like Sumo's HOLD, F162): FIRE is
+    // a how-to word nobody at the table presses; the reload ring still shows it winding up.
+    const quiet = silentSeat(this.ctx.players, p);
+    if (!quiet) text(gx, 'FIRE', f.x, f.y, { size: 17, player: p, color: '#ffffff', stroke: 'rgba(0,0,0,0.35)' });
     const left = RULES.maxShells - g.shellsOf(p);
     // F164: a bot's row turned to face the one person would fill from the other end (its
     // shells and hearts sit mirrored), so it fills from the same end as the person's.
-    const quiet = silentSeat(this.ctx.players, p);
     const slot = (i: number, n: number) => (quiet ? n - 1 - i : i);
     for (let i = 0; i < RULES.maxShells; i++) {
       const o = seat(p, cs.fireX - 16 + slot(i, RULES.maxShells) * 16, CONTROLS_Y - this.fireR - FIRE_RIM - 15);
@@ -547,9 +549,13 @@ class TankView implements GameInstance {
     // Bonks scored, or the clock near the end
     const sc = seat(p, HEARTS.x, HEARTS.y + 21);
     const leftT = RULES.timeCap - g.playTime;
-    if (g.sudden && !g.over) text(gx, 'Sudden bonk: next hit wins!', sc.x, sc.y, { size: 13, player: p, color: COLORS.gold });
-    else if (!g.over && leftT < 20) text(gx, `⏱ ${Math.ceil(leftT)} s`, sc.x, sc.y, { size: 13, player: p, color: leftT < 6 ? COLORS.gold : '#ffffff' });
-    else text(gx, `${g.score[p]} bonk${g.score[p] === 1 ? '' : 's'}`, sc.x, sc.y, { size: 13, player: p, color: COLORS.dim, weight: 700 });
+    // F169: playing the bot, its copy of these lines read upright as a second "0 bonks" (or a
+    // second clock) for the one person; the bot's half names its score and leaves the shared
+    // sudden-bonk and clock lines to the person's half.
+    const bonks = `${g.score[p]} bonk${g.score[p] === 1 ? '' : 's'}`;
+    if (g.sudden && !g.over) { if (!quiet) text(gx, 'Sudden bonk: next hit wins!', sc.x, sc.y, { size: 13, player: p, color: COLORS.gold }); }
+    else if (!g.over && leftT < 20) { if (!quiet) text(gx, `⏱ ${Math.ceil(leftT)} s`, sc.x, sc.y, { size: 13, player: p, color: leftT < 6 ? COLORS.gold : '#ffffff' }); }
+    else text(gx, quiet ? `bot: ${bonks}` : bonks, sc.x, sc.y, { size: 13, player: p, color: COLORS.dim, weight: 700 });
   }
 
   private drawOverlay(gx: G): void {

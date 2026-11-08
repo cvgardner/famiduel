@@ -6,11 +6,12 @@ import { Fx } from '../src/engine/fx';
 import type { Sfx } from '../src/engine/sfx';
 import type { ChopChop } from '../src/games/chopchop/logic';
 import type { QuickDraw, RoundResult } from '../src/games/quickdraw/logic';
+import { RULES as TANK_RULES, type TankDuel } from '../src/games/tanks/logic';
 import { GAMES } from '../src/games/registry';
 import { recorder } from './canvasRecorder';
 import { player } from './helpers';
 
-function words(id: 'quickdraw' | 'chopchop', players: [PlayerInfo, PlayerInfo], setup: (game: unknown) => void): string[] {
+function words(id: 'quickdraw' | 'chopchop' | 'tanks', players: [PlayerInfo, PlayerInfo], setup: (game: unknown) => void): string[] {
   const sfx = { play() {} } as unknown as Sfx;
   const view = GAMES[id].create({ seed: 1, rng: makeRng(1), players, powersOn: false, sfx, fx: new Fx(), end() {} }) as unknown as { game: unknown; t: number; render(g: unknown): void };
   setup(view.game);
@@ -49,5 +50,30 @@ describe('the person\'s half names the bot', () => {
     };
     expect(words('chopchop', solo, chops)).toContain('bot: 9');
     expect(words('chopchop', people, chops)).toContain('them: 9');
+  });
+});
+
+// F169: Tank Duel's bot half showed an upright FIRE and a second "0 bonks" (or clock) line.
+describe('Tank Duel names the bot\'s score and leaves its button wordless', () => {
+  const count = (ws: string[], str: string) => ws.filter((w) => w === str).length;
+  it('playing the bot: one FIRE, "bot: 1 bonk" beside the person\'s "0 bonks"', () => {
+    const ws = words('tanks', solo, (game) => {
+      (game as TankDuel).score = [0, 1];
+    });
+    expect(count(ws, 'FIRE')).toBe(1);
+    expect(ws).toContain('bot: 1 bonk');
+    expect(count(ws, '0 bonks')).toBe(1);
+  });
+  it('two people: both FIRE buttons and both bonk lines', () => {
+    const ws = words('tanks', people, () => {});
+    expect(count(ws, 'FIRE')).toBe(2);
+    expect(count(ws, '0 bonks')).toBe(2);
+  });
+  it('playing the bot near time-up: the clock shows once', () => {
+    const ws = words('tanks', solo, (game) => {
+      (game as TankDuel).playTime = TANK_RULES.timeCap - 10;
+    });
+    expect(ws).toContain('⏱ 10 s');
+    expect(ws.filter((w) => w.startsWith('⏱')).length).toBe(1);
   });
 });

@@ -1017,11 +1017,13 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     // F120: the bot's half never says "you" (the person would read it as their own).
     expect(turned.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half`).toEqual([]);
     // F119: no how-to words in the bot's half (nobody reads them).
-    expect(turned.filter((t) => ['Tap ◀ ▶ to turn', '◀ chop', 'chop ▶', 'SERVE', 'Tap a button to dive!', 'HOLD', 'LET GO', 'TAP'].includes(t)), `${id}: how-to words in the bot's half`).toEqual([]);
+    expect(turned.filter((t) => ['Tap ◀ ▶ to turn', '◀ chop', 'chop ▶', 'SERVE', 'Tap a button to dive!', 'HOLD', 'LET GO', 'TAP', 'FIRE'].includes(t)), `${id}: how-to words in the bot's half`).toEqual([]);
     // F126/F128: small "Round N" lines and "a – b" score lines show once, in the person's half
     // (the bot's copy, turned upright, read as a second line or a back-to-front score).
     expect(turned.filter((t) => /^Round \d+$/.test(t)), `${id}: a second "Round" line in the bot's half`).toEqual([]);
     expect(turned.filter((t) => /^\d+ – \d+$/.test(t)), `${id}: a back-to-front score in the bot's half`).toEqual([]);
+    // F169: Tank Duel's bot half names its bonks ("bot: 0 bonks"), not a second "0 bonks".
+    expect(turned.filter((t) => /^\d+ bonks?$/.test(t)), `${id}: a second bonk count in the bot's half`).toEqual([]);
     // F139: Minigolf's hole card and scorecard show once, in the person's half (the bot's
     // copy covered the far third of the course).
     const cardWords = /^(HOLE \d+ OF \d+|.*SCORECARD|Par \d+)$/;
