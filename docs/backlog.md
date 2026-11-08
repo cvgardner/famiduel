@@ -121,7 +121,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (src/games/minigolf/daily.ts), the same on every phone all day whatever the match seed.
       The day's best total by a person (bots don't count) is kept on this phone and shown on
       the intro strip and the result ("New best today: 9!"). Tests tests/daily-golf.test.ts,
-      playtest "minigolf: today's course". Still to do: the "beat my score" link and a
+      playtest "minigolf: today's course". F96: home's Minigolf card wears a 📅 badge until
+      today's course is played on this phone. Still to do: the "beat my score" link and a
       friends leaderboard, both sharing, so behind the parental gate.
 - [ ] Remove-ads / unlock-all screen mock (no real purchases yet); free trio badge.
 - [x] 2026-10-31: bot difficulty per game. The bot's level was one setting for all 15 games,
@@ -1223,6 +1224,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       strip). Sea Battle's Ready is already 140x58 and its cells are tapped, so nothing there.
       The canvas-button playtest checks both grew, dive buttons don't touch, FIRE stays on
       screen (little-hands-penalty.png, little-hands-tanks.png).
+      2026-11-07 (F97): the dive arrows grow with their button (x r/28), so a big button doesn't
+      keep a small arrow.
 - [x] 2026-11-07 (F88): Minigolf seat check per hole. No seat edge: the same seed with the
       seats swapped plays the same strokes mirrored (new test in tests/minigolf.test.ts, all
       23 holes). A first sim's "bottom seat wins 40%" followed which seeds it started on
