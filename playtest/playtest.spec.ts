@@ -2944,7 +2944,29 @@ test("minigolf: today's course plays the same holes, fits, and keeps the day's b
     await expect(page.locator('#introBlurb')).toContainText('📅 Today');
     expect(await midFits(), `strip with today's course${big ? ' (Bigger text)' : ''}`).toEqual([]);
     await page.screenshot({ path: path.join(OUT, `minigolf-daily-intro${big ? '-bigtext' : ''}.png`) });
+    // F98: the opening hole card says it's today's course (drawn for each seat).
+    await page.evaluate(() => {
+      const c = (window as unknown as { __contrast: { on: boolean; seen: Map<string, unknown> } }).__contrast;
+      c.seen.clear();
+      c.on = true;
+    });
     await introAsPeople(page, [0, 1]);
+    // Judged once the card has faded in after the countdown (it is drawn see-through before).
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const r = (window as unknown as { __famiduel: { runner: { countdown: number; game: { game: { phase: string; timer: number } } } } }).__famiduel.runner;
+          return r.countdown <= 0 && r.game.game.phase === 'intro' && r.game.game.timer < 1.5;
+        }),
+        { message: 'the opening hole card is up' },
+      )
+      .toBe(true);
+    await page.evaluate(() => (window as unknown as { __contrast: { seen: Map<string, unknown> } }).__contrast.seen.clear());
+    await expect
+      .poll(() => page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, unknown> } }).__contrast.seen.keys()].some((w) => /^📅 TODAY'S COURSE · HOLE 1 OF \d$/.test(w))), { message: "the hole card says today's course" })
+      .toBe(true);
+    if (!big) await page.screenshot({ path: path.join(OUT, 'minigolf-daily-holecard.png') });
+    await page.evaluate(() => ((window as unknown as { __contrast: { on: boolean } }).__contrast.on = false));
     const a = await holes();
     await leaveMatch(page);
     await openFromHome(page, 'minigolf');

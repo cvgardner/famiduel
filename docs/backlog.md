@@ -1081,10 +1081,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       point ends (held, in place, fully showing after its 0.08 s pop-in).
       Same PR: the air hockey "never moves, at any level" unit test (~5 s alone) timed out at
       vitest's 5 s default with two verifies running; it now has the 60 s whole-match timeout.
-- [ ] Power balance with people in mind: the bots almost never jump the gun or bonk, so
+- [x] 2026-11-07 (F109, no change needed): Power balance with people in mind: the bots almost never jump the gun or bonk, so
       `npm run sim:powers` undervalues forgiving powers (Quick Draw Double Shot / Fake-out,
       the old Chop Chop shield). A human false-start / mistake rate per bot level would make
-      the table closer to what families feel.
+      the table closer to what families feel. Already covered: Quick Draw bots jump the gun
+      per level (F20, `jump` 10/4/1%) and Chop Chop bots step into branches (`mistake`
+      3/0.8/0.2%), so the sim already plays those slips; no `--slips` switch needed.
 - [x] 2026-11-02 (PR #78): `npm run sim` has "kid v easy" and "kid+3 v easy" rows for every action
       game: a small kid who just mashes (`Masher` in scripts/simlib.ts, the sumo test's masher
       for every game), with no head start and with the full one. First read (n=20): with the
@@ -1291,3 +1293,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and playtest "tanks: a palm resting in the stick zone" (palm-tanks.png), which failed on
       main (stick stuck at the palm). Sumo/Snack Snatch taps count any finger, so a palm there
       is harmless.
+
+## Ideas found 2026-11-07 (18:18 run)
+- [x] 2026-11-07 (F98): Minigolf's hole card on today's course reads "📅 TODAY'S COURSE ·
+      HOLE 1 OF 3" (gold, both seats, upright for each), so a rematch never hides which mode
+      you're in; the daily playtest reads it once the card has faded in.
+- [x] 2026-11-07 (F108, no change needed): Snack Snatch Magnet after F106 is in band: easy
+      48% (60% vs Sticky, 53% vs none), normal 53% (`sim:powers -- --game snacksnatch --n 80`).

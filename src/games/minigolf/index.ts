@@ -730,7 +730,10 @@ class MinigolfView implements GameInstance {
     rrect(gx, 40, y - 62, W - 80, 124, 20, INTRO_CARD, 'rgba(255,255,255,0.3)', 2);
     // text() multiplies the canvas's alpha, so the words fade in with their dark
     // card instead of popping onto the bright grass ahead of it.
-    text(gx, `HOLE ${g.holeIdx + 1} OF ${g.holes.length}`, W / 2, y - 38, { size: 13, color: COLORS.dim });
+    // F98: today's course says so on every hole card, so a rematch never hides the mode.
+    const holeLine = `HOLE ${g.holeIdx + 1} OF ${g.holes.length}`;
+    if (this.ctx.daily) text(gx, `📅 TODAY'S COURSE · ${holeLine}`, W / 2, y - 38, { size: 13, color: COLORS.gold, weight: 700 });
+    else text(gx, holeLine, W / 2, y - 38, { size: 13, color: COLORS.dim });
     text(gx, g.hole.name, W / 2, y - 10, { size: 28, color: '#ffffff' });
     text(gx, `Par ${g.hole.par}`, W / 2, y + 18, { size: 15, color: COLORS.gold });
     const lead = g.leadOff;
