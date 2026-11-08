@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Store } from '../src/app/store';
 import { makeRng } from '../src/core/rng';
-import { dailyHoleIds, dayKey } from '../src/games/minigolf/daily';
+import { dailyHoleIds, dayKey, isLongHole } from '../src/games/minigolf/daily';
 import { HOLES, Minigolf, MinigolfBot, RULES } from '../src/games/minigolf/logic';
 import { DT, player } from './helpers';
 
@@ -34,6 +34,19 @@ describe("minigolf: today's course", () => {
     }
     expect(repeats).toBe(0);
     expect(seen.size).toBeGreaterThan(HOLES.length * 0.6);
+  });
+  it('a year of days has at most one long hole a day, and long holes still turn up (F99)', () => {
+    const longIds = new Set(HOLES.filter((_, i) => isLongHole(i)).map((h) => h.id));
+    expect(longIds.size).toBeGreaterThan(0);
+    let withLong = 0;
+    for (let d = 0; d < 365; d++) {
+      const ids = dailyHoleIds(dayKey(new Date(2026, 10, 8 + d)));
+      expect(ids).toHaveLength(RULES.holesPerMatch);
+      const n = ids.filter((id) => longIds.has(id)).length;
+      expect(n).toBeLessThanOrEqual(1);
+      if (n) withLong++;
+    }
+    expect(withLong).toBeGreaterThan(365 * 0.3);
   });
   it('a match on the course plays those holes whatever the match seed', () => {
     const ids = dailyHoleIds('2026-11-07');
