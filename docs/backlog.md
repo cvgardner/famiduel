@@ -1461,23 +1461,27 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (F141): Snake: a crash at the far wall popped "CRASH!" on the wall, and it rose
       out of the arena over the other seat's turn buttons and power. Crash pops now start
       where their whole rise stays inside the arena (`crashPopY()`); tests/snake.test.ts.
-- [x] 2026-11-08 (F142, PR #TBD): Play the bot: Quick Draw's signal (Steady…, Wait for it…, a
+- [x] 2026-11-08 (F142, PR #191): Play the bot: Quick Draw's signal (Steady…, Wait for it…, a
       fake-out card, DRAW!) shows only in the person's half. F123 folded the bot copy's big
       words but left its card upright: a fake-out read "bridge! 🌉" alone and DRAW! was an
       empty red card. The solo playtest plays on to a worded fake-out and a DRAW! and fails
       any signal words in the bot's half (failed on main with "Wait for it…", "DRAW-er!").
-- [x] 2026-11-08 (F143, PR #TBD): Snack Snatch's miss pop was "miss" at 15 units in 75% white
+- [x] 2026-11-08 (F143, PR #192): Snack Snatch's miss pop was "miss" at 15 units in 75% white
       (about 13 px on a 320 px phone, over the tablecloth's edge), so a kid hardly saw why
       their frog went dizzy. It is now "Miss!" at 19 in solid white with the pop outline;
       tests/snacksnatch.test.ts holds the size and colour, the contrast test still passes.
-- [x] 2026-11-08 (F144): no other card left behind a folded banner in the bot's half: every
+- [x] 2026-11-08 (F144, PR #192): no other card left behind a folded banner in the bot's half: every
       backplate under a size-22+ banner (Snake and Chop Chop round cards, Tank Duel's pill,
       Minigolf's shot banner and hole card) already skips a silent seat; Sumo, Penalty and
       Air Hockey banners have no backplate. Quick Draw's was the last one (F142).
-- [x] 2026-11-08 (F145, PR #TBD): the intro's "← Back" wrapped into an arrow over the word
+- [x] 2026-11-08 (F145, PR #193): the intro's "← Back" wrapped into an arrow over the word
       beside a two-line blurb (Chop Chop, Minigolf, Penalty, Snack Snatch, Sumo at 320-360 px).
       It now stays on one line (`white-space: nowrap`); the layout playtest fails any intro
       whose Back link wraps, at three phone sizes, with and without Bigger text.
+- [x] 2026-11-08 (F146, PR #194): Play the bot on today's minigolf course: the result's bot half
+      repeated the day's best ("📅 Today's best: 9 by Player 1") right above the person's own
+      "New best today: 9!". It now shows once, in the person's half; two people keep a line
+      each. The daily playtest checks one line in a solo result.
 - [x] 2026-11-07 (F133): Backlog sweep: RPS person line (done by F125) and the air hockey
       "walks away" flake watch (no repeat) ticked with why.
 
