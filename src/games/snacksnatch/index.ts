@@ -1,7 +1,7 @@
 // Snack Snatch view: taps become snaps; state becomes a picnic blanket with a
 // snack pot in the middle and two round frog-like "Chompers" per player.
 import { PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, noGlow, rrect, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, noGlow, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button, PowerButton } from '../../engine/widgets';
@@ -256,9 +256,11 @@ class SnackSnatchView implements GameInstance {
     const sec = Math.max(0, Math.ceil(g.timeLeft));
     const urgent = g.timeLeft <= 5;
     const size = urgent ? 30 + 6 * (g.timeLeft % 1) : 24;
-    // Each player reads the clock beside the pot, on their side.
-    text(gx, String(sec), W / 2 + 74, MID + 14, { size, color: urgent ? COLORS.bad : 'rgba(90,45,20,0.75)', player: 0 });
-    text(gx, String(sec), W / 2 - 74, MID - 14, { size, color: urgent ? COLORS.bad : 'rgba(90,45,20,0.75)', player: 1 });
+    // Each player reads the clock beside the pot, on their side. F160: a bot's copy would turn
+    // to face the person and read as a second clock, so a bot seat facing a person gets none.
+    const ink = urgent ? COLORS.bad : 'rgba(90,45,20,0.75)';
+    if (!silentSeat(this.ctx.players, 0)) text(gx, String(sec), W / 2 + 74, MID + 14, { size, color: ink, player: 0 });
+    if (!silentSeat(this.ctx.players, 1)) text(gx, String(sec), W / 2 - 74, MID - 14, { size, color: ink, player: 1 });
   }
 
   private renderSnack(gx: G, sn: Snack): void {

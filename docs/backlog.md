@@ -1552,3 +1552,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       GO. With a bot (no cover) the countdown stays. The F158 playtest checks both games open
       on the cover with no digit (countdown-cover-seabattle.png), and the first match's
       in-play ghost finger no longer taps over "look away!" there (the cover says what to tap).
+- [x] 2026-11-08 (F160, PR #207): Play the bot showed Snack Snatch's seconds left twice beside
+      the pot: the bot seat's copy turned to face the person and read as a second clock (two
+      pink "0"s at the end in solo-round-snacksnatch.png). A bot seat facing a person draws no
+      clock now (silentSeat); tests/snacksnatch-clock.test.ts counts the copies.
