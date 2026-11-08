@@ -17,6 +17,8 @@ export type Pointer = {
   /** Where it was when its movement was last counted. */
   mx: number;
   my: number;
+  /** When the finger landed (the touch event's own time, ms; 0 = unknown). */
+  at: number;
 };
 
 /** True once the finger has travelled MOVE_STEP from where it landed. */
@@ -36,7 +38,12 @@ export const LANDING_AGE = 12;
  * stage fills it from pointer and keyboard events. Keys exist so the game can
  * be played and tested on a desktop.
  */
+/** The most a frame can fall behind (the stage's catch-up cap, seconds). */
+export const MAX_LAG = 0.1;
+
 export class Input {
+  /** Real time (ms, the event clock) at the end of the step being run; set by the stage, 0 = unknown. */
+  clock = 0;
   readonly pointers = new Map<number, Pointer>();
   readonly keys = new Set<string>();
   readonly keysPressed = new Set<string>();
@@ -101,11 +108,23 @@ export class Input {
   }
 
   // --- used by the stage ---
-  down(id: number, x: number, y: number): void {
+  down(id: number, x: number, y: number, at = 0): void {
     this.pointers.set(id, {
       id, x, y, startX: x, startY: y, owner: ownerOf(y), down: true, pressed: true, released: false,
-      movedAt: this.frame - LANDING_AGE, mx: x, my: y,
+      movedAt: this.frame - LANDING_AGE, mx: x, my: y, at,
     });
+  }
+
+  /**
+   * F187: how long before the end of the current step a finger landed, in seconds, at most
+   * `max` (one step). Steps are 1/60 s, so two taps in one step read the same time; a race
+   * (Quick Draw) uses this to tell them apart by their touch events. Negative when the touch
+   * came after this step's end (a slow frame runs several steps, and its touches all reach
+   * the first one), down to -MAX_LAG. 0 when either time is unknown (tests, keys).
+   */
+  lead(p: Pointer, max: number): number {
+    if (!p.at || !this.clock) return 0;
+    return Math.max(-MAX_LAG, Math.min(max, (this.clock - p.at) / 1000));
   }
 
   move(id: number, x: number, y: number): void {
