@@ -44,8 +44,10 @@ export function firstMatchOf(history: readonly { game: string }[], game: string)
  * down seat 0's screen it sits (0.72 by default, between the middle and their edge; a
  * game whose own hints sit there, like Ping Pong's, sets `demoAt` in content/games.json).
  */
-export function playDemoHtml(g: Gesture, p: number, lefty = false, at = 0.72): string {
-  return `<div class="play-demo p${p}" data-p="${p}" style="--at:${at}" aria-hidden="true">${demoHtml(g, lefty)}</div>`;
+export function playDemoHtml(g: Gesture, p: number, lefty = false, at = 0.72, keeper = false): string {
+  // keeper: Penalty's two-role loop starts on its second half (the keeper's dive), for the
+  // seat that keeps goal first (F138); the ~2.8 s in play only fits one role.
+  return `<div class="play-demo p${p}${keeper ? ' keeper' : ''}" data-p="${p}" style="--at:${at}" aria-hidden="true">${demoHtml(g, lefty)}</div>`;
 }
 
 // Props drawn next to the finger, per gesture: the thing the finger moves.

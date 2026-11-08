@@ -400,6 +400,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 @keyframes d-swipe-p { 0%, 22% { left: 46%; top: 70%; opacity: 1; } 40% { left: 66%; top: -20%; opacity: 1; } 41%, 80% { opacity: 0; top: -20%; } 100% { left: 46%; top: 70%; opacity: 1; } }
 /* Penalty: two roles, so the loop shows the shooter's swipe, then the keeper's tap on a dive button. */
 .g-kick i { animation-duration: 5.2s; }
+/* In play, the seat that keeps first starts on the keeper's half of the loop (F138). */
+.play-demo.keeper .g-kick i { animation-delay: -2.6s; }
 .g-kick .f { animation-name: d-kick-f; } .g-kick .p { animation-name: d-kick-p; }
 .g-kick .cell { left: 20%; top: 50%; animation-name: d-kick-c; } .g-kick .r { left: 20%; top: 50%; animation-name: d-kick-r; }
 @keyframes d-kick-f { 0% { left: 46%; top: 88%; opacity: 0; scale: 1.4; } 6% { left: 46%; top: 88%; opacity: 1; scale: 1; } 9% { left: 46%; top: 88%; scale: 0.75; } 16% { left: 62%; top: 12%; scale: 0.75; opacity: 1; } 22%, 49% { left: 66%; top: 0%; opacity: 0; scale: 1; } 50% { left: 20%; top: 50%; opacity: 0; scale: 1.4; } 58% { left: 20%; top: 50%; opacity: 1; scale: 1; } 63% { left: 20%; top: 50%; scale: 0.75; } 68% { left: 20%; top: 50%; scale: 1; } 85% { left: 20%; top: 50%; opacity: 1; } 92%, 100% { left: 20%; top: 50%; opacity: 0; } }

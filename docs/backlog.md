@@ -456,6 +456,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2026-11-08 (F137): ~5 s was too long: its dark card sat over Penalty's goal and Snack
       Snatch's lower lanes after GO. Now it shows through the countdown plus one second of
       play (PLAY_DEMO_MS 2800); the solo playtest checks every game's copy is gone by then.
+      2026-11-08 (F138): that only fits one of Penalty's two roles, so each seat's finger
+      starts on the role it plays first: the shooter's swipe, or (class `keeper`, the loop
+      started 2.6 s in) the keeper's dive. Playtest checks which seat gets which.
 - [x] 2026-11-01: A "?" brings the ghost finger back. After a game's first 3 matches the
       finger used to vanish for good, so a kid who forgot the gesture (or a new kid on the
       phone) had only the how-to text. Each person's intro half now shows a small "?" where

@@ -626,9 +626,9 @@ export class App {
     const seed = this.fixedSeed !== null ? (this.fixedSeed + this.matchCount++) >>> 0 : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     const powersOn = this.store.data.settings.powers && !!this.picks[0] && !!this.picks[1];
     this.show('play');
-    this.playDemo(meta.id, meta.gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined);
     this.dailyDay = meta.id === 'minigolf' && this.dailyGolf && !this.tourneyMatch ? dayKey() : null;
     this.runner = new Runner(this.stage, def, seed, players, powersOn, this.sfx, (r) => this.finish(r), false, this.starters.next(meta.id), this.dailyDay ?? undefined);
+    this.playDemo(meta.id, meta.gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined, this.runner.game.firstMover?.() ?? null);
     this.stage.start();
   }
 
@@ -637,7 +637,7 @@ export class App {
    * own half through the countdown and the first moments of play, then fades. A
    * seat's own first touch clears its copy at once. Bots get none.
    */
-  private playDemo(id: string, gesture: unknown, at?: number): void {
+  private playDemo(id: string, gesture: unknown, at?: number, first: PlayerIndex | null = null): void {
     const play = $('#play', this.root);
     for (const el of play.querySelectorAll('.play-demo')) el.remove();
     clearTimeout(this.playDemoTimer);
@@ -645,7 +645,9 @@ export class App {
     for (const p of [0, 1] as PlayerIndex[]) {
       const pr = this.store.data.profiles[p];
       if (botFor(pr, id)) continue;
-      play.insertAdjacentHTML('beforeend', playDemoHtml(gesture, p, !!pr.lefty, at));
+      // F138: Penalty's loop shows two roles; the seat that keeps goal first starts on the dive.
+      const keeper = gesture === 'kick' && first !== null && first !== p;
+      play.insertAdjacentHTML('beforeend', playDemoHtml(gesture, p, !!pr.lefty, at, keeper));
     }
     this.playDemoTimer = window.setTimeout(() => {
       for (const el of play.querySelectorAll('.play-demo')) el.remove();

@@ -28,6 +28,9 @@ describe('ghost finger demo', () => {
     expect(html).toContain('aria-hidden="true"');
     expect(html).toContain('g-slide');
     expect(playDemoHtml('drag', 0)).toContain('--at:0.72');
+    // F138: Penalty's keeper-first seat starts the loop on the dive.
+    expect(playDemoHtml('kick', 0, false, 0.72, true)).toContain('class="play-demo p0 keeper"');
+    expect(playDemoHtml('kick', 1)).toContain('class="play-demo p1"');
   });
 
   it('a game\'s demoAt keeps the in-play finger on the screen', () => {

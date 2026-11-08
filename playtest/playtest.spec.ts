@@ -412,6 +412,18 @@ test('ghost finger: the first match shows it in play over each person\'s half, t
   await start('pingpong');
   await page.waitForTimeout(300);
   expect(await copies(), 'not on a second match').toEqual([]);
+  // F138: Penalty's loop has two roles and only one fits in play, so each seat's finger
+  // starts on its own first role: the shooter's swipe, or the keeper's dive.
+  await start('penalty');
+  await page.waitForTimeout(300);
+  const kick = await page.evaluate(() => ({
+    first: (window as unknown as { __famiduel: { runner: { game: { firstMover(): number } } } }).__famiduel.runner.game.firstMover(),
+    keepers: [...document.querySelectorAll<HTMLElement>('#play .play-demo.keeper')].map((el) => Number(el.dataset.p)),
+    delay: getComputedStyle(document.querySelector('#play .play-demo.keeper .g-kick .f')!).animationDelay,
+  }));
+  expect(kick.keepers, 'penalty: only the seat that keeps first starts on the dive').toEqual([kick.first === 0 ? 1 : 0]);
+  expect(kick.delay, "penalty: the keeper's finger starts mid-loop").toBe('-2.6s');
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
   await setPlayers(page, [null, 'easy']);
   await start('airhockey');
   await page.waitForTimeout(300);
