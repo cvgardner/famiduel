@@ -1681,3 +1681,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (below is where that seat's own piece sits, e.g. a frog's head). Same-step pops still go a
       line down; if still crowded (a frenzy of catches) the nearest free line is taken.
       popProbe counts both. tests/pops.test.ts.
+- [x] 2026-11-08 (F188, PR #233): Sumo: a big hit's "BONK!" / "KA-BOOM!" popped at the impact
+      point ± 30, across both wrestlers' faces (73% of readable frames in bot matches). Each
+      seat's copy now takes the nearest line clear of both wrestlers (clearPopY, as F177/F181)
+      and of the other seat's copy, at the clash's x, else the middle, else the far side
+      (clashPops): 2% of frames. tests/sumo-clash-pop.test.ts.
