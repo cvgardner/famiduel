@@ -1389,3 +1389,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       showed twice upright when playing the bot (F123 only folds banners at size 22+). The
       bot seat facing a person no longer draws it; the solo playtest checks. Snake's corner
       "Round N" HUD labels stay on both sides (each sits by its own score).
+- [x] 2026-11-07 (F125, PR #178): The solo round-end check (F122) stopped at Sea Battle's and
+      RPS's first turn, which waits for the person. The playtest's person (playtest/person.ts)
+      now plays 8 s of each in real time with the probe on and must make a move, so their
+      shot / throw results and the bot's answers are checked for you/your/them words too.
