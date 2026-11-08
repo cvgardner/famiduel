@@ -1368,3 +1368,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       half says "Bot's shot"), and a bot's wind badge says "🌬️ wind" / "Lining up…"
       instead of "on you" / "Pull back, let go". Sea Battle and RPS wait for the person's
       move, so they're only checked up to there (`WAITS_FOR_PERSON`).
+- [x] 2026-11-07 (F123, PR #PRNUM): Playing the bot, big banners both seats draw ("Bot wins the
+      round!", "Steady…", "HOLE IN ONE!") read upright twice, one above the other, since
+      F118. text() now skips the bot seat's copy of a banner the person's half drew this
+      frame or last (only worded labels at size 22+, so scores, names and small status
+      lines still show on both sides). Unit test in tests/reader.test.ts; solo screenshots
+      for Sumo and Minigolf show one banner. Small repeated lines (Quick Draw's "Round 1")
+      stay.

@@ -73,4 +73,27 @@ describe('Play the bot: canvas words face the one person (F118)', () => {
     expect(silentSeat([{ bot: 'easy' }, { bot: 'easy' }], 0)).toBe(false);
     expect(silentSeat([{ bot: null }, { bot: null }], 1)).toBe(false);
   });
+
+  it('a banner both seats draw shows once: the bot\'s copy is skipped, scores and small lines stay (F123)', () => {
+    const { g, drawn } = fakeCanvas();
+    setReader(0, g);
+    text(g, 'Round 2', 180, 200, { player: 1, size: 30 });
+    text(g, 'Round 2', 180, 440, { player: 0, size: 30 });
+    // Next frame, the bot's copy comes first: last frame's person copy still counts.
+    setReader(0, g);
+    text(g, 'Round 2', 180, 200, { player: 1, size: 30 });
+    text(g, 'Round 2', 180, 440, { player: 0, size: 30 });
+    // Scores (no letters), small status lines and words only the bot drew still show.
+    text(g, '3', 40, 40, { player: 1, size: 30 });
+    text(g, '3', 40, 600, { player: 0, size: 30 });
+    text(g, 'In the hole', 40, 60, { player: 1, size: 14 });
+    text(g, 'In the hole', 40, 580, { player: 0, size: 14 });
+    text(g, 'Bot wins the round!', 180, 200, { player: 1, size: 30 });
+    expect(drawn.map((d) => `${d.str}@${Math.round(d.y)}`)).toEqual([
+      // Frame 1: the bot's copy came before the person's, so both drew this once.
+      'Round 2@200', 'Round 2@440',
+      'Round 2@440',
+      '3@40', '3@600', 'In the hole@60', 'In the hole@580', 'Bot wins the round!@200',
+    ]);
+  });
 });
