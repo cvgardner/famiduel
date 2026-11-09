@@ -10,6 +10,8 @@ import { CONTROLS_Y, controlsFor, FIRE_R, FIRE_R_BIG, FIRE_RIM, fireLook, STICK_
 import { COLS, LAYOUTS, ROWS } from './mazes';
 import { ARENA, CELL, IDLE, RULES, TankBot, TankDuel, type Intent, type Tank } from './logic';
 const FLOOR = '#2a2150';
+/** F192: a pop keeps this far from a tank's centre (its seat ring and shield reach tankR + 11.5). */
+const TANK_CLEAR = RULES.tankR + 12;
 /** The colours most of the play area is painted in (tests read pops against them). */
 export const SURFACES: readonly string[] = [FLOOR];
 
@@ -169,6 +171,29 @@ class TankView implements GameInstance {
     for (const [id, tr] of this.trails) if (!tr.seen) this.trails.delete(id);
   }
 
+  /**
+   * F192: the nearest start line for a seat's pop whose whole rise (fx floats it 40/s for
+   * 0.9 s, up for seat 0, down for seat 1) misses both tanks and their rings.
+   */
+  clearOfTanks(str: string, size: number, x: number, y: number, p: PlayerIndex): number {
+    const half = ([...str].length * size * 0.55) / 2;
+    const rise = p === 0 ? -36 : 36;
+    const hits = (cy: number) => {
+      const top = Math.min(cy, cy + rise) - size * 0.45;
+      const bot = Math.max(cy, cy + rise) + size * 0.45;
+      return this.game.tanks.some((tk) => {
+        const nx = Math.max(x - half, Math.min(x + half, tk.x));
+        const ny = Math.max(top, Math.min(bot, tk.y));
+        return Math.hypot(tk.x - nx, tk.y - ny) < TANK_CLEAR;
+      });
+    };
+    if (!hits(y)) return y;
+    for (let d = 2; d <= 160; d += 2) {
+      for (const cy of [y - d, y + d]) if (cy > size && cy < H - size && !hits(cy)) return cy;
+    }
+    return y;
+  }
+
   private popBoth(str: string, x: number, y: number, color: string, size = 26): void {
     this.ctx.fx.pop(str, x, y - size * 0.8, color, 0, size);
     this.ctx.fx.pop(str, x, y + size * 0.8, color, 1, size);
@@ -193,7 +218,8 @@ class TankView implements GameInstance {
       } else if (e.type === 'clash') {
         sfx.play('click');
         fx.burst(e.x, e.y, '#ffffff', 12, 140, 3);
-        this.popBoth('clink!', e.x, e.y, '#ffffff', 16);
+        // F192: shells often meet right at a muzzle, and the word printed on that tank.
+        for (const q of PLAYERS) fx.pop('clink!', e.x, this.clearOfTanks('clink!', 16, e.x, e.y + (q === 0 ? -1 : 1) * 16 * 0.8, q), '#ffffff', q, 16);
       } else if (e.type === 'block') {
         sfx.play('pop');
         fx.burst(e.x, e.y, '#8fe3ff', 12, 120, 3);
