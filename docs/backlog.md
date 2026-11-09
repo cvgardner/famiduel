@@ -1778,3 +1778,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] When the bot sits in seat 0, its copy of a paired line draws before the person's, so it
       still shows for the first frame (draw.ts can only skip a copy it has seen). One frame at
       60 fps; drawing the person's seat first would remove it if anyone ever notices.
+- [x] 2026-11-08 (F203, PR #TBD): Snake: "CRASH!" popped at the crash cell, and since most
+      crashes are at a wall (where crashPopY keeps it inside the arena) it sat straight up the
+      crashed snake's own trail (solo-round-snake.png). It now takes the nearest x on its line
+      that misses every trail cell and head, else the nearest clear line: readable CRASH! frames
+      on a trail 4,981/5,127 -> 183 (bot matches, 3 levels x 10 seeds). tests/snake-crash-pop.test.ts.
