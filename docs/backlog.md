@@ -1797,3 +1797,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       once aiming starts; the sudden-death one is a size smaller to fit), and the centre pops
       take the nearest line the rolling ball misses: 0 on the ball, 0 on the keeper (bot
       matches, 3 levels x 9 seeds, powers on). tests/penalty-pops-ball.test.ts.
+- [x] 2026-11-08 (F207, PR #249): Chop Chop: "+2" rose up the trunk's far edge over the next
+      branch (488/4,056 readable frames), "Shield!" printed on the chopper (1,965/2,522: the
+      shield breaks the branch on the chopper's own side) and "🧊 Frozen!" sat on the frozen
+      tree's own "🧊 frozen" label for its whole bright half. "+2" now starts past the branch
+      tips on the chopper's side, "Shield!" low on the trunk's other side (65/2,522), and the
+      frozen label alone says it. tests/chopchop-pops-tree.test.ts.
+- [ ] Chop Chop power names ("🛡️ Branch Shield!" etc., barY + 70) cross the next three branches
+      on ~50% of their readable frames: the words are wider than the space beside the trunk.
+      A shorter, smaller line, or one in the strip by the chop count, would keep the branches
+      readable for that moment.
