@@ -281,8 +281,8 @@ class PingPongView implements GameInstance {
     // Rally counter by the net, readable from both seats
     if (g.hits >= 3 && g.pointT <= 0 && !g.serving) {
       const hot = g.hits >= 10 ? '#ff9a3d' : g.hits >= 5 ? COLORS.gold : '#ffffff';
-      text(gx, `Rally ${g.hits}`, 72, MID + 24, { size: 15, color: hot, stroke: 'rgba(0,0,0,0.8)' });
-      text(gx, `Rally ${g.hits}`, W - 72, MID - 24, { size: 15, color: hot, stroke: 'rgba(0,0,0,0.8)', player: 1 });
+      text(gx, `Rally ${g.hits}`, 72, MID + 24, { size: 15, color: hot, stroke: 'rgba(0,0,0,0.8)', pair: true });
+      text(gx, `Rally ${g.hits}`, W - 72, MID - 24, { size: 15, color: hot, stroke: 'rgba(0,0,0,0.8)', player: 1, pair: true });
     }
     // How-to hint for people at the start of the match
     // F158: the hints wait for GO; under the countdown "Flick up hard" sat on the "3 2 1" digit.

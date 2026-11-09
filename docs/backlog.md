@@ -1768,3 +1768,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the round!") showed twice, both upright in the person's half. Long banners are fitted
       below the 22-unit size draw.ts dedupes, so both copies drew. The bot seat's banner copy
       is skipped now (two people or two bots keep both). tests/sumo-banner-solo.test.ts.
+- [x] 2026-11-08 (F202, PR #TBD): Play the bot: lines both seats draw with the same words still
+      read twice, upright, in the person's half, because draw.ts only skipped the bot's copy of
+      big banners (22+ units): Ping Pong's "Rally 4" and its paired "Curve!" / "Rally x5!" pops,
+      Snack Snatch's "Faster snacks!". A new `pair` text option gets the same skip at any size;
+      fx marks pops born together for both seats at one x (popBoth) as pairs, so two frogs'
+      separate "Miss!" pops both stay. tests/solo-pairs.test.ts plays every shown game against
+      an idle person and fails on a line read twice for more than a frame.
+- [ ] When the bot sits in seat 0, its copy of a paired line draws before the person's, so it
+      still shows for the first frame (draw.ts can only skip a copy it has seen). One frame at
+      60 fps; drawing the person's seat first would remove it if anyone ever notices.
