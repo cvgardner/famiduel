@@ -1709,3 +1709,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seat's copy now takes the nearest line clear of both wrestlers (clearPopY, as F177/F181)
       and of the other seat's copy, at the clash's x, else the middle, else the far side
       (clashPops): 2% of frames. tests/sumo-clash-pop.test.ts.
+- [x] 2026-11-08 (F190, PR #TBD): Penalty: the keeper's early dive popped "Keeper moved
+      early!" at the middle (MID ± 40), and it rose into the shooter's "Shot picked! Swipe
+      again to change" and "<power> ready" lines. It now pops "Keeper moved!" beside the ball,
+      on the shooter's left (away from their seconds digit; EARLY_DX), clear of the ball's
+      ring and both lines as it rises, both seats. tests/penalty-early.test.ts.
