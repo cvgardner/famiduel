@@ -37,6 +37,37 @@ class AirHockeyView implements GameInstance {
     this.targets = this.game.paddles.map((pd) => ({ x: pd.x, y: pd.y }));
   }
 
+
+  /**
+   * F196: the line nearest `home`, inside seat `p`'s own half, where that seat's centred pop
+   * (it rises 36 px toward the middle for 0.9 s) misses every puck. A goal serves the puck at
+   * MID ± 70 toward the player who let it in, and their "GOAL!" (MID ± 80) sat on it for the
+   * whole serve wait: 44% of readable GOAL! frames, right where that player has to look.
+   */
+  clearOfPucks(str: string, size: number, home: number, p: PlayerIndex): number {
+    const half = ([...str].length * size * 0.55) / 2;
+    const rise = p === 0 ? -36 : 36;
+    const r = RULES.puckR + 6;
+    const hits = (y: number) => {
+      // A line pop() would move (a still-bright pop of this seat there) counts as taken too.
+      if (!this.ctx.fx.popFits(str, W / 2, y, size, p)) return true;
+      const top = Math.min(y, y + rise) - size * 0.45;
+      const bot = Math.max(y, y + rise) + size * 0.45;
+      return this.game.pucks.some((pk) => {
+        const nx = Math.max(W / 2 - half, Math.min(W / 2 + half, pk.x));
+        const ny = Math.max(top, Math.min(bot, pk.y));
+        return Math.hypot(pk.x - nx, pk.y - ny) < r;
+      });
+    };
+    // The whole rise stays in the seat's own half and on screen.
+    const lo = p === 0 ? MID + 36 + size * 0.45 + 2 : size;
+    const hi = p === 0 ? H - size : MID - 36 - size * 0.45 - 2;
+    if (!hits(home)) return home;
+    for (let d = 2; d <= H / 2; d += 2) {
+      for (const y of [home - d, home + d]) if (y >= lo && y <= hi && !hits(y)) return y;
+    }
+    return home;
+  }
   update(dt: number, input: Input): void {
     this.t += dt;
     const g = this.game;
@@ -78,18 +109,19 @@ class AirHockeyView implements GameInstance {
         fx.shake(10, 0.35);
         fx.flash(this.ctx.players[e.scorer].color);
         fx.burst(e.x, e.scorer === 0 ? 10 : H - 10, this.ctx.players[e.scorer].color, 40, 360, 5);
-        fx.pop('GOAL!', W / 2, MID + GOAL_POP_Y, COLORS.gold, 0, 40);
-        fx.pop('GOAL!', W / 2, MID - GOAL_POP_Y, COLORS.gold, 1, 40);
+        fx.pop('GOAL!', W / 2, this.clearOfPucks('GOAL!', 40, MID + GOAL_POP_Y, 0), COLORS.gold, 0, 40);
+        fx.pop('GOAL!', W / 2, this.clearOfPucks('GOAL!', 40, MID - GOAL_POP_Y, 1), COLORS.gold, 1, 40);
       } else if (e.type === 'power') {
         sfx.play('power');
         const pw = this.ctx.players[e.p].power!;
         fx.flash('#ffd54a', 0.12);
         // F148: below "Your shot!" (130) and the GOAL! banner (80), so a power used right after a
         // goal no longer prints over GOAL! (it sat at 50, inside the banner as both rose).
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + POWER_POP_Y : MID - POWER_POP_Y, COLORS.gold, e.p, 26);
+        const name = `${pw.icon} ${pw.name}!`;
+        fx.pop(name, W / 2, this.clearOfPucks(name, 26, e.p === 0 ? MID + POWER_POP_Y : MID - POWER_POP_Y, e.p), COLORS.gold, e.p, 26);
       } else if (e.type === 'nudge') {
         // Only the player holding the puck needs to read it, upright on their side.
-        if (!silentSeat(this.ctx.players, e.p)) fx.pop('Your shot!', W / 2, e.p === 0 ? MID + SHOT_POP_Y : MID - SHOT_POP_Y, '#2b2459', e.p, 26);
+        if (!silentSeat(this.ctx.players, e.p)) fx.pop('Your shot!', W / 2, this.clearOfPucks('Your shot!', 26, e.p === 0 ? MID + SHOT_POP_Y : MID - SHOT_POP_Y, e.p), '#2b2459', e.p, 26);
       } else if (e.type === 'drift') {
         sfx.play('whoosh');
         fx.burst(e.x, e.y, '#bfe9ff', 10, 140, 3);

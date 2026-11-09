@@ -1735,3 +1735,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       bots, every power pair, 8 seeds), right where that player was steering. Each seat's copy
       now starts on the nearest line whose rise misses both heads and the cells they will cross
       in the next half second (clearOfHeads): 0 frames. tests/snake-power-pop.test.ts.
+- [x] 2026-11-08 (F196, PR #PRNUM): Air Hockey: a goal serves the puck at MID ± 70 toward
+      the player who let it in, and their "GOAL!" (born at MID ± 80, rising to the middle) sat
+      on it for the whole serve wait: 6,162 of 14,144 readable GOAL! frames (normal bots, every
+      power pair, 4 seeds). GOAL!, power names and "Your shot!" now start on the nearest line in
+      their own half whose rise misses every puck and any still-bright pop of that seat
+      (clearOfPucks, fx.popFits): GOAL! 0 frames, all pops 22% -> 2.6% (the rest are pucks
+      sliding under a power name). tests/airhockey-pop-puck.test.ts.

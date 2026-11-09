@@ -79,6 +79,14 @@ export class Fx {
     }
   }
 
+  /**
+   * F196: whether a pop here would print as placed (no still-bright pop of that seat in the
+   * way), so a view looking for a clear line can skip lines pop() would move it off.
+   */
+  popFits(str: string, x: number, y: number, size: number, player: 0 | 1): boolean {
+    return !this.floaters.some((f) => f.player === player && fresh(f) && overlaps(popBox(f.str, f.x, f.y, f.size), popBox(str, x, y, size)));
+  }
+
   /** Text that rises and fades, readable by the given player. */
   pop(str: string, x: number, y: number, color = '#fff', player: 0 | 1 = 0, size = 22): void {
     // F150: two pops born in the same step for one seat (a power used together with the other
