@@ -66,6 +66,37 @@ class PingPongView implements GameInstance {
     });
   }
 
+
+  /**
+   * F197: the line nearest `home`, in the same half, where seat `p`'s power-name pop (it
+   * rises 36 px toward the middle for 0.9 s) misses the ball and where the ball will be over
+   * the next 0.3 s. Powers are used with the ball near the net, so "🐢 Slow-mo Return!" sat on
+   * the slowed ball in 382 of 4,836 readable frames, just as that player has to read it.
+   */
+  clearOfBall(str: string, size: number, home: number, p: PlayerIndex): number {
+    const g = this.game;
+    const b = g.ball;
+    const f = g.speedFactor();
+    const path: { x: number; y: number }[] = [];
+    for (let k = 0; k <= 6; k++) path.push({ x: b.x + b.vx * f * 0.05 * k, y: b.y + b.vy * f * 0.05 * k });
+    const half = ([...str].length * size * 0.55) / 2 + RULES.ballR + 4;
+    const rise = p === 0 ? -36 : 36;
+    const hits = (y: number) => {
+      if (!this.ctx.fx.popFits(str, W / 2, y, size, p)) return true;
+      const top = Math.min(y, y + rise) - size * 0.45 - RULES.ballR - 4;
+      const bot = Math.max(y, y + rise) + size * 0.45 + RULES.ballR + 4;
+      return path.some((q) => q.x > W / 2 - half && q.x < W / 2 + half && q.y > top && q.y < bot);
+    };
+    // Stay in the half the line started in, on screen.
+    const lower = home > MID;
+    const lo = lower ? MID + size / 2 + (rise < 0 ? 36 : 0) : size;
+    const hi = lower ? H - size : MID - size / 2 - (rise > 0 ? 36 : 0);
+    if (!hits(home)) return home;
+    for (let d = 2; d <= H / 2; d += 2) {
+      for (const y of [home - d, home + d]) if (y >= lo && y <= hi && !hits(y)) return y;
+    }
+    return home;
+  }
   update(dt: number, input: Input): void {
     this.t += dt;
     const g = this.game;
@@ -139,8 +170,9 @@ class PingPongView implements GameInstance {
         sfx.play('power');
         const pw = this.ctx.players[e.p].power!;
         fx.flash('#ffd54a', 0.12);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 50 : MID - 50, COLORS.gold, e.p, 24);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID - 50 : MID + 50, COLORS.gold, other(e.p), 20);
+        const name = `${pw.icon} ${pw.name}!`;
+        fx.pop(name, W / 2, this.clearOfBall(name, 24, e.p === 0 ? MID + 50 : MID - 50, e.p), COLORS.gold, e.p, 24);
+        fx.pop(name, W / 2, this.clearOfBall(name, 20, e.p === 0 ? MID - 50 : MID + 50, other(e.p)), COLORS.gold, other(e.p), 20);
       } else if (e.type === 'win') {
         sfx.play('win');
         this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]}` });

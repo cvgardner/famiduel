@@ -1742,3 +1742,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       their own half whose rise misses every puck and any still-bright pop of that seat
       (clearOfPucks, fx.popFits): GOAL! 0 frames, all pops 22% -> 2.6% (the rest are pucks
       sliding under a power name). tests/airhockey-pop-puck.test.ts.
+- [x] 2026-11-08 (F197, PR #PRNUM): Ping Pong: a power's name popped at MID ± 50 for both
+      seats, and powers are used with the ball near the net, so the name sat on the ball in 544
+      of 15,288 readable frames (normal bots, every power pair, 4 seeds; "🐢 Slow-mo Return!"
+      worst, the slowed ball lingers under it). Each copy now starts on the nearest line in its
+      half whose rise misses the ball's next 0.3 s (clearOfBall): 113 frames (0.7%). Shot and
+      rally pops keep their lanes (the ball crosses them for a moment, 1-3%).
+      tests/pingpong-power-pop.test.ts.
