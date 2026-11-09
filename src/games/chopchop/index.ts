@@ -41,6 +41,17 @@ export const SHIELD_DX = 76;
 /** The between-rounds card's centre, in the seat's own frame. */
 export const CARD_Y = MID + 118;
 
+/** How faint the trunk gets under the HUD (F209). */
+export const TRUNK_FADED = 0.3;
+/**
+ * F209: how strongly a tree segment centred at `y` (seat's own frame) is drawn: 1 from the
+ * third branch up (y >= barY + 54) down, 0 by the next one (barY + 14, under the count pills),
+ * so a segment fades in smoothly as the trunk drops after a chop.
+ */
+export function treeFade(y: number): number {
+  return Math.max(0, Math.min(1, (y - (L.barY + 14)) / 40));
+}
+
 const toScreen = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
 
 type Chunk = { x: number; y: number; vx: number; vy: number; rot: number; vr: number; t: number; branch: number };
@@ -281,11 +292,17 @@ class ChopView implements GameInstance {
     for (let k = n; k >= 0; k--) {
       const i = c.idx + k;
       const y = L.baseY - k * L.segH - off;
+      // F209: segments up under the timer bar and count pills fade (the trunk to a faint
+      // stub, branches out), so the middle reads as HUD; the next three stay fully drawn.
+      const f = treeFade(y);
+      gx.globalAlpha = TRUNK_FADED + (1 - TRUNK_FADED) * f;
       rrect(gx, x - tw / 2, y - L.segH / 2, tw, L.segH + 1, 3, k % 2 ? '#9a6a3a' : '#a8743f', '#6b4423', 2);
       line(gx, x - tw / 2 + 10, y - 8, x - tw / 2 + 10, y + 8, 'rgba(80,40,10,0.35)', 2);
       line(gx, x + tw / 2 - 14, y - 4, x + tw / 2 - 14, y + 12, 'rgba(80,40,10,0.35)', 2);
       const b = g.branch(p, i);
-      if (b !== 0) this.drawBranch(gx, x + b * (tw / 2), y, b);
+      gx.globalAlpha = f;
+      if (b !== 0 && f > 0) this.drawBranch(gx, x + b * (tw / 2), y, b);
+      gx.globalAlpha = 1;
     }
     if (c.frozen > 0) {
       gx.globalAlpha = 0.55 + 0.2 * Math.sin(this.t * 10);
