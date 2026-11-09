@@ -41,5 +41,5 @@ describe('Snack Snatch: catch and miss pops keep off the seconds-left', () => {
     expect([...seats].sort()).toEqual([0, 1]);
     expect(frames).toBeGreaterThan(500);
     expect(covered).toBe(0);
-  });
+  }, 60_000); // whole bot matches: GitHub CI runs ~3x slower than a laptop
 });
