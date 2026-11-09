@@ -325,6 +325,9 @@ class SumoView implements GameInstance {
       const a = Math.min(1, this.banner * 4);
       const pop = 1 + Math.max(0, this.banner - (this.bannerText === 'GO!' ? 0.4 : 0.9)) * 1.5;
       for (const p of PLAYERS) {
+        // F201: playing the bot, only the person's half shows the banner. A long one ("Bot wins
+        // the round!") fits below the banner size draw.ts dedupes, so it read twice, upright.
+        if (silentSeat(this.ctx.players, p)) continue;
         const y = p === 0 ? MID + BANNER_OFF : MID - BANNER_OFF;
         const fit = Math.min(26, 500 / Math.max(1, this.bannerText.length));
         // Capped so the two mirrored copies never overlap across the middle.

@@ -1764,3 +1764,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       power pops now only take lines whose rise misses both HOLD buttons and both power
       buttons: all pops 5.5% -> 0.4% (a few Ground Pound! frames where fx moves the name off
       another pop). tests/sumo-pop-buttons.test.ts.
+- [x] 2026-11-08 (F201, PR #TBD): Sumo, Play the bot: the round-end banner ("Player 1 wins
+      the round!") showed twice, both upright in the person's half. Long banners are fitted
+      below the 22-unit size draw.ts dedupes, so both copies drew. The bot seat's banner copy
+      is skipped now (two people or two bots keep both). tests/sumo-banner-solo.test.ts.
