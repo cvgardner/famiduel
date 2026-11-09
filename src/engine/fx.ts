@@ -61,6 +61,28 @@ function overlaps(a: [number, number, number, number], b: [number, number, numbe
   return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
 }
 
+/** How far (world units) a pop rises while it is still bright. */
+const FRESH_RISE = 40 * POP_FRESH;
+
+/** A pop's box over its bright time: it rises toward its seat's far side (up for seat 0). */
+function sweptBox(str: string, x: number, y: number, size: number, player: 0 | 1): [number, number, number, number] {
+  const b = popBox(str, x, y, size);
+  return player === 0 ? [b[0], b[1] - FRESH_RISE, b[2], b[3]] : [b[0], b[1], b[2], b[3] + FRESH_RISE];
+}
+
+/**
+ * F198: whether still-bright pop `f` is in the way of a new pop. Same seat: their boxes meet now
+ * (they rise together). Other seat: their paths meet while both are bright (they rise opposite
+ * ways, so a pop just below the other seat's crosses it). One word for both seats (a "BONK!"
+ * pair) is placed as a pair on purpose and never counts.
+ */
+function inWay(f: Floater, str: string, x: number, y: number, size: number, player: 0 | 1): boolean {
+  if (!fresh(f)) return false;
+  if (f.player === player) return overlaps(popBox(f.str, f.x, f.y, f.size), popBox(str, x, y, size));
+  if (f.str === str) return false;
+  return overlaps(sweptBox(f.str, f.x, f.y, f.size, f.player), sweptBox(str, x, y, size, player));
+}
+
 export class Fx {
   private particles: Particle[] = [];
   private floaters: Floater[] = [];
@@ -84,7 +106,7 @@ export class Fx {
    * way), so a view looking for a clear line can skip lines pop() would move it off.
    */
   popFits(str: string, x: number, y: number, size: number, player: 0 | 1): boolean {
-    return !this.floaters.some((f) => f.player === player && fresh(f) && overlaps(popBox(f.str, f.x, f.y, f.size), popBox(str, x, y, size)));
+    return !this.floaters.some((f) => inWay(f, str, x, y, size, player));
   }
 
   /** Text that rises and fades, readable by the given player. */
@@ -98,7 +120,7 @@ export class Fx {
     // frog's head). A pop already fading out is left to be drawn over.
     const down = player === 0 ? 1 : -1;
     for (let tries = 0; tries < 4; tries++) {
-      const hit = this.floaters.find((f) => f.player === player && fresh(f) && overlaps(popBox(f.str, f.x, f.y, f.size), popBox(str, x, y, size)));
+      const hit = this.floaters.find((f) => f.player === player && inWay(f, str, x, y, size, player));
       if (!hit) break;
       const gap = (hit.size + size) * 0.5 + 4;
       const dir = hit.life === hit.max ? down : -down;
@@ -110,7 +132,7 @@ export class Fx {
     // Still on one (a crowd of pops, or the screen's edge): take the nearest free line,
     // looking into the field first.
     const clear = (cy: number) =>
-      !this.floaters.some((f) => f.player === player && fresh(f) && overlaps(popBox(f.str, f.x, f.y, f.size), popBox(str, x, cy, size)));
+      !this.floaters.some((f) => inWay(f, str, x, cy, size, player));
     if (!clear(y)) {
       const from = y;
       for (let n = 1; n <= 60; n++) {

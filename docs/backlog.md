@@ -1749,3 +1749,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       half whose rise misses the ball's next 0.3 s (clearOfBall): 113 frames (0.7%). Shot and
       rally pops keep their lanes (the ball crosses them for a moment, 1-3%).
       tests/pingpong-power-pop.test.ts.
+- [x] 2026-11-08 (F198 + F199, PR #242): Pops stacked only against their own seat's, so the
+      two seats' words printed over each other: Tank Duel's "Bonked!" / "Oops! Own shot" (centre
+      baseline) on the shooter's BONK! when a tank was hit there, POOF! on BONK! (a mine hit),
+      Shield! on clink!; Sumo's "💥 Ground Pound!" on KA-BOOM!; Snack Snatch "+1 ×2!" on the
+      other frog's "Miss!" (1,386 + 46 + 20 frames, normal bots, every power pair, 2 seeds).
+      fx.pop() now also moves off the path of the other seat's still-bright pops (their boxes
+      over the next 0.55 s, since the two seats' pops rise opposite ways); one word popped for
+      both seats (a BONK! pair) stays as placed. 0 frames in all ten action games.
+      tests/pops-cross-seat.test.ts, tests/pops.test.ts.
