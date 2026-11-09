@@ -36,6 +36,8 @@ export const MILESTONE_Y = MID + 22 + 80;
 
 /** F180: the BONK! pop's distance from the trunk, outside the chopper (at chopperDX). */
 export const BONK_DX = 128;
+/** F207: the "Shield!" pop's distance from the trunk, on the side away from the chopper. */
+export const SHIELD_DX = 76;
 /** The between-rounds card's centre, in the seat's own frame. */
 export const CARD_Y = MID + 118;
 
@@ -108,7 +110,12 @@ class ChopView implements GameInstance {
         this.chunks[e.p].push({ x: cx, y: L.baseY, vx: -e.side * 380, vy: -260, rot: 0, vr: -e.side * 10, t: 0, branch: chopped });
         const s = toScreen(e.p, cx - e.side * (L.trunkW / 2), L.baseY);
         fx.burst(s.x, s.y, '#e0b07a', 6, 160, 3);
-        if (e.count > 1) fx.pop('+2', s.x, s.y - (e.p === 0 ? 30 : -30), COLORS.gold, e.p, 18);
+        // F207: out past the branch tips on the chopper's side (on the trunk's far edge it rose
+        // over the next branch up, the one the player is reading).
+        if (e.count > 1) {
+          const t = toScreen(e.p, W / 2 + e.side * BONK_DX, L.baseY - 30);
+          fx.pop('+2', t.x, t.y, COLORS.gold, e.p, 18);
+        }
         const c = g.choppers[e.p];
         if (c.chops > 0 && c.chops % 10 < e.count) {
           const m = toScreen(e.p, W / 2, MILESTONE_Y);
@@ -135,7 +142,10 @@ class ChopView implements GameInstance {
         const s = toScreen(e.p, W / 2 + e.side * (L.trunkW / 2 + L.branchLen / 2), L.baseY - 20);
         fx.burst(s.x, s.y, '#8fd3ff', 20, 220, 4);
         fx.burst(s.x, s.y, '#4caf50', 12, 200, 4);
-        fx.pop('Shield!', s.x, s.y, '#8fd3ff', e.p, 22);
+        // F207: the shield breaks the branch on the chopper's side, so the word printed on the
+        // chopper. It starts low on the trunk's other side, under that side's next branch.
+        const w = toScreen(e.p, W / 2 - e.side * SHIELD_DX, L.baseY + 20);
+        fx.pop('Shield!', w.x, w.y, '#8fd3ff', e.p, 22);
       } else if (e.type === 'frozenTap') {
         sfx.play('click');
       } else if (e.type === 'power') {
@@ -147,7 +157,9 @@ class ChopView implements GameInstance {
         if (e.id === 'freeze') {
           const o = toScreen(other(e.p), W / 2, L.baseY - 60);
           fx.burst(o.x, o.y, '#bfe9ff', 30, 240, 4);
-          fx.pop('🧊 Frozen!', o.x, o.y, '#bfe9ff', other(e.p), 24);
+          // F207: no "🧊 Frozen!" pop: the frozen tree's own "🧊 frozen" label says it, and the
+          // pop printed right over that label for its whole bright half.
+
         }
       } else if (e.type === 'roundStart') {
         sfx.play('go');
