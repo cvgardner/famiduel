@@ -115,7 +115,7 @@ describe('tank duel', () => {
       expect(share, `${LAYOUTS[layout].name}: bottom seat won ${wins.join('/')}`).toBeGreaterThan(0.4);
       expect(share, `${LAYOUTS[layout].name}: bottom seat won ${wins.join('/')}`).toBeLessThan(0.6);
     }
-  }, 120_000);
+  }, 300_000); // ~50 s locally; GitHub CI took 125 s (PR #250) with the other whole-match tests running beside it
 
   it('bot vs bot always reaches a result, in about 1–3 minutes of game time', () => {
     for (const seed of [1, 2, 3, 4]) {

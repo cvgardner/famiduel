@@ -1811,3 +1811,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       on ~50% of their readable frames: the words are wider than the space beside the trunk.
       A shorter, smaller line, or one in the strip by the chop count, would keep the branches
       readable for that moment.
+- [x] 2026-11-08 (PR #251): GitHub CI timed out tests/tanks.test.ts "two equal bots win about
+      as many first rounds from either seat" at 120 s (125 s on PR #250; ~50 s locally). Its
+      budget is now 300 s; the test itself is unchanged.
