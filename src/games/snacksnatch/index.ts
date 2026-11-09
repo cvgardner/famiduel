@@ -16,6 +16,12 @@ export const SURFACES: readonly string[] = [GRASS, BLANKET];
 /** Snack looks: cookie, donut, berry, cracker. */
 const KINDS = ['#d9a066', '#ff8fc2', '#ff5c7a', '#f4c96b', '#6ec8ff', '#ffa24c'];
 
+/**
+ * F211: the "Miss!" pop's ink. It was white, and a "Miss!" always lands on the blanket, where
+ * white read 1.1-2.2:1 (the thin pop outline was all that showed it, pale grey on a phone). Dark
+ * ink reads on the blanket, its gingham and both home bands by itself (8:1 or more).
+ */
+export const MISS_INK = '#1b1430';
 /** Room between the frog's head and its "Miss!" pop (F176). */
 const MISS_GAP = 16;
 /** F182: the seconds-left's blanket-coloured outline, so it reads over a snack resting under it. */
@@ -112,7 +118,7 @@ class SnackSnatchView implements GameInstance {
         // missed snap slid over it and the word sat on the frog's eyes. It starts on the
         // blanket just past the open jaws and floats on into the field, away from the head.
         const my = g.headY(c) + fwd(e.p) * (RULES.headR + MISS_GAP);
-        fx.pop('Miss!', this.clearOfClock('Miss!', c.x, my, 19, e.p), my, '#fff', e.p, 19);
+        fx.pop('Miss!', this.clearOfClock('Miss!', c.x, my, 19, e.p), my, MISS_INK, e.p, 19);
       } else if (e.type === 'grab') {
         sfx.play(e.gold ? 'coin' : 'pop');
         const c = players[e.p].color;
