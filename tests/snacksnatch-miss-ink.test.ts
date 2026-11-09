@@ -3,7 +3,7 @@ import { PLAYER_COLORS } from '../src/core/colors';
 import { contrastRatio, over, parseColor, type RGBA } from '../src/core/contrast';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
-import { Fx } from '../src/engine/fx';
+import { Fx, POP_OUTLINE, POP_OUTLINE_LIGHT, popOutline } from '../src/engine/fx';
 import type { Input } from '../src/engine/input';
 import type { Sfx } from '../src/engine/sfx';
 import { W } from '../src/engine/world';
@@ -34,6 +34,11 @@ describe('Snack Snatch: "Miss!" reads on the blanket', () => {
     // While still bright (life >= 0.45 of the pop, drawn at 80% or more).
     const worst = Math.min(...surfaces.map((bg) => contrastRatio(over([...ink, 0.8] as RGBA, bg, 1) as RGB, bg)));
     expect(worst).toBeGreaterThanOrEqual(3);
+  });
+
+  it('a dark-ink pop gets a light halo, so its letters do not run into a black outline', () => {
+    expect(popOutline(MISS_INK)).toBe(POP_OUTLINE_LIGHT);
+    for (const light of ['#fff', '#ffd54a', '#3fa9ff', '#ff5c7a', '#7a5cff']) expect(popOutline(light), light).toBe(POP_OUTLINE);
   });
 
   it('in bot matches every "Miss!" is drawn in that ink, on the blanket, for both seats', () => {
