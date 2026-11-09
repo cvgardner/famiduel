@@ -1764,11 +1764,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       power pops now only take lines whose rise misses both HOLD buttons and both power
       buttons: all pops 5.5% -> 0.4% (a few Ground Pound! frames where fx moves the name off
       another pop). tests/sumo-pop-buttons.test.ts.
-- [x] 2026-11-08 (F201, PR #TBD): Sumo, Play the bot: the round-end banner ("Player 1 wins
+- [x] 2026-11-08 (F201, PR #244): Sumo, Play the bot: the round-end banner ("Player 1 wins
       the round!") showed twice, both upright in the person's half. Long banners are fitted
       below the 22-unit size draw.ts dedupes, so both copies drew. The bot seat's banner copy
       is skipped now (two people or two bots keep both). tests/sumo-banner-solo.test.ts.
-- [x] 2026-11-08 (F202, PR #TBD): Play the bot: lines both seats draw with the same words still
+- [x] 2026-11-08 (F202, PR #245): Play the bot: lines both seats draw with the same words still
       read twice, upright, in the person's half, because draw.ts only skipped the bot's copy of
       big banners (22+ units): Ping Pong's "Rally 4" and its paired "Curve!" / "Rally x5!" pops,
       Snack Snatch's "Faster snacks!". A new `pair` text option gets the same skip at any size;
@@ -1778,3 +1778,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] When the bot sits in seat 0, its copy of a paired line draws before the person's, so it
       still shows for the first frame (draw.ts can only skip a copy it has seen). One frame at
       60 fps; drawing the person's seat first would remove it if anyone ever notices.
+- [x] 2026-11-08 (F203, PR #246): Snake: "CRASH!" popped at the crash cell, and since most
+      crashes are at a wall (where crashPopY keeps it inside the arena) it sat straight up the
+      crashed snake's own trail (solo-round-snake.png). It now takes the nearest x on its line
+      that misses every trail cell and head, else the nearest clear line: readable CRASH! frames
+      on a trail 4,981/5,127 -> 183 (bot matches, 3 levels x 10 seeds). tests/snake-crash-pop.test.ts.

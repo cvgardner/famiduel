@@ -96,6 +96,53 @@ class SnakeView implements GameInstance {
     }
     return home;
   }
+  /**
+   * F203: the x nearest the crash where a "CRASH!" pop (rising POP_RISE toward the crasher's far
+   * side from line `y`) covers no trail cell and no head. A crash at a wall popped straight up the
+   * crashed snake's own trail (crashPopY keeps it in the arena, so it sat on the body).
+   * Null when every x on that line meets a trail.
+   */
+  crashPopX(str: string, size: number, x0: number, y: number, p: PlayerIndex): number | null {
+    const g = this.game;
+    const half = ([...str].length * size * 0.55) / 2;
+    const rise = p === 0 ? -POP_RISE : POP_RISE;
+    const top = Math.min(y, y + rise) - size * 0.45 - C / 2;
+    const bot = Math.max(y, y + rise) + size * 0.45 + C / 2;
+    const cells: number[] = [];
+    for (let gy = 0; gy < ROWS; gy++) {
+      const yy = cy(gy);
+      if (yy < top || yy > bot) continue;
+      for (let gxi = 0; gxi < COLS; gxi++) if (g.grid[g.idx(gxi, gy)]) cells.push(cx(gxi));
+    }
+    for (const q of PLAYERS) {
+      const h = g.snakes[q];
+      if (cy(h.y) >= top && cy(h.y) <= bot) cells.push(cx(h.x));
+    }
+    const clear = (x: number) => !cells.some((c) => c > x - half - C / 2 && c < x + half + C / 2);
+    const lo = OX + half;
+    const hi = OX + AW - half;
+    const home = Math.min(hi, Math.max(lo, x0));
+    if (clear(home)) return home;
+    for (let d = 2; d <= AW; d += 2) {
+      for (const x of [home - d, home + d]) if (x >= lo && x <= hi && clear(x)) return x;
+    }
+    return null;
+  }
+
+  /** F203: the crash pop's spot: its own line if any x there is clear, else the nearest clear line. */
+  crashPop(str: string, size: number, x0: number, y0: number, p: PlayerIndex): { x: number; y: number } {
+    const lo = crashPopY(OY, p);
+    const hi = crashPopY(OY + AH, p);
+    for (let d = 0; d <= AH; d += 4) {
+      for (const y of d ? [y0 - d, y0 + d] : [y0]) {
+        if (y < lo || y > hi) continue;
+        const x = this.crashPopX(str, size, x0, y, p);
+        if (x !== null) return { x, y };
+      }
+    }
+    return { x: x0, y: y0 };
+  }
+
   update(dt: number, input: Input): void {
     this.t += dt;
     const g = this.game;
@@ -134,7 +181,8 @@ class SnakeView implements GameInstance {
         fx.shake(8, 0.3);
         fx.burst(cx(e.x), cy(e.y), players[e.p].color, 34, 260, 4);
         fx.burst(cx(e.x), cy(e.y), '#ffffff', 12, 160, 3);
-        fx.pop('CRASH!', cx(e.x), crashPopY(cy(e.y), e.p), '#ffffff', e.p, 22);
+        const at = this.crashPop('CRASH!', 22, cx(e.x), crashPopY(cy(e.y), e.p), e.p);
+        fx.pop('CRASH!', at.x, at.y, '#ffffff', e.p, 22);
       } else if (e.type === 'headon') {
         sfx.play('buzz');
         fx.flash('#ffffff', 0.2);
