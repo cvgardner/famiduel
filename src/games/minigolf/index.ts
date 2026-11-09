@@ -209,12 +209,72 @@ class MinigolfView implements GameInstance {
     return null;
   }
 
+  /**
+   * F193: the start line for a seat's centre pop ("Birdie!", "Splash! +1 stroke", a power's
+   * name) whose whole rise (fx floats it 36 px: up for seat 0, down for seat 1) stays off the
+   * hole's inner walls and moving obstacles, as the seat sees the course now. It steps out
+   * toward that seat's own edge (never into the other seat's pop) and keeps `y` if no line
+   * within 200 px is clear. Warm-Up Lane's diamond sat right under both seats' pops.
+   */
+  clearPopY(str: string, size: number, x: number, y: number, p: PlayerIndex): number {
+    const half = ([...str].length * size * 0.55) / 2;
+    const rise = p === 0 ? -36 : 36;
+    const h = this.game.hole;
+    const segs: [number, number, number, number, number][] = [];
+    for (const w of h.walls) {
+      if (w.kind === 'border') continue;
+      const n = w.closed ? w.pts.length : w.pts.length - 1;
+      for (let i = 0; i < n; i++) {
+        const a = w.pts[i];
+        const b = w.pts[(i + 1) % w.pts.length];
+        segs.push([a[0], a[1], b[0], b[1], w.closed ? 3 : 6]);
+      }
+    }
+    for (const m of moverSegs(h, this.game.t)) segs.push([m.ax, m.ay, m.bx, m.by, m.thick / 2 + 1]);
+    const scr = segs.map(([ax, ay, bx, by, pad]) => {
+      const a = this.toScreen(ax, ay);
+      const b = this.toScreen(bx, by);
+      return { a, b, pad };
+    });
+    const solids = h.walls.filter((w) => w.kind !== 'border' && w.closed).map((w) => w.pts.map(([px, py]) => this.toScreen(px, py)));
+    const inside = (poly: { x: number; y: number }[], px: number, py: number) => {
+      let c = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const a = poly[i];
+        const b = poly[j];
+        if (a.y > py !== b.y > py && px < ((b.x - a.x) * (py - a.y)) / (b.y - a.y) + a.x) c = !c;
+      }
+      return c;
+    };
+    const hits = (cy: number) => {
+      const top = Math.min(cy, cy + rise) - size * 0.45;
+      const bot = Math.max(cy, cy + rise) + size * 0.45;
+      for (const { a, b, pad } of scr) {
+        const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 3));
+        for (let k = 0; k <= steps; k++) {
+          const px = a.x + ((b.x - a.x) * k) / steps;
+          const py = a.y + ((b.y - a.y) * k) / steps;
+          if (px > x - half - pad && px < x + half + pad && py > top - pad && py < bot + pad) return true;
+        }
+      }
+      return solids.some((poly) => inside(poly, x, (top + bot) / 2));
+    };
+    if (!hits(y)) return y;
+    const out = p === 0 ? 1 : -1;
+    for (let d = 2; d <= 200; d += 2) {
+      const cy = y + out * d;
+      if (cy < size || cy > H - size) break;
+      if (!hits(cy)) return cy;
+    }
+    return y;
+  }
+
   private juice(): void {
     const g = this.game;
     const { sfx, fx, players } = this.ctx;
     const both = (str: string, x: number, y: number, color: string, size = 26) => {
-      fx.pop(str, x, y + 40, color, 0, size);
-      fx.pop(str, x, y - 40, color, 1, size);
+      fx.pop(str, x, this.clearPopY(str, size, x, y + 40, 0), color, 0, size);
+      fx.pop(str, x, this.clearPopY(str, size, x, y - 40, 1), color, 1, size);
       this.centrePop = 0.9;
     };
     for (const e of g.events) {
@@ -280,8 +340,9 @@ class MinigolfView implements GameInstance {
         sfx.play('power');
         const pw = players[e.p].power!;
         fx.flash('#ffd54a', 0.15);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, MID + 70, COLORS.gold, 0, 26);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, MID - 70, COLORS.gold, 1, 26);
+        const name = `${pw.icon} ${pw.name}!`;
+        fx.pop(name, W / 2, this.clearPopY(name, 26, W / 2, MID + 70, 0), COLORS.gold, 0, 26);
+        fx.pop(name, W / 2, this.clearPopY(name, 26, W / 2, MID - 70, 1), COLORS.gold, 1, 26);
       } else if (e.type === 'holeEnd') {
         sfx.play('count');
       } else if (e.type === 'win' && !this.ended) {

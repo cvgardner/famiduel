@@ -1724,3 +1724,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tank (518 of 6,656 readable frames in ten bot matches). Each seat's copy now starts on
       the nearest line whose whole rise misses both tanks and their rings (clearOfTanks):
       5 frames, a tank driving into it. tests/tanks-clink.test.ts.
+- [x] 2026-11-08 (F193, PR #PRNUM): Minigolf: the centre pops ("Birdie!", "Splash! +1 stroke",
+      "Picked up", a power's name) started on a fixed line either side of the middle, so on
+      15 of 23 holes they rose across an inner wall or mover (Warm-Up Lane's diamond sat right
+      under both seats' words). Each seat's copy now steps out toward its own edge until its
+      whole rise is on open green (clearPopY): 0 blocked on every hole, both facings.
+      tests/minigolf-pop-walls.test.ts.

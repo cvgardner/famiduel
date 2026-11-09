@@ -23,7 +23,8 @@ function play(seed: number): { banners: number; clashes: string[]; pops: number 
   const centre = new Set<string>();
   const pop = fx.pop.bind(fx);
   fx.pop = (str, x, y, ...rest) => {
-    if (x === W / 2 && (y === MID + 40 || y === MID - 40)) centre.add(str);
+    // F193: a centre pop starts off the walls, so its line moves; its x stays the middle.
+    if (x === W / 2 && Math.abs(y - MID) >= 40) centre.add(str);
     pop(str, x, y, ...rest);
   };
   const view = GAMES.minigolf.create({ seed, rng: makeRng(seed), players, powersOn: false, sfx, fx, end() {} }) as unknown as View;
