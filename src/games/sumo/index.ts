@@ -253,6 +253,10 @@ class SumoView implements GameInstance {
         const [ot, ob] = band(other.seat, other.y);
         if (top < ob && ot < bot) return false;
       }
+      // F200: nor over either seat's HOLD or power button (a clash by the top rope sent the
+      // bottom player's KA-BOOM! rising over the top player's HOLD).
+      const btns = [...this.buttons, ...this.powerBtns.map((pb) => pb?.button)];
+      if (btns.some((b) => b && Math.hypot(b.x - Math.max(x - w, Math.min(x + w, b.x)), b.y - Math.max(top, Math.min(bot, b.y))) < b.r)) return false;
       return PLAYERS.every((q) => {
         const wr = g.wrestlers[q];
         const r = q === p && grow ? RULES.bodyR * RULES.growScale : g.radius(q);
