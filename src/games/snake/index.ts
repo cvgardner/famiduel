@@ -65,6 +65,37 @@ class SnakeView implements GameInstance {
     });
   }
 
+
+  /**
+   * F195: the line nearest `home` where a seat's centred pop (it floats POP_RISE toward the
+   * far side for 0.9 s) misses both snake heads and the cells each will cover in the next
+   * half second if it keeps going straight. A power used mid-round printed its name on a
+   * head in 6% of readable frames, right where that player is steering.
+   */
+  clearOfHeads(str: string, size: number, home: number, p: PlayerIndex): number {
+    const g = this.game;
+    const half = ([...str].length * size * 0.55) / 2 + C;
+    const rise = p === 0 ? -POP_RISE : POP_RISE;
+    const spots: { x: number; y: number }[] = [];
+    for (const q of PLAYERS) {
+      const s = g.snakes[q];
+      if (!s.alive) continue;
+      const ahead = Math.ceil(g.speed(q) * 0.5);
+      for (let k = 0; k <= ahead; k++) spots.push({ x: cx(s.x + DX[s.dir] * k), y: cy(s.y + DY[s.dir] * k) });
+    }
+    const hits = (y: number) => {
+      const top = Math.min(y, y + rise) - size * 0.45 - C;
+      const bot = Math.max(y, y + rise) + size * 0.45 + C;
+      return spots.some((h) => h.x > W / 2 - half && h.x < W / 2 + half && h.y > top && h.y < bot);
+    };
+    const lo = OY + size / 2 + (p === 0 ? POP_RISE : 0);
+    const hi = OY + AH - size / 2 - (p === 1 ? POP_RISE : 0);
+    if (!hits(home)) return home;
+    for (let d = 2; d <= AH; d += 2) {
+      for (const y of [home - d, home + d]) if (y >= lo && y <= hi && !hits(y)) return y;
+    }
+    return home;
+  }
   update(dt: number, input: Input): void {
     this.t += dt;
     const g = this.game;
@@ -121,8 +152,10 @@ class SnakeView implements GameInstance {
         sfx.play('power');
         const pw = players[e.p].power!;
         fx.flash('#ffd54a', 0.12);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 70 : MID - 70, COLORS.gold, e.p, 24);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 70 : MID - 70, popColor(players[e.p].color), other(e.p), 16);
+        const name = `${pw.icon} ${pw.name}!`;
+        const home = e.p === 0 ? MID + 70 : MID - 70;
+        fx.pop(name, W / 2, this.clearOfHeads(name, 24, home, e.p), COLORS.gold, e.p, 24);
+        fx.pop(name, W / 2, this.clearOfHeads(name, 16, home, other(e.p)), popColor(players[e.p].color), other(e.p), 16);
       } else if (e.type === 'roundStart') {
         sfx.play('go');
       } else if (e.type === 'roundEnd') {
