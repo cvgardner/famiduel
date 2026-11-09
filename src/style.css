@@ -348,12 +348,16 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* In play, first match only: the same finger, twice the size, over each person's half
    (seat 1's turned to face them). Never takes a touch; gone a second after GO (PLAY_DEMO_MS). */
 .play-demo { position: absolute; left: calc(50% + var(--dx, 0%)); top: calc(var(--at, 0.72) * 100%); translate: -50% -50%; pointer-events: none; z-index: 2;
-  scale: var(--s, 2); animation: play-demo 2.8s ease-in-out forwards; transition: opacity 0.25s; }
+  scale: var(--s, 2); transition: opacity 0.25s;
+  /* F214: the card fades out with its finger (--out / --fade from demo.ts PLAY_DEMO_OUT), so
+     no empty dark box is left over the person's half once the finger's loop has ended. */
+  animation: play-demo-in 0.22s ease-out both, play-demo-out var(--fade, 0.4s) ease-in-out var(--out, 1.9s) forwards; }
 /* Seat 1's copy is turned to face them, so their right of the digit is the screen's left (F152). */
 .play-demo.p1 { left: calc(50% - var(--dx, 0%)); top: calc((1 - var(--at, 0.72)) * 100%); rotate: 180deg; }
 .play-demo.gone { opacity: 0 !important; animation: none; }
 .play-demo .demo { background: rgba(10,9,24,0.55); }
-@keyframes play-demo { 0% { opacity: 0; } 8%, 70% { opacity: 0.95; } 100% { opacity: 0; } }
+@keyframes play-demo-in { from { opacity: 0; } to { opacity: 0.95; } }
+@keyframes play-demo-out { from { opacity: 0.95; } to { opacity: 0; } }
 /* A left-handed player's stick demo is mirrored, like their controls. */
 .demo.lefty { transform: scaleX(-1); }
 .demo i { position: absolute; display: block; left: 50%; top: 50%; transform: translate(-50%, -50%);
