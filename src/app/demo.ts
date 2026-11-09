@@ -49,7 +49,39 @@ export function playDemoHtml(g: Gesture, p: number, lefty = false, at = 0.72, ke
   // keeper: Penalty's two-role loop starts on its second half (the keeper's dive), for the
   // seat that keeps goal first (F138); the ~2.8 s in play only fits one role.
   const side = besideCountdown(at) ? `;--dx:${DEMO_BESIDE_DX}%;--s:${DEMO_BESIDE_SCALE}` : '';
-  return `<div class="play-demo p${p}${keeper ? ' keeper' : ''}" data-p="${p}" style="--at:${at}${side}" aria-hidden="true">${demoHtml(g, lefty)}</div>`;
+  const [out, gone] = playDemoOut(g, keeper);
+  const fade = `;--out:${out}s;--fade:${round2(gone - out)}s`;
+  return `<div class="play-demo p${p}${keeper ? ' keeper' : ''}" data-p="${p}" style="--at:${at}${side}${fade}" aria-hidden="true">${demoHtml(g, lefty)}</div>`;
+}
+
+const round2 = (x: number) => Math.round(x * 100) / 100;
+
+/**
+ * F214: when each gesture's finger fades out in its first loop (seconds after it starts:
+ * [last fully shown, gone]), read from the `d-<gesture>-f` keyframes in style.css
+ * (2.6 s loops; Penalty's two-role loop is 5.2 s and the keeper's copy starts 2.6 s in).
+ * The in-play card fades over the same stretch, so it never shows as an empty dark box
+ * over a person's half after the finger has gone. tests/demo.test.ts checks the CSS.
+ */
+export const PLAY_DEMO_OUT: Record<Gesture, readonly [number, number]> = {
+  tap: [1.82, 2.21],
+  tap2: [2.08, 2.39],
+  sides: [1.72, 2.13],
+  hold: [1.64, 2.08],
+  pull: [1.46, 1.87],
+  swipe: [0.83, 1.14],
+  slide: [1.95, 2.47],
+  drag: [2.18, 2.6],
+  move: [1.66, 2.08],
+  drop: [1.3, 1.72],
+  stick: [1.95, 2.29],
+  kick: [0.83, 1.14],
+};
+/** Penalty's keeper-first copy: the dive's finger, 2.6 s into the 5.2 s loop. */
+export const PLAY_DEMO_OUT_KEEPER: readonly [number, number] = [1.82, 2.18];
+
+export function playDemoOut(g: Gesture, keeper = false): readonly [number, number] {
+  return keeper && g === 'kick' ? PLAY_DEMO_OUT_KEEPER : PLAY_DEMO_OUT[g];
 }
 
 /** Each person's "3 2 1" digit sits this far from the middle line (world units; runner.ts). */

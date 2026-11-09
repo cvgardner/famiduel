@@ -1820,3 +1820,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       pills (the trunk to a 30% stub, branches gone), fading in smoothly as the trunk drops
       after a chop; the chopper's segment and the next three are fully drawn.
       tests/chopchop-tree-hud.test.ts.
+- [x] 2026-11-08 (F214): First-match ghost finger: the in-play card faded over 1.96-2.8 s
+      while its finger had already ended its loop (Snack Snatch / Chop Chop / Snake by
+      2.13 s), so an empty dark box sat over the person's half around 2.6 s. The card now
+      fades over the same stretch as its own gesture's finger (demo.ts PLAY_DEMO_OUT, read
+      from the `d-<gesture>-f` keyframes; Penalty's keeper copy has its own). Unit test
+      checks the table against style.css; the ghost-finger playtest checks no card at 2.6 s.

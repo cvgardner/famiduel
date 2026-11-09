@@ -413,6 +413,14 @@ test('ghost finger: the first match shows it in play over each person\'s half, t
   c = await copies();
   expect(c.find((x) => x.p === 0)!.gone, 'a touch clears that seat\'s finger').toBe(true);
   expect(c.find((x) => x.p === 1)!.gone, 'the other seat keeps theirs').toBe(false);
+  // F214: the card fades out with its finger's loop (Ping Pong's slide is gone by 2.47 s),
+  // so at 2.6 s no empty dark card is left over the top player's half.
+  await page.waitForTimeout(Math.max(0, 2600 - (Date.now() - t0)));
+  const left = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('#play .play-demo')].map((el) => Number(getComputedStyle(el).opacity)),
+  );
+  expect(left.filter((o) => o > 0.05), 'no finger card still showing at 2.6 s').toEqual([]);
+  await page.screenshot({ path: path.join(OUT, 'ghost-finger-at-2.6s.png') });
   // It fades away by itself, about a second after GO (F137: it hid goals and snacks).
   await expect.poll(async () => (await copies()).length, { message: 'the finger is gone about a second after GO', timeout: Math.max(200, 3800 - (Date.now() - t0)) }).toBe(0);
   // Second match of the same game: none. A bot seat never gets one.
