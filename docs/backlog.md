@@ -1758,3 +1758,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       over the next 0.55 s, since the two seats' pops rise opposite ways); one word popped for
       both seats (a BONK! pair) stays as placed. 0 frames in all ten action games.
       tests/pops-cross-seat.test.ts, tests/pops.test.ts.
+- [x] 2026-11-08 (F200, PR #243): Sumo: a clash by the top rope sent the bottom player's
+      KA-BOOM! (rising up the screen) over the top player's HOLD button: 262 of 1,768 readable
+      KA-BOOM! frames (normal bots, every power pair, 4 seeds), BONK! and Grow! too. Clash and
+      power pops now only take lines whose rise misses both HOLD buttons and both power
+      buttons: all pops 5.5% -> 0.4% (a few Ground Pound! frames where fx moves the name off
+      another pop). tests/sumo-pop-buttons.test.ts.
