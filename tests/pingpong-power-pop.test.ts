@@ -5,7 +5,7 @@ import type { PlayerInfo, PowerDef } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
 import type { Input } from '../src/engine/input';
 import type { Sfx } from '../src/engine/sfx';
-import { MID, W } from '../src/engine/world';
+import { MID } from '../src/engine/world';
 import { GAMES } from '../src/games/registry';
 import { RULES, type PingPong } from '../src/games/pingpong/logic';
 import { DT, player } from './helpers';
