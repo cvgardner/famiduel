@@ -181,12 +181,23 @@ class TankView implements GameInstance {
     const hits = (cy: number) => {
       const top = Math.min(cy, cy + rise) - size * 0.45;
       const bot = Math.max(cy, cy + rise) + size * 0.45;
-      return this.game.tanks.some((tk) => {
-        const nx = Math.max(x - half, Math.min(x + half, tk.x));
-        const ny = Math.max(top, Math.min(bot, tk.y));
-        return Math.hypot(tk.x - nx, tk.y - ny) < TANK_CLEAR;
-      });
+      // F205: and where a driving tank will be over the next half second (straight ahead).
+      return this.game.tanks.some((tk) =>
+        [0, 0.25, 0.5].some((t) => {
+          const tx = tk.x + Math.cos(tk.a) * tk.speed * t;
+          const ty = tk.y + Math.sin(tk.a) * tk.speed * t;
+          const nx = Math.max(x - half, Math.min(x + half, tx));
+          const ny = Math.max(top, Math.min(bot, ty));
+          return Math.hypot(tx - nx, ty - ny) < TANK_CLEAR;
+        }),
+      );
     };
+    // F205: a line another of this seat's pops holds would be moved off by fx.pop, back onto a tank.
+    const ok = (cy: number) => !hits(cy) && this.ctx.fx.popFits(str, x, cy, size, p);
+    if (ok(y)) return y;
+    for (let d = 2; d <= 160; d += 2) {
+      for (const cy of [y - d, y + d]) if (cy > size && cy < H - size && ok(cy)) return cy;
+    }
     if (!hits(y)) return y;
     for (let d = 2; d <= 160; d += 2) {
       for (const cy of [y - d, y + d]) if (cy > size && cy < H - size && !hits(cy)) return cy;
@@ -194,9 +205,14 @@ class TankView implements GameInstance {
     return y;
   }
 
+  /** F205: a seat's pop, started on the nearest line whose rise misses both tanks. */
+  private popClear(str: string, x: number, y: number, color: string, p: PlayerIndex, size: number): void {
+    this.ctx.fx.pop(str, x, this.clearOfTanks(str, size, x, y, p), color, p, size);
+  }
+
   private popBoth(str: string, x: number, y: number, color: string, size = 26): void {
-    this.ctx.fx.pop(str, x, y - size * 0.8, color, 0, size);
-    this.ctx.fx.pop(str, x, y + size * 0.8, color, 1, size);
+    this.popClear(str, x, y - size * 0.8, color, 0, size);
+    this.popClear(str, x, y + size * 0.8, color, 1, size);
   }
 
   private handleEvents(): void {
@@ -209,7 +225,7 @@ class TankView implements GameInstance {
       } else if (e.type === 'dud') {
         sfx.play('click');
         fx.burst(e.x, e.y, '#9a9a9a', 6, 60, 3);
-        fx.pop('fizz', e.x, e.y + (e.p === 0 ? -10 : 10), '#cfcfcf', e.p, 14);
+        this.popClear('fizz', e.x, e.y + (e.p === 0 ? -10 : 10), '#cfcfcf', e.p, 14);
       } else if (e.type === 'bounce') {
         sfx.play('bounce');
         fx.burst(e.x, e.y, e.bouncy ? COLORS.gold : '#ffffff', e.bouncy ? 7 : 3, 80, 2);
@@ -223,7 +239,7 @@ class TankView implements GameInstance {
       } else if (e.type === 'block') {
         sfx.play('pop');
         fx.burst(e.x, e.y, '#8fe3ff', 12, 120, 3);
-        fx.pop('blocked!', e.x, e.y + (e.p === 0 ? -16 : 16), '#8fe3ff', e.p, 16);
+        this.popClear('blocked!', e.x, e.y + (e.p === 0 ? -16 : 16), '#8fe3ff', e.p, 16);
       } else if (e.type === 'hit') {
         sfx.play('thud');
         sfx.play('hit');
@@ -236,8 +252,8 @@ class TankView implements GameInstance {
         this.popBoth('BONK!', tk.x, tk.y, COLORS.gold, 30);
         const scorer = other(e.p);
         const msg = e.self ? 'Oops! Own shot' : e.mine ? 'Mine got you!' : 'Bonked!';
-        fx.pop(msg, W / 2, e.p === 0 ? ARENA.y + ARENA.h - 30 : ARENA.y + 30, '#ffffff', e.p, 18);
-        fx.pop(`+1`, W / 2, scorer === 0 ? ARENA.y + ARENA.h - 30 : ARENA.y + 30, players[scorer].color, scorer, 24);
+        this.popClear(msg, W / 2, e.p === 0 ? ARENA.y + ARENA.h - 30 : ARENA.y + 30, '#ffffff', e.p, 18);
+        this.popClear(`+1`, W / 2, scorer === 0 ? ARENA.y + ARENA.h - 30 : ARENA.y + 30, players[scorer].color, scorer, 24);
       } else if (e.type === 'mine') {
         sfx.play('click');
         fx.burst(e.x, e.y, players[e.p].color, 6, 60, 2);
@@ -255,8 +271,8 @@ class TankView implements GameInstance {
         const tk = g.tanks[e.p];
         fx.flash('#ffd54a', 0.12);
         fx.burst(tk.x, tk.y, COLORS.gold, 16, 160, 3);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 60 : MID - 60, COLORS.gold, e.p, 24);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 30 : MID - 30, popColor(players[e.p].color), other(e.p), 16);
+        this.popClear(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 60 : MID - 60, COLORS.gold, e.p, 24);
+        this.popClear(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 30 : MID - 30, popColor(players[e.p].color), other(e.p), 16);
       } else if (e.type === 'round') {
         sfx.play('count');
         this.dizzy = [null, null];

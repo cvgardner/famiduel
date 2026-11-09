@@ -1783,3 +1783,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       crashed snake's own trail (solo-round-snake.png). It now takes the nearest x on its line
       that misses every trail cell and head, else the nearest clear line: readable CRASH! frames
       on a trail 4,981/5,127 -> 183 (bot matches, 3 levels x 10 seeds). tests/snake-crash-pop.test.ts.
+- [x] 2026-11-08 (F205, PR #247): Tank Duel: the hit and power pops printed on a tank: "Oops!
+      Own shot" on 624/1,118 readable frames, BONK! 57%, power names 16-32%, "blocked!" 22%,
+      "Bonked!" / "+1" 14-18% (they start where the tanks respawn, or fx.pop stacked them off
+      a clear line back onto one). Every Tank Duel pop now goes through clearOfTanks, which
+      also skips lines another of that seat's pops holds and where a driving tank will be in
+      the next half second: 0-0.3% (bot matches, 3 levels x 9 seeds, powers on).
+      tests/tanks-pops-clear.test.ts.
