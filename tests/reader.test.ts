@@ -89,11 +89,15 @@ describe('Play the bot: canvas words face the one person (F118)', () => {
     text(g, 'In the hole', 40, 60, { player: 1, size: 14 });
     text(g, 'In the hole', 40, 580, { player: 0, size: 14 });
     text(g, 'Bot wins the round!', 180, 200, { player: 1, size: 30 });
+    // F204: a line only the bot's seat draws shows from its second frame.
+    setReader(0, g);
+    text(g, 'Bot wins the round!', 180, 200, { player: 1, size: 30 });
     expect(drawn.map((d) => `${d.str}@${Math.round(d.y)}`)).toEqual([
-      // Frame 1: the bot's copy came before the person's, so both drew this once.
-      'Round 2@200', 'Round 2@440',
+      // Frame 1: the bot's copy came before the person's; it waits a frame, so it never doubles (F204).
       'Round 2@440',
-      '3@40', '3@600', 'In the hole@60', 'In the hole@580', 'Bot wins the round!@200',
+      'Round 2@440',
+      '3@40', '3@600', 'In the hole@60', 'In the hole@580',
+      'Bot wins the round!@200',
     ]);
   });
 });
