@@ -1814,3 +1814,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (PR #251): GitHub CI timed out tests/tanks.test.ts "two equal bots win about
       as many first rounds from either seat" at 120 s (125 s on PR #250; ~50 s locally). Its
       budget is now 300 s; the test itself is unchanged.
+- [x] 2026-11-08 (F209, PR #TBD): Chop Chop: the tree's segments above the next three ran up
+      under the timer bar and the count pills, and their leaves peeked out beside "/ 50" and the
+      round pips (clutter at 390 px). Segments from the fourth up now fade out by the count
+      pills (the trunk to a 30% stub, branches gone), fading in smoothly as the trunk drops
+      after a chop; the chopper's segment and the next three are fully drawn.
+      tests/chopchop-tree-hud.test.ts.
