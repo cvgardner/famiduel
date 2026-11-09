@@ -378,8 +378,9 @@ describe('pops stay apart (F148)', () => {
     // started nearer; none does, and the nearest still ends inside its own half.
     expect(GOAL_POP_Y - 0.9 * 40 - 40 / 2).toBeGreaterThan(0);
     const src = (await import('node:fs')).readFileSync('src/games/airhockey/index.ts', 'utf8');
-    expect(src).toMatch(/fx\.pop\('GOAL!', W \/ 2, MID \+ GOAL_POP_Y/);
-    expect(src).toMatch(/pw\.name\}!`, W \/ 2, e\.p === 0 \? MID \+ POWER_POP_Y/);
-    expect(src).toMatch(/'Your shot!', W \/ 2, e\.p === 0 \? MID \+ SHOT_POP_Y/);
+    // F196: each starts at its line unless a puck (or a still-bright pop) is there.
+    expect(src).toMatch(/fx\.pop\('GOAL!', W \/ 2, this\.clearOfPucks\('GOAL!', 40, MID \+ GOAL_POP_Y, 0\)/);
+    expect(src).toMatch(/clearOfPucks\(name, 26, e\.p === 0 \? MID \+ POWER_POP_Y/);
+    expect(src).toMatch(/clearOfPucks\('Your shot!', 26, e\.p === 0 \? MID \+ SHOT_POP_Y/);
   });
 });
