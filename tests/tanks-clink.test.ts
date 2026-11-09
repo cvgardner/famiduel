@@ -44,5 +44,5 @@ describe('Tank Duel: "clink!" stays off the tanks', () => {
     expect([...seats].sort()).toEqual([0, 1]);
     expect(frames).toBeGreaterThan(100);
     expect(covered / frames).toBeLessThan(0.02);
-  });
+  }, 60_000); // whole bot matches: GitHub CI runs ~3x slower than a laptop
 });
