@@ -1730,3 +1730,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       under both seats' words). Each seat's copy now steps out toward its own edge until its
       whole rise is on open green (clearPopY): 0 blocked on every hole, both facings.
       tests/minigolf-pop-walls.test.ts.
+- [x] 2026-11-08 (F195, PR #239): Snake: a power's name popped at a fixed line (MID ± 70)
+      for both seats, so it printed on a snake head in 871 of 14,560 readable frames (6%, normal
+      bots, every power pair, 8 seeds), right where that player was steering. Each seat's copy
+      now starts on the nearest line whose rise misses both heads and the cells they will cross
+      in the next half second (clearOfHeads): 0 frames. tests/snake-power-pop.test.ts.
