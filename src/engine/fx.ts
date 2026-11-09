@@ -2,7 +2,7 @@
 // it uses Math.random and never affects a game's result.
 
 import { reducedMotion } from './calm';
-import { contrastRatio, over, parseColor } from '../core/contrast';
+import { contrastRatio, luminance, over, parseColor } from '../core/contrast';
 import { COLORS, fitSize, insideX, text, type G } from './draw';
 import { W, H } from './world';
 
@@ -15,6 +15,15 @@ type Floater = { str: string; x: number; y: number; life: number; max: number; c
  * pink pops at 4.5:1 on Sumo's pale sand (at 50% "Last rope save!" was 2.4:1).
  */
 export const POP_OUTLINE = 'rgba(0,0,0,0.75)';
+/** F211: a dark-ink pop (Snack Snatch's "Miss!" on the pale blanket) gets a light halo instead:
+ *  the black outline ran its letters together into one dark smudge. */
+export const POP_OUTLINE_LIGHT = 'rgba(255,255,255,0.8)';
+
+/** The outline a pop in `color` is drawn with: dark round light words, light round dark ones. */
+export function popOutline(color: string): string {
+  const c = parseColor(color);
+  return c && luminance([c[0], c[1], c[2]]) < 0.1 ? POP_OUTLINE_LIGHT : POP_OUTLINE;
+}
 
 /**
  * A pop's colour, lightened (mixed toward white) until it reads at 4.5:1 on the dark floor
@@ -212,7 +221,7 @@ export class Fx {
       // Pops land where things happen, often by a wall: shrink a long one to fit and
       // keep its words on screen (Bigger text makes them wider).
       const size = fitSize(g, f.str, W - 16, f.size);
-      text(g, f.str, insideX(g, f.str, f.x, size), f.y, { size, color: f.color, player: f.player, stroke: POP_OUTLINE, alpha: Math.min(1, f.life / f.max * 1.6), pair });
+      text(g, f.str, insideX(g, f.str, f.x, size), f.y, { size, color: f.color, player: f.player, stroke: popOutline(f.color), alpha: Math.min(1, f.life / f.max * 1.6), pair });
     }
     if (this.flashT > 0) {
       // A quarter as bright with reduce motion on: still says "something happened", without a strobe.

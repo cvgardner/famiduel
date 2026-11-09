@@ -325,7 +325,9 @@ describe('snack snatch miss pop (F143)', () => {
     const call = src.match(/fx\.pop\('Miss!',[^;]*\);/)?.[0];
     expect(call, 'the miss pop').toBeTruthy();
     const args = call!.slice(7, -2).split(/,(?![^(]*\))/).map((a) => a.trim());
-    expect(args[3], 'solid white, not see-through').toBe("'#fff'");
+    // F211: solid dark ink (white was see-through-pale on the blanket); still not see-through.
+    expect(args[3], 'the solid miss ink').toBe('MISS_INK');
+    expect(src, 'MISS_INK is an opaque colour').toMatch(/const MISS_INK = '#[0-9a-f]{6}';/);
     expect(Number(args[5]), 'at least 18 units (~16 px on a 320 px phone)').toBeGreaterThanOrEqual(18);
   });
 });
