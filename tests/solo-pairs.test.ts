@@ -14,8 +14,8 @@ const idle = { of: () => [], all: () => [], key: () => false, keyPressed: () => 
 /**
  * Plays the bot against a person who never touches the screen, rendering every frame with the
  * solo reader, and returns each line of words (a letter, 5+ characters) that read twice for the
- * person in more than one frame in a row. A single frame is the known lag when the bot's seat
- * draws first (draw.ts can only skip a copy it has already seen).
+ * person in any frame. F204: that includes the first frame when the bot's seat draws first
+ * (a turned copy waits a frame, so the person's own copy claims the line).
  */
 function doubled(id: string, botSeat: 0 | 1): Record<string, number> {
   const players: [PlayerInfo, PlayerInfo] = botSeat === 1 ? [player({ bot: null }), player({ bot: 'normal' })] : [player({ bot: 'normal' }), player({ bot: null })];
@@ -56,7 +56,7 @@ function doubled(id: string, botSeat: 0 | 1): Record<string, number> {
     for (const [s, n] of Object.entries(seen)) {
       if (n < 2) continue;
       run[s] = (run[s] ?? 0) + 1;
-      if (run[s] > 1) worst[s] = Math.max(worst[s] ?? 0, run[s]);
+      worst[s] = Math.max(worst[s] ?? 0, run[s]);
     }
   }
   return worst;

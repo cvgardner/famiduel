@@ -1775,9 +1775,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       fx marks pops born together for both seats at one x (popBoth) as pairs, so two frogs'
       separate "Miss!" pops both stay. tests/solo-pairs.test.ts plays every shown game against
       an idle person and fails on a line read twice for more than a frame.
-- [ ] When the bot sits in seat 0, its copy of a paired line draws before the person's, so it
+- [x] When the bot sits in seat 0, its copy of a paired line draws before the person's, so it
       still shows for the first frame (draw.ts can only skip a copy it has seen). One frame at
       60 fps; drawing the person's seat first would remove it if anyone ever notices.
+      2026-11-08 (F204, PR #250): the bot seat's copy of a banner or paired line now waits one
+      frame before it draws, so the person's own copy claims it first (POINT!, GOAL!, Too slow!
+      no longer read twice for a frame); a line only the bot's seat draws shows 1/60 s late.
+      tests/solo-pairs.test.ts has no one-frame allowance any more; reader.test.ts updated.
 - [x] 2026-11-08 (F203, PR #246): Snake: "CRASH!" popped at the crash cell, and since most
       crashes are at a wall (where crashPopY keeps it inside the arena) it sat straight up the
       crashed snake's own trail (solo-round-snake.png). It now takes the nearest x on its line

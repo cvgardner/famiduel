@@ -41,6 +41,8 @@ export function setReader(seat: 0 | 1 | null, g?: G): void {
     reader = { seat, a: m.a, b: m.b };
     shownBefore = shownNow;
     shownNow = new Set();
+    turnedBefore = turnedNow;
+    turnedNow = new Set();
   }
 }
 /**
@@ -51,6 +53,14 @@ export function setReader(seat: 0 | 1 | null, g?: G): void {
  */
 let shownNow = new Set<string>();
 let shownBefore = new Set<string>();
+/**
+ * F204: the bot seat's copies of those lines last frame. A turned copy only draws from its
+ * second frame on, so when the bot's seat draws first (bot in seat 0) the person's own copy
+ * later that frame has already claimed the line: no frame shows it twice. A line only the
+ * bot's seat draws shows one frame (1/60 s) late.
+ */
+let turnedNow = new Set<string>();
+let turnedBefore = new Set<string>();
 const BANNER_SIZE = 22;
 function isBanner(str: string, size: number): boolean {
   return size >= BANNER_SIZE && str.length >= 5 && /\p{L}/u.test(str);
@@ -297,7 +307,10 @@ export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}):
     const turned = turnedFromReader(g);
     if (reader && (o.pair || isBanner(str, base))) {
       if (!turned) shownNow.add(str);
-      else if (shownNow.has(str) || shownBefore.has(str)) return;
+      else {
+        turnedNow.add(str);
+        if (shownNow.has(str) || shownBefore.has(str) || !turnedBefore.has(str)) return;
+      }
     }
     if (turned) {
       seat = seat === 1 ? 0 : 1;
