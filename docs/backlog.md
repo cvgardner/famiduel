@@ -1790,3 +1790,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       also skips lines another of that seat's pops holds and where a driving tank will be in
       the next half second: 0-0.3% (bot matches, 3 levels x 9 seeds, powers on).
       tests/tanks-pops-clear.test.ts.
+- [x] 2026-11-08 (F206, PR #248): Penalty: "Your kick!" started at MID ± 70, right on the ball
+      at the spot (3,872/6,292 readable frames; "Sudden death! Your kick" 640/1,040), and a
+      saved ball bounced back up the middle through "SAVED!" (1,420/5,096). The kick line now
+      starts just past the ball toward the goal (the "<power> ready" spot, which only shows
+      once aiming starts; the sudden-death one is a size smaller to fit), and the centre pops
+      take the nearest line the rolling ball misses: 0 on the ball, 0 on the keeper (bot
+      matches, 3 levels x 9 seeds, powers on). tests/penalty-pops-ball.test.ts.

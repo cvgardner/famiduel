@@ -145,8 +145,39 @@ class PenaltyView implements GameInstance {
     const k = g.keeper;
     const ys = (p: PlayerIndex) => (p === 0 ? MID + 70 : MID - 70);
     const players = this.ctx.players;
-    if (!silentSeat(players, s)) fx.pop(g.suddenDeath ? 'Sudden death! Your kick' : 'Your kick!', W / 2, ys(s), players[s].color, s, 26);
+    // F206: the shooter's line starts just past the ball toward the goal, where the "<power>
+    // ready" line goes once aiming starts (at MID ± 70 it sat right on the ball: 62% of its
+    // readable frames). It rises toward the goal, away from the ball.
+    const kickY = g.spotY() + this.toward() * READY_DY;
+    if (!silentSeat(players, s)) fx.pop(g.suddenDeath ? 'Sudden death! Your kick' : 'Your kick!', W / 2, kickY, players[s].color, s, g.suddenDeath ? 20 : 26);
     if (!silentSeat(players, k)) fx.pop(g.suddenDeath ? 'Sudden death! Save it' : 'Save it!', W / 2, ys(k), players[k].color, k, 26);
+  }
+
+  /**
+   * F206: the nearest start line for a seat's centre pop whose rise (fx floats it 40/s for
+   * 0.9 s, up for seat 0, down for seat 1) never meets the ball where it rolls meanwhile (a
+   * saved ball bounced back up the middle through "SAVED!": 28% of its readable frames).
+   */
+  clearOfBall(str: string, size: number, y: number, p: PlayerIndex): number {
+    const b = this.game.ball;
+    const half = ([...str].length * size * 0.55) / 2 + RULES.ballR + 4;
+    const tall = size * 0.45 + RULES.ballR + 4;
+    const rise = p === 0 ? -40 : 40;
+    const slow = Math.log(20); // the ball's speed keeps 5% per second
+    const hits = (cy: number) => {
+      for (let t = 0; t <= 0.9; t += 0.05) {
+        const f = (1 - Math.pow(0.05, t)) / slow;
+        const bx = b.x + b.vx * f;
+        const by = b.y + b.vy * f;
+        if (Math.abs(bx - W / 2) < half && Math.abs(by - (cy + rise * t)) < tall) return true;
+      }
+      return false;
+    };
+    if (!hits(y)) return y;
+    for (let d = 4; d <= 120; d += 4) {
+      for (const cy of [y - d, y + d]) if (cy > size && cy < H - size && !hits(cy)) return cy;
+    }
+    return y;
   }
 
   private handleEvents(): void {
@@ -154,8 +185,8 @@ class PenaltyView implements GameInstance {
     const { sfx, fx } = this.ctx;
     const col = (p: PlayerIndex) => this.ctx.players[p].color;
     const both = (str: string, color: string, size = 34, dy = 110) => {
-      fx.pop(str, W / 2, MID + dy, color, 0, size);
-      fx.pop(str, W / 2, MID - dy, color, 1, size);
+      fx.pop(str, W / 2, this.clearOfBall(str, size, MID + dy, 0), color, 0, size);
+      fx.pop(str, W / 2, this.clearOfBall(str, size, MID - dy, 1), color, 1, size);
     };
     for (const e of g.events) {
       if (e.type === 'ready') {
