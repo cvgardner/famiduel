@@ -18,13 +18,54 @@ describe('pops born together stack (F150)', () => {
     expect(c.y - d.y).toBeGreaterThanOrEqual((22 + 15) / 2);
   });
 
-  it('three at once make three lines, and nothing moves for the other seat', () => {
+  it('three at once make three lines; the other seat\'s pops never push them', () => {
     const fx = new Fx();
     fx.pop('+1', 100, 400, '#fff', 0, 22);
     fx.pop('+3 ×2!', 100, 400, '#fff', 0, 22);
     fx.pop('+1 ×3!', 100, 400, '#fff', 0, 22);
     fx.pop('+1', 100, 400, '#fff', 1, 22);
-    expect(floaters(fx).map((f) => f.y)).toEqual([400, 426, 452, 400]);
+    expect(floaters(fx).slice(0, 3).map((f) => f.y)).toEqual([400, 426, 452]);
+  });
+});
+
+// F198: stacking was per seat, so one seat's pop printed over the other seat's (Tank Duel's
+// "Bonked!" on the shooter's BONK!, Sumo's "Ground Pound!" on KA-BOOM!): one of the two reads
+// upside down on top of the other, and neither player can read theirs.
+describe('a pop clears the other seat\'s still-bright pops too (F198)', () => {
+  // A pop's box from now until it fades from bright: seat 0's rise up the screen, seat 1's down.
+  const path = (f: Floater & { x: number }) => {
+    const w = [...f.str].length * f.size * 0.55;
+    const top = f.y - f.size * 0.45 - (f.player === 0 ? 40 * POP_FRESH : 0);
+    const bot = f.y + f.size * 0.45 + (f.player === 1 ? 40 * POP_FRESH : 0);
+    return [f.x - w / 2, top, f.x + w / 2, bot];
+  };
+  const meet = (a: number[], b: number[]) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+
+  for (const first of [0, 1] as const) {
+    it(`seat ${1 - first}'s pop on seat ${first}'s moves off its path`, () => {
+      const fx = new Fx();
+      fx.pop('BONK!', 180, 520, '#fff', first, 30);
+      fx.pop('Bonked!', 180, 520, '#fff', (1 - first) as 0 | 1, 18);
+      const [a, b] = floaters(fx) as (Floater & { x: number })[];
+      expect(a.y).toBe(520);
+      expect(meet(path(a), path(b))).toBe(false);
+      expect(b.y).toBeGreaterThan(0);
+      expect(b.y).toBeLessThan(H);
+    });
+  }
+
+  it('one word popped for both seats (a pair) stays as placed', () => {
+    const fx = new Fx();
+    fx.pop('BONK!', 180, 300 - 24, '#fff', 0, 30);
+    fx.pop('BONK!', 180, 300 + 24, '#fff', 1, 30);
+    expect(floaters(fx).map((f) => f.y)).toEqual([276, 324]);
+  });
+
+  it('pops that rise apart (seat 0 above seat 1) are not in each other\'s way', () => {
+    const fx = new Fx();
+    fx.pop('GOAL!', 180, 300, '#fff', 0, 22);
+    fx.pop('Saved!', 180, 330, '#fff', 1, 22);
+    expect(floaters(fx).map((f) => f.y)).toEqual([300, 330]);
   });
 });
 
