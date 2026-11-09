@@ -103,6 +103,12 @@ export type TextOpts = {
   stroke?: string;
   /** Opacity, multiplied with the canvas's current globalAlpha (a caller's fade reaches the words). */
   alpha?: number;
+  /**
+   * F202: this line is one of a pair both seats draw with the same words (a per-seat "Rally 4",
+   * a pop popped for both seats). Playing the bot, the bot seat's copy is skipped like a big
+   * banner's, whatever its size.
+   */
+  pair?: boolean;
 };
 
 /**
@@ -289,7 +295,7 @@ export function text(g: G, str: string, x: number, y: number, o: TextOpts = {}):
     g.textBaseline = 'middle';
     let seat = o.player ?? 0;
     const turned = turnedFromReader(g);
-    if (reader && isBanner(str, base)) {
+    if (reader && (o.pair || isBanner(str, base))) {
       if (!turned) shownNow.add(str);
       else if (shownNow.has(str) || shownBefore.has(str)) return;
     }

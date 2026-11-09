@@ -171,8 +171,8 @@ class SnackSnatchView implements GameInstance {
     for (const p of PLAYERS) this.powerBtns[p]?.render(gx, g.energy[p], this.t);
     if (this.frenzyBanner > 0 && !g.sudden) {
       for (const p of PLAYERS) {
-        text(gx, 'FRENZY!', W / 2, p === 0 ? MID + 64 : MID - 64, { size: 30, color: '#ff5c7a', stroke: 'rgba(40,0,10,0.75)', player: p, alpha: Math.min(1, this.frenzyBanner) });
-        text(gx, 'Faster snacks!', W / 2, p === 0 ? MID + 94 : MID - 94, { size: 14, color: '#fff', stroke: 'rgba(0,0,0,0.5)', player: p, alpha: Math.min(1, this.frenzyBanner) });
+        text(gx, 'FRENZY!', W / 2, p === 0 ? MID + 64 : MID - 64, { size: 30, color: '#ff5c7a', stroke: 'rgba(40,0,10,0.75)', player: p, alpha: Math.min(1, this.frenzyBanner), pair: true });
+        text(gx, 'Faster snacks!', W / 2, p === 0 ? MID + 94 : MID - 94, { size: 14, color: '#fff', stroke: 'rgba(0,0,0,0.5)', player: p, alpha: Math.min(1, this.frenzyBanner), pair: true });
       }
     }
     if (this.suddenBanner > 0 || g.sudden) {

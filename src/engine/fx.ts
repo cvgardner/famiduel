@@ -205,10 +205,14 @@ export class Fx {
     }
     g.globalAlpha = base;
     for (const f of this.floaters) {
+      // F202: the same words popped for the other seat in the same step at the same x (a
+      // popBoth()) make a pair: playing the bot, one copy shows. Two frogs missing at once
+      // ("Miss!" at each frog) are two events and both stay.
+      const pair = this.floaters.some((o) => o.player !== f.player && o.str === f.str && o.life === f.life && Math.abs(o.x - f.x) < 1);
       // Pops land where things happen, often by a wall: shrink a long one to fit and
       // keep its words on screen (Bigger text makes them wider).
       const size = fitSize(g, f.str, W - 16, f.size);
-      text(g, f.str, insideX(g, f.str, f.x, size), f.y, { size, color: f.color, player: f.player, stroke: POP_OUTLINE, alpha: Math.min(1, f.life / f.max * 1.6) });
+      text(g, f.str, insideX(g, f.str, f.x, size), f.y, { size, color: f.color, player: f.player, stroke: POP_OUTLINE, alpha: Math.min(1, f.life / f.max * 1.6), pair });
     }
     if (this.flashT > 0) {
       // A quarter as bright with reduce motion on: still says "something happened", without a strobe.
