@@ -2032,3 +2032,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-14 (F262, PR #294): Quick Draw: a left-hander's power button (moved to the right
       corner, F38) sat on the small cactus drawn there (lefty-quickdraw.png). The cactus now
       takes the corner across from the button (cacti()); tests/quickdraw-cactus.test.ts.
+- [x] 2026-11-14 (F265, PR #TBD): Ping Pong: the first-match hint "Flick up hard: SMASH" sat at
+      MID ± 150, right on that seat's dashed lunge line (MID ± 152; lefty-pingpong.png, both
+      seats). Both hint lines now sit between the score card and the lunge line (hintLines());
+      tests/pingpong-hint-lines.test.ts checks the bands with and without Bigger text.

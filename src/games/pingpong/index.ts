@@ -16,6 +16,25 @@ import { BounceMark, type Spot } from './bouncemark';
 const FLOOR = '#2a2350';
 
 const TABLE = { x0: 22, x1: W - 22, y0: RULES.tableY0, y1: RULES.tableY1 };
+/** The dashed lunge line: how far toward the net each paddle can reach. */
+export function lungeY(p: PlayerIndex): number {
+  return RULES.paddleY[p] + fwdSign(p) * (RULES.reach + RULES.paddleH / 2);
+}
+/** Centre of each seat's score card (60 x 68), on its owner's side of the net. */
+export function scoreSpot(p: PlayerIndex): [number, number] {
+  return [p === 0 ? W - 58 : 58, p === 0 ? MID + 62 : MID - 62];
+}
+export const HINT_SIZE = 15;
+/**
+ * F265: the first-match "Flick up hard: SMASH" / "Swipe across the ball: curve" lines.
+ * At MID ± 150 the first sat on that seat's dashed lunge line (MID ± 152); they now sit in
+ * the band between the score card and the lunge line, the second line nearer the net.
+ */
+export function hintLines(p: PlayerIndex): [number, number] {
+  const d = p === 0 ? 1 : -1;
+  const near = lungeY(p) - d * (HINT_SIZE + 3);
+  return [near - d * 22, near];
+}
 export const TABLE_GREEN = '#1d7a52';
 /** Outline of the SERVE hint; Purple on it over the table was 4.0:1, so the word is lifted (liftOn). */
 export const SERVE_OUTLINE = 'rgba(0,0,0,0.75)';
@@ -246,7 +265,7 @@ class PingPongView implements GameInstance {
     line(gx, W / 2, TABLE.y0 + 4, W / 2, TABLE.y1 - 4, 'rgba(255,255,255,0.55)', 2);
     // Lunge line: how far toward the net each paddle can reach
     for (const p of PLAYERS) {
-      const y = RULES.paddleY[p] + fwdSign(p) * (RULES.reach + RULES.paddleH / 2);
+      const y = lungeY(p);
       gx.setLineDash([6, 8]);
       line(gx, TABLE.x0 + 10, y, TABLE.x1 - 10, y, alpha(c[p], 0.45), 2);
       gx.setLineDash([]);
@@ -257,8 +276,7 @@ class PingPongView implements GameInstance {
     if (spot) this.renderMark(gx, spot, this.mark.alpha(), this.mark.ring());
     // Scores, each on its owner's side of the net, readable from that seat
     for (const p of PLAYERS) {
-      const x = p === 0 ? W - 58 : 58;
-      const y = p === 0 ? MID + 62 : MID - 62;
+      const [x, y] = scoreSpot(p);
       // F163: a bot's card facing the one person shows just its points. Its "vs N" (the
       // person's points) turned upright above the number, and the person's own card already
       // says "vs" the bot.
@@ -290,10 +308,9 @@ class PingPongView implements GameInstance {
       const a = Math.min(1, (7 - g.t) / 0.8);
       for (const p of PLAYERS) {
         if (this.ctx.players[p].bot) continue;
-        const y = p === 0 ? MID + 150 : MID - 150;
-        const d = p === 0 ? 1 : -1;
-        text(gx, 'Flick up hard: SMASH', W / 2, y, { size: 15, color: '#ffd54a', stroke: 'rgba(0,0,0,0.85)', player: p, alpha: a });
-        text(gx, 'Swipe across the ball: curve', W / 2, y + d * 22, { size: 15, color: '#e2ccff', stroke: 'rgba(0,0,0,0.85)', player: p, alpha: a });
+        const [y1, y2] = hintLines(p);
+        text(gx, 'Flick up hard: SMASH', W / 2, y1, { size: HINT_SIZE, color: '#ffd54a', stroke: 'rgba(0,0,0,0.85)', player: p, alpha: a });
+        text(gx, 'Swipe across the ball: curve', W / 2, y2, { size: HINT_SIZE, color: '#e2ccff', stroke: 'rgba(0,0,0,0.85)', player: p, alpha: a });
       }
     }
     // Serve hint
