@@ -2013,3 +2013,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       picks the dark look and edits a player card (name, colour, head start, left hand),
       reloads, and finds each one kept (Game Accessibility Guidelines, general basic: "ensure
       that all settings are saved"). All were already saved; the test keeps it that way.
+- [x] 2026-11-14 (F260, PR #292): Penalty: the keeper's "Kick in 3" / "Here it comes!" line sat
+      74 units out from their goal line, 6 short of the penalty box's white front edge, which
+      ran through the words. It now sits 60 out (KICK_DY), inside the box, clear of the edge
+      and of the Wide Keeper 🧤; tests/penalty-kick-line.test.ts.
