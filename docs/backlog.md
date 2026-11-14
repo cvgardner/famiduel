@@ -1831,18 +1831,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       fades over the same stretch as its own gesture's finger (demo.ts PLAY_DEMO_OUT, read
       from the `d-<gesture>-f` keyframes; Penalty's keeper copy has its own). Unit test
       checks the table against style.css; the ghost-finger playtest checks no card at 2.6 s.
-- [x] 2026-11-14 (F215): Penalty first match: since F214 the shooter's in-play card faded
+- [x] 2026-11-14 (F215, PR #255): Penalty first match: since F214 the shooter's in-play card faded
       with its one swipe (gone at 1.14 s, before GO at 1.8 s), so the shooter saw a single
       flick during the countdown. The shooter's copy (`.play-demo.shooter`) now loops the
       swipe alone every 1.4 s (demo.ts SHOOTER_LOOP) and the card fades with the second
       flick (1.85-2.02 s); the keeper's copy is unchanged. Unit test reads the swipe
       keyframes; the ghost-finger playtest checks the shooter card at 1.5 s and none at 2.6 s.
-- [x] 2026-11-14 (F213): Snack Snatch: the grab pops ("+N", "+N ×k!") were white (1.1:1 on
+- [x] 2026-11-14 (F213, PR #256): Snack Snatch: the grab pops ("+N", "+N ×k!") were white (1.1:1 on
       the blanket) and gold (~1.4:1), so only their thin outline showed them, like "Miss!"
       before F211. 99.8% of their bright frames lie wholly on the blanket (measured over
       bot matches), so each is now the grabbing player's colour darkened to 3:1 on the
       blanket and its gingham (grabInk()), with a light halo; a gold snack's pop is deep
-      amber (GOLD_INK) with a gold halo (fx.pop's new `halo`). Extends
+      amber-brown (GOLD_INK) with a gold halo (fx.pop's new `halo`). Extends
       tests/snacksnatch-miss-ink.test.ts.
 - [x] 2026-11-14 (F216): Minigolf: once the other player's ball had stopped or dropped in
       (settle), the seat that shoots next still read "Wait · Bot shoots" for a shot that was
