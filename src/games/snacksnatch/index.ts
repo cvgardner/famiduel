@@ -4,10 +4,12 @@ import { PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, noGlow, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
+import { POP_OUTLINE_LIGHT } from '../../engine/fx';
 import { Button, PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { fwd, RULES, SnackSnatch, SnackSnatchBot, type Critter, type Intent, type Snack } from './logic';
-import { inkOn } from '../../core/contrast';
+import { contrastRatio, inkOn, over, parseColor, type RGBA } from '../../core/contrast';
+import { PLAYER_COLORS } from '../../core/colors';
 const GRASS = '#3f8f4f';
 const BLANKET = '#fff6ec';
 /** The colours most of the play area is painted in (tests read pops against them). */
@@ -22,6 +24,51 @@ const KINDS = ['#d9a066', '#ff8fc2', '#ff5c7a', '#f4c96b', '#6ec8ff', '#ffa24c']
  * ink reads on the blanket, its gingham and both home bands by itself (8:1 or more).
  */
 export const MISS_INK = '#1b1430';
+/** The blanket's gingham stripes (drawn twice where they cross). */
+const GINGHAM = 'rgba(255,110,110,0.22)';
+type RGB = [number, number, number];
+/**
+ * F213: every colour a pop on the blanket can sit on: the blanket, its gingham once and
+ * twice, and each player's home band where it meets the blanket's edge.
+ */
+export function blanketSurfaces(): RGB[] {
+  const rgb = (c: string) => parseColor(c)!.slice(0, 3) as RGB;
+  const blanket = rgb(BLANKET);
+  const once = over(parseColor(GINGHAM)!, blanket, 1) as RGB;
+  const twice = over(parseColor(GINGHAM)!, once, 1) as RGB;
+  const bands = PLAYER_COLORS.map((c) => over([...rgb(c.hex), 0.35] as RGBA, twice, 1) as RGB);
+  return [blanket, once, twice, ...bands];
+}
+/** A pop's worst contrast on the blanket while still bright (drawn at 80%), outline not counted. */
+export function worstOnBlanket(ink: string, surfaces = blanketSurfaces()): number {
+  const c = parseColor(ink)!.slice(0, 3) as RGB;
+  return Math.min(...surfaces.map((bg) => contrastRatio(over([...c, 0.8] as RGBA, bg, 1) as RGB, bg)));
+}
+/**
+ * F213: grab pops ("+N", "+N ×k!") land on the blanket too (99.8% of their bright frames in
+ * bot matches lie wholly inside it), where white read 1.1:1 and gold ~1.4:1, so only the thin
+ * outline showed them. A grab pop is the grabbing player's colour, darkened just enough to
+ * hold 3:1 on the blanket and its gingham (the home bands only reach 6 units over its edge),
+ * with a light halo like "Miss!" (a black outline smudges dark letters).
+ */
+export const GRAB_SURFACES = 3;
+const grabInks = new Map<string, string>();
+export function grabInk(hex: string): string {
+  let ink = grabInks.get(hex);
+  if (!ink) {
+    const surfaces = blanketSurfaces().slice(0, GRAB_SURFACES);
+    ink = hex;
+    for (let k = 0.05; worstOnBlanket(ink, surfaces) < 3 && k < 1; k += 0.05) ink = shade(hex, -k);
+    grabInks.set(hex, ink);
+  }
+  return ink;
+}
+/**
+ * F213: a gold snack's pop: deep amber (gold itself read ~1.4:1 on the blanket) with a gold
+ * halo, so it still reads as gold and apart from an Orange player's "+N".
+ */
+export const GOLD_INK = '#7a4f00';
+export const GOLD_HALO = alpha(COLORS.gold, 0.9);
 /** Room between the frog's head and its "Miss!" pop (F176). */
 const MISS_GAP = 16;
 /** F182: the seconds-left's blanket-coloured outline, so it reads over a snack resting under it. */
@@ -126,7 +173,7 @@ class SnackSnatchView implements GameInstance {
         const label = e.combo > 1 ? `+${e.value} ×${e.combo}!` : `+${e.value}`;
         const size = e.gold ? 28 : 22;
         const ly = e.y + fwd(e.p) * 20;
-        fx.pop(label, this.clearOfClock(label, e.x, ly, size, e.p), ly, e.gold ? COLORS.gold : '#fff', e.p, size);
+        fx.pop(label, this.clearOfClock(label, e.x, ly, size, e.p), ly, e.gold ? GOLD_INK : grabInk(c), e.p, size, e.gold ? GOLD_HALO : POP_OUTLINE_LIGHT);
         this.scoreBump[e.p] = 1;
         this.chew[e.p][e.i] = 1;
         if (e.gold) fx.shake(4, 0.15);
@@ -205,7 +252,7 @@ class SnackSnatchView implements GameInstance {
     gx.roundRect(4, top, W - 8, bot - top, 14);
     gx.clip();
     const sq = 30;
-    gx.fillStyle = 'rgba(255,110,110,0.22)';
+    gx.fillStyle = GINGHAM;
     for (let x = 4; x < W; x += sq * 2) gx.fillRect(x, top, sq, bot - top);
     for (let y = top; y < bot; y += sq * 2) gx.fillRect(4, y, W, sq);
     gx.restore();

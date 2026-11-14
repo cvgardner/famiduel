@@ -8,7 +8,7 @@ import type { Input } from '../src/engine/input';
 import type { Sfx } from '../src/engine/sfx';
 import { W } from '../src/engine/world';
 import { GAMES } from '../src/games/registry';
-import { MISS_INK } from '../src/games/snacksnatch/index';
+import { blanketSurfaces, GOLD_HALO, GOLD_INK, GRAB_SURFACES, grabInk, MISS_INK, worstOnBlanket } from '../src/games/snacksnatch/index';
 import { RULES } from '../src/games/snacksnatch/logic';
 import { DT, player } from './helpers';
 
@@ -69,5 +69,56 @@ describe('Snack Snatch: "Miss!" reads on the blanket', () => {
     expect([...seats].sort(), 'both seats missed').toEqual([0, 1]);
     expect(checked).toBeGreaterThan(0);
     expect(off.slice(0, 5)).toEqual([]);
+  });
+});
+
+// F213: the grab pops ("+N", "+N ×k!") were white (1.1:1) and gold (~1.4:1) on the same
+// blanket. They are the grabbing player's colour darkened to 3:1, and a gold snack's pop is
+// deep amber with a gold halo.
+describe('Snack Snatch: grab pops read on the blanket', () => {
+  const blanket = blanketSurfaces().slice(0, GRAB_SURFACES);
+
+  it('every player colour\'s grab ink and the gold ink hold 3:1 on the blanket and its gingham', () => {
+    for (const c of PLAYER_COLORS) expect(worstOnBlanket(grabInk(c.hex), blanket), c.name).toBeGreaterThanOrEqual(3);
+    expect(worstOnBlanket(GOLD_INK, blanket), 'gold').toBeGreaterThanOrEqual(3);
+    // White and plain gold were the problem.
+    expect(worstOnBlanket('#ffffff', blanket)).toBeLessThan(1.5);
+    expect(worstOnBlanket('#ffd54a', blanket)).toBeLessThan(1.5);
+  });
+
+  it('the gold pop keeps a gold halo; player pops a light one', () => {
+    expect(GOLD_HALO).toContain('255,213,74');
+  });
+
+  it('in bot matches every bright grab pop uses those inks and sits on the blanket', () => {
+    const top = RULES.gum[1] - 6;
+    const bot = RULES.gum[0] + 6;
+    let checked = 0, gold = 0, off = 0;
+    const wrong: string[] = [];
+    for (const seed of [3, 11]) {
+      const players: [PlayerInfo, PlayerInfo] = [player({ bot: 'normal', color: PLAYER_COLORS[0].hex }), player({ bot: 'normal', color: PLAYER_COLORS[3].hex })];
+      const sfx = { play() {} } as unknown as Sfx;
+      const fx = new Fx();
+      const view = GAMES.snacksnatch.create({ seed, rng: makeRng(seed), players, powersOn: true, sfx, fx, end() {} }) as unknown as { update(dt: number, i: Input): void };
+      const input = { of: () => [], all: () => [], key: () => false, keyPressed: () => false, tapped: () => undefined } as unknown as Input;
+      for (let i = 0; i < 60 * 40; i++) {
+        view.update(DT, input);
+        fx.update(DT);
+        for (const f of (fx as unknown as { floaters: (Floater & { halo?: string })[] }).floaters) {
+          if (!f.str.startsWith('+') || f.life < 0.45 * f.max) continue;
+          checked++;
+          const want = f.color === GOLD_INK ? GOLD_INK : grabInk(players[f.player].color);
+          if (f.color === GOLD_INK) gold++;
+          if (f.color !== want) wrong.push(`seed ${seed} step ${i}: ${f.str} in ${f.color}`);
+          if (f.halo !== (f.color === GOLD_INK ? GOLD_HALO : POP_OUTLINE_LIGHT)) wrong.push(`seed ${seed} step ${i}: halo ${f.halo}`);
+          const half = f.size / 2;
+          if (f.y - half < top || f.y + half > bot) off++;
+        }
+      }
+    }
+    expect(wrong.slice(0, 5)).toEqual([]);
+    expect(checked).toBeGreaterThan(100);
+    expect(gold, 'a gold snack was caught').toBeGreaterThan(0);
+    expect(off / checked, 'share of bright grab-pop frames off the blanket').toBeLessThan(0.01);
   });
 });
