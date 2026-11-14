@@ -17,7 +17,7 @@ import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
 import { dayKey } from '../games/minigolf/daily';
 import { powerPicHtml, watchPowerPics } from './powerpic';
-import { demoHelpHtml, demoHtml, firstMatchOf, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
+import { demoHelpHtml, demoHtml, firstMatchOf, goalHtml, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
@@ -504,7 +504,7 @@ export class App {
       return `<div class="half p${p}${bot ? ' bot' : ''}${faces ? ' faces' : ''}" style="--c:${pr.color};--ink:${inkOn(pr.color)}">
         <div class="half-inner">
           <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${!gesture ? '' : firstMatches || again ? demoHtml(gesture, !!pr.lefty && !bot) : bot ? '' : demoHelpHtml(p)}</div>
-          <p class="howto">${meta.howTo}</p>
+          <p class="howto">${goalHtml(meta.blurb)}${meta.howTo}</p>
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span>${powerPicHtml(id, pw.id)}<b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>${bot ? '' : '<p class="pick-desc"></p>'}` : ''}
           ${bot ? botRow(p, bot) : `<button class="btn ready" id="ready${p}" data-p="${p}">${powers.length ? 'Pick a power' : 'Ready!'}</button>`}
@@ -516,8 +516,10 @@ export class App {
     const tag = t ? `<b class="tourney-tag">🏆 Game ${t.played.length + 1}</b> ` : '';
     // Minigolf (not in a tournament) offers today's course: the same 3 holes for everyone today.
     const daily = id === 'minigolf' && !this.tourneyMatch;
+    // F222: the goal ("First to 5 goals.") sits in each half, upright for its reader; the middle
+    // line only carries what isn't per seat (Back, the tournament tag, Minigolf's daily switch).
     const blurb = () => {
-      if (!daily || !this.dailyGolf) return meta.blurb;
+      if (!daily || !this.dailyGolf) return '';
       const best = this.store.dailyBest(dayKey());
       return best ? `📅 Today's best: ${best.strokes} by ${esc(best.name)}` : "📅 Today's course: same holes all day";
     };

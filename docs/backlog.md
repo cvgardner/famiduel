@@ -1853,3 +1853,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       "You win! 9 – 10" (fewer strokes win) and looked like a loss to a kid. Every game now
       says what the score counts under it (GameResult `unit`: "strokes · fewest wins", goals,
       points, rounds, snacks, bonks, ships sunk); the e2e bot-vs-bot test checks both halves.
+- [x] 2026-11-14 (F222, PR #TBD): Intro: the goal of the match ("First to 5 goals.", "Fewest
+      strokes over 3 holes wins.") sat only on the middle strip, upright for the bottom seat, so
+      the top player never read how long the match was. Each person's half now leads its how-to
+      with the goal in bold (goalHtml(), also in the pause How to play); the middle strip keeps
+      Back, the tournament tag and Minigolf's daily switch. Playtest "layout: home and every
+      intro" checks both halves carry the goal at every size, bigger text too.
