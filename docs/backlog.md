@@ -1892,7 +1892,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       read two different-looking scores. The bot's half keeps its headline and name line; the
       score, unit and record show once, in the person's half. Two people or two bots keep
       both. The solo playtest checks no score lines in the bot's half.
-- [x] 2026-11-14 (F230, PR #TBD): The pause button nearly vanished over light game fields: a
+- [x] 2026-11-14 (F230, PR #267): The pause button nearly vanished over light game fields: a
       white "II" on a 12% white dot, so on Tank Duel's pale arena and Quick Draw's sand it read
       about 1.1:1. The dot is dark now (with a faint light rim for dark fields). Playtest
       "pause button" measures the glyph over every shown game: 3:1 or better.
