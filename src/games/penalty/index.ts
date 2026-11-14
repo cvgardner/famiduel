@@ -27,6 +27,14 @@ const READY_DY = 66;
  * ball, toward the goal: past the ready line, short of the keeper's "Kick in" and "coming!" lines.
  */
 export const PICK_DY = 100;
+/**
+ * F260: the keeper's "Kick in 3" / "Here it comes!" line sits this far out from their goal
+ * line: inside the penalty box (its front edge is BOX_DEPTH out), clear of that white edge
+ * (at 74 the edge ran through the words) and of the keeper's 🧤 (Wide Keeper, 26 out).
+ */
+export const KICK_DY = 60;
+/** How far the penalty box reaches out from the goal line. */
+export const BOX_DEPTH = 80;
 /** F190: the shooter's "Keeper moved!" pop starts beside the ball, this far to their left. */
 export const EARLY_DX = 96;
 export const EARLY_POP = 'Keeper moved!';
@@ -307,9 +315,9 @@ class PenaltyView implements GameInstance {
       const d = k === 1 ? 1 : -1;
       gx.strokeStyle = ln;
       gx.lineWidth = 2.5;
-      gx.strokeRect(W / 2 - 130, Math.min(gy, gy + d * 80), 260, 80);
+      gx.strokeRect(W / 2 - 130, Math.min(gy, gy + d * BOX_DEPTH), 260, BOX_DEPTH);
       gx.beginPath();
-      gx.arc(W / 2, gy + d * 80, 40, k === 1 ? 0 : Math.PI, k === 1 ? Math.PI : Math.PI * 2);
+      gx.arc(W / 2, gy + d * BOX_DEPTH, 40, k === 1 ? 0 : Math.PI, k === 1 ? Math.PI : Math.PI * 2);
       gx.stroke();
       circle(gx, W / 2, gy + d * RULES.spotDist, 4, ln);
     }
@@ -443,7 +451,7 @@ class PenaltyView implements GameInstance {
       circle(gx, bx, by, r, undefined, alpha(COLORS.gold, 0.85), 3);
     }
     const secs = Math.max(1, Math.ceil(left - 1e-6));
-    const kgy = RULES.goalY[k] + (k === 1 ? 74 : -74);
+    const kgy = RULES.goalY[k] + (k === 1 ? KICK_DY : -KICK_DY);
     // F156: the keeper's "Kick in 3" line waits for GO too (it sat under their "3 2 1" digit).
     if (this.t === 0) return;
     const kickLine = g.runningUp ? 'Here it comes!' : g.phase === 'ready' ? `Kick in ${Math.ceil(total)}` : `Kick in ${secs}`;

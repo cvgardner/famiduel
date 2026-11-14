@@ -2019,3 +2019,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Each card now takes the first line clear of both balls and the cup with its flag, where
       the turned course shows them (minigolf/bannerline.ts clearLine()); the other half's card
       also keeps clear of the shooter's. 0 now; tests/minigolf-turn-cards.test.ts.
+- [x] 2026-11-14 (F260, PR #292): Penalty: the keeper's "Kick in 3" / "Here it comes!" line sat
+      74 units out from their goal line, 6 short of the penalty box's white front edge, which
+      ran through the words. It now sits 60 out (KICK_DY), inside the box, clear of the edge
+      and of the Wide Keeper 🧤; tests/penalty-kick-line.test.ts.
