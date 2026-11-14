@@ -1901,3 +1901,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       who can't read yet had to read them upside down. Each now leads with an icon (🏠, 🔁,
       ▶️) and keeps its plain name for screen readers; playtest "result: Games and Rematch
       carry an icon" checks both fit on one line at 320 px with Bigger text.
+- [x] 2026-11-14 (F232, PR #TBD): Snake round end: the seat that crashed read "CRASH!" at the
+      crash and "Crashed!" on its banner at the same moment. Its banner now says what comes
+      next ("Ouch! Next round…"); the winner still reads "You win the round!"
+      (roundEndLines(); tests/snake-round-banner.test.ts).

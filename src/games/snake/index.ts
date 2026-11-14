@@ -345,11 +345,8 @@ class SnakeView implements GameInstance {
       msg = [`Round ${g.round}`, `Round ${g.round}`];
     } else if (g.phase === 'over' && !g.done) {
       const w = g.lastRound;
-      if (w === null || w === undefined) msg = ['Crash! Draw round', 'Crash! Draw round'];
-      else {
-        msg = w === 0 ? ['You win the round!', 'Crashed!'] : ['Crashed!', 'You win the round!'];
-        color = w === 0 ? [players[0].color, '#ffffff'] : ['#ffffff', players[1].color];
-      }
+      msg = roundEndLines(w);
+      if (w === 0 || w === 1) color = w === 0 ? [players[0].color, '#ffffff'] : ['#ffffff', players[1].color];
     }
     if (!msg) return;
     for (const p of PLAYERS) {
@@ -370,6 +367,16 @@ class SnakeView implements GameInstance {
       }
     }
   }
+}
+
+/**
+ * F232: each seat's round-end banner. The seat that crashed already reads a "CRASH!" pop at
+ * the crash, so its banner says what comes next instead of the same word again.
+ */
+export function roundEndLines(winner: PlayerIndex | null | undefined): [string, string] {
+  if (winner !== 0 && winner !== 1) return ['Crash! Draw round', 'Crash! Draw round'];
+  const lost = 'Ouch! Next round…';
+  return winner === 0 ? ['You win the round!', lost] : [lost, 'You win the round!'];
 }
 
 /** A curved arrow: turn -1 bends left, +1 bends right (in the current frame). */
