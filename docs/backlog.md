@@ -1910,3 +1910,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       how-to, where it faces the bottom seat) leads with ▶️ like F231's result buttons, so the
       top player knows it without reading upside down; the "how to play" playtest checks the
       icon, its plain name and one line at 320 px.
+- [x] 2026-11-14 (F234, PR #271): Sea Battle: an Airstrike's five shells land side by side
+      0.09 s apart, and each popped its own "HIT!" or "Splash", so four or five words stacked
+      over the hit markers (bot vs bot screenshots). Airstrike shells now keep their burst and
+      sound but pop no word; "MINE!", "<ship> sunk!", the header and the turn tally still say
+      how the strike went (tests/seabattle-airstrike-pops.test.ts: 5 shell words up at once
+      before, 1 now).

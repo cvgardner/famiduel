@@ -35,7 +35,12 @@ type Mode =
   | { kind: 'after'; p: PlayerIndex; t: number; tallied?: boolean }
   | { kind: 'over'; t: number };
 
-type Shell = { owner: PlayerIndex; cell: number; t: number; result: 'hit' | 'miss' | 'mine' | 'hitBack'; a: PlayerIndex };
+/**
+ * `quiet`: an Airstrike shell. Its five cells sit side by side and land 0.09 s apart, so a
+ * "HIT!"/"Splash" word per cell stacked into a smear (F234); those shells keep the burst and
+ * sound, and the turn tally and header say how the strike went.
+ */
+type Shell = { owner: PlayerIndex; cell: number; t: number; result: 'hit' | 'miss' | 'mine' | 'hitBack'; a: PlayerIndex; quiet?: boolean };
 type Drag = { i: number; offX: number; offY: number; moved: boolean; sx: number; sy: number; x: number; y: number };
 type Btn = { x: number; y: number; w: number; h: number };
 
@@ -410,7 +415,7 @@ class SeaBattleView implements GameInstance {
     for (const e of g.events) {
       if (e.type === 'again') this.again++;
       if (e.type === 'shot') {
-        this.shells.push({ owner: d, cell: e.cell, t: -delay, result: e.result, a });
+        this.shells.push({ owner: d, cell: e.cell, t: -delay, result: e.result, a, quiet: mv.kind === 'airstrike' });
         delay += 0.09;
         this.lastShots[d].push(e.cell);
         sfx.play('whoosh');
@@ -466,7 +471,7 @@ class SeaBattleView implements GameInstance {
         this.turnHits[s.a].push(s.cell);
         this.volley.hits++;
       }
-      if (big) this.pop(s.result === 'hitBack' ? 'Hit back!' : 'HIT!', x, y + (y < GY + 70 ? 26 : -24), '#ff8a3d', 24);
+      if (big && !s.quiet) this.pop(s.result === 'hitBack' ? 'Hit back!' : 'HIT!', x, y + (y < GY + 70 ? 26 : -24), '#ff8a3d', 24);
       const sea = this.game.seas[s.owner];
       const ship = sea.ships[sea.occ[s.cell]];
       if (s.result === 'hit' && isSunk(ship) && cellsOf(ship).every((c) => !this.shells.some((o) => o !== s && o.owner === s.owner && o.cell === c && o.t < SHOT_T))) {
@@ -491,7 +496,7 @@ class SeaBattleView implements GameInstance {
     } else {
       sfx.play('splash');
       this.burst(x, y, '#bfe9ff', big ? 12 : 6, big ? 140 : 70, big ? 3 : 2);
-      if (big) this.pop('Splash', x, y + (y < GY + 70 ? 24 : -22), '#bfe9ff', 18);
+      if (big && !s.quiet) this.pop('Splash', x, y + (y < GY + 70 ? 24 : -22), '#bfe9ff', 18);
       log.misses++;
       this.volley.misses++;
     }
