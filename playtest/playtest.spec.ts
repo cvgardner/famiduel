@@ -2948,6 +2948,31 @@ test('contrast: Mint vs Orange, the lightest seats, in every shown game', async 
   expect(errors).toEqual([]);
 });
 
+// F230: the pause button was a white "II" on a 12% white dot, so over light fields (Tank
+// Duel's pale arena, Quick Draw's sand) it all but vanished. Its glyph must read at least
+// 3:1 (a control's icon) over every shown game's field.
+test('pause button: its "II" reads 3:1 or better over every shown game', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  await boot(page, errors);
+  const shown = games.games.filter((x) => !x.hidden && (built.length === 0 || built.includes(x.id)));
+  const faint: string[] = [];
+  await setPlayers(page, ['easy', 'easy']);
+  for (const g of shown) {
+    await page.evaluate((id) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(id), g.id);
+    await expect(page.locator('#play')).toBeVisible();
+    await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(4));
+    await page.waitForTimeout(100);
+    const labels = await domContrast(page, '#pauseBtn');
+    expect(labels.length, `${g.id}: the pause glyph is measured`).toBe(1);
+    for (const l of labels) if (l.ratio < 3) faint.push(`${g.id}: "${l.text}" ${l.ratio.toFixed(1)}:1`);
+    if (g.id === 'tanks') await page.screenshot({ path: path.join(OUT, 'pause-button-tanks.png') });
+    await leaveMatch(page);
+  }
+  expect(faint, 'pause glyph below 3:1').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 // Bigger text (settings): every shown game is played with it on, by people on a small phone
 // and then bot vs bot to the result on a tall one, with screenshots of both. Fails on any
 // word that runs past the world's left or right edge; the screenshots are for the eye
