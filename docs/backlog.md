@@ -1886,3 +1886,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       flash the board several times in one second. A flash that starts within 0.5 s of the
       last one now merges into it (its sound and pop still play), so the board flashes at most
       2 times a second (BLINK_MAX_HZ). tests/fx-flash-rate.test.ts.
+- [x] 2026-11-14 (F229, PR #TBD): Play the bot result screen: the bot's half (turned to face
+      the person since F117) repeated the score back to front right above the person's own,
+      "Bot wins 1 – 0 · Bot: 2 – 0" over "So close! 0 – 1 · You vs the bot: 0 – 2", so a kid
+      read two different-looking scores. The bot's half keeps its headline and name line; the
+      score, unit and record show once, in the person's half. Two people or two bots keep
+      both. The solo playtest checks no score lines in the bot's half.
