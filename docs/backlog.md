@@ -1963,6 +1963,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Accessibility Nutrition Labels we can claim (Dark Interface, Sufficient Contrast,
       Differentiate Without Color Alone, Reduced Motion), which not yet (Larger Text, VoiceOver,
       Voice Control) and the test behind each claim.
+- [x] 2026-11-14 (F245, PR #280): home and settings at 200% text (`--ts: 2`) on 390, 360
+    and 320 px phones: no cut, overlapping or off-screen words, buttons still 44 px (names
+    under the number dot, VS level with the dots, 2-across game cards, tournament card and
+    theme row grow). Playtest "menus at 200% text". Open: no setting reaches 2x yet (Chris's call,
+    docs/accessibility-labels.md gap 1).
 - [x] 2026-11-14 (F246, PR #PRNUM): boxed round-end banners fit their words with Bigger text:
       Snake's and Chop Chop's words shrink to fit their box ("Ouch! Next round…" ran past it),
       and Sumo's box moves right when it is too wide to stay centred and clear of the pause

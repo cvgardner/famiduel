@@ -58,6 +58,9 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .arena, .modal.help { background: var(--bg); }
 
 /* Home */
+/* Children keep their own height (with big text a squeezed tournament card printed over the
+   next heading); the screen scrolls instead. */
+#home > *, #settings > * { flex-shrink: 0; }
 #home { overflow-y: auto; padding: max(14px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
 .brand { position: relative; text-align: center; padding-top: 4px; }
 /* Round 44px icon buttons: the gear on home, back on settings. */
@@ -99,14 +102,16 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* Players + match night: one scoreboard card. */
 .versus { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
 .players { position: relative; display: flex; align-items: stretch; gap: 10px; }
-.vs { position: absolute; left: 50%; top: 50%; translate: -50% -50%; z-index: 1; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+.vs { position: absolute; left: 50%; top: 30px; /* level with the number dots, so big names never run under it */ translate: -50% -50%; z-index: 1; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
   font-size: calc(13px * var(--ts)); font-weight: 900; font-style: italic; color: var(--gold-ink); background: var(--gold); box-shadow: 0 0 0 4px var(--surface), 0 3px 0 4px var(--edge); }
 .player-chip { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 16px; text-align: left;
   background: color-mix(in srgb, var(--c) 16%, var(--surface)); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c) 70%, transparent); font-weight: 800; }
 .player-chip[data-p="1"] { flex-direction: row-reverse; text-align: right; }
 .player-chip:active { transform: scale(0.98); }
 .player-chip .dot { width: 40px; height: 40px; border-radius: 50%; background: var(--c); color: var(--ink); flex: none; display: grid; place-items: center; font-size: calc(19px * var(--ts)); font-weight: 900; box-shadow: 0 3px 0 color-mix(in srgb, var(--c) 55%, #000); }
-.player-chip .pinfo { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.player-chip { flex-wrap: wrap; }
+/* Very large text: the name drops under the number dot rather than shrinking to "Pla…". */
+.player-chip .pinfo { flex: 1 1 calc(50px * var(--ts)); min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .player-chip[data-p="1"] .pinfo { align-items: flex-end; }
 .player-chip .pname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(16px * var(--ts)); }
 .player-chip small { color: var(--dim); font-size: calc(12px * var(--ts)); font-weight: 700; }
@@ -123,7 +128,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .games { display: flex; flex-direction: column; gap: 14px; }
 .group { display: flex; flex-direction: column; gap: 8px; }
 .group-title { margin: 0; padding: 0 4px; font-size: calc(13px * var(--ts)); font-weight: 900; color: var(--dim); letter-spacing: 0.08em; text-transform: uppercase; }
-.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.grid { display: grid; /* 3 across; very large text on a small phone drops to 2 so names fit */
+  grid-template-columns: repeat(auto-fill, minmax(max(calc(14px + 56px * var(--ts)), (100% - 20px) / 3), 1fr)); gap: 10px; }
 .game-card { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 12px 4px 10px; border-radius: 20px; color: #fff;
   background: linear-gradient(180deg, color-mix(in srgb, var(--c) 88%, #fff) 0%, var(--c) 38%, color-mix(in srgb, var(--c) 62%, #000) 100%);
   box-shadow: inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -2px 0 rgba(0,0,0,0.12), 0 5px 0 color-mix(in srgb, var(--c) 42%, #000), 0 9px 16px rgba(0,0,0,0.18);
@@ -144,14 +150,14 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* Minigolf until today's course is played on this phone: the opposite corner from the bot badge. */
 .gday { position: absolute; top: -4px; left: -8px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: calc(14px * var(--ts)); line-height: 1;
   background: #14112b; box-shadow: 0 0 0 2px var(--gold); }
-.gkind { position: relative; font-size: calc(12px * var(--ts)); color: #fff; font-weight: 800; padding: 1px 8px; border-radius: 10px; white-space: nowrap; max-width: 100%; background: rgba(0,0,0,0.28); }
+.gkind { position: relative; text-align: center; line-height: 1.15; font-size: calc(12px * var(--ts)); color: #fff; font-weight: 800; padding: 1px 8px; border-radius: 10px; max-width: 100%; background: rgba(0,0,0,0.28); }
 
 /* Tournament: the featured card. */
 .btn.tourney-btn { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 10px 14px; text-align: left; border-radius: 20px; color: var(--gold-ink);
   background: linear-gradient(135deg, #ffe27a 0%, #ffc93c 55%, #ff9f43 100%); box-shadow: inset 0 2px 0 rgba(255,255,255,0.5), 0 5px 0 #c9781f, 0 10px 18px rgba(0,0,0,0.18); }
 .btn.tourney-btn:active { transform: translateY(4px); box-shadow: inset 0 2px 0 rgba(255,255,255,0.5), 0 1px 0 #c9781f; }
 .tourney-btn .t-ico { font-size: 30px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,0.45); flex: none; }
-.tourney-btn .t-txt { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.tourney-btn .t-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .tourney-btn b { font-size: calc(17px * var(--ts)); font-weight: 900; }
 .tourney-btn small { color: #5a3d00; font-size: calc(13px * var(--ts)); font-weight: 800; }
 .tourney-btn .t-go { font-size: 30px; font-weight: 900; line-height: 1; opacity: 0.7; }
@@ -176,13 +182,16 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .toggle input:checked::after { transform: translateX(20px); }
 .toggle input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .theme-seg { flex: none; flex-wrap: nowrap; gap: 3px; padding: 3px; border-radius: 12px; background: var(--track); }
+.theme-row { flex-wrap: wrap; }
 .theme-row .set-txt { flex: none; }
+.theme-row .theme-seg { margin-left: auto; }
 .theme-seg button { min-width: 44px; min-height: 44px; padding: 4px 8px; font-size: calc(14px * var(--ts)); background: transparent; color: var(--dim); border-radius: 10px; }
 .theme-seg button.on { box-shadow: 0 2px 0 #c99a12; }
 .foot { text-align: center; color: var(--dim); font-size: calc(12px * var(--ts)); font-weight: 600; padding: 0 12px; }
 @media (max-width: 360px) {
   .logo { font-size: 32px; padding: 8px 16px 10px; border-radius: 18px; margin-top: 2px; }
   .player-chip { gap: 7px; padding: 8px; }
+  .vs { top: 27px; }
   .player-chip .dot { width: 34px; height: 34px; font-size: calc(16px * var(--ts)); }
   .player-chip .pname { font-size: calc(14px * var(--ts)); }
   .gicon { width: 50px; height: 50px; font-size: 28px; }

@@ -1428,6 +1428,58 @@ test('result: a tap meant for the game right as the match ends does not skip the
   expect(errors).toEqual([]);
 });
 
+test('menus at 200% text: home and settings show every word, nothing overlaps (F245)', async ({ page }) => {
+  // Apple's "Larger Text" label asks for text that grows to 200%. Menu words scale with --ts
+  // (Bigger text sets 1.2); at 2 the one-person menus must still show every word, with no word
+  // over another, off the screen or cut to "…", and every button still at least 44 px.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await page.addStyleTag({ content: ':root { --ts: 2 !important; }' });
+  const problems = () =>
+    page.evaluate(() => {
+      const bad: string[] = [];
+      const els = [...document.querySelectorAll<HTMLElement>('section:not(.hidden) *')].filter((e) => e.getClientRects().length && !e.closest('.sr-only'));
+      const say = (e: Element) => (e.textContent ?? '').trim().slice(0, 24);
+      for (const e of els) {
+        const r = e.getBoundingClientRect();
+        if (r.width && (r.right > window.innerWidth + 1 || r.left < -1)) bad.push(`off screen: ${say(e)}`);
+        if (getComputedStyle(e).textOverflow === 'ellipsis' && e.scrollWidth > e.clientWidth + 1) bad.push(`cut: ${say(e)}`);
+      }
+      // A word poking out of its own card or button (cards clip, so it would be cut).
+      for (const box of document.querySelectorAll<HTMLElement>('section:not(.hidden) .game-card, section:not(.hidden) button')) {
+        if (!box.getClientRects().length) continue;
+        const b = box.getBoundingClientRect();
+        for (const w of box.querySelectorAll<HTMLElement>('.gname, .gkind, b, small')) {
+          const r = w.getBoundingClientRect();
+          if (r.width && (r.left < b.left - 1 || r.right > b.right + 1)) bad.push(`out of its button: ${say(w)}`);
+        }
+        if (b.height < 43 || b.width < 43) bad.push(`small button: ${say(box)} ${Math.round(b.width)}x${Math.round(b.height)}`);
+      }
+      const words = els.filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent!.trim()));
+      for (let i = 0; i < words.length; i++)
+        for (let j = i + 1; j < words.length; j++) {
+          const a = words[i], c = words[j];
+          if (a.contains(c) || c.contains(a)) continue;
+          const A = a.getBoundingClientRect(), C = c.getBoundingClientRect();
+          if (Math.min(A.right, C.right) - Math.max(A.left, C.left) > 4 && Math.min(A.bottom, C.bottom) - Math.max(A.top, C.top) > 4) bad.push(`overlap: ${say(a)} / ${say(c)}`);
+        }
+      return bad;
+    });
+  const found: string[] = [];
+  for (const [w, h] of [[390, 844], [360, 640], [320, 568]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.evaluate(() => document.getElementById('home')!.scrollTo(0, 0));
+    for (const p of await problems()) found.push(`home ${w}: ${p}`);
+    if (w !== 360) await page.screenshot({ path: path.join(OUT, `text200-home-${w}.png`), fullPage: true });
+    await page.click('#settingsBtn');
+    for (const p of await problems()) found.push(`settings ${w}: ${p}`);
+    if (w !== 360) await page.screenshot({ path: path.join(OUT, `text200-settings-${w}.png`), fullPage: true });
+    await page.click('#settingsBack');
+  }
+  expect(found, 'menus at 200% text').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('result: Games and Rematch carry an icon, on one line at 320 px with Bigger text (F231)', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
