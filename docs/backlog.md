@@ -1869,3 +1869,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Minigolf's daily line. To fit at 320x568 and with Bigger text, the Sumo, Ping Pong, Snack
       Snatch and Penalty how-tos are shorter (dropped "The kick is always on zero", "for a
       moment", "flying faster"; same rules). The layout playtest checks the goal in both halves.
+- [x] 2026-11-14 (F227, PR #TBD): Flicker (WCAG 2.3.1 "three flashes a second", Game
+      Accessibility Guidelines "avoid flickering"): Quick Draw's Slow Time "get ready" pulse
+      tinted a whole half 3.5 times a second, Chop Chop's low timer bar flipped red/orange 3.2
+      times and Tank Duel's fading shield blinked 4.8 times (Snake's ghost head pulsed 2.2).
+      All now run at 2 a second through calm.ts blink()/pulse() (BLINK_MAX_HZ);
+      tests/flicker.test.ts scans the views for faster light/dark Math.sin blinks.

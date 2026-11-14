@@ -2,6 +2,7 @@
 // in the bottom player's frame and rotated 180° for the top player.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
+import { blink } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -249,7 +250,7 @@ class ChopView implements GameInstance {
     const low = c.timer < 0.3 && !c.out && g.phase === 'play';
     rrect(gx, bx - 3, L.barY - 11, bw + 6, 22, 11, 'rgba(20,20,40,0.55)');
     const fill = Math.max(0, c.timer) * bw;
-    if (fill > 0) rrect(gx, bx, L.barY - 8, Math.max(16, fill), 16, 8, low ? (Math.sin(this.t * 20) > 0 ? COLORS.bad : '#ff9f43') : col);
+    if (fill > 0) rrect(gx, bx, L.barY - 8, Math.max(16, fill), 16, 8, low ? (blink(this.t) ? COLORS.bad : '#ff9f43') : col);
     text(gx, '⏱', bx - 18, L.barY, { size: 16 });
     text(gx, `${c.chops}`, W / 2, L.barY + 30, { size: 28, color: '#ffffff', stroke: 'rgba(0,0,0,0.45)' });
     // A dark pill keeps the small goal label readable over sky, trunk or a flying chunk.

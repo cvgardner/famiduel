@@ -2,6 +2,7 @@
 import { popColor } from '../../engine/fx';
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, controlsAlpha, glow, line, noGlow, seatRing, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
+import { blink as flashOn } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { bigHandsOn, PowerButton } from '../../engine/widgets';
@@ -464,7 +465,7 @@ class TankView implements GameInstance {
     }
     // Shield bubble
     if (tk.shield > 0) {
-      const fading = tk.shield < 0.8 && Math.sin(this.t * 30) > 0;
+      const fading = tk.shield < 0.8 && flashOn(this.t);
       const r = RULES.tankR + 10 + Math.sin(this.t * 6) * 1.5;
       gx.globalAlpha = fading ? 0.35 : 1;
       const bg = gx.createRadialGradient(tk.x - 6, tk.y - 6, 2, tk.x, tk.y, r);
