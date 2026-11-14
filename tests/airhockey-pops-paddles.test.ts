@@ -16,8 +16,9 @@ type Floater = { str: string; x: number; y: number; life: number; size: number; 
 // under a person's finger, or the bot's): readable frames on a paddle in bot matches were Giant
 // Paddle 67%, Split Puck 49%, Freeze 31%, "Your shot!" 22%, GOAL! 19%. A pop now takes the line
 // nearest home that misses the pucks with the most room from both paddles' paths: 1.6-3.1%, and
-// GOAL! 7.3%. GOAL! is big and the conceding player's half has little room behind the served
-// puck, where their paddle waits; that is the line left.
+// GOAL! 7.3% (F239). F240: a pop a paddle runs into once it is 0.2 s old fades out
+// (fx.fadeNear()), mostly the conceding player's GOAL! as their paddle races to the served puck:
+// GOAL! 0.8%, the rest 0-0.4%.
 describe('Air Hockey: centre pops start clear of the paddles', () => {
   it('in bot matches at every level with powers, both seats', () => {
     const list = (powers.games as Record<string, PowerDef[]>).airhockey;
@@ -55,7 +56,22 @@ describe('Air Hockey: centre pops start clear of the paddles', () => {
     expect([...seats].sort()).toEqual([0, 1]);
     for (const k of ['GOAL!', 'Your shot!', ...list.map((pw) => `${pw.icon} ${pw.name}!`)]) {
       expect(total[k], k).toBeGreaterThan(200);
-      expect((covered[k] ?? 0) / total[k], k).toBeLessThan(k === 'GOAL!' ? 0.08 : 0.035);
+      expect((covered[k] ?? 0) / total[k], k).toBeLessThan(0.01);
     }
   }, 120_000); // whole bot matches: GitHub CI runs ~3x slower than a laptop
+});
+
+describe('fx.fadeNear (F240)', () => {
+  it('fades a pop a piece covers once it is a moment old, and leaves a young one', () => {
+    const fx = new Fx();
+    const floaters = () => (fx as unknown as { floaters: Floater[] }).floaters;
+    fx.pop('GOAL!', 180, 500, '#fff', 0, 40);
+    fx.fadeNear(180, 500, 26, 0.15, 0.2);
+    expect(floaters()[0].life).toBeCloseTo(0.9);
+    fx.update(0.25);
+    fx.fadeNear(300, 300, 26, 0.15, 0.2);
+    expect(floaters()[0].life).toBeGreaterThan(0.6);
+    fx.fadeNear(200, 510, 26, 0.15, 0.2);
+    expect(floaters()[0].life).toBeLessThanOrEqual(0.15);
+  });
 });

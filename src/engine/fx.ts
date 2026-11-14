@@ -137,6 +137,21 @@ export class Fx {
   }
 
   /**
+   * F240: pops whose words a round piece of radius r at (x, y) now covers fade out within `t`
+   * seconds (Air Hockey: a paddle racing to the served puck ran into its player's GOAL!). A pop
+   * younger than `minAge` is left alone, so every pop is read for a moment.
+   */
+  fadeNear(x: number, y: number, r: number, t = 0.15, minAge = 0.2): void {
+    for (const f of this.floaters) {
+      if (f.max - f.life < minAge) continue;
+      const w = ([...f.str].length * f.size * 0.55) / 2;
+      const nx = Math.max(f.x - w, Math.min(f.x + w, x));
+      const ny = Math.max(f.y - f.size * 0.45, Math.min(f.y + f.size * 0.45, y));
+      if (Math.hypot(x - nx, y - ny) < r) f.life = Math.min(f.life, t);
+    }
+  }
+
+  /**
    * Text that rises and fades, readable by the given player. `halo` replaces the outline
    * popOutline() picks (F213: Snack Snatch's dark-amber gold pop has a gold halo).
    */
