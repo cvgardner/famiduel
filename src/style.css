@@ -122,6 +122,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .night-score b { font-size: 22px; font-weight: 900; }
 .night-score b.score { min-width: 40px; padding: 2px 10px; border-radius: 10px; text-align: center; background: var(--c); color: var(--ink); box-shadow: 0 3px 0 color-mix(in srgb, var(--c) 55%, #000); }
 .night-score span { color: var(--dim); font-size: calc(13px * var(--ts)); font-weight: 800; text-align: center; }
+/* F255: the count stays with its word, so a narrow phone breaks after the dot, not before "games". */
+.night-score span .nw { font-style: normal; white-space: nowrap; }
 .link { color: var(--dim); text-decoration: underline; font-size: calc(13px * var(--ts)); font-weight: 700; padding: 4px 10px; min-height: 44px; min-width: 44px; }
 
 /* Game grid */

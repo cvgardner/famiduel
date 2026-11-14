@@ -288,3 +288,15 @@ test('7-game tournament: bots play it through to a champion, and a quit game wai
   await expect(page.locator('#tourneyBtn')).toContainText('7-game tournament');
   expect(errors).toEqual([]);
 });
+
+// F255: on a 320 px phone "Match night · 0 games" broke with "games" alone on its own line.
+test('home: the match-night count and its word stay on one line on a small phone', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page);
+  for (const solo of [false, true]) {
+    if (solo) await page.locator('button', { hasText: 'Play the bot' }).click();
+    const count = page.locator('.night-score span .nw');
+    await expect(count).toHaveText(/^\d+ games?$/);
+    expect(await count.evaluate((e) => e.getClientRects().length)).toBe(1);
+  }
+});
