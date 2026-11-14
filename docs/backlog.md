@@ -1963,5 +1963,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Accessibility Nutrition Labels we can claim (Dark Interface, Sufficient Contrast,
       Differentiate Without Color Alone, Reduced Motion), which not yet (Larger Text, VoiceOver,
       Voice Control) and the test behind each claim.
+- [x] 2026-11-14 (F246, PR #PRNUM): boxed round-end banners fit their words with Bigger text:
+      Snake's and Chop Chop's words shrink to fit their box ("Ouch! Next round…" ran past it),
+      and Sumo's box moves right when it is too wide to stay centred and clear of the pause
+      button (it ran under it on a 320 px phone). tests/banner-fit.test.ts.
 - [ ] Menus at 200% text (the Larger Text label): root font size 2x at 390x844 over home,
       intro, settings, result and pause; nothing clipped or overlapping.

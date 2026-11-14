@@ -23,6 +23,8 @@ export const BANNER_OFF = 26;
 export const BANNER_MAX = 30;
 /** F225: room left and right of a boxed banner's words inside its box. */
 export const BANNER_PAD = 12;
+/** World units the pause button covers from the left edge on the narrowest phone (44 px at 320 px wide). */
+export const PAUSE_CLEAR = 52;
 
 /**
  * F225: the dark box behind a round-end banner drawn at `size`, centred on (W / 2, y). Its
@@ -30,9 +32,12 @@ export const BANNER_PAD = 12;
  */
 export function bannerBox(gx: G, str: string, size: number, y: number): { x: number; y: number; w: number; h: number } {
   gx.font = `800 ${scaledSize(size)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
-  const w = Math.min(W - 16, gx.measureText(str).width + BANNER_PAD * 2);
+  const w = Math.min(W - PAUSE_CLEAR - 8, gx.measureText(str).width + BANNER_PAD * 2);
   const h = Math.min(BANNER_OFF * 2 - 6, scaledSize(size) + 14);
-  return { x: W / 2 - w / 2, y: y - h / 2, w, h };
+  // F246: the banners hug the centre line, where the pause button sits at the left edge. A box
+  // too wide to stay centred and clear of it moves right instead (it ran under the button).
+  const x = Math.max(PAUSE_CLEAR, W / 2 - w / 2);
+  return { x, y: y - h / 2, w, h };
 }
 const ROPE = '#b8893e';
 const SKIN = '#f6d3ad';
@@ -357,13 +362,13 @@ class SumoView implements GameInstance {
         }
         // F225: a round-end banner ran edge to edge over the ring and both wrestlers as bare
         // outlined text; on a dark box (like Snake's and Chop Chop's) it reads cleanly.
-        const size = fitSize(gx, this.bannerText, W - BANNER_PAD * 2 - 16, want);
+        const size = fitSize(gx, this.bannerText, W - PAUSE_CLEAR - 8 - BANNER_PAD * 2, want);
         const box = bannerBox(gx, this.bannerText, size, y);
         const was = gx.globalAlpha;
         gx.globalAlpha = was * a;
         rrect(gx, box.x, box.y, box.w, box.h, 14, 'rgba(10,8,25,0.78)', alpha(this.bannerColor, 0.8), 2);
         gx.globalAlpha = was;
-        text(gx, this.bannerText, W / 2, y, { size, color: this.bannerColor, player: p, alpha: a });
+        text(gx, this.bannerText, box.x + box.w / 2, y, { size, color: this.bannerColor, player: p, alpha: a });
       }
     }
   }
