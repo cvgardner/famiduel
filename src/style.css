@@ -278,8 +278,11 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* 44px tap target around a 34px dot. */
 .pause-btn { position: absolute; left: 1px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; --hold: 0;
   /* The dot, plus a ring that fills clockwise while the finger is held (see HoldGate). */
-  background: radial-gradient(circle, rgba(255,255,255,0.12) 16.5px, transparent 17.5px);
-  font-weight: 900; font-size: calc(12px * var(--ts)); z-index: 2; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  /* F230: a dark dot under the white "II" (it was a 12% white dot, so on Tank Duel's pale
+     arena or Quick Draw's sand the button all but vanished), with a faint light rim so it
+     still shows as a button on the dark fields. */
+  background: radial-gradient(circle, rgba(20,17,43,0.62) 15.5px, rgba(255,255,255,0.28) 16.5px, transparent 17.5px);
+  color: #fff; font-weight: 900; font-size: calc(12px * var(--ts)); z-index: 2; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .pause-btn::after { content: ''; position: absolute; inset: 2px; border-radius: 50%; pointer-events: none;
   background: conic-gradient(#ffd54a calc(var(--hold) * 360deg), transparent 0);
   -webkit-mask: radial-gradient(circle, transparent 16.5px, #000 17px); mask: radial-gradient(circle, transparent 16.5px, #000 17px); }
