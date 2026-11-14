@@ -1844,7 +1844,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       blanket and its gingham (grabInk()), with a light halo; a gold snack's pop is deep
       amber-brown (GOLD_INK) with a gold halo (fx.pop's new `halo`). Extends
       tests/snacksnatch-miss-ink.test.ts.
-- [x] 2026-11-14 (F216): Minigolf: once the other player's ball had stopped or dropped in
+- [x] 2026-11-14 (F216, PR #257): Minigolf: once the other player's ball had stopped or dropped in
       (settle), the seat that shoots next still read "Wait · Bot shoots" for a shot that was
       over (seen solo: bot "In the hole ✓", person "Wait · Bot shoots"). That seat now reads
       "You're up next!" ("Up next" on a bot's strip); logic nextShooter() mirrors nextTurn().
