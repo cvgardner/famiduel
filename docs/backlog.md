@@ -1863,3 +1863,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       above the bot's power cards. A bot's half now hides its how-to at every
       size (it already did on short phones); its power cards and level row stay. Playtest "bot
       level" checks no how-to shows in the bot's half at 320×568 and 390×844.
+- [x] 2026-11-14 (F222, PR #TBD): Intro: each person's half leads its how-to with the match goal
+      in bold ("First to 5 goals."), so the top player reads it upright too (it sat only on the
+      middle line, facing the bottom seat). The middle line keeps Back, the tournament tag and
+      Minigolf's daily line. To fit at 320x568 and with Bigger text, the Sumo, Ping Pong, Snack
+      Snatch and Penalty how-tos are shorter (dropped "The kick is always on zero", "for a
+      moment", "flying faster"; same rules). The layout playtest checks the goal in both halves.
