@@ -70,6 +70,19 @@ export function grabInk(hex: string): string {
  */
 export const GOLD_INK = '#4a2e00';
 export const GOLD_HALO = alpha(COLORS.gold, 0.9);
+/**
+ * F238: a power's name split into two lines at the space nearest its middle, so each line fits
+ * between the two frog lanes ("🧲 Magnet" / "Mouth!"). A name that fits there whole stays one line.
+ */
+export function powerLines(str: string): [string, string?] {
+  const lane = RULES.critterX[1] - RULES.critterX[0] - 2 * RULES.headR - 8;
+  if ([...str].length * 24 * 0.55 <= lane) return [str];
+  const mid = str.length / 2;
+  let cut = -1;
+  for (let i = 0; i < str.length; i++) if (str[i] === ' ' && (cut < 0 || Math.abs(i - mid) < Math.abs(cut - mid))) cut = i;
+  return cut < 0 ? [str] : [str.slice(0, cut), str.slice(cut + 1)];
+}
+
 /** Room between the frog's head and its "Miss!" pop (F176). */
 const MISS_GAP = 16;
 /** F182: the seconds-left's blanket-coloured outline, so it reads over a snack resting under it. */
@@ -173,8 +186,9 @@ class SnackSnatchView implements GameInstance {
         fx.burst(e.x, e.y, e.gold ? COLORS.gold : c, e.gold ? 22 : 10, e.gold ? 240 : 150, e.gold ? 4 : 3);
         const label = e.combo > 1 ? `+${e.value} ×${e.combo}!` : `+${e.value}`;
         const size = e.gold ? 28 : 22;
-        const ly = e.y + fwd(e.p) * 20;
-        fx.pop(label, this.clearOfClock(label, e.x, ly, size, e.p), ly, e.gold ? GOLD_INK : grabInk(c), e.p, size, e.gold ? GOLD_HALO : POP_OUTLINE_LIGHT);
+        const ly = e.y;
+        const lx = this.besideNeck(g.critters[e.p][e.i].x, label, size);
+        fx.pop(label, this.clearOfClock(label, lx, ly, size, e.p), ly, e.gold ? GOLD_INK : grabInk(c), e.p, size, e.gold ? GOLD_HALO : POP_OUTLINE_LIGHT);
         this.scoreBump[e.p] = 1;
         this.chew[e.p][e.i] = 1;
         if (e.gold) fx.shake(4, 0.15);
@@ -199,7 +213,15 @@ class SnackSnatchView implements GameInstance {
         sfx.play('power');
         const pw = players[e.p].power!;
         fx.flash('#ffd54a', 0.12);
-        fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID + 90 : MID - 90, COLORS.gold, e.p, 24);
+        // F238: the name popped 90 past the centre line in one wide line, right where every
+        // frog's snap reaches (a doubled one reaches almost to the pot): "Double Grab!" sat on a
+        // stretched head 31% of its readable frames. It now pops in two lines (fx.pop stacks
+        // same-step pops a line toward the seat's edge) that fit between the two frog lanes,
+        // just short of the pot.
+        const [first, second] = powerLines(`${pw.icon} ${pw.name}!`);
+        const py = e.p === 0 ? MID + 46 : MID - 46;
+        fx.pop(first, W / 2, py, COLORS.gold, e.p, 24);
+        if (second) fx.pop(second, W / 2, py, COLORS.gold, e.p, 24);
       } else if (e.type === 'win') {
         sfx.play('win');
         if (!this.ended) {
@@ -338,6 +360,17 @@ class SnackSnatchView implements GameInstance {
    * pot reach right past them) and rose across it. The pop slides sideways, the shorter way that
    * stays on screen, until its whole rise (fx floats it 40/s for 0.9 s) misses every shown label.
    */
+  /**
+   * F238: a catch pop started on the snack it gulped, so the frog's head (still stretching out)
+   * and its neck ran through the number for most of its readable life (23% of "+N" frames). It
+   * starts beside the neck instead, on the field's middle side, and rises clear of that lane.
+   */
+  private besideNeck(cx: number, str: string, size: number): number {
+    const half = ([...str].length * size * 0.55) / 2;
+    const side = cx < W / 2 ? 1 : -1;
+    return cx + side * (RULES.headR + half + 4);
+  }
+
   private clearOfClock(str: string, x: number, y: number, size: number, p: PlayerIndex): number {
     const half = ([...str].length * size * 0.55) / 2;
     const rise = p === 0 ? -36 : 36;
