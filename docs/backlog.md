@@ -1906,3 +1906,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       next ("Ouch! Next round…"), a draw reads "Draw round! Again" (was "Crash! Draw round"
       over both CRASH! pops); the winner still reads "You win the round!"
       (roundEndLines(); tests/snake-round-banner.test.ts).
+- [x] 2026-11-14 (F233, PR #270): Pause: "Resume" (on the pause sheet and in the middle of the
+      how-to, where it faces the bottom seat) leads with ▶️ like F231's result buttons, so the
+      top player knows it without reading upside down; the "how to play" playtest checks the
+      icon, its plain name and one line at 320 px.

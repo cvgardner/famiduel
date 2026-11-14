@@ -739,7 +739,7 @@ export class App {
     modal.classList.remove('hidden');
     modal.classList.remove('help');
     modal.innerHTML = `<div class="sheet"><h2>Paused</h2>
-      <button id="resumeBtn" class="btn primary">Resume</button>
+      <button id="resumeBtn" class="btn primary" aria-label="Resume"><span class="btn-ico" aria-hidden="true">▶️</span>Resume</button>
       <button id="howBtn" class="btn">❓ How to play</button>
       <button id="restartBtn" class="btn">Restart</button>
       <button id="quitBtn" class="btn ghost">Quit to games</button></div>`;
@@ -782,7 +782,7 @@ export class App {
       return howToHalfHtml({ p, name: pl.name, color: pl.color, bot: !!pl.bot, lefty: !!pl.lefty, power: pl.power, charge }, meta);
     };
     modal.classList.add('help');
-    modal.innerHTML = `<div class="pause-help">${seat(1)}<div class="intro-mid"><button id="helpBack" class="link">← Menu</button><button id="helpResume" class="btn primary">Resume</button></div>${seat(0)}</div>`;
+    modal.innerHTML = `<div class="pause-help">${seat(1)}<div class="intro-mid"><button id="helpBack" class="link">← Menu</button><button id="helpResume" class="btn primary" aria-label="Resume"><span class="btn-ico" aria-hidden="true">▶️</span>Resume</button></div>${seat(0)}</div>`;
     $('#helpBack', modal).addEventListener('click', () => {
       if (this.runner) this.runner.paused = false;
       this.pause();
