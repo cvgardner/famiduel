@@ -119,6 +119,9 @@ class AirHockeyView implements GameInstance {
       return { tx: tgt.x, ty: tgt.y, power: fire };
     }) as [Intent, Intent];
     g.step(dt, intents);
+    // F240: a pop a paddle runs into (the conceding player's paddle racing to the served puck
+    // through their GOAL!) fades out instead of sitting under it, or under the finger on it.
+    for (const q of PLAYERS) this.ctx.fx.fadeNear(g.paddles[q].x, g.paddles[q].y, g.paddleRadius(q));
     this.goalFlash = Math.max(0, this.goalFlash - dt);
     for (const e of g.events) {
       const { sfx, fx } = this.ctx;
