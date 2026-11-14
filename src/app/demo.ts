@@ -51,7 +51,9 @@ export function playDemoHtml(g: Gesture, p: number, lefty = false, at = 0.72, ke
   const side = besideCountdown(at) ? `;--dx:${DEMO_BESIDE_DX}%;--s:${DEMO_BESIDE_SCALE}` : '';
   const [out, gone] = playDemoOut(g, keeper);
   const fade = `;--out:${out}s;--fade:${round2(gone - out)}s`;
-  return `<div class="play-demo p${p}${keeper ? ' keeper' : ''}" data-p="${p}" style="--at:${at}${side}${fade}" aria-hidden="true">${demoHtml(g, lefty)}</div>`;
+  // F215: the shooter's copy loops the swipe alone (SHOOTER_LOOP), so it is still on at GO.
+  const role = g === 'kick' ? (keeper ? ' keeper' : ' shooter') : '';
+  return `<div class="play-demo p${p}${role}" data-p="${p}" style="--at:${at}${side}${fade}" aria-hidden="true">${demoHtml(g, lefty)}</div>`;
 }
 
 const round2 = (x: number) => Math.round(x * 100) / 100;
@@ -75,8 +77,14 @@ export const PLAY_DEMO_OUT: Record<Gesture, readonly [number, number]> = {
   move: [1.66, 2.08],
   drop: [1.3, 1.72],
   stick: [1.95, 2.29],
-  kick: [0.83, 1.14],
+  kick: [1.85, 2.02],
 };
+/**
+ * F215: in play the shooter's Penalty copy loops the swipe alone every SHOOTER_LOOP seconds
+ * (`.play-demo.shooter` in style.css), so it shows two flicks and fades with the second,
+ * just after GO; on the 5.2 s two-role loop its one flick was gone at 1.14 s, before GO.
+ */
+export const SHOOTER_LOOP = 1.4;
 /** Penalty's keeper-first copy: the dive's finger, 2.6 s into the 5.2 s loop. */
 export const PLAY_DEMO_OUT_KEEPER: readonly [number, number] = [1.82, 2.18];
 

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import games from '../content/games.json';
-import { besideCountdown, DEMO_MATCHES, demoHelpHtml, demoHtml, firstMatchOf, GESTURES, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, PLAY_DEMO_OUT, PLAY_DEMO_OUT_KEEPER, playDemoHtml, playDemoOut, powerStatus, showsDemo } from '../src/app/demo';
+import { besideCountdown, DEMO_MATCHES, demoHelpHtml, demoHtml, firstMatchOf, GESTURES, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, PLAY_DEMO_OUT, PLAY_DEMO_OUT_KEEPER, playDemoHtml, SHOOTER_LOOP, playDemoOut, powerStatus, showsDemo } from '../src/app/demo';
 
 describe('ghost finger demo', () => {
   it('every game names a known gesture', () => {
@@ -31,7 +31,7 @@ describe('ghost finger demo', () => {
     expect(playDemoHtml('drag', 0)).toContain('--at:0.72');
     // F138: Penalty's keeper-first seat starts the loop on the dive.
     expect(playDemoHtml('kick', 0, false, 0.72, true)).toContain('class="play-demo p0 keeper"');
-    expect(playDemoHtml('kick', 1)).toContain('class="play-demo p1"');
+    expect(playDemoHtml('kick', 1)).toContain('class="play-demo p1 shooter"');
   });
 
   it('F152: a finger card at the countdown digit\'s height moves beside it', () => {
@@ -188,7 +188,11 @@ describe('F214: the in-play finger card fades out with its finger', () => {
       if (g === 'kick') continue;
       expect(PLAY_DEMO_OUT[g], g).toEqual(fingerOut(g, 2.6));
     }
-    expect(PLAY_DEMO_OUT.kick, 'penalty shooter').toEqual(fingerOut('kick', 5.2));
+    // F215: the shooter's copy loops the swipe alone; the card fades with its second flick.
+    const [o, g2] = fingerOut('swipe', SHOOTER_LOOP);
+    expect(PLAY_DEMO_OUT.kick, 'penalty shooter').toEqual([round(o + SHOOTER_LOOP), round(g2 + SHOOTER_LOOP)]);
+    expect(css).toContain(`.play-demo.shooter .g-kick i { animation-duration: ${SHOOTER_LOOP}s; }`);
+    expect(PLAY_DEMO_OUT.kick[0], 'shooter card still fully on at GO (1.8 s)').toBeGreaterThan(1.8);
     expect(PLAY_DEMO_OUT_KEEPER, 'penalty keeper').toEqual(fingerOut('kick', 5.2, 2.6));
   });
 

@@ -431,6 +431,7 @@ test('ghost finger: the first match shows it in play over each person\'s half, t
   // F138: Penalty's loop has two roles and only one fits in play, so each seat's finger
   // starts on its own first role: the shooter's swipe, or the keeper's dive.
   await start('penalty');
+  const tk = Date.now();
   await page.waitForTimeout(300);
   const kick = await page.evaluate(() => ({
     first: (window as unknown as { __famiduel: { runner: { game: { firstMover(): number } } } }).__famiduel.runner.game.firstMover(),
@@ -439,6 +440,17 @@ test('ghost finger: the first match shows it in play over each person\'s half, t
   }));
   expect(kick.keepers, 'penalty: only the seat that keeps first starts on the dive').toEqual([kick.first === 0 ? 1 : 0]);
   expect(kick.delay, "penalty: the keeper's finger starts mid-loop").toBe('-2.6s');
+  // F215: the shooter's copy loops the swipe alone, so it is still on at 1.5 s (GO is at
+  // 1.8 s) and gone with its second flick, well before 2.6 s.
+  const shooter = () =>
+    page.evaluate(() => [...document.querySelectorAll<HTMLElement>('#play .play-demo.shooter')].map((el) => Number(getComputedStyle(el).opacity)));
+  await page.waitForTimeout(Math.max(0, 1500 - (Date.now() - tk)));
+  const on = await shooter();
+  expect(on.length, 'penalty: the shooter has a finger card').toBe(1);
+  expect(on[0], 'penalty: the shooter card still shows at 1.5 s').toBeGreaterThan(0.5);
+  await page.screenshot({ path: path.join(OUT, 'penalty-shooter-finger-1.5s.png') });
+  await page.waitForTimeout(Math.max(0, 2600 - (Date.now() - tk)));
+  expect((await shooter()).filter((o) => o > 0.05), 'penalty: the shooter card is gone by 2.6 s').toEqual([]);
   await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
   await setPlayers(page, [null, 'easy']);
   await start('airhockey');
