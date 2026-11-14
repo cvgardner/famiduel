@@ -18,6 +18,14 @@ const GY = 82;
 const SX = 24; // small grid
 const SY = 456;
 const SC = 14;
+/**
+ * F253: where "<ship> sunk!" starts, in the viewer's frame. It used to start under the board
+ * (GY + 330) and rose across the "Their ships" tally while still bright, over the very ship
+ * it named being crossed out; a sink on your own fleet started on the "Your fleet" label.
+ * Here its bright rise (about 25 units) stays in the gap between the tally row (ends at
+ * GY + N * C + 28) and the small grid's label (SY - 19).
+ */
+export const SUNK_Y = GY + N * C + 68;
 const SHOT_T = 0.38; // shell flight time
 const BADGE = '#ffd54a';
 const BADGE_INK = '#2b2459';
@@ -483,7 +491,7 @@ class SeaBattleView implements GameInstance {
           const [cx, cy] = this.cellPos(s.owner, c);
           this.burst(cx, cy, '#ffd54a', 8, 160, 3);
         }
-        this.pop(`${SHIP_NAMES[sea.occ[s.cell]]} sunk!`, W / 2, big ? GY + 330 : SY - 20, COLORS.gold, 26);
+        this.pop(`${SHIP_NAMES[sea.occ[s.cell]]} sunk!`, W / 2, SUNK_Y, COLORS.gold, 26);
       }
     } else if (s.result === 'mine') {
       sfx.play('thud');
