@@ -2,6 +2,7 @@
 import { popColor } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, controlsAlpha, facing, glow, noGlow, seatRing, rrect, silentSeat, seatEdges, shade, text, type G } from '../../engine/draw';
+import { pulse } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -282,7 +283,7 @@ class SnakeView implements GameInstance {
     const ghost = s.phase > 0 || s.phasing;
     if (s.boost > 0) glow(gx, COLORS.gold, 18);
     else glow(gx, c, 14);
-    gx.globalAlpha = ghost ? 0.55 + 0.25 * Math.sin(this.t * 14) : 1;
+    gx.globalAlpha = ghost ? 0.3 + 0.5 * pulse(this.t) : 1;
     circle(gx, x, y, s.alive ? 8 : 7, s.alive ? c : '#666', '#ffffff', 2);
     noGlow(gx);
     gx.globalAlpha = 1;

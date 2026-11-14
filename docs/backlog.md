@@ -1875,3 +1875,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       round banners on a dark box. It now sits on a dark rounded box edged in the winner's
       colour (bannerBox(); shorter than the gap between the two mirrored copies, also with
       Bigger text). "Round N", "Final round!" and "GO!" stay bare. tests/sumo-banner-box.test.ts.
+- [x] 2026-11-14 (F227, PR #264): Flicker (WCAG 2.3.1 "three flashes a second", Game
+      Accessibility Guidelines "avoid flickering"): Quick Draw's Slow Time "get ready" pulse
+      tinted a whole half 3.5 times a second, Chop Chop's low timer bar flipped red/orange 3.2
+      times and Tank Duel's fading shield blinked 4.8 times (Snake's ghost head pulsed 2.2).
+      All now run at 2 a second through calm.ts blink()/pulse() (BLINK_MAX_HZ);
+      tests/flicker.test.ts scans the views for faster light/dark Math.sin blinks.

@@ -4,6 +4,7 @@ import { STEP } from '../../engine/stage';
 import { liftOn, popColor, POP_OUTLINE } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
+import { pulse } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -226,7 +227,7 @@ class QuickDrawView implements GameInstance {
     for (const [x, y] of [[80, MID + 260], [300, MID + 80], [250, MID + 280]]) circle(gx, x, y, 3, 'rgba(120,80,40,0.3)');
     // Slow Time "get ready" pulse
     if (g.pulse(p)) {
-      const k = 0.5 + 0.5 * Math.sin(this.t * 22);
+      const k = pulse(this.t);
       gx.fillStyle = alpha(COLORS.gold, 0.12 + 0.12 * k);
       gx.fillRect(0, MID, W, MID);
       // F178: beside the cowboy, clear of his hat and the cactus (it sat on the hat's crown,
