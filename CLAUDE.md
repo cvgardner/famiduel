@@ -59,18 +59,24 @@ metas stripped.
 Every built game must have: logic tests (bot-vs-bot match finishes, determinism, handicap
 knob, each power), and it is covered automatically by the e2e "bot vs bot" test.
 
-## Status (30 Oct 2026)
+## Status (14 Nov 2026)
 
 All 13 launch games plus Tic-Tac-Toe and RPS are playable, each with an honest bot, a
-handicap knob and (except Checkers, TTT, RPS) three powers. Known follow-ups:
-- Sea Battle easy-vs-easy showed a mild seat bias (116/200 for player 1) in sims; unexplained.
-- Minigolf easy bot may still be too strong for small kids (2–5 strokes a hole).
+handicap knob and (except Checkers, TTT, RPS) three powers. Since then: Play the bot (solo,
+bot words face the person), Bigger text and Little hands settings, menus at 200% text,
+light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match nights, the
+7-game tournament, and many weekend-loop polish passes (docs/backlog.md has each with its PR).
 - 7-game tournament (Chris, 1 Nov 2026): best of 7 across different action/aim games
   (board games stay out), first to 4, a draw adds a game. Rules in `src/core/tournament.ts`,
   saved in the store so a quit game or closed app carries on.
 - Retention direction (Chris, 1 Nov 2026): no new minigame every two weeks (bloat). Lean on
-  super powers instead: new powers and/or a rotation keep the app fresh.
+  super powers instead: new powers and/or a rotation keep the app fresh (how it rotates is
+  not decided).
 - Daily minigolf course: on-device only (intro "📅 Today" switch, day's best kept on the phone);
   its share link / leaderboard is not built.
+- App Store accessibility labels we can claim and the test behind each:
+  docs/accessibility-labels.md (Larger Text needs a setting that reaches 2x: Chris's call).
+- Settled (don't reopen without new evidence): Sea Battle's seat bias was noise (2000
+  mirrored games, 49-50%); Minigolf's easy bot was made weaker for small kids (+0.8 over par).
 - Not built yet: ads / remove-ads unlock, highlight clips, rivalry cards, daily course sharing,
   Family Wrapped, store wrapper (Capacitor), mini pool.
