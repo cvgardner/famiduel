@@ -6,7 +6,7 @@
 // - Against a bot (it never peeks): each player taps one of three buttons in
 //   their own half at the same time.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, nameLabel, noGlow, rrect, seatEdges, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, fitSize, glow, nameLabel, noGlow, rrect, seatEdges, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { drawCover, lookAwayBanner, SecretTurns, toWorld } from '../../engine/secret';
@@ -153,15 +153,12 @@ class RpsView implements GameInstance {
       const r = g.last!;
       if (r.winner === null) {
         sfx.play('bounce');
-        for (const p of PLAYERS) fx.pop('Tie! Go again', W / 2, p === 0 ? MID + 150 : MID - 150, '#fff', p, 24);
       } else {
         const w = r.winner;
         sfx.play('score');
         fx.shake(6, 0.22);
         const pos = side(w, W / 2, MID + 70);
         fx.burst(pos.x, pos.y, this.color(w), 30, 260, 5);
-        fx.pop(`${NAMES[r.picks[w]]} wins! +1`, W / 2, w === 0 ? MID + 150 : MID - 150, COLORS.gold, w, 26);
-        fx.pop(`${NAMES[r.picks[w]]} beats ${NAMES[r.picks[other(w)]].toLowerCase()}`, W / 2, w === 0 ? MID - 150 : MID + 150, '#fff', other(w), 22);
       }
     }
     if (this.revealT >= SHAKE + SHOW) {
@@ -323,12 +320,29 @@ class RpsView implements GameInstance {
       rrect(gx, W / 2 - 110, py - 17, 220, 34, 17, c);
       noGlow(gx);
       text(gx, this.bots[p] ? 'Choosing…' : 'Pick in secret!', W / 2, py, { size: 19, color: inkOn(c) });
+    } else if (g.revealing && this.revealT >= SHAKE) {
+      // F235: the round's result sits in this pill. It used to pop at MID ± 150, right on the
+      // round-win pips, hiding the score while it showed.
+      const r = g.last!;
+      const won = r.winner === p;
+      const msg = resultLine(r, p);
+      if (won) glow(gx, COLORS.gold, 12);
+      rrect(gx, W / 2 - 120, py - 18, 240, 36, 18, won ? alpha(COLORS.gold, 0.2) : 'rgba(255,255,255,0.1)', won ? COLORS.gold : 'rgba(255,255,255,0.35)', 2);
+      noGlow(gx);
+      text(gx, msg, W / 2, py, { size: fitSize(gx, msg, 224, 19), color: won ? COLORS.gold : '#fff', pair: r.winner === null });
     } else {
       rrect(gx, W / 2 - 110, py - 17, 220, 34, 17, 'rgba(255,255,255,0.07)', 'rgba(255,255,255,0.15)', 2);
-      const msg = g.revealing ? (this.revealT < SHAKE ? 'Rock, paper, scissors…' : g.done ? (g.winner === p ? 'Champion!' : 'Good game') : 'Next round…') : 'Picked ✓ waiting…';
+      const msg = g.revealing ? 'Rock, paper, scissors…' : 'Picked ✓ waiting…';
       text(gx, msg, W / 2, py, { size: 15, color: COLORS.dim, weight: 700 });
     }
   }
+}
+
+/** What a seat's pill says once the hands are shown (F235). */
+export function resultLine(r: { winner: PlayerIndex | null; picks: [Choice, Choice] }, p: PlayerIndex): string {
+  if (r.winner === null) return 'Tie! Go again';
+  const w = r.winner;
+  return w === p ? `${NAMES[r.picks[w]]} wins! +1` : `${NAMES[r.picks[w]]} beats ${NAMES[r.picks[other(w)]].toLowerCase()}`;
 }
 
 const def: GameDef = { id: 'rps', create: (ctx) => new RpsView(ctx) };

@@ -1916,3 +1916,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       sound but pop no word; "MINE!", "<ship> sunk!", the header and the turn tally still say
       how the strike went (tests/seabattle-airstrike-pops.test.ts: 5 shell words up at once
       before, 1 now).
+- [x] 2026-11-14 (F235, PR #272): Rock Paper Scissors: the round result ("Rock wins! +1" for
+      the winner, "Rock beats scissors" for the other seat, "Tie! Go again") popped at
+      MID ± 150, right on each seat's round-win pips, so the score hid while it showed. It now
+      fills the seat's prompt pill (gold for the winner) in place of "Next round…", clear of
+      the pips (resultLine(); tests/rps-result-pill.test.ts).
