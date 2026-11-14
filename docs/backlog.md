@@ -1842,5 +1842,5 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       before F211. 99.8% of their bright frames lie wholly on the blanket (measured over
       bot matches), so each is now the grabbing player's colour darkened to 3:1 on the
       blanket and its gingham (grabInk()), with a light halo; a gold snack's pop is deep
-      amber (GOLD_INK) with a gold halo (fx.pop's new `halo`). Extends
+      amber-brown (GOLD_INK) with a gold halo (fx.pop's new `halo`). Extends
       tests/snacksnatch-miss-ink.test.ts.

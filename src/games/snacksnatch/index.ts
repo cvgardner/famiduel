@@ -64,10 +64,11 @@ export function grabInk(hex: string): string {
   return ink;
 }
 /**
- * F213: a gold snack's pop: deep amber (gold itself read ~1.4:1 on the blanket) with a gold
+ * F213: a gold snack's pop: dark amber-brown (gold itself read ~1.4:1 on the blanket; this
+ * also holds 3:1 on the grass, where tests/contrast.test.ts checks every pop) with a gold
  * halo, so it still reads as gold and apart from an Orange player's "+N".
  */
-export const GOLD_INK = '#7a4f00';
+export const GOLD_INK = '#4a2e00';
 export const GOLD_HALO = alpha(COLORS.gold, 0.9);
 /** Room between the frog's head and its "Miss!" pop (F176). */
 const MISS_GAP = 16;
