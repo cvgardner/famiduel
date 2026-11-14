@@ -2009,3 +2009,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       only buzzed and shook, so with the sound off nothing said why. Each now pops "Doesn't fit
       there" / "No room to turn" just above the finger (Game Accessibility Guidelines: no
       essential information by sound alone). tests/seabattle-misfit.test.ts.
+- [x] 2026-11-14 (F258, PR #NNN): settings are remembered: an e2e flips every Settings toggle,
+      picks the dark look and edits a player card (name, colour, head start, left hand),
+      reloads, and finds each one kept (Game Accessibility Guidelines, general basic: "ensure
+      that all settings are saved"). All were already saved; the test keeps it that way.

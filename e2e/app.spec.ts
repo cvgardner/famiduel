@@ -300,3 +300,41 @@ test('home: the match-night count and its word stay on one line on a small phone
     expect(await count.evaluate((e) => e.getClientRects().length)).toBe(1);
   }
 });
+
+// F258: every setting a family sets is still there after the app is closed and opened again
+// (Game Accessibility Guidelines, general basic: "ensure that all settings are saved").
+test('settings and player cards are remembered after a reload', async ({ page }) => {
+  const errors = await boot(page, 'E2E', false);
+  await page.click('#settingsBtn');
+  const keys = await page.locator('.settings input[data-k]').evaluateAll((els) => els.map((e) => [(e as HTMLInputElement).dataset.k!, (e as HTMLInputElement).checked] as const));
+  expect(keys.length, 'every toggle row is covered').toBeGreaterThanOrEqual(5);
+  // Flip every toggle away from where a fresh install has it, and pick the dark look.
+  for (const [k] of keys) await page.locator('label.toggle', { has: page.locator(`input[data-k="${k}"]`) }).click();
+  await page.locator('#themeSeg button[data-v="dark"]').click();
+  await page.click('#settingsBack');
+  // A player card: name, colour, head start, left hand.
+  await page.locator('.player-chip').first().click();
+  await page.fill('#pName', 'Maya');
+  const colour = (await page.locator('.swatch:not(.on):not(.taken)').first().getAttribute('data-c'))!;
+  await page.locator(`.swatch[data-c="${colour}"]`).click();
+  await page.locator('#pHead button[data-v="3"]').click();
+  await page.locator('#pHand button[data-v="left"]').click();
+  await page.click('#pDone');
+
+  await page.reload();
+  await expect(page.locator('.logo')).toContainText('Fami');
+  await page.click('#settingsBtn');
+  for (const [k, was] of keys) {
+    const input = page.locator(`.settings input[data-k="${k}"]`);
+    if (was) await expect(input, `${k} stays off`).not.toBeChecked();
+    else await expect(input, `${k} stays on`).toBeChecked();
+  }
+  await expect(page.locator('#themeSeg button.on')).toHaveAttribute('data-v', 'dark');
+  await page.click('#settingsBack');
+  await expect(page.locator('.player-chip').first()).toContainText('Maya');
+  await expect(page.locator('.player-chip').first()).toContainText('★★★');
+  await page.locator('.player-chip').first().click();
+  await expect(page.locator(`.swatch[data-c="${colour}"]`)).toHaveClass(/\bon\b/);
+  await expect(page.locator('#pHand button.on')).toHaveAttribute('data-v', 'left');
+  expect(errors).toEqual([]);
+});
