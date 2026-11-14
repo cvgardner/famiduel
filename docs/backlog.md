@@ -1853,8 +1853,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       "You win! 9 – 10" (fewer strokes win) and looked like a loss to a kid. Every game now
       says what the score counts under it (GameResult `unit`: "strokes · fewest wins", goals,
       points, rounds, snacks, bonks, ships sunk); the e2e bot-vs-bot test checks both halves.
-- [x] 2026-11-14 (F223, PR #TBD): Result screen: the losing half always read "So close!", even
+- [x] 2026-11-14 (F223, PR #260): Result screen: the losing half always read "So close!", even
       after a 3 – 10 Minigolf or 0 – 5 Air Hockey loss (playtest minigolf-result.png). It now
       says "So close!" only when the match was close (one apart, or within a fifth of the
       winner's score) and "Good game!" otherwise (src/app/resulttitle.ts loserTitle());
       tests/result-title.test.ts; the solo playtest still sees "So close!" after a 0 – 1.
+- [x] 2026-11-14 (F224, PR #261): Play the bot intro: on a tall phone the bot's half (turned to
+      face the person) repeated the whole how-to, so the person read every line twice
+      above the bot's power cards. A bot's half now hides its how-to at every
+      size (it already did on short phones); its power cards and level row stay. Playtest "bot
+      level" checks no how-to shows in the bot's half at 320×568 and 390×844.
