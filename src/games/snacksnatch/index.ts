@@ -205,7 +205,7 @@ class SnackSnatchView implements GameInstance {
         if (!this.ended) {
           this.ended = true;
           const s = g.score;
-          this.ctx.end({ winner: e.p, score: [...s] as [number, number], summary: `${s[0]} – ${s[1]} snacks${g.sudden ? ' (sudden snack)' : ''}` });
+          this.ctx.end({ winner: e.p, score: [...s] as [number, number], summary: `${s[0]} – ${s[1]} snacks${g.sudden ? ' (sudden snack)' : ''}`, unit: 'snacks' });
           if (e.p !== null) fx.burst(W / 2, e.p === 0 ? H - 150 : 150, players[e.p].color, 40, 300, 5);
         }
       }

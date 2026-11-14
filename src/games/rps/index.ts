@@ -182,7 +182,7 @@ class RpsView implements GameInstance {
     const score = [...g.score] as [number, number];
     if (g.winner === null) {
       sfx.play('buzz');
-      this.ctx.end({ winner: null, score, summary: `${score[0]} – ${score[1]}` });
+      this.ctx.end({ winner: null, score, summary: `${score[0]} – ${score[1]}`, unit: 'rounds' });
       return;
     }
     const w = g.winner;
@@ -193,7 +193,7 @@ class RpsView implements GameInstance {
       fx.burst(pos.x, pos.y, this.color(w), 18, 260, 4);
     }
     fx.pop('Champion!', W / 2, w === 0 ? H - 200 : 200, COLORS.gold, w, 34);
-    this.ctx.end({ winner: w, score, summary: `${score[0]} – ${score[1]}` });
+    this.ctx.end({ winner: w, score, summary: `${score[0]} – ${score[1]}`, unit: 'rounds' });
   }
 
   // ---------- Drawing ----------

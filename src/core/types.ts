@@ -36,4 +36,9 @@ export type GameResult = {
   score: [number, number];
   /** Short line for the result screen, e.g. "5 – 3". */
   summary?: string;
+  /**
+   * What the score counts, shown under it on the result screen ("goals", "rounds"). Say how
+   * it wins when fewer is better ("strokes · fewest wins"): a Minigolf win reads "9 – 10".
+   */
+  unit?: string;
 };

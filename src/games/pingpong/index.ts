@@ -175,7 +175,7 @@ class PingPongView implements GameInstance {
         fx.pop(name, W / 2, this.clearOfBall(name, 20, e.p === 0 ? MID - 50 : MID + 50, other(e.p)), COLORS.gold, other(e.p), 20);
       } else if (e.type === 'win') {
         sfx.play('win');
-        this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]}` });
+        this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]}`, unit: 'points' });
       }
     }
     const b = g.ball;

@@ -138,7 +138,7 @@ class QuickDrawView implements GameInstance {
       else if (e.type === 'win' && !this.ended) {
         this.ended = true;
         sfx.play('win');
-        this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]} rounds` });
+        this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]} rounds`, unit: 'rounds' });
       }
     }
   }

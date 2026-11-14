@@ -348,7 +348,7 @@ class MinigolfView implements GameInstance {
       } else if (e.type === 'win' && !this.ended) {
         this.ended = true;
         const [a, b] = g.score;
-        this.ctx.end({ winner: e.p, score: [a, b], summary: `${a} – ${b} strokes` });
+        this.ctx.end({ winner: e.p, score: [a, b], summary: `${a} – ${b} strokes`, unit: 'strokes · fewest wins' });
       }
     }
   }

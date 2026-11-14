@@ -252,7 +252,7 @@ class PenaltyView implements GameInstance {
       } else if (e.type === 'win') {
         sfx.play('win');
         const summary = e.p === null ? `Draw ${g.score[0]} – ${g.score[1]}` : `${g.score[0]} – ${g.score[1]}${g.kicks.length > RULES.kicks * 2 ? ' (sudden death)' : ''}`;
-        this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary });
+        this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary, unit: 'goals' });
       }
     }
   }

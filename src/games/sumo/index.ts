@@ -194,7 +194,7 @@ class SumoView implements GameInstance {
         sfx.play('win');
         if (!this.ended) {
           this.ended = true;
-          this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]} rounds` });
+          this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]} rounds`, unit: 'rounds' });
         }
       }
     }
