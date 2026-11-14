@@ -1990,3 +1990,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       big grid's fleet tally and the small grid's label (SUNK_Y), so its bright rise no longer
       crosses "Their ships" and the very ship it names being crossed out: 2723 bright frames on
       the tally in 48 bot matches -> 0. tests/seabattle-sunk-pop.test.ts.
+- [x] 2026-11-14 (F254, PR #PRNUM2): Rock Paper Scissors in Play the bot: the person's pill says
+      "Pick one!" (it said "Pick in secret!" though only the bot is there, and it never peeks);
+      two people still read "Pick in secret!". pickLine(), tests/rps-pick-line.test.ts.
