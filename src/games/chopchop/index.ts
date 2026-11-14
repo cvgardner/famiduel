@@ -41,6 +41,8 @@ export const BONK_DX = 128;
 export const SHIELD_DX = 76;
 /** The between-rounds card's centre, in the seat's own frame. */
 export const CARD_Y = MID + 118;
+/** Half the between-rounds card's height. */
+export const CARD_HALF = 24;
 /** Width of the between-rounds card's box. */
 export const CARD_W = 260;
 
@@ -178,6 +180,10 @@ class ChopView implements GameInstance {
       } else if (e.type === 'roundStart') {
         sfx.play('go');
       } else if (e.type === 'roundEnd') {
+        // F248: the round-end card (CARD_Y ± 24 in each seat's frame) comes up now; the winning
+        // chop's "50!" starts right on it (MILESTONE_Y) and a late "+2" rose into it, so pops
+        // whose words reach either card fade out instead of printing across "You win the round!".
+        for (const [y0, y1] of bannerBands()) fx.fadeBand(y0, y1);
         if (e.winner !== null) {
           sfx.play('score');
           const s = toScreen(e.winner, W / 2, L.baseY - 60);
@@ -413,10 +419,20 @@ class ChopView implements GameInstance {
     }
     if (!msg || silentSeat(this.ctx.players, p)) return;
     const y = CARD_Y;
-    rrect(gx, W / 2 - CARD_W / 2, y - 24, CARD_W, 48, 16, 'rgba(10,8,25,0.72)', alpha(this.ctx.players[p].color, 0.9), 2);
+    rrect(gx, W / 2 - CARD_W / 2, y - CARD_HALF, CARD_W, CARD_HALF * 2, 16, 'rgba(10,8,25,0.72)', alpha(this.ctx.players[p].color, 0.9), 2);
     // F246: the words fit inside the box with Bigger text too.
     text(gx, msg, W / 2, y, { size: fitSize(gx, msg, CARD_W - 24, 22), color: col });
   }
+}
+
+/** F248: the screen bands (top, bottom) the two seats' round-end cards cover. */
+export function bannerBands(): [number, number][] {
+  const lo = CARD_Y - CARD_HALF;
+  const hi = CARD_Y + CARD_HALF;
+  return [
+    [H - hi, H - lo],
+    [lo, hi],
+  ];
 }
 
 /** The between-rounds card's words; none for round 1, which starts at GO (F155). */

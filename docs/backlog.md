@@ -1974,3 +1974,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       button (it ran under it on a 320 px phone). tests/banner-fit.test.ts.
 - [ ] Menus at 200% text (the Larger Text label): root font size 2x at 390x844 over home,
       intro, settings, result and pause; nothing clipped or overlapping.
+- [x] 2026-11-14 (F248, PR #281): Chop Chop: pops reaching either seat's round-end card
+    ("You win the round!", "They got to 50!") fade as the card comes up (the winning chop's
+    "50!" started right on it, late "+2"s rose into it): 1418 readable pops over 9317 card
+    frames in bot matches -> 0. bannerBands(), tests/chopchop-banner-pops.test.ts.
