@@ -158,6 +158,18 @@ class SeaBattleView implements GameInstance {
     this.ctx.fx.pop(str, w.x, w.y, color, this.viewer, size);
   }
 
+  /**
+   * F257: a ship dropped where it can't go (off the sea, on another ship) or that can't turn
+   * used to say so only with a buzz and a snap back. The words pop just above the finger, on
+   * the sea, so a player with the sound off (or a kid who didn't hear it) knows why.
+   */
+  private misfit(str: string, x: number, y: number): void {
+    // Above the finger (the hand covers what is under it), under it only on the top row.
+    const py = Math.min(GY + N * C - 14, y - 40 >= GY + 12 ? y - 40 : y + 44);
+    const px = Math.max(GX + 86, Math.min(GX + N * C - 86, x));
+    this.pop(str, px, py, '#ffffff', 18);
+  }
+
   private burst(x: number, y: number, color: string, n: number, speed: number, size = 4): void {
     const w = this.world(x, y);
     this.ctx.fx.burst(w.x, w.y, color, n, speed, size);
@@ -304,11 +316,15 @@ class SeaBattleView implements GameInstance {
         const tx = Math.round((d.x - GX) / C - 0.5) - d.offX;
         const ty = Math.round((d.y - GY) / C - 0.5) - d.offY;
         if (g.setShip(p, d.i, tx, ty, s.horiz)) sfx.play('click');
-        else if (!(tx === s.x && ty === s.y)) sfx.play('buzz');
+        else if (!(tx === s.x && ty === s.y)) {
+          sfx.play('buzz');
+          this.misfit("Doesn't fit there", d.x, d.y);
+        }
       } else if (g.rotateShip(p, d.i)) sfx.play('pop');
       else {
         sfx.play('buzz');
         this.ctx.fx.shake(3, 0.12);
+        this.misfit('No room to turn', d.x, d.y);
       }
       this.drag = null;
     }
