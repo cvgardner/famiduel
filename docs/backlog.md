@@ -1837,7 +1837,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       swipe alone every 1.4 s (demo.ts SHOOTER_LOOP) and the card fades with the second
       flick (1.85-2.02 s); the keeper's copy is unchanged. Unit test reads the swipe
       keyframes; the ghost-finger playtest checks the shooter card at 1.5 s and none at 2.6 s.
-- [x] 2026-11-14 (F213): Snack Snatch: the grab pops ("+N", "+N ×k!") were white (1.1:1 on
+- [x] 2026-11-14 (F213, PR #256): Snack Snatch: the grab pops ("+N", "+N ×k!") were white (1.1:1 on
       the blanket) and gold (~1.4:1), so only their thin outline showed them, like "Miss!"
       before F211. 99.8% of their bright frames lie wholly on the blanket (measured over
       bot matches), so each is now the grabbing player's colour darkened to 3:1 on the
