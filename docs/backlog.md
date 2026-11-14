@@ -1859,3 +1859,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       with the goal in bold (goalHtml(), also in the pause How to play); the middle strip keeps
       Back, the tournament tag and Minigolf's daily switch. Playtest "layout: home and every
       intro" checks both halves carry the goal at every size, bigger text too.
+- [x] 2026-11-14 (F223, PR #TBD): Result screen: the losing half always read "So close!", even
+      after a 3 – 10 Minigolf or 0 – 5 Air Hockey loss (playtest minigolf-result.png). It now
+      says "So close!" only when the match was close (one apart, or within a fifth of the
+      winner's score) and "Good game!" otherwise (src/app/resulttitle.ts loserTitle());
+      tests/result-title.test.ts; the solo playtest still sees "So close!" after a 0 – 1.
