@@ -1950,3 +1950,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       behind it, where that paddle waits. 2026-11-14 (F240, PR #277): a pop a paddle runs
       into once it is 0.2 s old fades out (fx.fadeNear()): GOAL! 0.8%, the rest 0-0.4%. A
       smaller GOAL! for that seat only got to 4-5%.
+
+## Ideas found 2026-11-14 (pause and resume research run)
+- [x] 2026-11-14 (F243, PR #278): Resume (pause sheet or the pause how-to) counts 3-2-1 in
+      both halves before play goes on (it carried on the instant one player tapped, so the
+      other's puck or ball was already moving), and a match pauses itself when the page is
+      hidden (a call, a notification, switching apps). Runner.resume(); e2e "Resume counts
+      3-2-1...". Seen in a rival 2-player reflex app's v1.4 notes.
+- [ ] Store wrapper: Capacitor's app `pause` event should call the same pause as
+      visibilitychange (iOS can freeze the web view before the page sees it hidden).

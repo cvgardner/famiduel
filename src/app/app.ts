@@ -727,8 +727,14 @@ export class App {
     btn.addEventListener('click', (e) => {
       if (e.detail === 0) this.pause(); // Enter / Space from a keyboard or switch control
     });
+    const inPlay = () => !$('#play', this.root).classList.contains('hidden') && $('#modal').classList.contains('hidden');
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !$('#play', this.root).classList.contains('hidden') && $('#modal').classList.contains('hidden')) this.pause();
+      if (e.key === 'Escape' && inPlay()) this.pause();
+    });
+    // A call, a notification or switching apps pauses the match, so coming back
+    // shows the pause sheet (and Resume's 3-2-1) instead of a puck already moving.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden' && inPlay() && !this.runner?.result) this.pause();
     });
   }
 
@@ -753,7 +759,7 @@ export class App {
     });
     $('#resumeBtn', modal).addEventListener('click', () => {
       close();
-      if (this.runner) this.runner.paused = false;
+      this.runner?.resume();
     });
     $('#restartBtn', modal).addEventListener('click', () => {
       close();
@@ -787,13 +793,14 @@ export class App {
     modal.classList.add('help');
     modal.innerHTML = `<div class="pause-help">${seat(1)}<div class="intro-mid"><button id="helpBack" class="link">← Menu</button><button id="helpResume" class="btn primary" aria-label="Resume"><span class="btn-ico" aria-hidden="true">▶️</span>Resume</button></div>${seat(0)}</div>`;
     $('#helpBack', modal).addEventListener('click', () => {
+      // Back to the pause sheet: still paused (pause() needs it unpaused to open).
       if (this.runner) this.runner.paused = false;
       this.pause();
     });
     $('#helpResume', modal).addEventListener('click', () => {
       modal.classList.add('hidden');
       modal.classList.remove('help');
-      if (this.runner) this.runner.paused = false;
+      this.runner?.resume();
     });
   }
 

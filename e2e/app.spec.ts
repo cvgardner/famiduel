@@ -110,6 +110,38 @@ test('pause needs a press and hold: a quick tap only shows a hint', async ({ pag
   expect(errors).toEqual([]);
 });
 
+test('Resume counts 3-2-1 before play goes on; hiding the page pauses the match', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: { store: { data: { profiles: { bot: string | null }[] }; save(): void }; openGame(id: string): void } }).__famiduel;
+    app.store.data.profiles[0].bot = 'normal';
+    app.store.data.profiles[1].bot = 'normal';
+    app.store.save();
+    app.openGame('airhockey');
+  });
+  await expect(page.locator('#play')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __famiduel: { runner: { countdownLeft(): number } } }).__famiduel.runner.countdownLeft())).toBe(0);
+  await holdPause(page);
+  await page.click('#resumeBtn');
+  await expect(page.locator('#modal')).toBeHidden();
+  // Play waits for a fresh countdown (1.8 s), with no "You go first!" lines.
+  expect(await page.evaluate(() => (window as unknown as { __famiduel: { runner: { countdownLeft(): number } } }).__famiduel.runner.countdownLeft())).toBeGreaterThan(1);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __famiduel: { runner: { countdownLeft(): number } } }).__famiduel.runner.countdownLeft()), { timeout: 4000 }).toBe(0);
+  // The pause how-to's Resume counts too.
+  await holdPause(page);
+  await page.click('#howBtn');
+  await page.click('#helpResume');
+  await expect(page.locator('#modal')).toBeHidden();
+  expect(await page.evaluate(() => (window as unknown as { __famiduel: { runner: { countdownLeft(): number } } }).__famiduel.runner.countdownLeft())).toBeGreaterThan(1);
+  // A call or app switch (page hidden) pauses at once.
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(page.locator('#resumeBtn')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 for (const g of games.games) {
   test(`bot vs bot: ${g.id} plays to a result`, async ({ page }) => {
     const errors = await boot(page);

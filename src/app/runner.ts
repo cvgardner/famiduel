@@ -22,6 +22,8 @@ export class Runner {
   private outro = 0;
   private done = false;
   paused = false;
+  /** True while the 3-2-1 after a Resume runs (no "You go first!" lines then). */
+  private resuming = false;
   time = 0;
 
   constructor(
@@ -55,6 +57,24 @@ export class Runner {
     stage.onRender = (g) => this.render(g);
   }
 
+  /**
+   * Carry on after a pause. A match still in play counts 3-2-1 again first, so
+   * the player who didn't tap Resume has their hand back on their side before
+   * the puck or ball moves.
+   */
+  resume(): void {
+    if (!this.paused) return;
+    this.paused = false;
+    if (this.result || this.done) return;
+    this.countdown = 3 * COUNT_STEP;
+    this.resuming = true;
+  }
+
+  /** Seconds of countdown left (0 once play runs; test hook). */
+  countdownLeft(): number {
+    return Math.max(0, this.countdown);
+  }
+
   step(dt: number): void {
     if (this.paused || this.done) return;
     this.time += dt;
@@ -63,7 +83,10 @@ export class Runner {
       const before = Math.ceil(this.countdown / COUNT_STEP);
       this.countdown -= dt;
       const after = Math.ceil(this.countdown / COUNT_STEP);
-      if (this.countdown <= 0) this.sfx.play('go');
+      if (this.countdown <= 0) {
+        this.resuming = false;
+        this.sfx.play('go');
+      }
       else if (after !== before) this.sfx.play('count');
       return;
     }
@@ -102,7 +125,7 @@ export class Runner {
         text(g, String(n), W / 2, p === 0 ? MID + COUNT_DY : MID - COUNT_DY, { size, color: '#fff', stroke: 'rgba(0,0,0,0.5)', player: p });
       }
       // Turn games: say who goes first, on both sides, so a rematch's swap reads as on purpose.
-      const lines = this.starterLines();
+      const lines = this.resuming ? [null, null] : this.starterLines();
       for (const p of [0, 1] as const) {
         const line = lines[p];
         if (!line || silentSeat(this.players, p)) continue;
