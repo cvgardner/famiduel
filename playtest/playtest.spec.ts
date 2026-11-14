@@ -3168,7 +3168,7 @@ test('reduced motion: power pictures and the ghost finger hold still', async ({ 
 
 // F80: Settings > Look > Little hands makes the intro's Ready, power cards and bot level
 // buttons at least 56 px tall (ages 4-6 guidance asks 56-64 px); every intro still fits.
-test('little hands: big intro buttons, and every intro still fits', async ({ page }) => {
+test('little hands: big intro buttons (icon, one line), and every intro still fits', async ({ page }) => {
   test.setTimeout(120_000);
   const errors: string[] = [];
   await boot(page, errors);
@@ -3195,17 +3195,35 @@ test('little hands: big intro buttons, and every intro still fits', async ({ pag
           const r = await page.evaluate((g) => {
             const app = (window as unknown as { __famiduel: Hook }).__famiduel;
             app.openGame(g);
+            // F256: each Ready button leads with an icon and keeps its words on one line, in
+            // its longest state ("Tap a power to see it") and once a power is picked.
+            const wraps: string[] = [];
+            const lineCheck = (when: string) => {
+              for (const b of document.querySelectorAll<HTMLElement>('#intro .btn.ready')) {
+                // Lines = distinct tops of the words' boxes (a Little hands button is taller
+                // than one line on purpose, so its height says nothing).
+                const range = document.createRange();
+                range.selectNodeContents(b);
+                const tops = [...range.getClientRects()].filter((rc) => rc.width > 0).map((rc) => rc.top);
+                const twoLines = Math.max(...tops) - Math.min(...tops) > 0.8 * parseFloat(getComputedStyle(b).fontSize);
+                if (b.querySelectorAll('.btn-ico').length !== 1) wraps.push(`${b.id} ${when}: no icon`);
+                else if (b.scrollWidth > b.clientWidth + 1 || twoLines) wraps.push(`${b.id} ${when}: "${b.textContent}" wraps`);
+              }
+            };
+            lineCheck('before a pick');
             // Pick the first power in each person's half: the picked layout is the tallest.
             for (const c of document.querySelectorAll<HTMLElement>('.half:not(.bot) .power-card:first-child')) c.click();
+            lineCheck('after a pick');
             const small = [...document.querySelectorAll<HTMLElement>('#intro .btn.ready, #intro .power-card, #intro .botlvl button')]
               .map((b) => Math.round(b.getBoundingClientRect().height))
               .filter((hgt) => hgt < 56);
             const over = [...document.querySelectorAll('#intro .half')].some(
               (hf) => (hf.querySelector('.half-inner') as HTMLElement).getBoundingClientRect().height > (hf as HTMLElement).getBoundingClientRect().height + 1,
             );
-            return { small, over };
+            return { small, over, wraps };
           }, id);
           const tag = `${id} at ${w}x${h}${big ? ' (bigger text)' : ''}${players[1] ? ' vs bot' : ''}`;
+          for (const x of r.wraps) problems.push(`${tag}: ${x}`);
           if (r.small.length) problems.push(`${tag}: buttons ${r.small.join(', ')} px`);
           if (r.over) {
             problems.push(`${tag}: intro spills out of its half`);
@@ -3245,13 +3263,15 @@ test('intro: a picked power says what it does and the intro still fits, every ga
   await setPlayers(page, [null, 'normal']);
   await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
   await expect(page.locator('#intro')).toBeVisible();
-  await expect(page.locator('#ready0')).toHaveText('Tap a power to see it');
+  await expect(page.locator('#ready0')).toHaveAccessibleName('Tap a power to see it');
+  await expect(page.locator('#ready0')).toHaveText(/Tap a power to see it$/);
   await expect(page.locator('.power-card[data-p="0"] small').first()).toBeHidden();
   await expect(page.locator('.half.p0 .howto')).toBeVisible();
   await page.screenshot({ path: path.join(OUT, 'bigtext-intro-hint-390.png') });
   const cards = page.locator('.power-card[data-p="0"]');
   await cards.nth(1).tap();
-  await expect(page.locator('#ready0')).toHaveText('Ready!');
+  await expect(page.locator('#ready0')).toHaveAccessibleName('Ready!');
+  await expect(page.locator('#ready0')).toHaveText(/Ready!$/);
   const desc = page.locator('.half.p0 .pick-desc');
   await expect(desc).toBeVisible();
   await expect(page.locator('.half.p0 .howto')).toBeHidden();
@@ -3268,7 +3288,8 @@ test('intro: a picked power says what it does and the intro still fits, every ga
   // On a tall phone without Bigger text every card shows its description, as before.
   await setBig(false);
   await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
-  await expect(page.locator('#ready0')).toHaveText('Pick a power');
+  await expect(page.locator('#ready0')).toHaveAccessibleName('Pick a power');
+  await expect(page.locator('#ready0')).toHaveText(/Pick a power$/);
   await expect(page.locator('.power-card[data-p="0"] small').first()).toBeVisible();
   await page.locator('.power-card[data-p="0"]').first().tap();
   // ...and the picked card shows the power's looping picture in its icon's place.

@@ -1996,3 +1996,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-14 (F255, PR #287): Home: the match-night line keeps "N games" together, so a
       320 px phone breaks it after the dot ("Match night ·" / "0 games") instead of leaving
       "games" alone on the second line; same for "You vs the bot". e2e checks it at 320 px.
+
+## Ideas found 2026-11-14 (kids' design guidance research run)
+- [x] 2026-11-14 (F256, PR #NNN): the intro's Ready button leads with an icon in every state
+      (👆 Pick a power / Tap a power to see it, 👍 Ready!, ✅ Ready), and the profile sheet's
+      Done with ✅, so a pre-reader and the top player (reading it upside down) can tell its
+      states apart; the words stay the accessible name. Google's design guidance for kids'
+      apps: avoid text-only buttons. readylabel.ts; playtest "little hands" checks icon and one
+      line on every intro at 320/360/390 px, with and without Bigger text.

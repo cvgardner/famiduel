@@ -27,6 +27,7 @@ import { BOT_LEVELS, BOT_NAME, botFace, PLAYER_COLORS, Store, botFor, easierOffe
 import { applyTheme, watchSystemTheme } from './theme';
 import { DARK_INK, inkOn } from '../core/contrast';
 import { cardInk } from './cardink';
+import { READY_WORDS, readyLabel, type ReadyState } from './readylabel';
 
 export type GameMeta = (typeof gamesJson.games)[number];
 export const META: GameMeta[] = gamesJson.games;
@@ -436,7 +437,7 @@ export class App {
         <div class="seg" id="pHand">${(['right', 'left'] as const).map((v) => `<button data-v="${v}" class="${(pr.lefty ? 'left' : 'right') === v ? 'on' : ''}">${v === 'right' ? 'Right-handed' : 'Left-handed'}</button>`).join('')}</div></div>
       <div class="field">Who plays
         <div class="seg" id="pBot">${(['human', 'easy', 'normal', 'hard'] as const).map((v) => `<button data-v="${v}" class="${(pr.bot ?? 'human') === v ? 'on' : ''}">${v === 'human' ? '🙂 Person' : `🤖 ${botFace(v)} ${v}`}</button>`).join('')}</div></div>
-      <button id="pDone" class="btn primary">Done</button>
+      <button id="pDone" class="btn primary" aria-label="Done"><span class="btn-ico" aria-hidden="true">✅</span>Done</button>
     </div>`;
     let color = pr.color;
     let head = pr.headStart;
@@ -508,7 +509,7 @@ export class App {
           <p class="howto">${goalHtml(meta.blurb)}${meta.howTo}</p>
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span>${powerPicHtml(id, pw.id)}<b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>${bot ? '' : '<p class="pick-desc"></p>'}` : ''}
-          ${bot ? botRow(p, bot) : `<button class="btn ready" id="ready${p}" data-p="${p}">${powers.length ? 'Pick a power' : 'Ready!'}</button>`}
+          ${bot ? botRow(p, bot) : `<button class="btn ready" id="ready${p}" data-p="${p}" aria-label="${powers.length ? 'Pick a power' : 'Ready!'}">${readyLabel(powers.length ? 'pick' : 'ready')}</button>`}
           <div class="who">${esc(seatName(this.store.data.profiles, p))}${bot ? ` 🤖<span class="botface" data-p="${p}">${botFace(bot)}</span>` : 'seatRing' in meta && meta.seatRing ? seatCueHtml(p) : ''}</div>
         </div>
       </div>`;
@@ -554,7 +555,9 @@ export class App {
         // Where descriptions show for the picked card only (short phones, Bigger text), the
         // button tells a person who hasn't picked that a tap shows what a power does.
         const hidden = !!powers.length && getComputedStyle(intro.querySelector<HTMLElement>(`.power-card[data-p="${p}"] small`)!).display === 'none';
-        btn.textContent = ready[p] ? 'Ready ✓' : powers.length && !this.picks[p] ? (hidden ? 'Tap a power to see it' : 'Pick a power') : 'Ready!';
+        const state: ReadyState = ready[p] ? 'done' : powers.length && !this.picks[p] ? (hidden ? 'peek' : 'pick') : 'ready';
+        btn.innerHTML = readyLabel(state);
+        btn.setAttribute('aria-label', READY_WORDS[state][1]);
         btn.disabled = !!powers.length && !this.picks[p];
       }
       if (ready[0] && ready[1]) setTimeout(() => this.startMatch(), 250);
