@@ -1939,3 +1939,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       head 31%). Catch pops now start beside the neck (besideNeck()); power names pop in two
       lines (powerLines(): "🧲 Magnet" / "Mouth!") that fit between the frog lanes, just short
       of the pot. tests/snacksnatch-pops-frogs.test.ts: 0 frames on a frog for every pop.
+- [x] 2026-11-14 (F239, PR #276): Air Hockey: the centre pops only dodged the pucks, so they
+      printed over a paddle, often the one under a person's finger (readable frames on a
+      paddle in bot matches: Giant Paddle 67%, Split Puck 49%, Freeze 31%, "Your shot!" 22%,
+      GOAL! 19%). clearOfPucks() now takes the line nearest home that misses the pucks with
+      the most room from both paddles, where they are and where they head over the next 0.3 s:
+      1.6-3.1%, GOAL! 7.3% (tests/airhockey-pops-paddles.test.ts).
+- [ ] Air Hockey GOAL! still sits on the conceding player's paddle 7% of its readable frames:
+      the served puck waits at MID ± 70 and the only puck-clear lines for a size-40 GOAL! are
+      behind it, where that paddle waits. A smaller GOAL! for the conceding seat, or one that
+      fades as their paddle arrives, could take it to 0.
