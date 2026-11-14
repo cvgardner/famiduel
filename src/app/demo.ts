@@ -214,17 +214,12 @@ export function seatCueHtml(p: number): string {
   return ` <span class="seat-cue"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="rgba(20,17,43,.7)" stroke-width="4"${dash}/><circle cx="12" cy="12" r="8" fill="none" stroke="#fff" stroke-width="2"${dash}/></svg> yours: <b>${p === 1 ? 'dashed' : 'solid'} ring</b></span>`;
 }
 
-/** The win condition ("First to 5 goals."), leading each player's how-to so both seats read it (F222). */
-export function goalHtml(blurb: string): string {
-  return `<b class="goal">${blurb}</b> `;
-}
-
-export function howToHalfHtml(seat: HowToSeat, game: { id?: string; icon: string; name: string; blurb?: string; howTo: string; gesture?: string; seatRing?: boolean }): string {
+export function howToHalfHtml(seat: HowToSeat, game: { id?: string; icon: string; name: string; howTo: string; gesture?: string; seatRing?: boolean }): string {
   const g = isGesture(game.gesture) ? game.gesture : null;
   const head = `<div class="intro-head"><div class="intro-title">${game.icon} ${game.name}</div>${g && !seat.bot ? demoHtml(g, !!seat.lefty) : ''}</div>`;
   const body = seat.bot
     ? `<p class="howto">🤖 Waiting for you</p>`
-    : `<p class="howto">${game.blurb ? goalHtml(game.blurb) : ''}${game.howTo}</p>${
+    : `<p class="howto">${game.howTo}</p>${
         seat.power ? `<p class="my-power">${game.id && seat.power.id ? powerPicHtml(game.id, seat.power.id) : ''}<span class="picon">${seat.power.icon}</span> <b>Your power: ${seat.power.name}</b> ${seat.power.desc}${
             seat.charge ? chargeHtml(seat.charge) : ''
           }</p>` : ''

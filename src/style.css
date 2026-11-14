@@ -227,7 +227,6 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .howto { margin: 0; color: rgba(255,255,255,0.85); font-weight: 600; font-size: calc(15px * var(--ts)); max-width: 340px; }
 .seat-cue { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; color: #fff; font-weight: 700; white-space: nowrap; }
 .seat-cue svg { flex: none; }
-.howto .goal { color: #fff; font-weight: 800; }
 /* F224: a bot's half never shows the how-to, at any size: in Play the bot it turns to face the
    person, who already reads it in their own half (it read twice on a tall phone). */
 .half.bot .howto { display: none; }
