@@ -1968,7 +1968,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
     under the number dot, VS level with the dots, 2-across game cards, tournament card and
     theme row grow). Playtest "menus at 200% text". Open: no setting reaches 2x yet (Chris's call,
     docs/accessibility-labels.md gap 1).
-- [x] 2026-11-14 (F246, PR #PRNUM): boxed round-end banners fit their words with Bigger text:
+- [x] 2026-11-14 (F246, PR #284): boxed round-end banners fit their words with Bigger text:
       Snake's and Chop Chop's words shrink to fit their box ("Ouch! Next round…" ran past it),
       and Sumo's box moves right when it is too wide to stay centred and clear of the pause
       button (it ran under it on a 320 px phone). tests/banner-fit.test.ts.
