@@ -153,7 +153,9 @@ export function scaledSize(size: number): number {
  * Edge probe, switched on by the playtest: readable labels whose words reach past the
  * world's left or right edge (by more than a unit), with the most they ran over.
  */
-export const edgeProbe = { on: false, over: new Map<string, number>() };
+export const edgeProbe = { on: false, over: new Map<string, number>(), near: new Map<string, number>() };
+/** F251: the least room (world units) a canvas word keeps from the screen's left and right edges. */
+export const EDGE_PAD = 6;
 
 /**
  * Box probe (F158): while on, every label drawn lists the box its ink covers, in canvas
@@ -345,6 +347,9 @@ function probeEdge(g: G, str: string, x: number, player: 0 | 1): void {
   const [l, r] = textSpan(x, g.measureText(str).width, g.textAlign, player);
   const over = Math.max(-l, r - W);
   if (over > 1) edgeProbe.over.set(str, Math.max(over, edgeProbe.over.get(str) ?? 0));
+  // F251: words that stay on screen but crowd its edge (Snake's "Round 1" sat 5 units in).
+  const room = Math.min(l, W - r);
+  if (room < EDGE_PAD - 0.5) edgeProbe.near.set(str, Math.min(room, edgeProbe.near.get(str) ?? Infinity));
 }
 
 /** The dark outline behind a name drawn in its player's colour (same as a pop's). */

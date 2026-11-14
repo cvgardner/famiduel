@@ -1134,18 +1134,20 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     // F118: the bot seat's canvas words (countdown, score, pops) turn to face the person too,
     // and keep their place on screen (a flipped left/right label still fits).
     await page.waitForTimeout(2600);
-    const [turned, over] = await page.evaluate(() => {
+    const [turned, over, near] = await page.evaluate(() => {
       const r = (window as unknown as { __reader: { on: boolean; turned: Set<string> } }).__reader;
-      const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number> } }).__edges;
+      const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number>; near: Map<string, number> } }).__edges;
       r.on = false;
       e.on = false;
-      return [[...r.turned], [...e.over]];
+      return [[...r.turned], [...e.over], [...e.near]];
     });
     // F151: the countdown no longer draws in the bot's half, and Sea Battle and RPS draw no other
     // canvas words there (their boards and cards are their own), so only the action games must
     // have turned something; every game's turned words still get the checks below.
     if (!WAITS_FOR_PERSON.includes(id)) expect(turned.length, `${id}: the bot seat's words were turned to face the person`).toBeGreaterThan(0);
     expect(over, `${id}: no turned word runs off the screen`).toEqual([]);
+    // F251: and no canvas word crowds the screen's left or right edge (EDGE_PAD units of room).
+    expect(near, `${id}: words within 6 units of the screen edge`).toEqual([]);
     // F120: the bot's half never says "you" (the person would read it as their own).
     expect(turned.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half`).toEqual([]);
     // F119: no how-to words in the bot's half (nobody reads them).
@@ -1302,15 +1304,17 @@ test('play the bot from the top seat: the bottom bot\'s words face the person up
     expect(await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner!.players.map((p) => p.bot)), id).toEqual(['easy', null]);
     expect(await page.evaluate(() => (window as unknown as { __famiduel: { runner: { countdownSeats(): number[] } } }).__famiduel.runner.countdownSeats()), `${id}: countdown in the bot's half`).toEqual([1]);
     await page.waitForTimeout(2600);
-    const [turned, over] = await page.evaluate(() => {
+    const [turned, over, near] = await page.evaluate(() => {
       const r = (window as unknown as { __reader: { on: boolean; turned: Set<string> } }).__reader;
-      const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number> } }).__edges;
+      const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number>; near: Map<string, number> } }).__edges;
       r.on = false;
       e.on = false;
-      return [[...r.turned], [...e.over]];
+      return [[...r.turned], [...e.over], [...e.near]];
     });
     expect(turned.length, `${id}: the bottom bot's words were turned to face the top`).toBeGreaterThan(0);
     expect(over, `${id}: no turned word runs off the screen`).toEqual([]);
+    // F251: and no canvas word crowds the screen's left or right edge (EDGE_PAD units of room).
+    expect(near, `${id}: words within 6 units of the screen edge`).toEqual([]);
     // F120: the bot's half never says "you" (the person would read it as their own).
     expect(turned.filter((t) => /\b(you(r)?|them)\b/i.test(t)), `${id}: "you" words in the bot's half`).toEqual([]);
     await page.screenshot({ path: path.join(OUT, `solo-top-${id}.png`) });
@@ -3716,5 +3720,47 @@ test('tournament: games can be swapped out before game 1, on a small phone', asy
   // Game 1 is whatever slot 1 now holds.
   const first = (await names())[0];
   await expect(page.locator('#tourneyPlay')).toContainText(first);
+  expect(errors).toEqual([]);
+});
+
+// F251: no canvas word crowds the screen's left or right edge. Snake's "Round 3" (centred 34
+// units in) sat 2-4 units from the edge with Bigger text on a small phone; a word the edge
+// probe (src/engine/draw.ts edgeProbe.near) finds under EDGE_PAD units of room fails here.
+test('edges: in-game words keep their room from the screen edge, Bigger text on a small phone', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void } }).__famiduel;
+    app.store.data.settings.bigText = true;
+    app.applyBigText();
+  });
+  const shown = games.games.filter((x) => !x.hidden && (built.length === 0 || built.includes(x.id))).map((x) => x.id);
+  const near: string[] = [];
+  // A person in each seat in turn (their half's score and round lines), then two bots (both halves).
+  for (const bots of [[null, 'normal'], ['normal', null], ['normal', 'normal']] as [string | null, string | null][]) {
+    await setPlayers(page, bots);
+    for (const id of shown) {
+      await page.evaluate((g) => {
+        (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g);
+        const e = (window as unknown as { __edges: { on: boolean; over: Map<string, number>; near: Map<string, number> } }).__edges;
+        e.near.clear();
+        e.on = true;
+        (window as unknown as { __famiduel: { startMatch(): void } }).__famiduel.startMatch();
+      }, id);
+      for (let i = 0; i < 30 && !(await page.locator('#result').isVisible()); i++) {
+        await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner?.fastForward(0.7));
+        await page.waitForTimeout(40);
+      }
+      const found = await page.evaluate(() => {
+        const e = (window as unknown as { __edges: { on: boolean; near: Map<string, number> } }).__edges;
+        e.on = false;
+        return [...e.near].map(([s, room]) => `${s} (${room.toFixed(1)})`);
+      });
+      near.push(...found.map((f) => `${id} [${bots.join(' v ')}]: ${f}`));
+      await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
+    }
+  }
+  expect(near).toEqual([]);
   expect(errors).toEqual([]);
 });

@@ -1968,3 +1968,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
     under the number dot, VS level with the dots, 2-across game cards, tournament card and
     theme row grow). Playtest "menus at 200% text". Open: no setting reaches 2x yet (Chris's call,
     docs/accessibility-labels.md gap 1).
+- [x] 2026-11-14 (F251, PR #TBD): Snake's "Round N" and "a – b" lines start at the arena's
+    own edge and run inward (centred 34 units in, "Round 3" with Bigger text sat 2-4 units from
+    a 320 px phone's edge). The edge probe also lists words with under EDGE_PAD (6) units of
+    room (`__edges.near`); new playtest "edges: in-game words keep their room..." plays every
+    shown game at 320 px with Bigger text (person in each seat, then two bots) and the solo
+    checks fail on it too. Snake was the only game it found.
