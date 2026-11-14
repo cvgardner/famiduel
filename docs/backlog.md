@@ -1958,3 +1958,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       3-2-1...". Seen in a rival 2-player reflex app's v1.4 notes.
 - [ ] Store wrapper: Capacitor's app `pause` event should call the same pause as
       visibilitychange (iOS can freeze the web view before the page sees it hidden).
+- [x] 2026-11-14 (F244, PR #TBD): docs/accessibility-labels.md: which App Store
+      Accessibility Nutrition Labels we can claim (Dark Interface, Sufficient Contrast,
+      Differentiate Without Color Alone, Reduced Motion), which not yet (Larger Text, VoiceOver,
+      Voice Control) and the test behind each claim.
+- [ ] Menus at 200% text (the Larger Text label): root font size 2x at 390x844 over home,
+      intro, settings, result and pause; nothing clipped or overlapping.
