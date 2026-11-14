@@ -317,6 +317,14 @@ export class Minigolf {
     this.timer = RULES.settleTime;
   }
 
+  /** Who shoots after the current ball settles (null: the hole ends). Same order as nextTurn(). */
+  nextShooter(): PlayerIndex | null {
+    const q = other(this.shooter);
+    if (!this.balls[q].done) return q;
+    if (!this.balls[this.shooter].done) return this.shooter;
+    return null;
+  }
+
   private nextTurn(): void {
     const q = other(this.shooter);
     if (!this.balls[q].done) this.beginTurn(q);
