@@ -256,6 +256,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .res-title { font-size: 40px; font-weight: 900; }
 .half.won .res-title { color: var(--gold); }
 .res-score { font-size: 30px; font-weight: 900; }
+/* What the score counts (F218): "strokes · fewest wins" keeps a Minigolf 9 – 10 win from reading as a loss. */
+.res-unit { color: var(--dim); font-size: 15px; font-weight: 700; margin-top: -4px; }
 .res-night { color: var(--dim); font-weight: 700; }
 .res-daily { color: var(--gold); font-weight: 800; }
 /* Minigolf's today's course switch, beside the blurb in the intro's middle strip. */

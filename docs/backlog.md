@@ -1849,3 +1849,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       over (seen solo: bot "In the hole ✓", person "Wait · Bot shoots"). That seat now reads
       "You're up next!" ("Up next" on a bot's strip); logic nextShooter() mirrors nextTurn().
       tests/minigolf-up-next.test.ts.
+- [x] 2026-11-14 (F218, PR #TBD): Result screen: the score had no unit, so a Minigolf win read
+      "You win! 9 – 10" (fewer strokes win) and looked like a loss to a kid. Every game now
+      says what the score counts under it (GameResult `unit`: "strokes · fewest wins", goals,
+      points, rounds, snacks, bonks, ships sunk); the e2e bot-vs-bot test checks both halves.

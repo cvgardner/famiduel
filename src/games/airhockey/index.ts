@@ -126,7 +126,7 @@ class AirHockeyView implements GameInstance {
         sfx.play('whoosh');
         fx.burst(e.x, e.y, '#bfe9ff', 10, 140, 3);
       } else if (e.type === 'win') {
-        this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]}` });
+        this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]}`, unit: 'goals' });
       }
     }
     const pk = g.pucks[0];

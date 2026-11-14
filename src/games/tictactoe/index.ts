@@ -125,7 +125,7 @@ class TicTacToeView implements GameInstance {
     const score = [...g.score] as [number, number];
     if (g.winner === null) {
       sfx.play('buzz');
-      this.ctx.end({ winner: null, score, summary: `${score[0]} – ${score[1]} after ${g.games} games` });
+      this.ctx.end({ winner: null, score, summary: `${score[0]} – ${score[1]} after ${g.games} games`, unit: 'games' });
       return;
     }
     const w = g.winner;
@@ -133,7 +133,7 @@ class TicTacToeView implements GameInstance {
     fx.flash(this.color(w), 0.25);
     for (let i = 0; i < 6; i++) fx.burst(40 + i * 56, w === 0 ? H - 90 : 90, this.color(w), 18, 260, 4);
     fx.pop('Champion!', W / 2, w === 0 ? MID + 230 : MID - 230, COLORS.gold, w, 34);
-    this.ctx.end({ winner: w, score, summary: `${score[0]} – ${score[1]} in games` });
+    this.ctx.end({ winner: w, score, summary: `${score[0]} – ${score[1]} in games`, unit: 'games' });
   }
 
   /**

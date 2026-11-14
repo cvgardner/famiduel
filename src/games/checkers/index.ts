@@ -203,7 +203,7 @@ class CheckersView implements GameInstance {
     if (g.winner === null) {
       sfx.play('buzz');
       for (const p of PLAYERS) fx.pop('Draw!', W / 2, p === 0 ? MID + 200 : MID - 200, COLORS.gold, p, 34);
-      this.ctx.end({ winner: null, score, summary: `Draw · ${score[0]} – ${score[1]} taken` });
+      this.ctx.end({ winner: null, score, summary: `Draw · ${score[0]} – ${score[1]} taken`, unit: 'pieces taken' });
       return;
     }
     const w = g.winner;
@@ -213,7 +213,7 @@ class CheckersView implements GameInstance {
     for (let i = 0; i < 64; i++) if (g.cells[i] !== 0 && ownerOfCell(g.cells[i]) === w) fx.burst(cx(i), cy(i), this.color(w), 10, 200, 4);
     fx.pop('You win!', W / 2, w === 0 ? MID + 200 : MID - 200, COLORS.gold, w, 34);
     fx.pop('Good game!', W / 2, w === 0 ? MID - 200 : MID + 200, '#fff', other(w), 26);
-    this.ctx.end({ winner: w, score, summary: `${score[0]} – ${score[1]} pieces taken` });
+    this.ctx.end({ winner: w, score, summary: `${score[0]} – ${score[1]} pieces taken`, unit: 'pieces taken' });
   }
 
   /** The last move as the board shows it (null while a move animates or after an undo). */

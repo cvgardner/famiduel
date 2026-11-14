@@ -310,7 +310,7 @@ class FourInARowView implements GameInstance {
     if (g.done) {
       if (!this.ended) {
         this.ended = true;
-        this.ctx.end({ winner: g.winner, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]} games` });
+        this.ctx.end({ winner: g.winner, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]} games`, unit: 'games' });
       }
       return;
     }

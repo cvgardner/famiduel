@@ -121,6 +121,9 @@ for (const g of games.games) {
     await botMatch(page, g.id);
     await expect(page.locator('.res-title').first()).toBeVisible();
     await expect(page.locator('.night-score, .res-night').first()).toContainText(/1|0/);
+    // F218: both halves say what the score counts, and Minigolf says fewer strokes win.
+    await expect(page.locator('#result .res-unit')).toHaveCount(2);
+    if (g.id === 'minigolf') await expect(page.locator('#result .res-unit').first()).toContainText('fewest wins');
     await page.click('#rematchBtn');
     await expect(page.locator('#intro')).toBeVisible();
     expect(errors).toEqual([]);

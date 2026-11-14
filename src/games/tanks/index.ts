@@ -296,7 +296,7 @@ class TankView implements GameInstance {
           fx.burst(tk.x, tk.y, COLORS.gold, 30, 260, 4);
         }
         const score = [...g.score] as [number, number];
-        this.ctx.end({ winner: e.p, score, summary: `${score[0]} – ${score[1]} bonks` });
+        this.ctx.end({ winner: e.p, score, summary: `${score[0]} – ${score[1]} bonks`, unit: 'bonks' });
       }
     }
     for (const p of PLAYERS) if (this.dizzy[p] !== null) this.dizzy[p]! += 1 / 60;

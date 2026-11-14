@@ -240,7 +240,7 @@ class SeaBattleView implements GameInstance {
       if (!busy && m.t > 3 && !this.ended) {
         this.ended = true;
         const g = this.game;
-        this.ctx.end({ winner: g.winner, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]} ships sunk` });
+        this.ctx.end({ winner: g.winner, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]} ships sunk`, unit: 'ships sunk' });
       }
     }
   }

@@ -843,6 +843,7 @@ export class App {
       return `<div class="half p${p} ${won ? 'won' : ''}${faces ? ' faces' : ''}" style="--c:${profiles[p].color};--ink:${inkOn(profiles[p].color)}"><div class="half-inner">
         <div class="res-title">${title}</div>
         <div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>
+        ${r.unit ? `<div class="res-unit">${esc(r.unit)}</div>` : ''}
         <div class="who">${esc(seatName(profiles, p))}${seats?.[p].bot ? ` 🤖${botFace(seats[p].bot!)}` : ''}${won ? ' 🏆' : ''}</div>
         ${dailyLine(p)}
         <div class="res-night">${tw ? `🏆 ${champ === p ? 'Tournament champion!' : 'Tournament:'} ${tw[p]} – ${tw[p === 0 ? 1 : 0]}` : `${solo ? (botHalf ? 'Bot' : 'You vs the bot') : 'Match night'}: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}`}</div>
