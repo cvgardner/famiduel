@@ -3,7 +3,7 @@
 import { STEP } from '../../engine/stage';
 import { liftOn, popColor, POP_OUTLINE } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, fitSize, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
 import { pulse } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
@@ -59,7 +59,18 @@ function waitHand(gx: G, y: number): void {
 /** Local point in player p's frame to a screen point. */
 const toScreen = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
 
-const ms = (s: number | null) => (s === null ? '—' : `${Math.round(s * 1000)} ms`);
+const ms = (s: number) => `${Math.round(s * 1000)} ms`;
+
+/**
+ * F263: one side of the round card's time line. A seat that never drew says so in words
+ * ("You: no shot"); a lone dash ("You —") means nothing to a young kid.
+ */
+export function timeLine(who: string, s: number | null): string {
+  return s === null ? `${who}: no shot` : `${who} ${ms(s)}`;
+}
+
+/** Each half of the round card is this wide around its time line's centre. */
+export const TIME_W = 148;
 
 class QuickDrawView implements GameInstance {
   readonly game: QuickDraw;
@@ -322,8 +333,10 @@ class QuickDrawView implements GameInstance {
       text(gx, title, W / 2, y - 14, { size: 22, color });
       const mine = r.times[p];
       const theirs = r.times[other(p)];
-      text(gx, `You ${ms(mine)}`, W / 2 - 74, y + 16, { size: 17, color: shade(this.ctx.players[p].color, -0.65) });
-      text(gx, `${bot ? 'Bot' : 'Them'} ${ms(theirs)}`, W / 2 + 74, y + 16, { size: 17, color: shade(this.ctx.players[other(p)].color, -0.65) });
+      const left = timeLine('You', mine);
+      const right = timeLine(bot ? 'Bot' : 'Them', theirs);
+      text(gx, left, W / 2 - 74, y + 16, { size: fitSize(gx, left, TIME_W, 17), color: shade(this.ctx.players[p].color, -0.65) });
+      text(gx, right, W / 2 + 74, y + 16, { size: fitSize(gx, right, TIME_W, 17), color: shade(this.ctx.players[other(p)].color, -0.65) });
       const pen = r.penalty[p];
       if (pen > 0.001 && mine !== null) text(gx, `+${Math.round(pen * 1000)} ms handicap`, W / 2 - 74, y + 32, { size: 13, color: '#4a2c0c' });
       const penO = r.penalty[other(p)];
