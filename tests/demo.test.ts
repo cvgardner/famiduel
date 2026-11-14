@@ -106,6 +106,7 @@ describe('how to play, from the pause menu', () => {
     expect(html).toContain('class="half p1"');
     expect(html).toContain('data-gesture="stick"');
     expect(html).toContain(tanks.howTo);
+    expect(html).toContain(`<b class="goal">${tanks.blurb}</b>`);
     expect(html).toContain('Your power: Turbo');
     expect(html).toContain(power.desc);
   });

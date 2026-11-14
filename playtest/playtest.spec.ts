@@ -267,6 +267,11 @@ test('layout: home and every intro fit a small phone', async ({ page }) => {
         return new Set([...r.getClientRects()].map((c) => Math.round(c.top))).size;
       });
       if (backLines !== 1) clipped.push(`${id} at ${w}x${h}${tag}: "← Back" wraps onto ${backLines} lines`);
+      // F222: each person's half leads its how-to with the goal ("First to 5 goals."), so the top
+      // player reads it upright too (it used to sit only on the middle strip, facing the bottom seat).
+      const goals = await page.evaluate(() => [...document.querySelectorAll('#intro .half')].map((h) => h.querySelector('.howto .goal')?.textContent ?? ''));
+      const blurb = games.games.find((g) => g.id === id)!.blurb;
+      if (goals.length !== 2 || goals.some((g) => g !== blurb)) clipped.push(`${id} at ${w}x${h}${tag}: goal line missing from a half (${JSON.stringify(goals)})`);
       if (demo.some((d) => !d.shown)) clipped.push(`${id} at ${w}x${h}${tag}: no ghost finger on a first match`);
       if (demo.some((d) => !d.fits)) clipped.push(`${id} at ${w}x${h}${tag}: ghost finger pushes the title off the phone`);
       if (bad || demo.some((d) => !d.shown || !d.fits)) {
