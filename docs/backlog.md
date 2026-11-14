@@ -1905,3 +1905,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       crash and "Crashed!" on its banner at the same moment. Its banner now says what comes
       next ("Ouch! Next round…"); the winner still reads "You win the round!"
       (roundEndLines(); tests/snake-round-banner.test.ts).
+- [x] 2026-11-14 (F233, PR #TBD): Pause: "Resume" (on the pause sheet and in the middle of the
+      how-to, where it faces the bottom seat) leads with ▶️ like F231's result buttons, so the
+      top player knows it without reading upside down; the "how to play" playtest checks the
+      icon, its plain name and one line at 320 px.

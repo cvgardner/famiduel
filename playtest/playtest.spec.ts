@@ -827,6 +827,11 @@ test('how to play: the pause menu shows each player the finger, the rules and th
     }
     if (!(await paused())) problems.push(`${id}: match ran while how to play was up`);
     if (id === 'tanks') await page.screenshot({ path: path.join(OUT, 'pause-help.png') });
+    // F233: the middle Resume faces the bottom seat; the top player knows it by its icon.
+    const resume = page.locator('#helpResume');
+    await expect(resume.locator('.btn-ico'), `${id}: an icon on Resume`).toHaveCount(1);
+    await expect(resume, `${id}: Resume's plain name`).toHaveAccessibleName('Resume');
+    expect(await resume.evaluate((el) => el.scrollWidth <= el.clientWidth + 1), `${id}: Resume on one line`).toBe(true);
     await page.locator('#helpResume').tap();
     await expect(page.locator('#modal')).toBeHidden();
     if (await paused()) problems.push(`${id}: Resume left the match paused`);
