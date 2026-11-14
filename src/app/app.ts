@@ -863,9 +863,11 @@ export class App {
       </div></div>`;
     };
     const res = $('#result');
+    // F231: the middle buttons read upright only for the bottom seat; an icon on each lets
+    // the top player (and a kid who can't read yet) tell Games from Rematch.
     res.innerHTML = `${half(1)}<div class="intro-mid">
-        <button id="homeBtn" class="btn ghost">Games</button>
-        ${tourney ? `<button id="tourneyNextBtn" class="btn primary">${champ !== null ? '🏆 Champion' : 'Next game'}</button>` : `<button id="rematchBtn" class="btn primary">Rematch</button>`}
+        <button id="homeBtn" class="btn ghost" aria-label="Games"><span class="btn-ico" aria-hidden="true">🏠</span>Games</button>
+        ${tourney ? `<button id="tourneyNextBtn" class="btn primary">${champ !== null ? '🏆 Champion' : '<span class="btn-ico" aria-hidden="true">▶️</span>Next game'}</button>` : `<button id="rematchBtn" class="btn primary" aria-label="Rematch"><span class="btn-ico" aria-hidden="true">🔁</span>Rematch</button>`}
       </div>${half(0)}`;
     this.show('result');
     // A tap meant for the game (a last swing, a mashed button) must not skip the result

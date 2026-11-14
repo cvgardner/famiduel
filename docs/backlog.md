@@ -1896,3 +1896,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       white "II" on a 12% white dot, so on Tank Duel's pale arena and Quick Draw's sand it read
       about 1.1:1. The dot is dark now (with a faint light rim for dark fields). Playtest
       "pause button" measures the glyph over every shown game: 3:1 or better.
+- [x] 2026-11-14 (F231, PR #268): Result screen: "Games" and "Rematch" (and a tournament's
+      "Next game") were words only, upright for the bottom seat, so the top player and kids
+      who can't read yet had to read them upside down. Each now leads with an icon (🏠, 🔁,
+      ▶️) and keeps its plain name for screen readers; playtest "result: Games and Rematch
+      carry an icon" checks both fit on one line at 320 px with Bigger text.

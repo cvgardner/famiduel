@@ -1423,6 +1423,42 @@ test('result: a tap meant for the game right as the match ends does not skip the
   expect(errors).toEqual([]);
 });
 
+test('result: Games and Rematch carry an icon, on one line at 320 px with Bigger text (F231)', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void } }).__famiduel;
+    app.store.data.settings.bigText = true;
+    app.applyBigText();
+  });
+  await setPlayers(page, ['normal', 'hard']);
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
+  await expect(page.locator('#play')).toBeVisible();
+  await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
+  await expect(page.locator('#result')).toBeVisible();
+  await expect(page.locator('#result.settling')).toHaveCount(0, { timeout: 2000 });
+  // The middle buttons face the bottom seat; the top player knows them by the icon.
+  for (const [id, name] of [['#homeBtn', 'Games'], ['#rematchBtn', 'Rematch']]) {
+    const b = page.locator(id);
+    await expect(b.locator('.btn-ico'), `${id}: an icon`).toHaveCount(1);
+    await expect(b, `${id}: its plain name for screen readers`).toHaveAccessibleName(name);
+    const fit = await b.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const line = parseFloat(getComputedStyle(el).lineHeight) || parseFloat(getComputedStyle(el).fontSize) * 1.3;
+      return { oneLine: el.scrollWidth <= el.clientWidth + 1 && r.height < 2 * line + 30, inside: r.left >= 0 && r.right <= window.innerWidth };
+    });
+    expect(fit, `${id}: one line, on screen`).toEqual({ oneLine: true, inside: true });
+  }
+  await page.screenshot({ path: path.join(OUT, 'result-icons-bigtext-320.png') });
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void } }).__famiduel;
+    app.store.data.settings.bigText = false;
+    app.applyBigText();
+  });
+  expect(errors).toEqual([]);
+});
+
 test('make the bot easier: offered after losing twice in a row to a bot', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });

@@ -213,7 +213,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .btn:disabled { opacity: 0.45; }
 /* The result's buttons fade in while it ignores taps (RESULT_SETTLE_MS), instead of looking broken. */
 #result.settling .btn:disabled { opacity: 0.6; }
-#result .btn { transition: opacity 0.25s; }
+#result .btn { transition: opacity 0.25s; white-space: nowrap; }
+.btn-ico { margin-right: 6px; }
 
 /* Split screens: player 1's half is rotated to face the top edge. */
 #intro, #result { display: flex; flex-direction: column; }
