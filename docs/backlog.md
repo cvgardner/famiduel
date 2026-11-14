@@ -1984,3 +1984,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
     room (`__edges.near`); new playtest "edges: in-game words keep their room..." plays every
     shown game at 320 px with Bigger text (person in each seat, then two bots) and the solo
     checks fail on it too. Snake was the only game it found.
+
+## Ideas found 2026-11-14 (bot-match screenshot run)
+- [x] 2026-11-14 (F253, PR #285): Sea Battle's "<ship> sunk!" starts in the gap between the
+      big grid's fleet tally and the small grid's label (SUNK_Y), so its bright rise no longer
+      crosses "Their ships" and the very ship it names being crossed out: 2723 bright frames on
+      the tally in 48 bot matches -> 0. tests/seabattle-sunk-pop.test.ts.
