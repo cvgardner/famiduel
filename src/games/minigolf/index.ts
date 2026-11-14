@@ -756,6 +756,12 @@ class MinigolfView implements GameInstance {
       sc = '#ffffff';
     } else if (g.balls[p].done && g.phase !== 'card' && g.phase !== 'intro') status = g.balls[p].sunk ? 'In the hole ✓' : 'Picked up';
     else if (g.phase === 'roll' && g.shooter === p) status = 'Rolling…';
+    // F216: once the other ball has stopped (or dropped), the seat that shoots next reads so,
+    // not "Wait · Bot shoots" for a shot that's already over.
+    else if (g.phase === 'settle' && g.shooter !== p && g.nextShooter() === p) {
+      status = this.bots[p] ? 'Up next' : "You're up next!";
+      sc = '#ffffff';
+    }
     else if (g.phase === 'intro' || g.phase === 'card') status = `Hole ${g.holeIdx + 1} of ${g.holes.length} · Par ${g.hole.par}`;
     // While a bot lines up its shot the waiting seat reads the same "🤖 Bot is thinking…"
     // line as the board games, so the pause reads as the bot's, not a stuck game.
