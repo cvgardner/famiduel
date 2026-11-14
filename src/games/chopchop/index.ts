@@ -1,7 +1,7 @@
 // Chop Chop view: each player has a tree in their own half. Each half is drawn
 // in the bottom player's frame and rotated 180° for the top player.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, fitSize, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
 import { blink } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
@@ -43,6 +43,8 @@ export const SHIELD_DX = 76;
 export const CARD_Y = MID + 118;
 /** Half the between-rounds card's height. */
 export const CARD_HALF = 24;
+/** Width of the between-rounds card's box. */
+export const CARD_W = 260;
 
 /** How faint the trunk gets under the HUD (F209). */
 export const TRUNK_FADED = 0.3;
@@ -417,8 +419,9 @@ class ChopView implements GameInstance {
     }
     if (!msg || silentSeat(this.ctx.players, p)) return;
     const y = CARD_Y;
-    rrect(gx, W / 2 - 130, y - CARD_HALF, 260, CARD_HALF * 2, 16, 'rgba(10,8,25,0.72)', alpha(this.ctx.players[p].color, 0.9), 2);
-    text(gx, msg, W / 2, y, { size: 22, color: col });
+    rrect(gx, W / 2 - CARD_W / 2, y - CARD_HALF, CARD_W, CARD_HALF * 2, 16, 'rgba(10,8,25,0.72)', alpha(this.ctx.players[p].color, 0.9), 2);
+    // F246: the words fit inside the box with Bigger text too.
+    text(gx, msg, W / 2, y, { size: fitSize(gx, msg, CARD_W - 24, 22), color: col });
   }
 }
 
