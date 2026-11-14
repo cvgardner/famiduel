@@ -2029,3 +2029,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       pop frames over the button, badges or signal in 16 bot matches: 1025 / 919 / 78 of 1222.
       Both are now born over the cowboy's legs (POP_Y), a second pop in the same step a line
       up (popY()); 0 now; tests/quickdraw-pops.test.ts.
+- [x] 2026-11-14 (F262, PR #294): Quick Draw: a left-hander's power button (moved to the right
+      corner, F38) sat on the small cactus drawn there (lefty-quickdraw.png). The cactus now
+      takes the corner across from the button (cacti()); tests/quickdraw-cactus.test.ts.
