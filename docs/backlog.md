@@ -2023,3 +2023,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       74 units out from their goal line, 6 short of the penalty box's white front edge, which
       ran through the words. It now sits 60 out (KICK_DY), inside the box, clear of the edge
       and of the Wide Keeper 🧤; tests/penalty-kick-line.test.ts.
+- [x] 2026-11-14 (F261, PR #293): Quick Draw: a power's name ("🎯 Double Shot!", "they used …")
+      was born at cowboyY + 60, on the top of the SQUIRT! button and the badge line, and Double
+      Shot's "Phew! Forgiven 🎯" at signalY + 40, rising into a fake-out card's words. Readable
+      pop frames over the button, badges or signal in 16 bot matches: 1025 / 919 / 78 of 1222.
+      Both are now born over the cowboy's legs (POP_Y), a second pop in the same step a line
+      up (popY()); 0 now; tests/quickdraw-pops.test.ts.
