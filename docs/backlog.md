@@ -1951,7 +1951,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       fades as their paddle arrives, could take it to 0.
 
 ## Ideas found 2026-11-14 (pause and resume research run)
-- [x] 2026-11-14 (F243, PR #TBD): Resume (pause sheet or the pause how-to) counts 3-2-1 in
+- [x] 2026-11-14 (F243, PR #278): Resume (pause sheet or the pause how-to) counts 3-2-1 in
       both halves before play goes on (it carried on the instant one player tapped, so the
       other's puck or ball was already moving), and a match pauses itself when the page is
       hidden (a call, a notification, switching apps). Runner.resume(); e2e "Resume counts
