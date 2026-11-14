@@ -335,8 +335,10 @@ class SnakeView implements GameInstance {
     // beside the person's "1 – 0"); the bot's pips stay, the person's half has the line.
     if (silentSeat(this.ctx.players, p)) return;
     const sy = p === 0 ? OY + AH + 10 : OY - 10;
-    text(gx, `${g.score[p]} – ${g.score[other(p)]}`, p === 0 ? W - 30 : 30, sy, { size: 13, color: alpha('#ffffff', 0.7), player: p });
-    text(gx, `Round ${g.round}`, p === 0 ? 34 : W - 34, sy, { size: 13, color: alpha('#ffffff', 0.7), player: p });
+    // F251: each line starts at the arena's own edge (OX) and runs inward; centred at 34 from
+    // the screen edge, "Round 3" with Bigger text sat 2-4 units from it on a small phone.
+    text(gx, `${g.score[p]} – ${g.score[other(p)]}`, p === 0 ? W - OX : OX, sy, { size: 13, color: alpha('#ffffff', 0.7), player: p, align: 'right' });
+    text(gx, `Round ${g.round}`, p === 0 ? OX : W - OX, sy, { size: 13, color: alpha('#ffffff', 0.7), player: p, align: 'left' });
   }
 
   private drawBanner(gx: G): void {

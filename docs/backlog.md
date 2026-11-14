@@ -1978,3 +1978,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
     ("You win the round!", "They got to 50!") fade as the card comes up (the winning chop's
     "50!" started right on it, late "+2"s rose into it): 1418 readable pops over 9317 card
     frames in bot matches -> 0. bannerBands(), tests/chopchop-banner-pops.test.ts.
+- [x] 2026-11-14 (F251, PR #282): Snake's "Round N" and "a – b" lines start at the arena's
+    own edge and run inward (centred 34 units in, "Round 3" with Bigger text sat 2-4 units from
+    a 320 px phone's edge). The edge probe also lists words with under EDGE_PAD (6) units of
+    room (`__edges.near`); new playtest "edges: in-game words keep their room..." plays every
+    shown game at 320 px with Bigger text (person in each seat, then two bots) and the solo
+    checks fail on it too. Snake was the only game it found.
