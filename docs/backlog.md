@@ -1968,6 +1968,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
     under the number dot, VS level with the dots, 2-across game cards, tournament card and
     theme row grow). Playtest "menus at 200% text". Open: no setting reaches 2x yet (Chris's call,
     docs/accessibility-labels.md gap 1).
+- [x] 2026-11-14 (F248, PR #TBD): Chop Chop: pops reaching either seat's round-end card
+    ("You win the round!", "They got to 50!") fade as the card comes up (the winning chop's
+    "50!" started right on it, late "+2"s rose into it): 1418 readable pops over 9317 card
+    frames in bot matches -> 0. bannerBands(), tests/chopchop-banner-pops.test.ts.
 - [x] 2026-11-14 (F251, PR #TBD): Snake's "Round N" and "a – b" lines start at the arena's
     own edge and run inward (centred 34 units in, "Round 3" with Bigger text sat 2-4 units from
     a 320 px phone's edge). The edge probe also lists words with under EDGE_PAD (6) units of
