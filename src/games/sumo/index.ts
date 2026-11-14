@@ -2,7 +2,7 @@
 // bouncy top-down ring with squash/stretch wrestlers, dust and shockwaves.
 import { PLAYERS, type PlayerIndex } from '../../core/types';
 import { inkOn } from '../../core/contrast';
-import { alpha, circle, COLORS, controlsAlpha, facing, glow, noGlow, fitSize, nameLabel, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, facing, glow, noGlow, fitSize, nameLabel, rrect, scaledSize, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button, PowerButton, powerSpot } from '../../engine/widgets';
@@ -21,6 +21,19 @@ export const SURFACES: readonly string[] = [SAND, SAND_DARK];
  */
 export const BANNER_OFF = 26;
 export const BANNER_MAX = 30;
+/** F225: room left and right of a boxed banner's words inside its box. */
+export const BANNER_PAD = 12;
+
+/**
+ * F225: the dark box behind a round-end banner drawn at `size`, centred on (W / 2, y). Its
+ * height stays under the gap between the two mirrored copies (2 * BANNER_OFF) so they never touch.
+ */
+export function bannerBox(gx: G, str: string, size: number, y: number): { x: number; y: number; w: number; h: number } {
+  gx.font = `800 ${scaledSize(size)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  const w = Math.min(W - 16, gx.measureText(str).width + BANNER_PAD * 2);
+  const h = Math.min(BANNER_OFF * 2 - 6, scaledSize(size) + 14);
+  return { x: W / 2 - w / 2, y: y - h / 2, w, h };
+}
 const ROPE = '#b8893e';
 const SKIN = '#f6d3ad';
 const DUST = '#d8bb84';
@@ -47,6 +60,8 @@ class SumoView implements GameInstance {
   private banner = 0;
   private bannerText = '';
   private bannerColor = '#fff';
+  /** F225: round-end banners sit on a dark box, like Snake's and Chop Chop's. */
+  private bannerBoxed = false;
   private dustT = [0, 0];
   private ended = false;
   private shownRound = 1;
@@ -64,10 +79,11 @@ class SumoView implements GameInstance {
     this.showBanner(`Round ${this.game.round}`, '#fff', RULES.readyTime);
   }
 
-  private showBanner(str: string, color: string, time = 1): void {
+  private showBanner(str: string, color: string, time = 1, boxed = false): void {
     this.bannerText = str;
     this.bannerColor = color;
     this.banner = time;
+    this.bannerBoxed = boxed;
   }
 
   update(dt: number, input: Input): void {
@@ -143,11 +159,11 @@ class SumoView implements GameInstance {
       } else if (e.type === 'round') {
         if (e.winner === null) {
           sfx.play('buzz');
-          this.showBanner('Both out! Again', '#fff', RULES.overTime);
+          this.showBanner('Both out! Again', '#ffffff', RULES.overTime, true);
         } else {
           sfx.play('score');
           fx.flash(players[e.winner].color, 0.2);
-          this.showBanner(`${players[e.winner].name} wins the round!`, players[e.winner].color, RULES.overTime);
+          this.showBanner(`${players[e.winner].name} wins the round!`, players[e.winner].color, RULES.overTime, true);
           const y = e.winner === 0 ? H - 150 : 150;
           fx.burst(W / 2, y, players[e.winner].color, 30, 260, 5);
         }
@@ -331,7 +347,20 @@ class SumoView implements GameInstance {
         const y = p === 0 ? MID + BANNER_OFF : MID - BANNER_OFF;
         const fit = Math.min(26, 500 / Math.max(1, this.bannerText.length));
         // Capped so the two mirrored copies never overlap across the middle.
-        text(gx, this.bannerText, W / 2, y, { size: fitSize(gx, this.bannerText, W - 20, Math.round(Math.min(fit * pop, BANNER_MAX))), color: this.bannerColor, stroke: 'rgba(40,20,0,0.75)', player: p, alpha: a });
+        const want = Math.round(Math.min(fit * pop, BANNER_MAX));
+        if (!this.bannerBoxed) {
+          text(gx, this.bannerText, W / 2, y, { size: fitSize(gx, this.bannerText, W - 20, want), color: this.bannerColor, stroke: 'rgba(40,20,0,0.75)', player: p, alpha: a });
+          continue;
+        }
+        // F225: a round-end banner ran edge to edge over the ring and both wrestlers as bare
+        // outlined text; on a dark box (like Snake's and Chop Chop's) it reads cleanly.
+        const size = fitSize(gx, this.bannerText, W - BANNER_PAD * 2 - 16, want);
+        const box = bannerBox(gx, this.bannerText, size, y);
+        const was = gx.globalAlpha;
+        gx.globalAlpha = was * a;
+        rrect(gx, box.x, box.y, box.w, box.h, 14, 'rgba(10,8,25,0.78)', alpha(this.bannerColor, 0.8), 2);
+        gx.globalAlpha = was;
+        text(gx, this.bannerText, W / 2, y, { size, color: this.bannerColor, player: p, alpha: a });
       }
     }
   }
