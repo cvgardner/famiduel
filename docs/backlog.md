@@ -1903,7 +1903,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       carry an icon" checks both fit on one line at 320 px with Bigger text.
 - [x] 2026-11-14 (F232, PR #TBD): Snake round end: the seat that crashed read "CRASH!" at the
       crash and "Crashed!" on its banner at the same moment. Its banner now says what comes
-      next ("Ouch! Next round…"); the winner still reads "You win the round!"
+      next ("Ouch! Next round…"), a draw reads "Draw round! Again" (was "Crash! Draw round"
+      over both CRASH! pops); the winner still reads "You win the round!"
       (roundEndLines(); tests/snake-round-banner.test.ts).
 - [x] 2026-11-14 (F233, PR #TBD): Pause: "Resume" (on the pause sheet and in the middle of the
       how-to, where it faces the bottom seat) leads with ▶️ like F231's result buttons, so the

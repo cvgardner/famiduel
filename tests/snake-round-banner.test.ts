@@ -16,7 +16,7 @@ describe('Snake: the round-end banner does not echo the CRASH! pop', () => {
   it('the winner reads "You win the round!", the crashed seat what comes next', () => {
     expect(roundEndLines(0)).toEqual(['You win the round!', 'Ouch! Next round…']);
     expect(roundEndLines(1)).toEqual(['Ouch! Next round…', 'You win the round!']);
-    expect(roundEndLines(null)).toEqual(['Crash! Draw round', 'Crash! Draw round']);
+    expect(roundEndLines(null)).toEqual(['Draw round! Again', 'Draw round! Again']);
   });
 
   it('in bot matches, a seat with a live CRASH! pop never reads "crash" on its banner too', () => {
@@ -30,12 +30,12 @@ describe('Snake: the round-end banner does not echo the CRASH! pop', () => {
       for (let i = 0; i < 60 * 300 && !g.done; i++) {
         view.update(DT, input);
         fx.update(DT);
-        if (g.phase !== 'over' || g.done || (g.lastRound !== 0 && g.lastRound !== 1)) continue;
+        if (g.phase !== 'over' || g.done) continue;
         const lines = roundEndLines(g.lastRound);
         for (const f of (fx as unknown as { floaters: Floater[] }).floaters) {
           if (f.str !== 'CRASH!' || f.life <= 0) continue;
           checked++;
-          expect(f.player, "the crashed seat lost the round").not.toBe(g.lastRound);
+          if (g.lastRound === 0 || g.lastRound === 1) expect(f.player, 'the crashed seat lost the round').not.toBe(g.lastRound);
           expect(lines[f.player]).not.toMatch(/crash/i);
         }
       }
