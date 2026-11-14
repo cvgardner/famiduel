@@ -1932,3 +1932,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       appeared, so it printed over the banner (377 readable pop frames over a banner in 30 bot
       matches). The round event now fades any pop in the banner band or rising into it
       (fx.fadeBand()); tests/sumo-banner-pops.test.ts: 0.
+- [x] 2026-11-14 (F238, PR #275): Snack Snatch: pops started on the frogs. A catch pop
+      ("+N", "+N ×k!") began on the gulped snack, where the still-stretching head and neck ran
+      through it (13,006 of 52,616 readable frames on a frog); power names popped in one wide
+      line 90 past the centre, right where every snap reaches ("👅 Double Grab!" on a doubled
+      head 31%). Catch pops now start beside the neck (besideNeck()); power names pop in two
+      lines (powerLines(): "🧲 Magnet" / "Mouth!") that fit between the frog lanes, just short
+      of the pot. tests/snacksnatch-pops-frogs.test.ts: 0 frames on a frog for every pop.
