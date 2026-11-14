@@ -22,10 +22,15 @@ Written 2026-11-14 (F244). Re-check before the first store submission.
 
 ## Gaps (each a todo line)
 
-1. **Menus at 200% text.** Set the root font size to 2x and open home, intro, settings,
-   result and pause at 390x844: no clipped or overlapping words, buttons still tappable.
-   Then decide whether "Bigger text" in matches can reach 2x for headline words (scores,
-   banners) without covering play.
+1. **Menus at 200% text.** Menu words are px sizes times `--ts` (root font size changes
+   nothing, and a web view ignores iOS Dynamic Type for px text). Done (F245): home and
+   settings hold at `--ts: 2` on 390x844, 360x640 and 320x568: the name drops under the
+   number dot, game cards go two across on small phones, the tournament card and the theme
+   row grow instead of squeezing (playtest "menus at 200% text"). Still open, so the label
+   stays "Not yet": no setting reaches 2x (Bigger text is 1.2x), and the split screens
+   (intro, result, pause how-to) give each player under half the phone, where 2x how-tos
+   don't fit; they would stay at Bigger text. Chris's call: add a "Largest" menu step (or
+   follow the phone's text size in the store wrapper) and claim the label for menus only?
 2. **VoiceOver on menus.** Walk home -> intro -> Ready -> result with VoiceOver on a real
    phone (store wrapper): every control named, the pause button activates on a double tap
    (backlog: "press and hold" vs detail 0). Menus only; matches stay unclaimed.
