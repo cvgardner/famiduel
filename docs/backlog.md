@@ -1998,18 +1998,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       "games" alone on the second line; same for "You vs the bot". e2e checks it at 320 px.
 
 ## Ideas found 2026-11-14 (kids' design guidance research run)
-- [x] 2026-11-14 (F256, PR #NNN): the intro's Ready button leads with an icon in every state
+- [x] 2026-11-14 (F256, PR #288): the intro's Ready button leads with an icon in every state
       (👆 Pick a power / Tap a power to see it, 👍 Ready!, ✅ Ready), and the profile sheet's
       Done with ✅, so a pre-reader and the top player (reading it upside down) can tell its
       states apart; the words stay the accessible name. Google's design guidance for kids'
       apps: avoid text-only buttons. readylabel.ts; playtest "little hands" checks icon and one
       line on every intro at 320/360/390 px, with and without Bigger text.
-- [x] 2026-11-14 (F257, PR #NNN): Sea Battle placement: a ship dropped where it can't go (off
+- [x] 2026-11-14 (F257, PR #289): Sea Battle placement: a ship dropped where it can't go (off
       the sea, on another ship) only buzzed and snapped back, and a ship with no room to turn
       only buzzed and shook, so with the sound off nothing said why. Each now pops "Doesn't fit
       there" / "No room to turn" just above the finger (Game Accessibility Guidelines: no
       essential information by sound alone). tests/seabattle-misfit.test.ts.
-- [x] 2026-11-14 (F258, PR #NNN): settings are remembered: an e2e flips every Settings toggle,
+- [x] 2026-11-14 (F258, PR #290): settings are remembered: an e2e flips every Settings toggle,
       picks the dark look and edits a player card (name, colour, head start, left hand),
       reloads, and finds each one kept (Game Accessibility Guidelines, general basic: "ensure
       that all settings are saved"). All were already saved; the test keeps it that way.
