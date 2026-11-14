@@ -2992,7 +2992,7 @@ test('contrast: Mint vs Orange, the lightest seats, in every shown game', async 
 // F230: the pause button was a white "II" on a 12% white dot, so over light fields (Tank
 // Duel's pale arena, Quick Draw's sand) it all but vanished. Its glyph must read at least
 // 3:1 (a control's icon) over every shown game's field.
-test('pause button: its "II" reads 3:1 or better over every shown game', async ({ page }) => {
+test('pause button: its "II" reads 3:1 or better over every shown game, a ring over Snake', async ({ page }) => {
   test.setTimeout(120_000);
   const errors: string[] = [];
   await boot(page, errors);
@@ -3008,6 +3008,10 @@ test('pause button: its "II" reads 3:1 or better over every shown game', async (
     expect(labels.length, `${g.id}: the pause glyph is measured`).toBe(1);
     for (const l of labels) if (l.ratio < 3) faint.push(`${g.id}: "${l.text}" ${l.ratio.toFixed(1)}:1`);
     if (g.id === 'tanks') await page.screenshot({ path: path.join(OUT, 'pause-button-tanks.png') });
+    // F236: Snake's arena runs under the button, so there it is a see-through ring (a head or
+    // trail on the left wall at the centre line hid under the dot); every other game keeps the dot.
+    expect(await page.locator('#pauseBtn.ring').count(), `${g.id}: pause ring only where the board runs under it`).toBe(g.id === 'snake' ? 1 : 0);
+    if (g.id === 'snake') await page.screenshot({ path: path.join(OUT, 'pause-button-snake.png') });
     await leaveMatch(page);
   }
   expect(faint, 'pause glyph below 3:1').toEqual([]);
