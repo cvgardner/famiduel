@@ -157,6 +157,9 @@ class SumoView implements GameInstance {
         fx.burst(e.x, e.y, players[e.p].color, 12, 160, 4);
         fx.shake(9, 0.3);
       } else if (e.type === 'round') {
+        // F237: the boxed banners (MID ± BANNER_OFF, each under 2 * BANNER_OFF tall) cover
+        // the middle; a clash pop still rising there printed across them, so it fades now.
+        fx.fadeBand(MID - BANNER_OFF * 2, MID + BANNER_OFF * 2);
         if (e.winner === null) {
           sfx.play('buzz');
           this.showBanner('Both out! Again', '#ffffff', RULES.overTime, true);
