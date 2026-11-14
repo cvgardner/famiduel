@@ -374,7 +374,8 @@ class SnakeView implements GameInstance {
  * the crash, so its banner says what comes next instead of the same word again.
  */
 export function roundEndLines(winner: PlayerIndex | null | undefined): [string, string] {
-  if (winner !== 0 && winner !== 1) return ['Crash! Draw round', 'Crash! Draw round'];
+  // Both crashed: both seats already read CRASH!, so the banner just says what happens.
+  if (winner !== 0 && winner !== 1) return ['Draw round! Again', 'Draw round! Again'];
   const lost = 'Ouch! Next round…';
   return winner === 0 ? ['You win the round!', lost] : [lost, 'You win the round!'];
 }
