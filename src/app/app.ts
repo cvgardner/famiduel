@@ -17,6 +17,7 @@ import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
 import { dayKey } from '../games/minigolf/daily';
 import { powerPicHtml, watchPowerPics } from './powerpic';
+import { loserTitle } from './resulttitle';
 import { demoHelpHtml, demoHtml, firstMatchOf, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
 import { Runner } from './runner';
@@ -838,7 +839,7 @@ export class App {
       const draw = r.winner === null;
       // In solo play the bot's half speaks about the bot, not to it.
       const botHalf = solo && !!seats?.[p].bot;
-      const title = draw ? 'Draw!' : botHalf ? (won ? 'Bot wins' : 'Bot lost') : won ? 'You win!' : 'So close!';
+      const title = draw ? 'Draw!' : botHalf ? (won ? 'Bot wins' : 'Bot lost') : won ? 'You win!' : loserTitle(r.score[p], r.score[p === 0 ? 1 : 0]);
       const faces = !!seats?.[p].bot && !seats?.[(p === 0 ? 1 : 0)].bot;
       return `<div class="half p${p} ${won ? 'won' : ''}${faces ? ' faces' : ''}" style="--c:${profiles[p].color};--ink:${inkOn(profiles[p].color)}"><div class="half-inner">
         <div class="res-title">${title}</div>
