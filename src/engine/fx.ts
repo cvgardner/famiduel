@@ -7,7 +7,7 @@ import { COLORS, fitSize, insideX, text, type G } from './draw';
 import { W, H } from './world';
 
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number };
-type Floater = { str: string; x: number; y: number; life: number; max: number; color: string; size: number; player: 0 | 1 };
+type Floater = { str: string; x: number; y: number; life: number; max: number; color: string; size: number; player: 0 | 1; halo?: string };
 
 /**
  * Outline round pop-up words. Pops land on anything (dark floors, sand, grass),
@@ -118,8 +118,11 @@ export class Fx {
     return !this.floaters.some((f) => inWay(f, str, x, y, size, player));
   }
 
-  /** Text that rises and fades, readable by the given player. */
-  pop(str: string, x: number, y: number, color = '#fff', player: 0 | 1 = 0, size = 22): void {
+  /**
+   * Text that rises and fades, readable by the given player. `halo` replaces the outline
+   * popOutline() picks (F213: Snack Snatch's dark-amber gold pop has a gold halo).
+   */
+  pop(str: string, x: number, y: number, color = '#fff', player: 0 | 1 = 0, size = 22, halo?: string): void {
     // F150: two pops born in the same step for one seat (a power used together with the other
     // seat's, two snacks landing at once) stack like lines of text: the newer one moves down a
     // line in that seat's view, toward its own edge, instead of printing over the first.
@@ -159,7 +162,7 @@ export class Fx {
         if (f.player === player && fresh(f) && overlaps(popBox(f.str, f.x, f.y, f.size), b)) popProbe.hits.push(`${f.str} | ${str} (seat ${player})`);
       }
     }
-    this.floaters.push({ str, x, y, life: 0.9, max: 0.9, color, size, player });
+    this.floaters.push({ str, x, y, life: 0.9, max: 0.9, color, size, player, halo });
   }
 
   /** Camera shake; none when the phone asks for reduced motion. */
@@ -221,7 +224,7 @@ export class Fx {
       // Pops land where things happen, often by a wall: shrink a long one to fit and
       // keep its words on screen (Bigger text makes them wider).
       const size = fitSize(g, f.str, W - 16, f.size);
-      text(g, f.str, insideX(g, f.str, f.x, size), f.y, { size, color: f.color, player: f.player, stroke: popOutline(f.color), alpha: Math.min(1, f.life / f.max * 1.6), pair });
+      text(g, f.str, insideX(g, f.str, f.x, size), f.y, { size, color: f.color, player: f.player, stroke: f.halo ?? popOutline(f.color), alpha: Math.min(1, f.life / f.max * 1.6), pair });
     }
     if (this.flashT > 0) {
       // A quarter as bright with reduce motion on: still says "something happened", without a strobe.
