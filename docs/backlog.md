@@ -1945,7 +1945,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       GOAL! 19%). clearOfPucks() now takes the line nearest home that misses the pucks with
       the most room from both paddles, where they are and where they head over the next 0.3 s:
       1.6-3.1%, GOAL! 7.3% (tests/airhockey-pops-paddles.test.ts).
-- [ ] Air Hockey GOAL! still sits on the conceding player's paddle 7% of its readable frames:
+- [x] Air Hockey GOAL! still sat on the conceding player's paddle 7% of its readable frames:
       the served puck waits at MID ± 70 and the only puck-clear lines for a size-40 GOAL! are
-      behind it, where that paddle waits. A smaller GOAL! for the conceding seat, or one that
-      fades as their paddle arrives, could take it to 0.
+      behind it, where that paddle waits. 2026-11-14 (F240, PR #277): a pop a paddle runs
+      into once it is 0.2 s old fades out (fx.fadeNear()): GOAL! 0.8%, the rest 0-0.4%. A
+      smaller GOAL! for that seat only got to 4-5%.
