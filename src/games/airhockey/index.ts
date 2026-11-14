@@ -14,6 +14,10 @@ export const SURFACES: readonly string[] = [ICE];
 export const GOAL_POP_Y = 80;
 export const SHOT_POP_Y = 130;
 export const POWER_POP_Y = 180;
+/** F239: when (seconds ahead) a pop's line is checked against each paddle's path. */
+const PADDLE_LOOK = [0, 0.1, 0.2, 0.3];
+/** F239: room (units) from the paddles past which a line nearer home wins. */
+const PADDLE_ROOM = 140;
 
 class AirHockeyView implements GameInstance {
   readonly game: AirHockey;
@@ -48,25 +52,47 @@ class AirHockeyView implements GameInstance {
     const half = ([...str].length * size * 0.55) / 2;
     const rise = p === 0 ? -36 : 36;
     const r = RULES.puckR + 6;
-    const hits = (y: number) => {
-      // A line pop() would move (a still-bright pop of this seat there) counts as taken too.
-      if (!this.ctx.fx.popFits(str, W / 2, y, size, p)) return true;
-      const top = Math.min(y, y + rise) - size * 0.45;
-      const bot = Math.max(y, y + rise) + size * 0.45;
-      return this.game.pucks.some((pk) => {
-        const nx = Math.max(W / 2 - half, Math.min(W / 2 + half, pk.x));
-        const ny = Math.max(top, Math.min(bot, pk.y));
-        return Math.hypot(pk.x - nx, pk.y - ny) < r;
-      });
+    const gap = (top: number, bot: number, x: number, y: number) => {
+      const nx = Math.max(W / 2 - half, Math.min(W / 2 + half, x));
+      const ny = Math.max(top, Math.min(bot, y));
+      return Math.hypot(x - nx, y - ny);
+    };
+    const band = (y: number): [number, number] => [Math.min(y, y + rise) - size * 0.45, Math.max(y, y + rise) + size * 0.45];
+    // A line pop() would move (a still-bright pop of this seat there) counts as taken too.
+    const free = (y: number) => {
+      if (!this.ctx.fx.popFits(str, W / 2, y, size, p)) return false;
+      const [top, bot] = band(y);
+      return !this.game.pucks.some((pk) => gap(top, bot, pk.x, pk.y) < r);
+    };
+    // F239: how far the pop stays from both paddles (the one under a person's finger, or a giant
+    // one), where they are and where they're heading over its readable half second.
+    const room = (y: number) => {
+      const [top, bot] = band(y);
+      let m = Infinity;
+      for (const q of PLAYERS) {
+        const pd = this.game.paddles[q];
+        const pr = this.game.paddleRadius(q);
+        for (const t of PADDLE_LOOK) m = Math.min(m, gap(top, bot, pd.x + pd.vx * t, pd.y + pd.vy * t) - pr);
+      }
+      return Math.min(m, PADDLE_ROOM);
     };
     // The whole rise stays in the seat's own half and on screen.
     const lo = p === 0 ? MID + 36 + size * 0.45 + 2 : size;
     const hi = p === 0 ? H - size : MID - 36 - size * 0.45 - 2;
-    if (!hits(home)) return home;
-    for (let d = 2; d <= H / 2; d += 2) {
-      for (const y of [home - d, home + d]) if (y >= lo && y <= hi && !hits(y)) return y;
+    // The line nearest home that misses the pucks (F196) with the most room from the paddles.
+    let best = home;
+    let bestRoom = -Infinity;
+    for (let d = 0; d <= H / 2; d += 2) {
+      for (const y of d === 0 ? [home] : [home - d, home + d]) {
+        if ((d > 0 && (y < lo || y > hi)) || !free(y)) continue;
+        const rm = room(y);
+        if (rm > bestRoom) {
+          best = y;
+          bestRoom = rm;
+        }
+      }
     }
-    return home;
+    return best;
   }
   update(dt: number, input: Input): void {
     this.t += dt;
