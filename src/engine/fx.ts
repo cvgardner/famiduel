@@ -1,7 +1,7 @@
 // Juice: particles, pop-up text, screen shake and flashes. Purely visual, so
 // it uses Math.random and never affects a game's result.
 
-import { reducedMotion } from './calm';
+import { BLINK_MAX_HZ, reducedMotion } from './calm';
 import { contrastRatio, luminance, over, parseColor } from '../core/contrast';
 import { COLORS, fitSize, insideX, text, type G } from './draw';
 import { W, H } from './world';
@@ -100,6 +100,11 @@ export class Fx {
   private flashT = 0;
   private flashColor = '#fff';
   private flashCalm = false;
+  /** Seconds of fx time so far, and when the last full-screen flash started (F227/F228). */
+  private clock = 0;
+  private lastFlashAt = -Infinity;
+  /** How many full-screen flashes have started (tests count them). */
+  flashes = 0;
 
   burst(x: number, y: number, color: string, count = 14, speed = 180, size = 4): void {
     for (let i = 0; i < count; i++) {
@@ -173,12 +178,20 @@ export class Fx {
   }
 
   flash(color = '#fff', time = 0.18): void {
+    // F228: the board never flashes more than BLINK_MAX_HZ times a second (WCAG 2.3.1 draws the
+    // line at three). A goal, a power and a frenzy can land in the same second, so a flash
+    // that starts within 1 / BLINK_MAX_HZ s of the last one merges into it (its sound and pop
+    // still play).
+    if (this.clock - this.lastFlashAt < 1 / BLINK_MAX_HZ - 1e-6) return;
+    this.lastFlashAt = this.clock;
+    this.flashes++;
     this.flashColor = color;
     this.flashT = time;
     this.flashCalm = reducedMotion();
   }
 
   update(dt: number): void {
+    this.clock += dt;
     for (const p of this.particles) {
       p.life -= dt;
       p.x += p.vx * dt;

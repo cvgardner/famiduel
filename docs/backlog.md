@@ -1881,3 +1881,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       times and Tank Duel's fading shield blinked 4.8 times (Snake's ghost head pulsed 2.2).
       All now run at 2 a second through calm.ts blink()/pulse() (BLINK_MAX_HZ);
       tests/flicker.test.ts scans the views for faster light/dark Math.sin blinks.
+- [x] 2026-11-14 (F228, PR #265): Full-screen flashes (fx.flash, 35% colour over the whole
+      board) had no rate limit: a goal, a power and a frenzy, or both seats' powers, could
+      flash the board several times in one second. A flash that starts within 0.5 s of the
+      last one now merges into it (its sound and pop still play), so the board flashes at most
+      2 times a second (BLINK_MAX_HZ). tests/fx-flash-rate.test.ts.
