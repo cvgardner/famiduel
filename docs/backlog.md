@@ -1831,3 +1831,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       fades over the same stretch as its own gesture's finger (demo.ts PLAY_DEMO_OUT, read
       from the `d-<gesture>-f` keyframes; Penalty's keeper copy has its own). Unit test
       checks the table against style.css; the ghost-finger playtest checks no card at 2.6 s.
+- [x] 2026-11-14 (F215): Penalty first match: since F214 the shooter's in-play card faded
+      with its one swipe (gone at 1.14 s, before GO at 1.8 s), so the shooter saw a single
+      flick during the countdown. The shooter's copy (`.play-demo.shooter`) now loops the
+      swipe alone every 1.4 s (demo.ts SHOOTER_LOOP) and the card fades with the second
+      flick (1.85-2.02 s); the keeper's copy is unchanged. Unit test reads the swipe
+      keyframes; the ghost-finger playtest checks the shooter card at 1.5 s and none at 2.6 s.
