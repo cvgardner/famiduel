@@ -27,6 +27,14 @@ const L = {
   btnR: 47,
 };
 
+/**
+ * F261: where power and "Forgiven" pops are born, over the cowboy's legs: the one strip of a
+ * half that's clear of the signal cards above, the SQUIRT! button and the badge / score line
+ * below (power pops started at cowboyY + 60, on the button's top; "Forgiven" at signalY + 40,
+ * rising into a fake-out card's words). A pop rises 36 units, ending at his belt.
+ */
+export const POP_Y = L.cowboyY + 30;
+
 /** Slow Time's "get ready" line: left of the cowboy (his arm ends at x 147). */
 export const READY_X = 82;
 
@@ -57,6 +65,8 @@ class QuickDrawView implements GameInstance {
   readonly game: QuickDraw;
   private bots: (QuickDrawBot | null)[];
   private powerBtns: (PowerButton | null)[];
+  /** Pops born this step per seat (F261: a second one goes a line up, over the cowboy, not onto the button). */
+  private pops = [0, 0];
   private t = 0;
   private drawFlash = 0;
   private fakeT = 0;
@@ -107,6 +117,7 @@ class QuickDrawView implements GameInstance {
     }
     if (g.phase === 'ready' && g.phaseT < dt * 1.5) this.squirt = null;
     const { sfx, fx, players } = this.ctx;
+    this.pops = [0, 0];
     for (const e of g.events) {
       if (e.type === 'ready') sfx.play('count');
       else if (e.type === 'fake') {
@@ -122,7 +133,7 @@ class QuickDrawView implements GameInstance {
         fx.burst(s.x, s.y, '#7fd3ff', 10, 140, 3);
       } else if (e.type === 'forgiven') {
         sfx.play('pop');
-        const s = toScreen(e.p, W / 2, L.signalY + 40);
+        const s = toScreen(e.p, W / 2, this.popY(e.p));
         fx.pop('Phew! Forgiven 🎯', s.x, s.y, COLORS.gold, e.p, 18);
         this.fizzle[e.p] = 0.5;
       } else if (e.type === 'power') {
@@ -130,9 +141,9 @@ class QuickDrawView implements GameInstance {
         if (e.id === 'fakeout') continue;
         sfx.play('power');
         const pw = players[e.p].power!;
-        const s = toScreen(e.p, W / 2, L.cowboyY + 60);
+        const s = toScreen(e.p, W / 2, this.popY(e.p));
         fx.flash('#ffd54a', 0.1);
-        const o = toScreen(other(e.p), W / 2, L.cowboyY + 60);
+        const o = toScreen(other(e.p), W / 2, this.popY(other(e.p)));
         fx.pop(`${pw.icon} they used ${pw.name}`, o.x, o.y, seatPop(players[e.p].color), other(e.p), 15);
         fx.pop(`${pw.icon} ${pw.name}!`, s.x, s.y, COLORS.gold, e.p, 22);
       } else if (e.type === 'round') this.onRound(e.result);
@@ -142,6 +153,11 @@ class QuickDrawView implements GameInstance {
         this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary: `${g.score[0]} – ${g.score[1]} rounds`, unit: 'rounds' });
       }
     }
+  }
+
+  /** This step's next pop line for a seat (local y): POP_Y, then a line up for each one before. */
+  private popY(p: PlayerIndex): number {
+    return POP_Y - 26 * this.pops[p]++;
   }
 
   private onRound(r: RoundResult): void {
