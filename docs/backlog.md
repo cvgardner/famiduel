@@ -1949,3 +1949,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the served puck waits at MID ± 70 and the only puck-clear lines for a size-40 GOAL! are
       behind it, where that paddle waits. A smaller GOAL! for the conceding seat, or one that
       fades as their paddle arrives, could take it to 0.
+
+## Ideas found 2026-11-14 (pause and resume research run)
+- [x] 2026-11-14 (F243, PR #TBD): Resume (pause sheet or the pause how-to) counts 3-2-1 in
+      both halves before play goes on (it carried on the instant one player tapped, so the
+      other's puck or ball was already moving), and a match pauses itself when the page is
+      hidden (a call, a notification, switching apps). Runner.resume(); e2e "Resume counts
+      3-2-1...". Seen in a rival 2-player reflex app's v1.4 notes.
+- [ ] Store wrapper: Capacitor's app `pause` event should call the same pause as
+      visibilitychange (iOS can freeze the web view before the page sees it hidden).
