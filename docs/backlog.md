@@ -1869,7 +1869,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Minigolf's daily line. To fit at 320x568 and with Bigger text, the Sumo, Ping Pong, Snack
       Snatch and Penalty how-tos are shorter (dropped "The kick is always on zero", "for a
       moment", "flying faster"; same rules). The layout playtest checks the goal in both halves.
-- [x] 2026-11-14 (F225, PR #TBD): Sumo: the round-end banner ("Player 1 wins the round!",
+- [x] 2026-11-14 (F225, PR #263): Sumo: the round-end banner ("Player 1 wins the round!",
       "Both out! Again") was bare outlined text fitted edge to edge over the ring and both
       wrestlers, with the faded rope-save pop showing through, while Snake and Chop Chop put
       round banners on a dark box. It now sits on a dark rounded box edged in the winner's
