@@ -1963,5 +1963,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Accessibility Nutrition Labels we can claim (Dark Interface, Sufficient Contrast,
       Differentiate Without Color Alone, Reduced Motion), which not yet (Larger Text, VoiceOver,
       Voice Control) and the test behind each claim.
-- [ ] Menus at 200% text (the Larger Text label): root font size 2x at 390x844 over home,
-      intro, settings, result and pause; nothing clipped or overlapping.
+- [x] 2026-11-14 (F245, PR #280): home and settings at 200% text (`--ts: 2`) on 390, 360
+    and 320 px phones: no cut, overlapping or off-screen words, buttons still 44 px (names
+    under the number dot, VS level with the dots, 2-across game cards, tournament card and
+    theme row grow). Playtest "menus at 200% text". Open: no setting reaches 2x yet (Chris's call,
+    docs/accessibility-labels.md gap 1).
