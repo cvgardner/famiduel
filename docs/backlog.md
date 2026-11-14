@@ -1927,3 +1927,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (`"pauseRing": true` in content/games.json, `.pause-btn.ring`; the "II" keeps a dark
       halo), so a head or trail under it still shows; the "pause button" playtest checks the
       ring is on Snake only and saves pause-button-snake.png. Other games keep the dark dot.
+- [x] 2026-11-14 (F237, PR #274): Sumo: a ring-out clash's "BONK!"/"KA-BOOM!" was still
+      rising across the middle when the boxed round-end banner ("Bot 1 wins the round!")
+      appeared, so it printed over the banner (377 readable pop frames over a banner in 30 bot
+      matches). The round event now fades any pop in the banner band or rising into it
+      (fx.fadeBand()); tests/sumo-banner-pops.test.ts: 0.

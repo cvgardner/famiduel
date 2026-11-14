@@ -124,6 +124,19 @@ export class Fx {
   }
 
   /**
+   * F237: pops whose words reach into the band y0..y1 (now or as they rise) fade out within `t` seconds, for a
+   * banner about to cover that band (a Sumo clash's BONK! printed across "Bot wins the round!").
+   */
+  fadeBand(y0: number, y1: number, t = 0.15): void {
+    for (const f of this.floaters) {
+      // Where its words go for the rest of its life (pops rise 40 a second, up their reader's screen).
+      const half = f.size * 0.45;
+      const end = f.y + (f.player === 0 ? -40 : 40) * f.life;
+      if (Math.max(f.y, end) + half > y0 && Math.min(f.y, end) - half < y1) f.life = Math.min(f.life, t);
+    }
+  }
+
+  /**
    * Text that rises and fades, readable by the given player. `halo` replaces the outline
    * popOutline() picks (F213: Snack Snatch's dark-amber gold pop has a gold halo).
    */
