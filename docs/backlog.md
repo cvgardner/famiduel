@@ -1993,3 +1993,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-14 (F254, PR #286): Rock Paper Scissors in Play the bot: the person's pill says
       "Pick one!" (it said "Pick in secret!" though only the bot is there, and it never peeks);
       two people still read "Pick in secret!". pickLine(), tests/rps-pick-line.test.ts.
+- [x] 2026-11-14 (F255, PR #287): Home: the match-night line keeps "N games" together, so a
+      320 px phone breaks it after the dot ("Match night ·" / "0 games") instead of leaving
+      "games" alone on the second line; same for "You vs the bot". e2e checks it at 320 px.
