@@ -222,8 +222,7 @@ class QuickDrawView implements GameInstance {
     gx.fillStyle = alpha(c, 0.12);
     gx.fillRect(0, MID, W, MID);
     // Cacti and pebbles
-    cactus(gx, 34, MID + 120, 0.9);
-    cactus(gx, W - 30, MID + 280, 0.7);
+    for (const [x, y, k] of cacti(!!this.ctx.players[p].lefty)) cactus(gx, x, MID + y, k);
     for (const [x, y] of [[80, MID + 260], [300, MID + 80], [250, MID + 280]]) circle(gx, x, y, 3, 'rgba(120,80,40,0.3)');
     // Slow Time "get ready" pulse
     if (g.pulse(p)) {
@@ -400,6 +399,18 @@ class QuickDrawView implements GameInstance {
     circle(gx, x, y - r * 0.25, r * 0.7, 'rgba(255,255,255,0.15)');
     text(gx, 'SQUIRT!', x, y, { size: 22, color: '#ffffff', stroke: shade(c, -0.45), weight: 900 });
   }
+}
+
+/**
+ * The cacti in a half, local [x, y below the centre line, scale]. F262: the small one sits in
+ * the corner across from the power button, so a left-hander's button (moved to the right
+ * corner) doesn't land on it.
+ */
+export function cacti(lefty: boolean): [number, number, number][] {
+  return [
+    [34, 120, 0.9],
+    [lefty ? 30 : W - 30, 280, 0.7],
+  ];
 }
 
 function cactus(gx: G, x: number, y: number, s: number): void {

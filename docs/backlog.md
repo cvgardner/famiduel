@@ -2023,3 +2023,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       74 units out from their goal line, 6 short of the penalty box's white front edge, which
       ran through the words. It now sits 60 out (KICK_DY), inside the box, clear of the edge
       and of the Wide Keeper 🧤; tests/penalty-kick-line.test.ts.
+- [x] 2026-11-14 (F262, PR #294): Quick Draw: a left-hander's power button (moved to the right
+      corner, F38) sat on the small cactus drawn there (lefty-quickdraw.png). The cactus now
+      takes the corner across from the button (cacti()); tests/quickdraw-cactus.test.ts.
