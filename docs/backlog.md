@@ -1921,3 +1921,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       MID ± 150, right on each seat's round-win pips, so the score hid while it showed. It now
       fills the seat's prompt pill (gold for the winner) in place of "Next round…", clear of
       the pips (resultLine(); tests/rps-result-pill.test.ts).
+- [x] 2026-11-14 (F236, PR #273): Snake Duel: the arena runs under the pause dot (left wall,
+      centre line), and in 138 of 260 bot rounds a head passed under it (1.3% of head time),
+      hidden along with any trail there. In Snake the button is now a see-through ring
+      (`"pauseRing": true` in content/games.json, `.pause-btn.ring`; the "II" keeps a dark
+      halo), so a head or trail under it still shows; the "pause button" playtest checks the
+      ring is on Snake only and saves pause-button-snake.png. Other games keep the dark dot.

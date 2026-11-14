@@ -629,6 +629,9 @@ export class App {
     const seed = this.fixedSeed !== null ? (this.fixedSeed + this.matchCount++) >>> 0 : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     const powersOn = this.store.data.settings.powers && !!this.picks[0] && !!this.picks[1];
     this.show('play');
+    // F236: in Snake the arena runs under the pause dot (left wall, centre line), so a head or
+    // trail there vanished under it; that game gets a see-through ring instead of the dot.
+    $('#pauseBtn').classList.toggle('ring', 'pauseRing' in meta && !!meta.pauseRing);
     this.dailyDay = meta.id === 'minigolf' && this.dailyGolf && !this.tourneyMatch ? dayKey() : null;
     this.runner = new Runner(this.stage, def, seed, players, powersOn, this.sfx, (r) => this.finish(r), false, this.starters.next(meta.id), this.dailyDay ?? undefined);
     // F159: a match that opens on the pass-the-phone cover gets no in-play finger (it tapped

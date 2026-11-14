@@ -18,7 +18,7 @@
     { "id": "tanks", "seatRing": true, "gesture": "stick", "name": "Tank Duel", "icon": "🛡️", "kind": "Action", "free": false, "color": "#8bc34a",
       "blurb": "Five bonks wins.", "howTo": "Push your stick to turn and drive (a little push just turns). Tap FIRE. Shells bounce off blocks, so watch out for your own!",
       "handicap": "Extra armor: more bonks to knock out" },
-    { "id": "snake", "seatRing": true, "gesture": "sides", "name": "Snake Duel", "icon": "🐍", "kind": "Action", "free": false, "color": "#26d0ce",
+    { "id": "snake", "seatRing": true, "pauseRing": true, "gesture": "sides", "name": "Snake Duel", "icon": "🐍", "kind": "Action", "free": false, "color": "#26d0ce",
       "blurb": "Don't crash. Best of 5.", "howTo": "Tap your left or right button to turn your snake. Walls and trails crash you. Make the other snake crash first!",
       "handicap": "Slower snake, turn assist near walls" },
     { "id": "penalty", "gesture": "kick", "name": "Penalty Shootout", "icon": "⚽", "kind": "Aim · turns", "free": false, "color": "#2ecc71",

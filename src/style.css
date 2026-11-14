@@ -285,6 +285,10 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
      still shows as a button on the dark fields. */
   background: radial-gradient(circle, rgba(20,17,43,0.62) 15.5px, rgba(255,255,255,0.28) 16.5px, transparent 17.5px);
   color: #fff; font-weight: 900; font-size: calc(12px * var(--ts)); z-index: 2; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+/* F236: a see-through ring for games whose board runs under the button (Snake's arena: a
+   head or trail on the left wall at the centre line was hidden). The "II" keeps a dark halo. */
+.pause-btn.ring { background: radial-gradient(circle, transparent 13px, rgba(20,17,43,0.75) 13.5px, rgba(20,17,43,0.75) 15.5px, rgba(255,255,255,0.55) 16.5px, transparent 17.5px);
+  text-shadow: 0 0 2px #000, 0 0 4px #000; }
 .pause-btn::after { content: ''; position: absolute; inset: 2px; border-radius: 50%; pointer-events: none;
   background: conic-gradient(#ffd54a calc(var(--hold) * 360deg), transparent 0);
   -webkit-mask: radial-gradient(circle, transparent 16.5px, #000 17px); mask: radial-gradient(circle, transparent 16.5px, #000 17px); }
