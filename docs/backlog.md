@@ -2013,6 +2013,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       picks the dark look and edits a player card (name, colour, head start, left hand),
       reloads, and finds each one kept (Game Accessibility Guidelines, general basic: "ensure
       that all settings are saved"). All were already saved; the test keeps it that way.
+- [x] 2026-11-14 (F259, PR #291): Minigolf turn cards: the shooter's "YOUR SHOT!" card and the
+      other half's "<name>'s shot" card sat on fixed lines and covered a ball still in play or
+      the cup in 1,409 of 16,828 card frames over 8 bot matches (the shooter's own ball 136).
+      Each card now takes the first line clear of both balls and the cup with its flag, where
+      the turned course shows them (minigolf/bannerline.ts clearLine()); the other half's card
+      also keeps clear of the shooter's. 0 now; tests/minigolf-turn-cards.test.ts.
 - [x] 2026-11-14 (F260, PR #292): Penalty: the keeper's "Kick in 3" / "Here it comes!" line sat
       74 units out from their goal line, 6 short of the penalty box's white front edge, which
       ran through the words. It now sits 60 out (KICK_DY), inside the box, clear of the edge

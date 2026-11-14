@@ -1,6 +1,7 @@
 // Minigolf view: the course turns to face whoever is shooting. Pull back
 // (slingshot) anywhere near your ball or in your half, release to putt.
 import { dailyHoleIds } from './daily';
+import { clearLine, turned, type Box } from './bannerline';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
@@ -786,6 +787,47 @@ class MinigolfView implements GameInstance {
     if (g.bonus(p) > 0) text(gx, `★ −${g.bonus(p)} a hole`, (colHole + colTotal) / 2, y0 + 54, { size: 13, color: COLORS.gold, weight: 700 });
   }
 
+  /**
+   * F259: what the turn cards must not cover, in seat p's own view: both balls still in
+   * play, and the cup with its flag (pole up 42 units, flag out 24 to the right), where
+   * the turned course shows them.
+   */
+  private keepClear(p: PlayerIndex): Box[] {
+    const g = this.game;
+    // Where the course ends up once it has turned to the shooter (it may still be turning).
+    const c = Math.cos(this.rotTo);
+    const s = Math.sin(this.rotTo);
+    const screen = (x: number, y: number): [number, number] => [W / 2 + (x - W / 2) * c - (y - MID) * s, MID + (x - W / 2) * s + (y - MID) * c];
+    const around = (pts: [number, number][]): Box => {
+      const xs = pts.map(([x]) => x);
+      const ys = pts.map(([, y]) => y);
+      return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
+    };
+    const r = PHYS.ballR + 2;
+    const boxes: Box[] = g.balls.filter((b) => !b.done).map((b) => around([screen(b.x - r, b.y - r), screen(b.x + r, b.y + r)]));
+    const [cx, cy] = g.hole.cup;
+    const cr = PHYS.cupR + 3;
+    boxes.push(around([screen(cx - cr, cy - 42), screen(cx + Math.max(cr, 24), cy + cr)]));
+    return p === 1 ? boxes.map((b) => turned(b, W, H)) : boxes;
+  }
+
+  /** F259: the shooter's "YOUR SHOT!" line: below the middle, else the nearest clear line. */
+  private shotLine(p: PlayerIndex): number {
+    return clearLine([MID + 70, MID + 125, MID + 15, MID - 40, MID - 95, MID - 150], 26, 30, W - 30, this.keepClear(p));
+  }
+
+  /** F259: the other seat's "<name>'s shot" line: by their own strip, else the nearest line clear of the balls, cup and the shooter's card. */
+  private watchLine(p: PlayerIndex): number {
+    const s = this.game.shooter;
+    const boxes = this.keepClear(p);
+    if (!silentSeat(this.ctx.players, s)) {
+      const y = this.shotLine(s);
+      boxes.push(turned({ x0: 30, x1: W - 30, y0: y - 26, y1: y + 26 }, W, H));
+    }
+    const base = H - STRIP - 22;
+    return clearLine(Array.from({ length: 10 }, (_, k) => base - 40 * k), 15, 60, W - 60, boxes);
+  }
+
   private drawBanner(gx: G, p: PlayerIndex): void {
     const g = this.game;
     const k = Math.min(1, this.bannerT / 0.3, (1.6 - this.bannerT) / 0.2 + 0.2);
@@ -799,7 +841,7 @@ class MinigolfView implements GameInstance {
         gx.globalAlpha = 1;
         return;
       }
-      const y = MID + 70;
+      const y = this.shotLine(p);
       rrect(gx, 30, y - 26, W - 60, 52, 26, c, '#ffffff', 3);
       text(gx, 'YOUR SHOT!', W / 2, y, { size: 30, color: '#ffffff', stroke: shade(c, -0.5) });
     } else {
@@ -809,7 +851,7 @@ class MinigolfView implements GameInstance {
         gx.globalAlpha = 1;
         return;
       }
-      const y = H - STRIP - 22;
+      const y = this.watchLine(p);
       rrect(gx, 60, y - 15, W - 120, 30, 15, BANNER_CARD, alpha(c, 0.9), 2);
       // Lifted for the dark card: Purple was ~3.5:1 there.
       text(gx, `${this.ctx.players[shooter].name}'s shot`, W / 2, y, { size: 17, color: liftOn(c, BANNER_CARD) });
