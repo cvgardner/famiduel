@@ -319,7 +319,7 @@ class RpsView implements GameInstance {
       glow(gx, c, 8 + 8 * pulse);
       rrect(gx, W / 2 - 110, py - 17, 220, 34, 17, c);
       noGlow(gx);
-      text(gx, this.bots[p] ? 'Choosing…' : 'Pick in secret!', W / 2, py, { size: 19, color: inkOn(c) });
+      text(gx, pickLine(!!this.bots[p], !!this.bots[1 - p]), W / 2, py, { size: 19, color: inkOn(c) });
     } else if (g.revealing && this.revealT >= SHAKE) {
       // F235: the round's result sits in this pill. It used to pop at MID ± 150, right on the
       // round-win pips, hiding the score while it showed.
@@ -336,6 +336,16 @@ class RpsView implements GameInstance {
       text(gx, msg, W / 2, py, { size: 15, color: COLORS.dim, weight: 700 });
     }
   }
+}
+
+/**
+ * What a seat's pill says while it still has to pick. F254: "Pick in secret!" only when the
+ * other seat is a person (the phone turns away from them); against the bot nobody else is
+ * looking, so the person just picks.
+ */
+export function pickLine(selfBot: boolean, otherBot: boolean): string {
+  if (selfBot) return 'Choosing…';
+  return otherBot ? 'Pick one!' : 'Pick in secret!';
 }
 
 /** What a seat's pill says once the hands are shown (F235). */
