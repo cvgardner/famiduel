@@ -1864,3 +1864,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       says "So close!" only when the match was close (one apart, or within a fifth of the
       winner's score) and "Good game!" otherwise (src/app/resulttitle.ts loserTitle());
       tests/result-title.test.ts; the solo playtest still sees "So close!" after a 0 – 1.
+- [x] 2026-11-14 (F224, PR #TBD): Play the bot intro: on a tall phone the bot's half (turned to
+      face the person) repeated the whole how-to, and since F222 the goal, so the person read
+      every line twice above the bot's power cards. A bot's half now hides its how-to at every
+      size (it already did on short phones); its power cards and level row stay. Playtest "bot
+      level" checks no how-to shows in the bot's half at 320×568 and 390×844.

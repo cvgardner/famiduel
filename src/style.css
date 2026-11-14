@@ -228,6 +228,9 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .seat-cue { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; color: #fff; font-weight: 700; white-space: nowrap; }
 .seat-cue svg { flex: none; }
 .howto .goal { color: #fff; font-weight: 800; }
+/* F224: a bot's half never shows the how-to, at any size: in Play the bot it turns to face the
+   person, who already reads it in their own half (it read twice on a tall phone). */
+.half.bot .howto { display: none; }
 .assist { margin: 0; color: var(--gold); font-size: calc(13px * var(--ts)); font-weight: 700; }
 .powers { display: flex; gap: 8px; width: 100%; }
 .power-card { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 14px; background: rgba(255,255,255,0.08); border: 2px solid transparent; }

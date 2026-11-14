@@ -1022,6 +1022,9 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
         const row = half.querySelectorAll('.botlvl button');
         const on = half.querySelector('.botlvl button.on') as HTMLElement | null;
         if (row.length !== 3) return 'no bot level row';
+        // F224: the bot's half shows no how-to at any size (the person reads it in their own half).
+        const how = half.querySelector('.howto') as HTMLElement | null;
+        if (how && getComputedStyle(how).display !== 'none') return "bot's half shows the how-to";
         if (on?.dataset.v !== 'normal') return `level shown is ${on?.dataset.v}`;
         if (inner.getBoundingClientRect().height > half.getBoundingClientRect().height + 1) return 'intro does not fit';
         return '';
