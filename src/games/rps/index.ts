@@ -6,7 +6,7 @@
 // - Against a bot (it never peeks): each player taps one of three buttons in
 //   their own half at the same time.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, fitSize, glow, nameLabel, noGlow, rrect, seatEdges, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, fitFirst, fitSize, glow, nameLabel, noGlow, rrect, seatEdges, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { drawCover, lookAwayBanner, SecretTurns, toWorld } from '../../engine/secret';
@@ -24,6 +24,15 @@ const CARD = { y: 362, w: 100, h: 124, x: (i: number) => 70 + i * 110 };
 const inCard = (i: number, x: number, y: number) => Math.abs(x - CARD.x(i)) <= CARD.w / 2 + 4 && y >= CARD.y - 6 && y <= CARD.y + CARD.h + 6;
 
 /** Map a point given in player 0's coordinates to player p's side. */
+/** Room for a pass-and-play line naming a player: the screen less 12 units each side (F319). */
+export const ROOM = W - 24;
+/** "<name>, pick in secret" heading, longest first (F319: a 12-letter name ran off the screen). */
+export const pickLines = (me: string) => [`${me}, pick in secret`, `${me}, pick`, 'Pick in secret'];
+/** The line under it: the other player has picked, or picks next. */
+export const nextLines = (them: string, picked: boolean) =>
+  picked ? [`${them} has picked ✓ Then you both reveal`, `${them} has picked ✓`, 'They picked ✓ Then you both reveal'] : [`${them} picks next, then you both reveal`, `${them} picks next`, 'They pick next, then you both reveal'];
+/** The picker's score line. */
+export const scoreLines = (me: string, them: string, a: number, b: number) => [`${me} ${a} – ${b} ${them}`, `You ${a} – ${b} ${them}`, `You ${a} – ${b} Them`];
 const side = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
 
 class RpsView implements GameInstance {
@@ -251,9 +260,10 @@ class RpsView implements GameInstance {
       gx.fillRect(0, 0, W, H);
       lookAwayBanner(gx, them, s.kind === 'secret' ? 'eyes closed!' : 'not yet!');
       if (s.kind === 'secret') {
-        nameLabel(gx, `${me.name}, pick in secret`, W / 2, 230, me.color, { size: 24 });
-        if (this.secret.moved[o]) text(gx, `${them.name} has picked ✓ Then you both reveal`, W / 2, 266, { size: 14, color: COLORS.good, weight: 700 });
-        else text(gx, `${them.name} picks next, then you both reveal`, W / 2, 266, { size: 14, color: COLORS.dim, weight: 700 });
+        const head = fitFirst(gx, pickLines(me.name), ROOM, 24);
+        nameLabel(gx, head.str, W / 2, 230, me.color, { size: head.size });
+        const sub = fitFirst(gx, nextLines(them.name, this.secret.moved[o]), ROOM, 14, 700);
+        text(gx, sub.str, W / 2, 266, { size: sub.size, color: this.secret.moved[o] ? COLORS.good : COLORS.dim, weight: 700 });
         CHOICES.forEach((c, i) => {
           const x = CARD.x(i) - CARD.w / 2;
           rrect(gx, x, CARD.y + 4, CARD.w, CARD.h, 22, 'rgba(0,0,0,0.35)');
@@ -266,10 +276,12 @@ class RpsView implements GameInstance {
         circle(gx, W / 2, 360, 54, alpha(COLORS.good, 0.18), COLORS.good, 4);
         text(gx, '✓', W / 2, 360, { size: 30 + 30 * k, color: COLORS.good });
         text(gx, 'Locked in!', W / 2, 446, { size: 26, color: '#fff' });
-        text(gx, this.secret.moved[o] ? 'Get ready to reveal…' : `Now ${them.name}'s turn`, W / 2, 482, { size: 16, color: COLORS.dim, weight: 700 });
+        const after = fitFirst(gx, this.secret.moved[o] ? ['Get ready to reveal…'] : [`Now ${them.name}'s turn`, 'Now pass the phone'], ROOM, 16, 700);
+        text(gx, after.str, W / 2, 482, { size: after.size, color: COLORS.dim, weight: 700 });
       }
       // Score, in the picker's frame
-      text(gx, `${me.name} ${this.game.score[p]} – ${this.game.score[o]} ${them.name}`, W / 2, 560, { size: 16, color: COLORS.dim, weight: 700 });
+      const score = fitFirst(gx, scoreLines(me.name, them.name, this.game.score[p], this.game.score[o]), ROOM, 16, 700);
+      text(gx, score.str, W / 2, 560, { size: score.size, color: COLORS.dim, weight: 700 });
       text(gx, `First to ${RULES.winRounds}`, W / 2, 586, { size: 13, color: COLORS.dim, weight: 700 });
     }
     gx.restore();

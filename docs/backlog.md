@@ -2358,3 +2358,20 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       " wins!" / " tees off first"); tests/minigolf-long-names.test.ts,
       e2e/minigolf-long-names.spec.ts (edge probe over the hole card and the scorecard; fails
       on the old lines).
+## Ideas found 2026-11-15 (12:17 run, long names in Rock Paper Scissors)
+- [x] 2026-11-15 (F319): Rock Paper Scissors between two people with 12-letter names on a
+      320 px phone with Bigger text: "<name>, pick in secret", "<name> picks next, then you
+      both reveal", the cover's "<name> has picked ✓" and "<me> 0 – 0 <them>" ran off the
+      screen. Each line now takes the longest wording that fits (fitFirst() in draw.ts:
+      "Pick in secret", "<name> picks next", "You 0 – 0 <them>"), short names keep the full
+      lines. tests/rps-long-names.test.ts, e2e/rps-long-names.spec.ts (edge probe through two
+      picks; fails on the old lines).
+## Ideas found 2026-11-15 (12:17 run, long names in every game's countdown and cards)
+- [x] 2026-11-15 (F318): a turn game's countdown pill ("<name> goes first", fixed 260 wide,
+      size 20) ran ~35 units off both screen edges in Penalty with a 12-letter name on a 320 px
+      phone with Bigger text. The words now shrink to fit (not below MIN_TEXT) and the pill
+      grows up to the screen less 8 each side; short names keep the usual pill. starterPill(),
+      tests/starter-pill.test.ts, e2e/long-names.spec.ts (every shown game's countdown words
+      with the edge probe; fails on the old pill).
+- [ ] F319-F321 on the todo list: RPS pick lines, Minigolf scorecard lines and Sea Battle
+      notices with 12-letter names (found reading the code, not yet measured).
