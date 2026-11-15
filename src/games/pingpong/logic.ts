@@ -584,7 +584,8 @@ export class PingPongBot {
     if (sign !== this.approachSign) {
       this.approachSign = sign;
       // A fresh read of the incoming ball: new misjudgement, aim and swing.
-      const speed = Math.hypot(s.vx, s.vy);
+      // What the eye sees: a slowed ball (Slow-mo, head start) is easier to read.
+      const speed = Math.hypot(s.vx, s.vy) * s.factor;
       this.err = this.rng.range(-1, 1) * cfg.noise * (speed / 450) ** 2 * (1 + Math.abs(s.ax) / 300);
       const foe = game.paddles[other(p)];
       const away = foe.x < W / 2 ? 1 : -1;

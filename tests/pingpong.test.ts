@@ -209,6 +209,34 @@ describe('ping pong', () => {
     expect((y1 - g.ball.y) / (400 * DT)).toBeCloseTo(1, 5);
   });
 
+  it('a bot reads a slowed ball as slow: Slow-mo helps a bot too, like a person (F284)', () => {
+    // Fast balls angled at the normal bot, with and without its Slow-mo running: count misses.
+    const misses = (slow: boolean) => {
+      let missed = 0;
+      for (let seed = 0; seed < 150; seed++) {
+        const rng = makeRng(seed);
+        const g = new PingPong([player({ bot: 'normal' }), player()], false, rng);
+        const bot = new PingPongBot(0, 'normal', rng);
+        rallyToward(g, 0, 760);
+        g.ball.vx = rng.range(-260, 260);
+        if (slow) g.paddles[0].slowmo = 3;
+        for (let i = 0; i < 400; i++) {
+          g.step(DT, [bot.think(g, DT), still()]);
+          if (g.events.some((e) => e.type === 'hit' && e.p === 0)) break;
+          if (g.events.some((e) => e.type === 'point')) {
+            missed++;
+            break;
+          }
+        }
+      }
+      return missed;
+    };
+    const fast = misses(false);
+    const slowed = misses(true);
+    expect(fast).toBeGreaterThan(10);
+    expect(slowed).toBeLessThan(fast * 0.6);
+  });
+
   it('Curve Ball bends the next return away from the other paddle', () => {
     const g = new PingPong([player({ power: power('pingpong', 'curve') }), player()], true, makeRng(8));
     g.energy[0].value = 1;
