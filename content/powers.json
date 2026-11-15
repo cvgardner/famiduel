@@ -169,7 +169,7 @@
         "id": "sticky",
         "name": "Sticky Snacks",
         "icon": "🍯",
-        "desc": "Snacks slow right down on your side for 2 seconds.",
+        "desc": "Snacks slow right down near your critters for 2 seconds (golden ones roll on).",
         "duration": 2
       },
       {

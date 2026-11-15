@@ -1665,12 +1665,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-08 (F175, PR #220): Play the bot: Sea Battle's "Ships sunk" columns read
       "you / them"; against a bot the second one says "bot" (as F165 did for Quick Draw and
       Chop Chop). tests/bot-name.test.ts.
-- [ ] Research (Xbox Accessibility Guideline 107, input): avoid repeated quick presses and
+- [x] Research (Xbox Accessibility Guideline 107, input): avoid repeated quick presses and
       long holds, or offer a lighter option ("auto fire", "press instead of hold"). Ours: Tank
       Duel's FIRE needs a fresh tap per shell (a held FIRE could fire as each reload ends),
       Chop Chop is fast tapping by design, Sumo is hold-to-charge. A "Little hands" auto-fire
       for Tank Duel would change balance vs the bot (it waits a human reaction after reload),
       so it's a call for Chris if families say small kids tire of tapping FIRE.
+      2026-11-15 (F298, PR #323): holding the FIRE button fires again RULES.holdFire (= HUMAN.reaction,
+      0.2 s, the bot's own trigger delay) after each reload, for everyone, so it never beats
+      tapping and the bot balance is unchanged; only a finger that landed on the button itself
+      counts (a palm resting on the strip doesn't fire). How-to: "Tap or hold FIRE".
+      tests/tanks-hold-fire.test.ts.
 - [x] 2026-11-08 (F176, PR #221): Snack Snatch: the "Miss!" pop started just in front of the
       frog's resting head, so the head pulling back from the missed snap slid over it and the
       word sat on the frog's eyes (seen top seat, snacksnatch-vs-bot-later.png). It starts on
@@ -2224,3 +2229,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       0.06 s was twice its reaction spread, so Slow Time won 65-67% against every pick at hard.
       Now 61-62% (n=240), as at normal (59-61%). People play exactly as before.
       tests/quickdraw-slowtime-hard.test.ts.
+- [x] 2026-11-15 (F297, PR #322): Snack Snatch honey leaves golden snacks alone and is a
+      narrower band by your critters (120 from your gum, was 175: that reached past the
+      centre line). Measured why easy Sticky beat None 83%: during honey neither side caught
+      faster; the gain was gold (small, worth 3, slowed into an easy bot's slow snap: +5.5 of
+      the 10-point swing) and the slowed cluster eaten just after honey ended. The narrow band
+      also stops the other side's Magnet steering every slowed snack across. n=240, Sticky's
+      row vs Magnet / Double / None: easy 43/64/83 -> 65/48/73 (avg 64 -> 62), normal
+      31/45/63 -> 51/41/58 (46 -> 50), hard 11/28/50 -> 49/27/53 (29 -> 43, was an outlier).
+      Sticky v None at easy is still 73% (target 65): honey off entirely reads 49%, so a
+      slow-snack power is just worth more to a slow catcher; Double stays the hard outlier (F110).
+      Tried and reverted: honey depth (stickyRoll 60/90, stickyDamp 1/2), easy bot pouring
+      honey as soon as charged, no easy stray taps, gold-proof honey alone (hard Sticky 30%),
+      band 100 (easy Sticky v Magnet 72%). Power text: "golden ones roll on".

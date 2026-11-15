@@ -38,6 +38,12 @@ export const RULES = {
    * gets the full fire rate instead of losing taps to the reload ring.
    */
   fireBuffer: 0.15,
+  /**
+   * Holding FIRE fires again once the gun has been ready this long (F298, Xbox Accessibility
+   * Guideline 107: no repeated quick presses). It is the bot's own trigger delay (a fast
+   * person's reaction), so holding is never quicker than tapping.
+   */
+  holdFire: HUMAN.reaction,
   /** A tank's own shell can bonk it once this old (or after its first bounce). */
   selfArm: 0.12,
   mineR: 9,
@@ -67,6 +73,8 @@ export type Tank = {
   fired: number;
   /** Seconds left on a buffered FIRE tap (see RULES.fireBuffer). */
   queued: number;
+  /** Seconds the gun has been ready to fire (for a held FIRE, RULES.holdFire). */
+  readyFor: number;
   speed: number;
 };
 
@@ -109,7 +117,8 @@ export type Event =
  * What a player wants this step. (mx, my) is the stick in world directions,
  * length 0..1: the tank turns to face it and drives forward when pushed far.
  */
-export type Intent = { mx: number; my: number; fire: boolean; power: boolean };
+/** `hold`: a finger (or key) is still down on FIRE; it fires again RULES.holdFire after each reload. */
+export type Intent = { mx: number; my: number; fire: boolean; power: boolean; hold?: boolean };
 export const IDLE: Intent = { mx: 0, my: 0, fire: false, power: false };
 
 export const wrapAngle = (a: number) => {
@@ -257,7 +266,7 @@ export class TankDuel {
 
   private newTank(p: PlayerIndex): Tank {
     const s = spawnOf(p);
-    return { x: s.x, y: s.y, a: s.a, hits: 0, armor: armorFor(this.players[p].assist), reload: 0, shield: 0, bouncy: 0, fired: 9, speed: 0, queued: 0 };
+    return { x: s.x, y: s.y, a: s.a, hits: 0, armor: armorFor(this.players[p].assist), reload: 0, shield: 0, bouncy: 0, fired: 9, speed: 0, queued: 0, readyFor: 0 };
   }
 
   /** Bonks a tank can still take. */
@@ -318,8 +327,11 @@ export class TankDuel {
     this.separateTanks();
     for (const p of PLAYERS) {
       const tk = this.tanks[p];
-      if (intents[p].fire && !this.canFire(p)) tk.queued = RULES.fireBuffer;
-      else if (intents[p].fire || (tk.queued > 0 && this.canFire(p))) this.fire(p);
+      const ready = this.canFire(p);
+      tk.readyFor = ready ? tk.readyFor + dt : 0;
+      if (intents[p].fire && !ready) tk.queued = RULES.fireBuffer;
+      else if (intents[p].fire || (tk.queued > 0 && ready)) this.fire(p);
+      else if (intents[p].hold && ready && tk.readyFor >= RULES.holdFire) this.fire(p);
     }
     const victims = new Map<PlayerIndex, { by: PlayerIndex | null; x: number; y: number; mine: boolean }>();
     this.moveShells(dt, victims);
@@ -542,7 +554,7 @@ export class TankDuel {
     for (const p of PLAYERS) {
       const tk = this.tanks[p];
       const s = spawnOf(p);
-      Object.assign(tk, { x: s.x, y: s.y, a: s.a, reload: 0, shield: 0, bouncy: 0, fired: 9, speed: 0, queued: 0 });
+      Object.assign(tk, { x: s.x, y: s.y, a: s.a, reload: 0, shield: 0, bouncy: 0, fired: 9, speed: 0, queued: 0, readyFor: 0 });
       this.energy[p].active = 0;
     }
     this.shells = [];
