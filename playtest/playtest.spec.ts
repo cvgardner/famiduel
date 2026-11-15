@@ -794,6 +794,14 @@ test('how to play: the pause menu shows each player the finger, the rules and th
           charge: h.querySelector('.my-power .charge')?.textContent ?? null,
           fits: ir.height <= hr.height + 1 && ir.top >= hr.top - 1 && ir.bottom <= hr.bottom + 1,
           pic: !!h.querySelector('.my-power .power-pic'),
+          // F271: lines the how-to wraps onto (distinct line tops of its text).
+          lines: (() => {
+            const el = h.querySelector('.howto');
+            if (!el) return 0;
+            const r = document.createRange();
+            r.selectNodeContents(el);
+            return new Set([...r.getClientRects()].filter((q) => q.width > 1).map((q) => Math.round(q.top))).size;
+          })(),
         };
       }),
     );
@@ -824,6 +832,8 @@ test('how to play: the pause menu shows each player the finger, the rules and th
       if (h.power !== hasPowers) problems.push(`${id} half ${i}: picked power ${h.power ? 'shown without powers' : 'missing'}`);
       if (hasPowers && !/Charging: \d+%|Ready!|On now!/.test(h.charge ?? '')) problems.push(`${id} half ${i}: no power meter state (${h.charge})`);
       if (!h.fits) problems.push(`${id} half ${i}: how to play doesn't fit a 320x568 phone`);
+      // F271: a how-to a kid (or a parent reading it out) gets through: 3 lines at most on a 320 px phone.
+      if (h.lines > 3) problems.push(`${id} half ${i}: how-to runs ${h.lines} lines at 320 px (3 at most)`);
     }
     if (!(await paused())) problems.push(`${id}: match ran while how to play was up`);
     if (id === 'tanks') await page.screenshot({ path: path.join(OUT, 'pause-help.png') });

@@ -2057,3 +2057,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       near misses). A second tap within 0.7 of a square of the aimed square's middle
       (FORGIVE) now fires it; a tap nearer a neighbour's middle still re-aims.
       tests/seabattle-near-tap.test.ts.
+- [x] 2026-11-14 (F271, PR #PRNUM): How-tos at most 3 lines. Seven games' blurb + how-to ran 4
+      lines per seat on the pause sheet at 320 px (Chop Chop, Minigolf, Penalty, Ping Pong,
+      Quick Draw, Snack Snatch, Sumo), crowding the power card. Each is trimmed to what a first
+      match needs (things the game shows on its own went: Ping Pong's "Rallies heat up", Sumo's
+      rope saves, Snack Snatch's Frenzy, Quick Draw's fake-out example, Penalty's swipe-again).
+      The "how to play" playtest now counts the how-to's lines (3 at most at 320 px).
