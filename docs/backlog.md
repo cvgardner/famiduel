@@ -2214,7 +2214,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       0.06 s was twice its reaction spread, so Slow Time won 65-67% against every pick at hard.
       Now 61-62% (n=240), as at normal (59-61%). People play exactly as before.
       tests/quickdraw-slowtime-hard.test.ts.
-- [x] 2026-11-15 (F297, PR #TBD): Snack Snatch honey leaves golden snacks alone and is a
+- [x] 2026-11-15 (F297, PR #322): Snack Snatch honey leaves golden snacks alone and is a
       narrower band by your critters (120 from your gum, was 175: that reached past the
       centre line). Measured why easy Sticky beat None 83%: during honey neither side caught
       faster; the gain was gold (small, worth 3, slowed into an easy bot's slow snap: +5.5 of
