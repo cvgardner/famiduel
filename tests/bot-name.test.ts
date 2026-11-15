@@ -33,7 +33,7 @@ const result = (r: Partial<RoundResult>) => (game: unknown) => {
   q.last = { winner: 1, reason: 'faster', early: null, times: [null, 0.5], penalty: [0, 0], ...r };
 };
 const people: [PlayerInfo, PlayerInfo] = [player({ bot: null }), player({ bot: null })];
-const solo: [PlayerInfo, PlayerInfo] = [player({ bot: null }), player({ bot: 'easy' })];
+const solo: [PlayerInfo, PlayerInfo] = [player({ bot: null }), player({ bot: 'easy', name: 'Bot' })];
 
 // F165: in Play the bot, the person's half called the bot "them" ("Them 500 ms", "them: 9").
 describe('the person\'s half names the bot', () => {
@@ -44,11 +44,12 @@ describe('the person\'s half names the bot', () => {
     expect(words('quickdraw', solo, result({ winner: 0, reason: 'fooled', early: 1 }))).toContain('Bot got fooled!');
     expect(words('quickdraw', people, result({ winner: 0, reason: 'fooled', early: 1 }))).toContain('They got fooled!');
   });
-  it('Chop Chop rival pill: "bot: N" against a bot, "them: N" between people', () => {
+  // F325: the bot is called by its name ("Bot", capital B, as on every other card), not "bot".
+  it('Chop Chop rival pill: "Bot: N" against a bot, "them: N" between people', () => {
     const chops = (game: unknown) => {
       (game as ChopChop).choppers[1].chops = 9;
     };
-    expect(words('chopchop', solo, chops)).toContain('bot: 9');
+    expect(words('chopchop', solo, chops)).toContain('Bot: 9');
     expect(words('chopchop', people, chops)).toContain('them: 9');
   });
 });
@@ -56,12 +57,12 @@ describe('the person\'s half names the bot', () => {
 // F169: Tank Duel's bot half showed an upright FIRE and a second "0 bonks" (or clock) line.
 describe('Tank Duel names the bot\'s score and leaves its button wordless', () => {
   const count = (ws: string[], str: string) => ws.filter((w) => w === str).length;
-  it('playing the bot: one FIRE, "bot: 1 bonk" beside the person\'s "0 bonks"', () => {
+  it('playing the bot: one FIRE, "Bot: 1 bonk" beside the person\'s "0 bonks"', () => {
     const ws = words('tanks', solo, (game) => {
       (game as TankDuel).score = [0, 1];
     });
     expect(count(ws, 'FIRE')).toBe(1);
-    expect(ws).toContain('bot: 1 bonk');
+    expect(ws).toContain('Bot: 1 bonk');
     expect(count(ws, '0 bonks')).toBe(1);
   });
   it('two people: both FIRE buttons and both bonk lines', () => {
