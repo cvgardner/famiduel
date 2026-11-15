@@ -158,6 +158,20 @@
         "icon": "🧼",
         "desc": "The other wrestler slides around for 3.5 seconds.",
         "duration": 3.5
+      },
+      {
+        "id": "iron",
+        "name": "Iron Feet",
+        "icon": "🦶",
+        "desc": "Your feet grip the floor for 3 seconds. Pushes barely move you.",
+        "duration": 3
+      },
+      {
+        "id": "dash",
+        "name": "Dash",
+        "icon": "💨",
+        "desc": "Zoom! A quick, extra-strong dash the way your arrow points.",
+        "duration": 0.25
       }
     ],
     "snacksnatch": [

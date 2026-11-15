@@ -285,6 +285,19 @@ const PICS: Record<string, Record<string, string>> = {
       [[38, 30], [46, 16], [30, 12]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="2" fill="none" stroke="#fff" stroke-width="1">${anim('opacity', [0, 0.9, 0], [0, 0.3 + i * 0.15, 1])}${anim('r', [1, 3, 3], [0, 0.3 + i * 0.15, 1])}</circle>`).join('') +
       circle(24, 22, 7, YOU) +
       circle(40, 22, 7, THEM, anim('cx', [40, 46, 36, 46, 40], [0, 0.25, 0.5, 0.75, 1]) + anim('cy', [22, 16, 28, 26, 22], [0, 0.25, 0.5, 0.75, 1])),
+    // Iron Feet: a steel ring plants you; the other wrestler charges in and bounces off.
+    iron:
+      ring +
+      `<circle cx="24" cy="22" r="10" fill="none" stroke="#aeb8c6" stroke-width="2.5" stroke-dasharray="3 2">${anim('opacity', [0, 1, 1, 0], [0, 0.15, 0.85, 1])}</circle>` +
+      circle(24, 22, 7, YOU) +
+      circle(48, 22, 7, THEM, anim('cx', [48, 48, 41, 50, 48], [0, 0.3, 0.45, 0.65, 1])),
+    // Dash: your arrow lights up, then you zoom forward and knock the other wrestler back.
+    dash:
+      ring +
+      line(28, 22, 40, 22, '#ffd166', 2, anim('opacity', [0, 0, 1, 1, 0, 0], [0, 0.1, 0.15, 0.38, 0.42, 1]), ' stroke-dasharray="2 3"') +
+      circle(16, 22, 3, '#fff', anim('opacity', [0, 0, 0.8, 0, 0], [0, 0.4, 0.45, 0.65, 1]) + anim('cx', [16, 16, 16, 10, 10], [0, 0.4, 0.45, 0.65, 1])) +
+      circle(20, 22, 7, YOU, anim('cx', [20, 20, 30, 30, 20], [0, 0.4, 0.5, 0.85, 1])) +
+      circle(40, 22, 7, THEM, anim('cx', [40, 40, 40, 51, 51, 40], [0, 0.4, 0.48, 0.62, 0.85, 1])),
   },
 };
 

@@ -1,6 +1,7 @@
 // Sumo view: one big hold button per player becomes intents; state becomes a
 // bouncy top-down ring with squash/stretch wrestlers, dust and shockwaves.
-import { PLAYERS, type PlayerIndex } from '../../core/types';
+import { other, PLAYERS, type PlayerIndex } from '../../core/types';
+import { blink } from '../../engine/calm';
 import { inkOn } from '../../core/contrast';
 import { alpha, circle, COLORS, controlsAlpha, facing, glow, noGlow, fitSize, nameLabel, rrect, scaledSize, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
@@ -49,6 +50,8 @@ export function bannerBox(gx: G, str: string, size: number, y: number): { x: num
 const ROPE = '#b8893e';
 const SKIN = '#f6d3ad';
 const DUST = '#d8bb84';
+/** Iron Feet: a steel ring and studs round the wrestler's feet. */
+const IRON = '#aeb8c6';
 
 type Body = {
   /** Squash/stretch: >1 = longer along `axis`. Springs back to 1. */
@@ -214,16 +217,42 @@ class SumoView implements GameInstance {
         this.rings.push({ x: e.x, y: e.y, r: 20, life: 0.5, max: 0.5, color: players[e.p].color, width: 10 });
         this.rings.push({ x: e.x, y: e.y, r: 10, life: 0.4, max: 0.4, color: '#fff', width: 5 });
         this.bodies[e.p].sv -= 8;
+      } else if (e.type === 'zoom') {
+        // The Dash power's burst: a big whoosh, dust thrown back, a streak ring.
+        sfx.play('whoosh');
+        sfx.play('thud');
+        const w = g.wrestlers[e.p];
+        const b = this.bodies[e.p];
+        b.axis = w.angle;
+        b.sv += 12;
+        const bx = e.x - Math.cos(w.angle) * g.radius(e.p);
+        const by = e.y - Math.sin(w.angle) * g.radius(e.p);
+        fx.burst(bx, by, DUST, 26, 260, 5);
+        fx.burst(bx, by, '#ffffff', 10, 180, 3);
+        fx.shake(5, 0.15);
+        this.rings.push({ x: bx, y: by, r: 12, life: 0.35, max: 0.35, color: players[e.p].color, width: 6 });
       } else if (e.type === 'power') {
         sfx.play('power');
         const pw = players[e.p].power!;
         fx.flash('#ffd54a', 0.12);
         const word = `${pw.icon} ${pw.name}!`;
-        fx.pop(word, W / 2, this.powerPopY(e.p, word, 24, pw.id === 'grow'), COLORS.gold, e.p, 24);
+        const y = this.powerPopY(e.p, word, 24, pw.id === 'grow');
+        fx.pop(word, W / 2, y, COLORS.gold, e.p, 24);
+        // The other seat reads it too (smaller), so they can get ready for it. Gold like every
+        // Sumo pop: a seat colour is too faint on the pale sand (contrast test).
+        const q = other(e.p);
+        fx.pop(word, W / 2, this.clearPopY(q, word, 18, W / 2, q === 0 ? H - 150 : 150, 2, false, { seat: e.p, y }), COLORS.gold, q, 18);
         if (pw.id === 'grow') this.bodies[e.p].sv += 8;
         if (pw.id === 'slip') {
-          const foe = g.wrestlers[e.p === 0 ? 1 : 0];
+          const foe = g.wrestlers[q];
           fx.burst(foe.x, foe.y, '#bfe9ff', 20, 140, 5);
+        }
+        if (pw.id === 'iron') {
+          const w = g.wrestlers[e.p];
+          sfx.play('coin');
+          fx.burst(w.x, w.y, IRON, 18, 120, 4);
+          this.rings.push({ x: w.x, y: w.y, r: g.radius(e.p), life: 0.4, max: 0.4, color: IRON, width: 7 });
+          this.bodies[e.p].sv -= 6;
         }
       } else if (e.type === 'win') {
         sfx.play('win');
@@ -457,7 +486,15 @@ class SumoView implements GameInstance {
     const r = g.radius(p);
     const ca = Math.cos(w.angle);
     const sa = Math.sin(w.angle);
-    if (w.charging) {
+    if (w.dash > 0) {
+      // Dash power windup: a bright dotted line to where the burst will carry you.
+      const reach = g.dashReach(p);
+      const n = Math.max(2, Math.floor(reach / 14));
+      for (let i = 1; i <= n; i++) {
+        const d = r + (reach * i) / n;
+        circle(gx, w.x + ca * d, w.y + sa * d, 3 + (i === n ? 4 : 0), alpha(COLORS.gold, 0.45 + 0.5 * (i / n)), '#fff', 1.5);
+      }
+    } else if (w.charging) {
       // Telegraph: dotted line to where a dash with this charge would carry you.
       const reach = Sumo.dashSpeed(w.charge) / g.friction(p);
       const n = Math.max(2, Math.floor(reach / 16));
@@ -467,7 +504,7 @@ class SumoView implements GameInstance {
       }
     }
     // Direction arrow
-    const tip = r + 28 + (w.charging ? 8 * w.charge : 0);
+    const tip = r + 28 + (w.charging ? 8 * w.charge : 0) + (w.dash > 0 ? 14 : 0);
     const base = r + 8;
     const wing = 13;
     gx.beginPath();
@@ -475,8 +512,10 @@ class SumoView implements GameInstance {
     gx.lineTo(w.x + ca * base - sa * wing, w.y + sa * base + ca * wing);
     gx.lineTo(w.x + ca * base + sa * wing, w.y + sa * base - ca * wing);
     gx.closePath();
-    gx.fillStyle = w.charging ? COLORS.gold : c;
+    if (w.dash > 0) glow(gx, COLORS.gold, 16);
+    gx.fillStyle = w.charging || w.dash > 0 ? COLORS.gold : c;
     gx.fill();
+    noGlow(gx);
     gx.lineWidth = 3;
     gx.lineJoin = 'round';
     gx.strokeStyle = '#fff';
@@ -503,7 +542,8 @@ class SumoView implements GameInstance {
     gx.scale(b.stretch, 1 / b.stretch);
     gx.rotate(w.angle - b.axis + fall * 6);
     if (w.grow > 0) glow(gx, COLORS.gold, 18 + 6 * Math.sin(this.t * 10));
-    if (w.pound > 0) glow(gx, '#fff', 30);
+    if (w.pound > 0 || w.dash > 0) glow(gx, '#fff', 30);
+    else if (w.iron > 0) glow(gx, IRON, 16);
     // Arms (forward-facing), body, belt, head
     const bodyFill = shade(c, 0.55);
     circle(gx, r * 0.55, -r * 0.78, r * 0.32, bodyFill, shade(c, -0.4), 2.5);
@@ -543,6 +583,20 @@ class SumoView implements GameInstance {
         const a = this.t * 3 + i * 1.6;
         circle(gx, x + Math.cos(a) * (r + 8), y + Math.sin(a) * (r + 8), 4 + (i % 2) * 2, 'rgba(220,245,255,0.6)', '#fff', 1.5);
       }
+    }
+    if (w.iron > 0) {
+      // Iron Feet: a heavy steel ring with studs, planted on the floor; it blinks as it wears off.
+      const fading = w.iron < 0.8 && !blink(this.t);
+      gx.globalAlpha = (1 - fall) * (fading ? 0.35 : 1);
+      // Outside the seat ring (r + 5) and the charge ring (r + 7), so both still read.
+      const ir = r + 13;
+      circle(gx, w.x, w.y + 2, ir, undefined, shade(IRON, -0.4), 6);
+      circle(gx, w.x, w.y, ir, undefined, IRON, 4);
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        circle(gx, w.x + Math.cos(a) * ir, w.y + Math.sin(a) * ir, 2.8, '#ffffff', shade(IRON, -0.45), 1.5);
+      }
+      gx.globalAlpha = 1;
     }
     if (w.pound > 0) {
       const k = 1 - w.pound / RULES.poundWindup;
