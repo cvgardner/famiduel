@@ -147,6 +147,17 @@ const PICS: Record<string, Record<string, string>> = {
       rect(26, 8, 12, 4, THEM, anim('x', [26, 26, 16, 16], [0, 0.4, 0.6, 1])) +
       circle(32, 38, 3, YOU, anim('cx', [32, 32, 46, 46], [0, 0.15, 0.6, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.15, 0.6, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.85, 0.9, 1])) +
       circle(32, 38, 3, YOU, anim('cx', [32, 32, 20, 20], [0, 0.15, 0.6, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.15, 0.6, 1]) + anim('opacity', [0, 0, 0.6, 0.6, 0, 0], [0, 0.14, 0.16, 0.6, 0.7, 1]), ' stroke="#fff" stroke-dasharray="2 2"'),
+    // Your shot streaks in with a flame trail; the keeper moves too late.
+    rocket:
+      pitch +
+      rect(26, 8, 12, 4, THEM, anim('x', [26, 26, 32, 32, 26], [0, 0.42, 0.55, 0.9, 1])) +
+      `<line x1="32" y1="38" x2="40" y2="7" stroke="#ff8a3d" stroke-width="3" stroke-linecap="round" opacity="0">${anim('opacity', [0, 0, 0.9, 0, 0], [0, 0.3, 0.42, 0.6, 1])}</line>` +
+      circle(32, 38, 3, YOU, anim('cx', [32, 32, 40, 40], [0, 0.3, 0.42, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.3, 0.42, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.85, 0.9, 1])),
+    // The other player's shot drifts in slowly inside a pale ring; your keeper gets across and saves it.
+    slowmo:
+      pitch +
+      rect(26, 7, 12, 4, YOU, anim('x', [26, 26, 34, 34, 26], [0, 0.35, 0.5, 0.9, 1])) +
+      [3, 5].map((r) => circle(32, 38, r, r === 3 ? THEM : 'none', anim('cx', [32, 32, 40, 38, 38], [0, 0.1, 0.8, 0.9, 1]) + anim('cy', [38, 38, 12, 22, 22], [0, 0.1, 0.8, 0.9, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.9, 0.95, 1]), r === 5 ? ' stroke="#96dcff" stroke-width="1.2"' : '')).join(''),
   },
   snacksnatch: {
     // Snacks drift toward your critter.

@@ -219,6 +219,11 @@ class PenaltyView implements GameInstance {
         sfx.play('thud');
         sfx.play('whoosh');
         fx.burst(W / 2, g.spotY(), '#9be37a', 10, 140, 3);
+        if (g.flight?.rocket) {
+          // Rocket Shot: a hot burst and a kick of shake as it launches.
+          fx.burst(W / 2, g.spotY(), '#ff8a3d', 18, 240, 3.5);
+          fx.shake(4, 0.15);
+        }
         if (e.timeout) both('Too slow!', COLORS.dim, 22, 60);
       } else if (e.type === 'dive') {
         sfx.play('pop');
@@ -380,6 +385,8 @@ class PenaltyView implements GameInstance {
     circle(gx, box.x - box.half, gy, 7, '#ffe066', '#b8901a', 2);
     circle(gx, box.x + box.half, gy, 7, '#ffe066', '#b8901a', 2);
     if (wide) text(gx, '🧤', box.x, gy + (k === 1 ? 26 : -26), { size: 18, player: k });
+    // Slow-Mo: a turtle where Wide Keeper's glove shows, until the kick it slows is over.
+    if (g.armedWith(k, 'slowmo')) text(gx, '🐢', box.x, gy + (k === 1 ? 26 : -26), { size: 18, player: k });
   }
 
   private renderShooter(gx: G): void {
@@ -417,11 +424,18 @@ class PenaltyView implements GameInstance {
         const pulse = g.picked && this.pickedT < 0.3 ? 1 + 0.25 * (1 - this.pickedT / 0.3) : 1;
         text(gx, msg, W / 2, g.spotY() + this.toward() * PICK_DY, { size: fitSize(gx, msg, W - 20, Math.round((g.picked && !g.runningUp ? 14 : 16) * pulse)), player: s, color: g.picked ? COLORS.gold : '#fff', stroke: 'rgba(0,0,0,0.45)' });
       }
+      // F183: the shooter's power line sits just past the ball, toward the goal (behind the
+      // shooter it printed across their own goal's net); clear of the kick ring, also the
+      // run-up's closing ring. The keeper's Slow-Mo shows on it too, so the shooter sees it.
+      const ready: string[] = [];
+      if (g.armed[s]) ready.push(`${this.ctx.players[s].power!.icon} ${this.ctx.players[s].power!.name} ready`);
+      if (g.armedWith(g.keeper, 'slowmo')) ready.push('🐢 Slow-Mo kick');
+      if (ready.length) {
+        const line = ready.join(' · ');
+        text(gx, line, W / 2, g.spotY() + this.toward() * READY_DY, { size: fitSize(gx, line, W - 20, 14), player: s, color: COLORS.gold, stroke: 'rgba(0,0,0,0.5)' });
+      }
       if (g.armed[s]) {
         const pw = this.ctx.players[s].power!;
-        // F183: just past the ball, toward the goal (behind the shooter it printed across their
-        // own goal's net); clear of the kick ring, also the run-up's closing ring.
-        text(gx, `${pw.icon} ${pw.name} ready`, W / 2, g.spotY() + this.toward() * READY_DY, { size: 14, player: s, color: COLORS.gold, stroke: 'rgba(0,0,0,0.5)' });
         // The keeper sees it coming too.
         const k = g.keeper;
         text(gx, `${pw.icon} ${pw.name} coming!`, W / 2, RULES.goalY[k] + (k === 1 ? 98 : -98), { size: 14, player: k, color: COLORS.gold, stroke: 'rgba(0,0,0,0.5)' });
@@ -477,6 +491,16 @@ class PenaltyView implements GameInstance {
       const d = Penalty.at(g.decoy, Math.min(g.flightT, g.decoy.T));
       this.drawBall(gx, d.x, d.y, d.z);
     }
+    // Rocket Shot armed: the ball glows hot on the spot; Slow-Mo armed: a pale blue ring round it.
+    if (g.phase === 'ready' || g.phase === 'aim') {
+      const by = g.spotY();
+      if (g.armedWith(g.shooter, 'rocket')) {
+        glow(gx, '#ff8a3d', 16 + 6 * Math.sin(this.t * 14));
+        circle(gx, W / 2, by, RULES.ballR + 4, 'rgba(255,138,61,0.45)');
+        noGlow(gx);
+      }
+      if (g.armedWith(g.keeper, 'slowmo')) circle(gx, W / 2, by, RULES.ballR + 8 + 2 * Math.sin(this.t * 3), undefined, 'rgba(150,220,255,0.85)', 2.5);
+    }
     this.drawBall(gx, g.ball.x, g.ball.y, g.ball.z);
     if (this.poof) {
       const k = this.poof.t / 0.5;
@@ -485,11 +509,13 @@ class PenaltyView implements GameInstance {
     }
     if (g.phase === 'flight') {
       const f: Flight = g.flight!;
-      // Short trail behind the real ball
-      for (let i = 1; i <= 5; i++) {
+      // Short trail behind the real ball: a flame for Rocket Shot, a slow blue smear for Slow-Mo.
+      const tint = f.rocket && !f.slow ? '255,150,60' : f.slow && !f.rocket ? '150,220,255' : '255,255,255';
+      const n = f.rocket || f.slow ? 8 : 5;
+      for (let i = 1; i <= n; i++) {
         const tt = Math.max(0, g.flightT - i * 0.025);
         const p = Penalty.at(f, tt);
-        circle(gx, p.x, p.y, RULES.ballR * (1 - i / 7), `rgba(255,255,255,${0.25 - i * 0.04})`);
+        circle(gx, p.x, p.y, RULES.ballR * (1 - i / (n + 2)) * (f.rocket ? 1.2 : 1), `rgba(${tint},${(0.25 - i * 0.04 * (5 / n)) * (n > 5 ? 1.6 : 1)})`);
       }
     }
   }

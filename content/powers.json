@@ -239,6 +239,20 @@
         "icon": "👻",
         "desc": "Your next shot sends a fake ball too. The keeper has to pick one.",
         "duration": 0
+      },
+      {
+        "id": "rocket",
+        "name": "Rocket Shot",
+        "icon": "🚀",
+        "desc": "Your next shot flies super fast. The keeper has to be quick!",
+        "duration": 0
+      },
+      {
+        "id": "slowmo",
+        "name": "Slow-Mo",
+        "icon": "🐢",
+        "desc": "The other player's next shot flies slowly, so it's easier to save.",
+        "duration": 0
       }
     ],
     "seabattle": [
