@@ -2132,3 +2132,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       hard v normal 33% / 25%. Ping Pong easy mirror 20% long (max 198 s), normal 5%, hard 10%.
       Snake normal mirror 5%. Every other game, and every kid / kid+3 row, stays under 3 min.
       Follow-up F283: shorten Air Hockey's long scoreless spells between evenly matched players.
+- [x] 2026-11-15 (F285, PR #PRNUM): Sumo's biggest "3 2 1" digit (F280's MID ± 164) put its foot on
+      the HOLD button's charge ring (drawn at r + 9, 7 wide) on a small phone (little-hands-sumo.png).
+      Now MID ± 150: clear of that ring and of the wrestler waiting at MID ± 72.
+      tests/sumo-countdown.test.ts counts the ring as part of HOLD.

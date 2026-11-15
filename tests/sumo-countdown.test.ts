@@ -38,7 +38,8 @@ describe('Sumo: the "3 2 1" digit stays off the wrestlers and the buttons', () =
       const view = create('sumo', lefty) as View;
       const dy = countdownDy(view);
       const wrestlers = view.game.wrestlers.map((w) => ({ x: w.x, y: w.y, r: RULES.bodyR + 6 }));
-      const controls = [...view.buttons, ...view.powerBtns.filter((b) => !!b).map((b) => b!.button)];
+      // F285: HOLD wears a charge ring at r + 9, 7 units wide, so it reaches r + 12.5.
+      const controls = [...view.buttons.map((b) => ({ x: b.x, y: b.y, r: b.r + 12.5 })), ...view.powerBtns.filter((b) => !!b).map((b) => b!.button)];
       expect(wrestlers.some((w) => [0, 1].some((p) => touches(digit(p === 0 ? MID + COUNT_DY : MID - COUNT_DY), w))), 'the old spot did cover one').toBe(true);
       for (const p of [0, 1]) {
         const box = digit(p === 0 ? MID + dy : MID - dy);
