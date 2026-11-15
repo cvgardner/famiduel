@@ -2242,3 +2242,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Tried and reverted: honey depth (stickyRoll 60/90, stickyDamp 1/2), easy bot pouring
       honey as soon as charged, no easy stray taps, gold-proof honey alone (hard Sticky 30%),
       band 100 (easy Sticky v Magnet 72%). Power text: "golden ones roll on".
+- [x] 2026-11-15 (F302): Ping Pong said "POINT!" to both seats in the scorer's colour, so the
+      player who lost the point read it as theirs. Each seat now reads whose point it was:
+      "Your point!" for the scorer, "Their point" (or "Bot's point") for the other seat
+      (pointLines()); a bot facing the one person says nothing. tests/pingpong-point-words.test.ts.
