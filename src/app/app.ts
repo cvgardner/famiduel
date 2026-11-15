@@ -17,7 +17,7 @@ import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
 import { dayKey } from '../games/minigolf/daily';
 import { powerPicHtml, watchPowerPics } from './powerpic';
-import { loserTitle } from './resulttitle';
+import { loserTitle, scoreLabels } from './resulttitle';
 import { demoHelpHtml, demoHtml, firstMatchOf, goalHtml, HelpMemory, howToHalfHtml, howToText, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
 import { Runner } from './runner';
@@ -871,7 +871,7 @@ export class App {
       // It keeps its headline and name line; the numbers show once, in the person's half.
       return `<div class="half p${p} ${won ? 'won' : ''}${faces ? ' faces' : ''}" style="--c:${profiles[p].color};--ink:${inkOn(profiles[p].color)}"><div class="half-inner">
         <div class="res-title">${title}</div>
-        ${faces ? '' : `<div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>`}
+        ${faces ? '' : scoreHtml(r.score[p], r.score[p === 0 ? 1 : 0], scoreLabels([seatName(profiles, 0), seatName(profiles, 1)], [!!seats?.[0].bot, !!seats?.[1].bot], p))}
         ${r.unit && !faces ? `<div class="res-unit">${esc(r.unit)}</div>` : ''}
         <div class="who">${esc(seatName(profiles, p))}${seats?.[p].bot ? ` 🤖${botFace(seats[p].bot!)}` : ''}${won ? ' 🏆' : ''}</div>
         ${dailyLine(p)}
@@ -925,4 +925,13 @@ export class App {
       });
     }
   }
+}
+
+/**
+ * F311: the result half's score with a small name under each number ("2 – 3" over "You" and
+ * "Bot"), so each player reads which number is theirs. Long names are cut with an ellipsis.
+ */
+function scoreHtml(mine: number, theirs: number, [me, them]: [string, string]): string {
+  const side = (n: number, who: string) => `<span class="rs-side"><span class="rs-n">${n}</span><span class="rs-who">${esc(who)}</span></span>`;
+  return `<div class="res-score">${side(mine, me)}<span class="rs-dash">–</span>${side(theirs, them)}</div>`;
 }
