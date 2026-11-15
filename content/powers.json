@@ -96,6 +96,20 @@
         "name": "Mine",
         "icon": "💣",
         "desc": "Drop a blinking mine behind you. The other tank or a shell sets it off. It can't hurt you."
+      },
+      {
+        "id": "turbo",
+        "name": "Turbo Treads",
+        "icon": "🏎️",
+        "desc": "Your tank drives and turns much faster for 5 seconds.",
+        "duration": 5
+      },
+      {
+        "id": "spread",
+        "name": "Spread Shot",
+        "icon": "🔱",
+        "desc": "For 6 seconds every shot fires a fan of 3 shells.",
+        "duration": 6
       }
     ],
     "snake": [
@@ -118,6 +132,19 @@
         "name": "Trail Bomb",
         "icon": "💣",
         "desc": "Blow a gap in every trail around your head."
+      },
+      {
+        "id": "brick",
+        "name": "Brick Wall",
+        "icon": "🧱",
+        "desc": "Drop a brick wall in front of the other snake. It blinks first."
+      },
+      {
+        "id": "wrap",
+        "name": "Wall Wrap",
+        "icon": "🌀",
+        "desc": "For 5 seconds, go into a wall and pop out the other side.",
+        "duration": 5
       }
     ],
     "quickdraw": [
@@ -210,6 +237,20 @@
         "icon": "🧼",
         "desc": "The other wrestler slides around for 3.5 seconds.",
         "duration": 3.5
+      },
+      {
+        "id": "iron",
+        "name": "Iron Feet",
+        "icon": "🦶",
+        "desc": "Your feet grip the floor for 3 seconds. Pushes barely move you.",
+        "duration": 3
+      },
+      {
+        "id": "dash",
+        "name": "Dash",
+        "icon": "💨",
+        "desc": "Zoom! A quick, extra-strong dash the way your arrow points.",
+        "duration": 0.25
       }
     ],
     "snacksnatch": [

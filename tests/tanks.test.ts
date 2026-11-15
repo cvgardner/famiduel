@@ -414,6 +414,95 @@ describe('tank duel', () => {
     expect(g.mines).toHaveLength(0);
   });
 
+  it('Turbo Treads: drives and turns faster for 5 seconds', () => {
+    // Free run along the bottom row: how far a full push carries the tank in half a second.
+    const run = (turbo: boolean) => {
+      const g = fresh(['turbo', null], 3);
+      const tk = g.tanks[0];
+      Object.assign(tk, { x: ARENA.x + 20, a: 0 });
+      if (turbo) {
+        g.energy[0].value = 1;
+        g.step(DT, [{ ...IDLE, power: true }, IDLE]);
+        expect(tk.turbo).toBeGreaterThan(4.9);
+      }
+      const x0 = tk.x;
+      for (let i = 0; i < 30; i++) g.step(DT, [{ mx: 1, my: 0, fire: false, power: false }, IDLE]);
+      return tk.x - x0;
+    };
+    expect(run(true)).toBeGreaterThan(run(false) * 1.4);
+    expect(run(true)).toBeLessThanOrEqual(RULES.speed * RULES.turboSpeed * 0.5 + 1);
+    // Turning: a quarter turn on the spot takes fewer frames.
+    const turn = (turbo: boolean) => {
+      const g = fresh(['turbo', null]);
+      g.tanks[0].a = 0;
+      g.tanks[0].turbo = turbo ? 5 : 0;
+      let n = 0;
+      while (Math.abs(g.tanks[0].a + Math.PI / 2) > 1e-6 && n < 60) {
+        g.step(DT, [{ mx: 0, my: -0.25, fire: false, power: false }, IDLE]);
+        n++;
+      }
+      return n;
+    };
+    expect(turn(true)).toBeLessThan(turn(false) * 0.7);
+    // It wears off.
+    const g = fresh(['turbo', null]);
+    g.energy[0].value = 1;
+    g.step(DT, [{ ...IDLE, power: true }, IDLE]);
+    for (let i = 0; i < 5.1 / DT; i++) g.step(DT, idle2);
+    expect(g.tanks[0].turbo).toBe(0);
+  });
+
+  it('Spread Shot: for 6 seconds each shot fires a fan of 3 shells', () => {
+    const g = fresh(['spread', null], 3);
+    const tk = g.tanks[0];
+    Object.assign(tk, { x: 180, y: 400, a: -Math.PI / 2 });
+    g.energy[0].value = 1;
+    g.step(DT, [{ ...IDLE, power: true }, IDLE]);
+    expect(tk.spread).toBeGreaterThan(5.9);
+    g.step(DT, [{ ...IDLE, fire: true }, IDLE]);
+    expect(g.shells).toHaveLength(3);
+    const angles = g.shells.map((s) => Math.atan2(s.vy, s.vx)).sort((a, b) => a - b);
+    expect(angles[1]).toBeCloseTo(-Math.PI / 2, 5);
+    expect(angles[1] - angles[0]).toBeCloseTo(RULES.spreadAngle, 5);
+    expect(angles[2] - angles[1]).toBeCloseTo(RULES.spreadAngle, 5);
+    // The side shells don't use up the shell cap, and they pop on the first wall they meet.
+    expect(g.shellsOf(0)).toBe(1);
+    expect(g.shells.filter((s) => s.extra).every((s) => s.maxBounces === RULES.spreadBounces)).toBe(true);
+    // Once it wears off, one shell a shot again.
+    tk.spread = 0;
+    g.shells = [];
+    tk.reload = 0;
+    g.step(DT, [{ ...IDLE, fire: true }, IDLE]);
+    expect(g.shells).toHaveLength(1);
+  });
+
+  it('Spread Shot: a side shell bonks a tank the barrel was not aimed at', () => {
+    // Crosses: the middle two columns are open from end to end.
+    const g = fresh(['spread', null], 6);
+    const me = g.tanks[0];
+    const foe = g.tanks[1];
+    Object.assign(me, { x: 180, y: 460, a: -Math.PI / 2 });
+    // Straight up the barrel misses; the right-hand shell's line meets the other tank.
+    const d = 150;
+    Object.assign(foe, { x: 180 + Math.sin(RULES.spreadAngle) * d, y: 460 - Math.cos(RULES.spreadAngle) * d });
+    expect(traceShot(g, 0, -Math.PI / 2).hit).not.toBe(1);
+    me.spread = 6;
+    g.step(DT, [{ ...IDLE, fire: true }, IDLE]);
+    for (let i = 0; i < 90 && g.phase === 'play'; i++) g.step(DT, idle2);
+    expect(foe.hits).toBe(1);
+  });
+
+  it('bots use Turbo Treads and Spread Shot and still finish', () => {
+    const fired: string[] = [];
+    for (const [i, pair] of ([['turbo', 'spread'], ['spread', 'mine'], ['shield', 'turbo']] as [string, string][]).entries()) {
+      const { g, powersFired } = play(['normal', 'normal'], 30 + i, { powers: pair });
+      expect(g.over).toBe(true);
+      fired.push(...powersFired);
+    }
+    expect(fired).toContain('turbo');
+    expect(fired).toContain('spread');
+  });
+
   it('the bot only takes shots its preview says will land, and never sees through blocks', () => {
     const g = fresh([null, null], 0);
     // Spawns face each other across the centre block: no straight shot down the middle.
