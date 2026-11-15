@@ -25,6 +25,18 @@
         "name": "Ghost Ball",
         "icon": "👻",
         "desc": "Your next shot floats through one wall or obstacle."
+      },
+      {
+        "id": "redo",
+        "name": "Do-over",
+        "icon": "🔁",
+        "desc": "If your next shot misses, the ball comes back and you try again free."
+      },
+      {
+        "id": "tiny",
+        "name": "Tiny Cup",
+        "icon": "🤏",
+        "desc": "The hole shrinks to a tiny cup for the other player's next shot."
       }
     ],
     "airhockey": [
@@ -227,6 +239,20 @@
         "icon": "👻",
         "desc": "Your next shot sends a fake ball too. The keeper has to pick one.",
         "duration": 0
+      },
+      {
+        "id": "rocket",
+        "name": "Rocket Shot",
+        "icon": "🚀",
+        "desc": "Your next shot flies super fast. The keeper has to be quick!",
+        "duration": 0
+      },
+      {
+        "id": "slowmo",
+        "name": "Slow-Mo",
+        "icon": "🐢",
+        "desc": "The other player's next shot flies slowly, so it's easier to save.",
+        "duration": 0
       }
     ],
     "seabattle": [
@@ -247,6 +273,18 @@
         "name": "Hit-back Mine",
         "icon": "💥",
         "desc": "Hide a mine in your sea. Whoever fires on it gets one of their own ships hit."
+      },
+      {
+        "id": "torpedo",
+        "name": "Torpedo",
+        "icon": "🚀",
+        "desc": "Fire a torpedo up a column. It hits the first ship in its way."
+      },
+      {
+        "id": "double",
+        "name": "Double Shot",
+        "icon": "✌️",
+        "desc": "Get an extra shot this turn, so one miss won't end it."
       }
     ],
     "fourinarow": [

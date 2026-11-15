@@ -359,4 +359,111 @@ describe('penalty shootout', () => {
     }
     expect(res && res.type === 'result' && res.result).toBe('goal');
   });
+  /** Arm p's power by hand at the start of the aim. */
+  const arm = (g: Penalty, p: PlayerIndex) => {
+    while (g.phase === 'ready') g.step(DT, [IDLE, IDLE]);
+    g.energy[p].value = 1;
+    const it: [Intent, Intent] = [{ ...IDLE }, { ...IDLE }];
+    it[p] = { ...IDLE, power: true };
+    g.step(DT, it);
+  };
+
+  it('Rocket Shot flies the same line much faster, so a keeper reacting late is beaten', () => {
+    const plain = fresh([0, 0], [null, null]);
+    while (plain.phase === 'ready') plain.step(DT, [IDLE, IDLE]);
+    const it: [Intent, Intent] = [{ ...IDLE }, { ...IDLE }];
+    it[plain.shooter] = { ...IDLE, shot: { aimX: 230, power: 0.6, bow: 0 } };
+    plain.step(DT, it);
+    untilKick(plain);
+    const g = fresh([0, 0], ['rocket', 'rocket']);
+    arm(g, g.shooter);
+    const s = g.shooter;
+    expect(g.armed[s]).toBe(true);
+    // The keeper can't fire a shooter power.
+    g.energy[g.keeper].value = 1;
+    expect(g.canFire(g.keeper)).toBe(false);
+    it[0] = { ...IDLE };
+    it[1] = { ...IDLE };
+    it[s] = { ...IDLE, shot: { aimX: 230, power: 0.6, bow: 0 } };
+    g.step(DT, it);
+    untilKick(g);
+    const f = g.flight!;
+    expect(f.rocket).toBe(true);
+    expect(f.T).toBeCloseTo(plain.flight!.T / RULES.rocket);
+    expect(Penalty.at(f, f.T).x).toBeCloseTo(230);
+    expect(f.over).toBe(false);
+    // A dive that would save the plain ball, started a fixed time after the kick, is too late now.
+    const late = (game: Penalty) => {
+      const k = game.keeper;
+      const kd: [Intent, Intent] = [{ ...IDLE }, { ...IDLE }];
+      let res = null;
+      for (let n = 0; game.phase === 'flight'; n++) {
+        kd[k] = { ...IDLE, dive: n === 12 ? 1 : null };
+        game.step(DT, kd);
+        res = game.events.find((e) => e.type === 'result') ?? res;
+      }
+      return res && res.type === 'result' ? res.result : null;
+    };
+    expect(late(plain)).toBe('saved');
+    expect(late(g)).toBe('goal');
+    expect(g.armed[s], 'used up').toBe(false);
+  });
+
+  it('Slow-Mo is the keeper\'s: the next shot flies slower, the same line, for one kick', () => {
+    const g = fresh([0, 0], ['slowmo', 'slowmo']);
+    while (g.phase === 'ready') g.step(DT, [IDLE, IDLE]);
+    const k = g.keeper;
+    g.energy[g.shooter].value = 1;
+    expect(g.canFire(g.shooter), 'a shooter cannot fire a keeper power').toBe(false);
+    arm(g, k);
+    expect(g.armedWith(k, 'slowmo')).toBe(true);
+    const r = kick(g, { aimX: 230, power: 0.6, bow: 0 });
+    expect(r).not.toBeNull();
+    expect(g.armed[k], 'used up').toBe(false);
+    // Check the flight itself on a fresh kick.
+    const h = fresh([0, 0], ['slowmo', 'slowmo']);
+    arm(h, h.keeper);
+    const it: [Intent, Intent] = [{ ...IDLE }, { ...IDLE }];
+    it[h.shooter] = { ...IDLE, shot: { aimX: 230, power: 0.6, bow: 0 } };
+    h.step(DT, it);
+    untilKick(h);
+    const speed = RULES.speedMin + (RULES.speedMax - RULES.speedMin) * 0.6;
+    expect(h.flight!.slow).toBe(true);
+    expect(h.flight!.T).toBeCloseTo(RULES.spotDist / (speed * RULES.slowMo));
+    expect(Penalty.at(h.flight!, h.flight!.T).x).toBeCloseTo(230);
+  });
+
+  it('Slow-Mo gives a keeper who reacts late the time to save', () => {
+    const late = (powers: [string | null, string | null]) => {
+      const g = fresh([0, 0], powers);
+      if (powers[0]) arm(g, g.keeper);
+      else while (g.phase === 'ready') g.step(DT, [IDLE, IDLE]);
+      const s = g.shooter;
+      const k = g.keeper;
+      const it: [Intent, Intent] = [{ ...IDLE }, { ...IDLE }];
+      it[s] = { ...IDLE, shot: { aimX: 235, power: 0.75, bow: 0 } };
+      g.step(DT, it);
+      untilKick(g);
+      let res = null;
+      for (let n = 0; g.phase === 'flight'; n++) {
+        const kd: [Intent, Intent] = [{ ...IDLE }, { ...IDLE }];
+        kd[k] = { ...IDLE, dive: n === 18 ? 1 : null };
+        g.step(DT, kd);
+        res = g.events.find((e) => e.type === 'result') ?? res;
+      }
+      return res && res.type === 'result' ? res.result : null;
+    };
+    expect(late([null, null])).toBe('goal');
+    expect(late(['slowmo', 'slowmo'])).toBe('saved');
+  });
+
+  it('bots fire Rocket Shot and Slow-Mo, and the match still ends', () => {
+    let fired = 0;
+    for (const seed of [7, 8]) {
+      const a = play(['normal', 'normal'], seed, { powers: ['rocket', 'slowmo'] });
+      expect(a.g.over).toBe(true);
+      fired += a.powersFired;
+    }
+    expect(fired).toBeGreaterThan(1);
+  });
 });

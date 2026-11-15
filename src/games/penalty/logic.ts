@@ -57,6 +57,10 @@ export const RULES = {
   diveDist: 52,
   diveTime: 0.32,
   wideKeeper: 1.6,
+  /** Rocket Shot: the shooter's ball flies this many times faster (same aim, same "over the bar" line). */
+  rocket: 1.45,
+  /** Slow-Mo: the keeper's power makes the next shot fly at this fraction of its speed. */
+  slowMo: 0.55,
   energyGoal: 0.3,
   energySave: 0.35,
   energyKick: 0.12,
@@ -76,6 +80,9 @@ export type Flight = Shot & {
   /** Seconds from the spot to the goal line. */
   T: number;
   over: boolean;
+  /** Rocket Shot and Slow-Mo on this kick (the view draws a flame / a slow trail). */
+  rocket?: boolean;
+  slow?: boolean;
 };
 
 export type Event =
@@ -93,7 +100,7 @@ export type Intent = { shot: Shot | null; dive: Dive | null; power: boolean };
 export const IDLE: Intent = { shot: null, dive: null, power: false };
 
 /** Which power ids belong to which role. */
-const SHOOTER_POWERS = new Set(['curveshot', 'decoy']);
+const SHOOTER_POWERS = new Set(['curveshot', 'decoy', 'rocket']);
 
 export class Penalty {
   score: [number, number] = [0, 0];
@@ -274,6 +281,11 @@ export class Penalty {
     this.events.push({ type: 'dive', p: this.keeper, dir, early: this.divedEarly });
   }
 
+  /** Is this player's power `id`, and armed for this kick? */
+  armedWith(p: PlayerIndex, id: string): boolean {
+    return this.armed[p] && this.players[p].power?.id === id;
+  }
+
   /** A power can be fired before the kick, by the role it is for. It then waits for this kick. */
   canFire(p: PlayerIndex): boolean {
     const id = this.players[p].power?.id;
@@ -302,8 +314,13 @@ export class Penalty {
       const dir = Math.abs(bow) > 5 ? Math.sign(bow) : shot.aimX >= W / 2 ? -1 : 1;
       bow += dir * RULES.curveShotBow;
     }
-    const T = Math.abs(y1 - y0) / (RULES.speedMin + (RULES.speedMax - RULES.speedMin) * power);
-    this.flight = { aimX: shot.aimX, power, bow, x0: W / 2, y0, y1, T, over: power > RULES.overAt };
+    // Rocket Shot (the shooter's) and Slow-Mo (the keeper's) change how fast the ball flies,
+    // never where: both can be on one kick and then mostly cancel out.
+    const rocket = this.armedWith(s, 'rocket');
+    const slow = this.armedWith(this.keeper, 'slowmo');
+    const speed = (RULES.speedMin + (RULES.speedMax - RULES.speedMin) * power) * (rocket ? RULES.rocket : 1) * (slow ? RULES.slowMo : 1);
+    const T = Math.abs(y1 - y0) / speed;
+    this.flight = { aimX: shot.aimX, power, bow, x0: W / 2, y0, y1, T, over: power > RULES.overAt, rocket, slow };
     this.decoy = null;
     if (this.armed[s] && id === 'decoy') {
       const off = shot.aimX - W / 2;
@@ -361,7 +378,8 @@ export class Penalty {
     this.energy[k].charge(result === 'saved' ? RULES.energySave : RULES.energyKick, trail(k));
     // Powers are spent on this kick whether or not they worked.
     if (this.players[s].power && SHOOTER_POWERS.has(this.players[s].power!.id)) this.armed[s] = false;
-    if (this.players[k].power?.id === 'widekeeper') this.armed[k] = false;
+    const kp = this.players[k].power;
+    if (kp && !SHOOTER_POWERS.has(kp.id)) this.armed[k] = false;
     this.events.push({ type: 'result', shooter: s, result, why, x: f.aimX, y: f.y1 });
     this.setPhase('result');
     this.checkWinner();
@@ -541,7 +559,9 @@ export class PenaltyBot {
     const aimX = W / 2 + side * half + this.rng.range(-cfg.aimNoise, cfg.aimNoise);
     const power = clamp(cfg.power + this.rng.range(-cfg.powerVar, cfg.powerVar), 0.15, 1);
     let bow = 0;
-    if (Math.abs(side) > 0.2 && this.rng.chance(cfg.curve)) bow = -Math.sign(side) * this.rng.range(30, RULES.bow);
+    // Against a Slow-Mo keeper a bending shot is the counter: a slow ball that bends fools a keeper reading its line.
+    const curve = cfg.curve + (game.armedWith(game.keeper, 'slowmo') ? 0.15 : 0);
+    if (Math.abs(side) > 0.2 && this.rng.chance(curve)) bow = -Math.sign(side) * this.rng.range(30, RULES.bow);
     return { aimX, power, bow };
   }
 

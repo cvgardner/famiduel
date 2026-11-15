@@ -47,6 +47,8 @@ export const PHYS = {
   /** Inside the cup lip the ball is pulled to the centre. */
   lipPull: 1400,
   magnet: { radius: 64, pull: 520, captureSpeed: 600 },
+  /** Tiny Cup: the cup's radius and drop speed for the shot it is armed on. */
+  tiny: { cupR: 6, captureKeep: 0.6 },
   stopSpeed: 5,
   substeps: 4,
   maxRoll: 10,
@@ -156,8 +158,11 @@ export function moverSegs(hole: HoleDef, t: number): Seg[] {
   return out;
 }
 
-export type Mods = { wind: Pt | null; magnet: boolean; ghost: boolean };
-export const NO_MODS: Mods = { wind: null, magnet: false, ghost: false };
+export type Mods = { wind: Pt | null; magnet: boolean; ghost: boolean; tiny?: boolean };
+export const NO_MODS: Mods = { wind: null, magnet: false, ghost: false, tiny: false };
+
+/** The cup's radius for a shot with these mods (Tiny Cup shrinks it). */
+export const cupRadius = (mods: Mods) => (mods.tiny ? PHYS.tiny.cupR : PHYS.cupR);
 
 export type Roll = {
   x: number; y: number; vx: number; vy: number;
@@ -193,6 +198,7 @@ export function rollFrame(c: Course, r: Roll, dt: number, mods: Mods, events?: R
   const h = dt / n;
   const R = PHYS.ballR;
   const [cupX, cupY] = c.hole.cup;
+  const cupR = cupRadius(mods);
   for (let i = 0; i < n && r.status === 'roll'; i++) {
     const tt = r.t + i * h;
     // --- forces
@@ -238,7 +244,7 @@ export function rollFrame(c: Course, r: Roll, dt: number, mods: Mods, events?: R
       ay += (cdy / cd) * PHYS.magnet.pull;
       slope = true;
     }
-    if (cd < PHYS.cupR && cd > 0.01) {
+    if (cd < cupR && cd > 0.01) {
       ax += (cdx / cd) * PHYS.lipPull;
       ay += (cdy / cd) * PHYS.lipPull;
     }
@@ -270,8 +276,8 @@ export function rollFrame(c: Course, r: Roll, dt: number, mods: Mods, events?: R
     // --- cup
     sp = Math.hypot(r.vx, r.vy);
     const cd2 = Math.hypot(cupX - r.x, cupY - r.y);
-    const capR = PHYS.cupR;
-    const capV = mods.magnet ? PHYS.magnet.captureSpeed : PHYS.captureSpeed;
+    const capR = cupR;
+    const capV = (mods.magnet ? PHYS.magnet.captureSpeed : PHYS.captureSpeed) * (mods.tiny ? PHYS.tiny.captureKeep : 1);
     if (cd2 < capR * 0.75 && sp < capV) {
       r.status = 'sunk';
       r.x = cupX;

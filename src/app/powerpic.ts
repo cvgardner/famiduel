@@ -76,6 +76,18 @@ const PICS: Record<string, Record<string, string>> = {
       green +
       `<rect x="14" y="20" width="36" height="5" rx="2" fill="#e8e2d0"/>` +
       circle(32, 38, 3, YOU, anim('cy', [38, 38, 9, 9], [0, 0.1, 0.75, 1]) + anim('opacity', [1, 1, 0.35, 0.35, 1, 1, 0], [0, 0.3, 0.38, 0.52, 0.6, 0.85, 1])),
+    // Your shot misses the cup, zips back to the dashed ring it was hit from, and drops on the second try.
+    redo:
+      green +
+      `<circle cx="32" cy="38" r="5.5" fill="none" style="stroke:${YOU}" stroke-width="1.2" stroke-dasharray="2 2"/>` +
+      circle(32, 38, 3, YOU, anim('cx', [32, 32, 46, 46, 32, 32, 32, 32], [0, 0.08, 0.35, 0.45, 0.55, 0.62, 0.86, 1]) + anim('cy', [38, 38, 12, 12, 38, 38, 9, 9], [0, 0.08, 0.35, 0.45, 0.55, 0.62, 0.86, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.88, 0.92, 1])),
+    // The cup shrinks inside a red ring; the other player's ball rolls just past it.
+    tiny:
+      green +
+      `<circle cx="32" cy="9" r="3.3" fill="none" stroke="#1f7a4a" stroke-width="0">${anim('stroke-width', [0, 0, 2.6, 2.6, 0], [0, 0.1, 0.25, 0.9, 1])}</circle>` +
+      `<circle cx="32" cy="9" r="6" fill="none" stroke="#ff5c7a" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.1, 0.25, 0.9, 1])}</circle>` +
+      circle(12, 36, 3, YOU) +
+      circle(32, 38, 3, THEM, anim('cx', [32, 32, 33, 37, 37], [0, 0.3, 0.6, 0.78, 1]) + anim('cy', [38, 38, 16, 3, 3], [0, 0.3, 0.6, 0.78, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.85, 0.9, 1])),
   },
   airhockey: {
     // The other paddle slides, turns to ice and stops; the puck goes in.
@@ -135,6 +147,17 @@ const PICS: Record<string, Record<string, string>> = {
       rect(26, 8, 12, 4, THEM, anim('x', [26, 26, 16, 16], [0, 0.4, 0.6, 1])) +
       circle(32, 38, 3, YOU, anim('cx', [32, 32, 46, 46], [0, 0.15, 0.6, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.15, 0.6, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.85, 0.9, 1])) +
       circle(32, 38, 3, YOU, anim('cx', [32, 32, 20, 20], [0, 0.15, 0.6, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.15, 0.6, 1]) + anim('opacity', [0, 0, 0.6, 0.6, 0, 0], [0, 0.14, 0.16, 0.6, 0.7, 1]), ' stroke="#fff" stroke-dasharray="2 2"'),
+    // Your shot streaks in with a flame trail; the keeper moves too late.
+    rocket:
+      pitch +
+      rect(26, 8, 12, 4, THEM, anim('x', [26, 26, 32, 32, 26], [0, 0.42, 0.55, 0.9, 1])) +
+      `<line x1="32" y1="38" x2="40" y2="7" stroke="#ff8a3d" stroke-width="3" stroke-linecap="round" opacity="0">${anim('opacity', [0, 0, 0.9, 0, 0], [0, 0.3, 0.42, 0.6, 1])}</line>` +
+      circle(32, 38, 3, YOU, anim('cx', [32, 32, 40, 40], [0, 0.3, 0.42, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.3, 0.42, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.85, 0.9, 1])),
+    // The other player's shot drifts in slowly inside a pale ring; your keeper gets across and saves it.
+    slowmo:
+      pitch +
+      rect(26, 7, 12, 4, YOU, anim('x', [26, 26, 34, 34, 26], [0, 0.35, 0.5, 0.9, 1])) +
+      [3, 5].map((r) => circle(32, 38, r, r === 3 ? THEM : 'none', anim('cx', [32, 32, 40, 38, 38], [0, 0.1, 0.8, 0.9, 1]) + anim('cy', [38, 38, 12, 22, 22], [0, 0.1, 0.8, 0.9, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.9, 0.95, 1]), r === 5 ? ' stroke="#96dcff" stroke-width="1.2"' : '')).join(''),
   },
   snacksnatch: {
     // Snacks drift toward your critter.
@@ -266,6 +289,20 @@ const PICS: Record<string, Record<string, string>> = {
       circle(17, 21, 2.5, '#ffd166') +
       `<circle cx="17" cy="21" r="3" fill="none" stroke="#ff5c7a" stroke-width="2">${anim('r', [3, 3, 12, 12], [0, 0.3, 0.5, 1])}${anim('opacity', [0, 0, 1, 0, 0], [0, 0.3, 0.32, 0.5, 1])}</circle>` +
       `<rect x="45" y="17" width="8" height="8" rx="1.5" fill="#ff5c7a">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.55, 0.6, 0.9, 1])}</rect>`,
+    // A torpedo runs up a column from the bottom, splashing through water, and hits the first ship.
+    torpedo:
+      seaBg +
+      sea(5, 6, 3) +
+      [[30, 0.3], [21, 0.45]].map(([y, at]) => circle(36, y, 1.8, '#fff', anim('opacity', [0, 0, 1, 1, 0], [0, at, at + 0.02, 0.9, 1]), ' opacity="0"')).join('') +
+      `<rect x="32" y="8" width="8" height="8" rx="1.5" fill="#ff5c7a" opacity="0">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.6, 0.62, 0.9, 1])}</rect>` +
+      rect(34, 40, 4, 8, YOU, anim('y', [44, 44, 9, 9], [0, 0.1, 0.6, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.1, 0.6, 0.62, 1])),
+    // Two shots in one turn: the first misses, the second still gets to fire, and hits.
+    double:
+      seaBg +
+      sea(5, 6, 3) +
+      `<circle cx="18" cy="21" r="5.5" fill="none" style="stroke:${YOU}" stroke-width="1.5">${anim('cx', [18, 18, 45, 45], [0, 0.4, 0.5, 1])}${anim('cy', [21, 21, 12, 12], [0, 0.4, 0.5, 1])}${anim('opacity', [0, 1, 1, 0], [0, 0.1, 0.9, 1])}</circle>` +
+      circle(18, 21, 1.8, '#fff', anim('opacity', [0, 0, 1, 1, 0], [0, 0.3, 0.32, 0.9, 1]), ' opacity="0"') +
+      `<rect x="41" y="8" width="8" height="8" rx="1.5" fill="#ff5c7a" opacity="0">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.65, 0.67, 0.9, 1])}</rect>`,
   },
   sumo: {
     // Stomp: a shockwave shoves the other wrestler away.
