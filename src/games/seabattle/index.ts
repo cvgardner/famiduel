@@ -978,8 +978,11 @@ class SeaBattleView implements GameInstance {
     rrect(gx, READY.x, READY.y + 4, READY.w, READY.h, 18, 'rgba(0,0,0,0.35)');
     rrect(gx, READY.x - (s - 1) * 70, READY.y, READY.w * s, READY.h, 18, col, '#fff', 3);
     text(gx, 'Ready ✓', READY.x + READY.w / 2, READY.y + READY.h / 2, { size: 22, color: '#fff', stroke: 'rgba(0,0,0,0.3)' });
-    text(gx, 'Shuffle until you like it, then Ready.', W / 2, 500, { size: 14, color: COLORS.dim, weight: 700 });
-    text(gx, this.twoHumans ? 'No peeking: the phone hides your sea' : 'The bot never sees your ships.', W / 2, 524, { size: 14, color: COLORS.dim, weight: 700 });
+    const shuffle = 'Shuffle until you like it, then Ready.';
+    text(gx, shuffle, W / 2, 500, { size: fitSize(gx, shuffle, W - 24, 14, 700), color: COLORS.dim, weight: 700 });
+    // F321: with Bigger text this line reached the screen's edge on CI's wider fonts.
+    const peek = this.twoHumans ? 'No peeking: the phone hides your sea' : 'The bot never sees your ships.';
+    text(gx, peek, W / 2, 524, { size: fitSize(gx, peek, W - 24, 14, 700), color: COLORS.dim, weight: 700 });
     text(gx, 'before it is passed on.', W / 2, 544, { size: 14, color: this.twoHumans ? COLORS.dim : 'transparent', weight: 700 });
     // Fleet legend
     let x = 46;
