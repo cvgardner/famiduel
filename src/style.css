@@ -231,6 +231,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* The result's buttons fade in while it ignores taps (RESULT_SETTLE_MS), instead of looking broken. */
 #result.settling .btn:disabled { opacity: 0.6; }
 #result .btn { transition: opacity 0.25s; white-space: nowrap; }
+/* F310: with Bigger text on a 320px phone, Games + Rematch were ~310px wide in a 296px row and
+   spilled past the screen edge on wider (Linux CI) fonts; a narrow phone gets a roomier row. */
+@media (max-width: 340px) {
+  #result .intro-mid { padding-inline: 8px; gap: 8px; }
+  #result .intro-mid .btn { padding-inline: 14px; min-width: 0; }
+}
 #helpResume, #resumeBtn { white-space: nowrap; }
 .btn-ico { margin-right: 6px; }
 
