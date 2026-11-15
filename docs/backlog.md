@@ -2182,7 +2182,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Magnet 73% (75% hard), so the second pick wins (F294); Quick Draw hard Slow Time 65-67%
       against every pick (F295, below); Snake normal Boost v Phase 34% (F12, Boost's old
       weakness).
-- [x] 2026-11-15 (F295, PR #PRNUM): Quick Draw's hard bot gets a smaller head start from Slow
+- [x] 2026-11-15 (F295, PR #319): Quick Draw's hard bot gets a smaller head start from Slow
       Time's "get ready" glow (0.035 s, BOT.hard.edge; easy and normal keep 0.06): the full
       0.06 s was twice its reaction spread, so Slow Time won 65-67% against every pick at hard.
       Now 61-62% (n=240), as at normal (59-61%). People play exactly as before.
