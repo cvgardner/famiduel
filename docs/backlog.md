@@ -2349,3 +2349,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       half, which peeked out under the card's corner on a 320 px phone. It now stands a little
       smaller (0.8) at MID + 139, in the gap between the cards (to MID + 92) and Slow Time's
       "get ready" line. SIGNAL_CARD / READY_Y, tests/quickdraw-cactus.test.ts.
+
+## Ideas found 2026-11-15 (12:17 run, long names in every game's countdown and cards)
+- [x] 2026-11-15 (F318): a turn game's countdown pill ("<name> goes first", fixed 260 wide,
+      size 20) ran ~35 units off both screen edges in Penalty with a 12-letter name on a 320 px
+      phone with Bigger text. The words now shrink to fit (not below MIN_TEXT) and the pill
+      grows up to the screen less 8 each side; short names keep the usual pill. starterPill(),
+      tests/starter-pill.test.ts, e2e/long-names.spec.ts (every shown game's countdown words
+      with the edge probe; fails on the old pill).
+- [ ] F319-F321 on the todo list: RPS pick lines, Minigolf scorecard lines and Sea Battle
+      notices with 12-letter names (found reading the code, not yet measured).

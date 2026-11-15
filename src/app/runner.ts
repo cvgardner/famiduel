@@ -9,7 +9,7 @@ import type { Stage } from '../engine/stage';
 import { STEP } from '../engine/stage';
 import { H, MID, W } from '../engine/world';
 import { countdownDy } from './demo';
-import { countdownSeats, starterLines } from './starter';
+import { countdownSeats, starterLines, starterPill } from './starter';
 
 const COUNT_STEP = 0.6;
 const OUTRO = 1.6;
@@ -139,8 +139,9 @@ export class Runner {
         // A solid pill, so the game's own turn line underneath doesn't show through.
         const starter = this.game.firstMover?.();
         const ring = starter === 0 || starter === 1 ? this.players[starter].color : '#fff';
-        rrect(g, W / 2 - 130, y - 22, 260, 44, 22, '#1b1638', ring, 3);
-        text(g, line, W / 2, y, { size: mine ? 26 : 20, color: mine ? '#fff' : '#d6d2f0', stroke: 'rgba(0,0,0,0.6)', player: p });
+        const pill = starterPill(g, line, mine);
+        rrect(g, W / 2 - pill.w / 2, y - 22, pill.w, 44, 22, '#1b1638', ring, 3);
+        text(g, line, W / 2, y, { size: pill.size, color: mine ? '#fff' : '#d6d2f0', stroke: 'rgba(0,0,0,0.6)', player: p });
       }
     }
   }
