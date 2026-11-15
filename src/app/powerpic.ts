@@ -259,6 +259,21 @@ const PICS: Record<string, Record<string, string>> = {
       `<circle cx="32" cy="22" r="7" fill="#5eead4" stroke="#fff" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.55, 0.57, 0.9, 1])}</circle>` +
       circle(32, 7, 5, THEM) +
       circle(32, 37, 5, YOU, anim('r', [5, 5, 4, 5, 5, 4, 5, 5], [0, 0.2, 0.23, 0.27, 0.6, 0.63, 0.67, 1])),
+    // You both tap at once on the signal, but your ⚡ tap counts a little sooner: you splash first.
+    headstart:
+      sand +
+      `<polygon points="44,30 40,37 43,37 41,43 47,35 44,35 46,30" fill="#ffd166" stroke="#b07a00" stroke-width="0.8">${anim('opacity', [1, 0.5, 1, 0.5, 1], [0, 0.25, 0.5, 0.75, 1])}</polygon>` +
+      `<circle cx="32" cy="22" r="7" fill="#5eead4" stroke="#fff" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.45, 0.47, 0.9, 1])}</circle>` +
+      line(32, 31, 32, 31, '#7fd3ff', 2.5, anim('y2', [31, 31, 12, 12, 31], [0, 0.56, 0.66, 0.85, 1]) + anim('opacity', [0, 0, 1, 1, 0], [0, 0.56, 0.57, 0.85, 1])) +
+      circle(32, 7, 5, THEM, anim('r', [5, 5, 4, 5, 5], [0, 0.55, 0.58, 0.62, 1]) + anim('fill', [THEM, THEM, '#7fd3ff', '#7fd3ff', THEM], [0, 0.65, 0.66, 0.9, 1])) +
+      circle(32, 37, 5, YOU, anim('r', [5, 5, 4, 5, 5], [0, 0.55, 0.58, 0.62, 1])),
+    // A fly buzzes round the other player: they jump before the signal.
+    fly:
+      sand +
+      `<circle cx="32" cy="22" r="7" fill="#5eead4" stroke="#fff" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.6, 0.62, 0.9, 1])}</circle>` +
+      circle(32, 7, 5, THEM, anim('r', [5, 5, 4, 5, 5], [0, 0.4, 0.43, 0.47, 1]) + anim('fill', [THEM, THEM, '#ff5c7a', '#ff5c7a', THEM], [0, 0.42, 0.43, 0.9, 1])) +
+      [0, -2].map((dy, i) => circle(22, 7 + dy, i ? 1.6 : 1.8, i ? '#ffffff' : '#2b2b33', anim('cx', [22, 32, 42, 32, 22], [0, 0.25, 0.5, 0.75, 1]) + anim('cy', [7 + dy, 2 + dy, 7 + dy, 14 + dy, 7 + dy], [0, 0.25, 0.5, 0.75, 1]))).join('') +
+      circle(32, 37, 5, YOU),
   },
   seabattle: {
     // Scan a 3x3 patch: a hidden ship shows up.

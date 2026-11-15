@@ -112,6 +112,18 @@
         "name": "Double Shot",
         "icon": "🎯",
         "desc": "One early tap is forgiven."
+      },
+      {
+        "id": "headstart",
+        "name": "Head Start",
+        "icon": "⚡",
+        "desc": "Next round, your tap after DRAW! counts a tiny bit sooner."
+      },
+      {
+        "id": "fly",
+        "name": "Buzzy Fly",
+        "icon": "🪰",
+        "desc": "Next round, a fly buzzes round the other player. Will they jump?"
       }
     ],
     "chopchop": [
