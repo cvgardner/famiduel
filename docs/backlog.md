@@ -2350,6 +2350,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       smaller (0.8) at MID + 139, in the gap between the cards (to MID + 92) and Slow Time's
       "get ready" line. SIGNAL_CARD / READY_Y, tests/quickdraw-cactus.test.ts.
 
+## Ideas found 2026-11-15 (12:17 run, long names in Rock Paper Scissors)
+- [x] 2026-11-15 (F319): Rock Paper Scissors between two people with 12-letter names on a
+      320 px phone with Bigger text: "<name>, pick in secret", "<name> picks next, then you
+      both reveal", the cover's "<name> has picked ✓" and "<me> 0 – 0 <them>" ran off the
+      screen. Each line now takes the longest wording that fits (fitFirst() in draw.ts:
+      "Pick in secret", "<name> picks next", "You 0 – 0 <them>"), short names keep the full
+      lines. tests/rps-long-names.test.ts, e2e/rps-long-names.spec.ts (edge probe through two
+      picks; fails on the old lines).
 ## Ideas found 2026-11-15 (12:17 run, long names in every game's countdown and cards)
 - [x] 2026-11-15 (F318): a turn game's countdown pill ("<name> goes first", fixed 260 wide,
       size 20) ran ~35 units off both screen edges in Penalty with a 12-letter name on a 320 px
