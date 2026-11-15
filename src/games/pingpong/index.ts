@@ -97,7 +97,8 @@ class PingPongView implements GameInstance {
     const b = g.ball;
     const f = g.speedFactor();
     const path: { x: number; y: number }[] = [];
-    for (let k = 0; k <= 6; k++) path.push({ x: b.x + b.vx * f * 0.05 * k, y: b.y + b.vy * f * 0.05 * k });
+    // F284: look 0.45 s ahead, a power name's whole bright time (bots now use Slow-mo more).
+    for (let k = 0; k <= 9; k++) path.push({ x: b.x + b.vx * f * 0.05 * k, y: b.y + b.vy * f * 0.05 * k });
     const half = ([...str].length * size * 0.55) / 2 + RULES.ballR + 4;
     const rise = p === 0 ? -36 : 36;
     const hits = (y: number) => {
