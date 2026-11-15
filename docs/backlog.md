@@ -2099,3 +2099,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       complain its hard bot scored 2 points per slap and its power-ups spawned in front of the bot.
       Here only the *Bot classes know a seat is a bot; tests/bot-same-rules.test.ts fails if a
       rules class in any src/games/<id>/logic.ts reads a seat's `.bot`, `isBot` or a BotLevel.
+- [x] 2026-11-14 (F279): Air Hockey's power buttons sit in the rink's corners and were drawn over
+      the pucks, so a puck in a corner slid out of sight (bot matches at every level: a puck on a
+      button 2.6% of frames, mostly hidden 1.1%, about a second a match; people chase pucks into
+      corners more). A puck touching a power button is now drawn again over it (underButton()),
+      both seats, left- and right-handed. tests/airhockey-puck-over-button.test.ts.
