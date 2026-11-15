@@ -80,6 +80,8 @@ test('two people who both walk away from a real-time game find it paused', async
   for (const id of ['pingpong', 'airhockey']) {
     await page.evaluate(() => (window as unknown as { __famiduel: { showHome(): void } }).__famiduel.showHome());
     await page.locator(`.game-card[data-id="${id}"]`).click();
+    await page.locator('.power-card[data-p="0"]').first().click();
+    await page.locator('.power-card[data-p="1"]').first().click();
     await page.click('#ready0');
     await page.click('#ready1');
     await expect(page.locator('#play')).toBeVisible();
