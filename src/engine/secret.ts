@@ -12,7 +12,7 @@
 // Against a bot none of this is needed (bots never peek), so games only use it
 // when both seats are people. Pure state, no DOM: tests drive it directly.
 import { other, type PlayerIndex } from '../core/types';
-import { COLORS, facing, fitSize, rrect, scaledSize, shade, text, type G } from './draw';
+import { COLORS, facing, fitName, fitSize, rrect, scaledSize, shade, text, type G } from './draw';
 import { H, W } from './world';
 import { inkOn } from '../core/contrast';
 
@@ -137,8 +137,11 @@ export function drawCover(
 export function lookAwayBanner(gx: G, watcher: { name: string; color: string }, msg: string): void {
   facing(gx, 1, W / 2, 70, () => {
     rrect(gx, 24, 34, W - 48, 72, 22, 'rgba(0,0,0,0.35)', watcher.color, 3);
-    const str = `🙈 ${watcher.name}, ${msg}`;
-    text(gx, str, W / 2, 62, { size: fitSize(gx, str, W - 48 - 24, 20), color: '#fff', weight: 800 });
+    // F319: shrink, then cut a long name ("🙈 WWWWWWW…, eyes closed!"): at the smallest size a
+    // 12-letter name still ran to the screen's edge with CI's wider fonts.
+    const tail = `, ${msg}`;
+    const fit = fitName(gx, `🙈 ${watcher.name}${tail}`, W - 48 - 24, 20, tail);
+    text(gx, fit.str, W / 2, 62, { size: fit.size, color: '#fff', weight: 800 });
     text(gx, 'No peeking until the reveal', W / 2, 88, { size: 13, color: COLORS.dim, weight: 700 });
   });
 }
