@@ -2265,3 +2265,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       centres each seat's word in the room beside its card (8 units clear), nudging it off the
       middle only as far as it needs (~20 units for "Your point!") and shrinking only if even
       that room is too narrow. tests/pingpong-point-room.test.ts (fails on the old centring).
+- [x] 2026-11-15 (F304): Quick Draw's round card said reaction times in milliseconds ("Bot 500 ms",
+      "+120 ms handicap"), which means nothing to a young kid. Times now read in seconds
+      ("Bot 0.50 s", "+0.12 s handicap"), the same width on the card; secs() / handicapLine(),
+      tests/quickdraw-no-shot.test.ts + tests/bot-name.test.ts.
