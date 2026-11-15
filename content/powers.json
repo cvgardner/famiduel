@@ -116,8 +116,8 @@
         "id": "shield",
         "name": "Branch Shield",
         "icon": "🛡️",
-        "desc": "For 2 seconds, branches break instead of bonking you: mash away!",
-        "duration": 2
+        "desc": "Your next 12 chops break branches instead of bonking you: mash away!",
+        "count": 12
       },
       {
         "id": "freeze",

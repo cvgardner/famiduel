@@ -1439,11 +1439,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       so play without Double is unchanged. `sim:powers -- --game chopchop --n 120`: easy
       Double 40% -> 45% average, 45% -> 52% vs none; normal unchanged. Unit test in
       tests/chopchop.test.ts.
-- [ ] Chop Chop at normal: normal bots rarely run out of time, so a round is a race to 50
+- [x] Chop Chop at normal: normal bots rarely run out of time, so a round is a race to 50
       and any power beats none ~90% (none 11%), Double 71% and Freeze 67% on average,
       Shield 51% (29-34% against the others). Real matches give both seats a power, so the
       "none" column matters less; Shield is the weak pick at normal but the strongest at
       easy (60%). A power call if families find Shield useless against a fast chopper.
+      2026-11-15 (F286, PR #315): Branch Shield now covers your next 12 chops instead of
+      2 seconds (a count, like Double Chop). In a race to 50 a 2 s shield was worth ~0.5 s of
+      extra taps, so it grew with tapping speed (weak at normal, strong at hard); 12 chops is
+      worth about the same 4 chops as Double at every speed, and a slow tapper (or a frozen
+      one) gets as much from it. `sim:powers` n=240, Shield vs Freeze / Double: normal 33/31%
+      -> 46/49%, easy 55/57% -> 58/60%, hard 53/46% -> 36/48%. Hard Freeze (time-based, 1 s
+      of the other side's taps) stays the hard outlier, 71% -> 77% average: filed as F290.
 - [x] 2026-11-07 (F128): Play the bot: small per-seat lines the bot's half drew twice now show
       once, in the person's half: Snake's corner "Round N" and score line (its copy read back
       to front, "0 – 1" beside "1 – 0"), Quick Draw's score under the stars, Tank Duel's

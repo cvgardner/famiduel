@@ -113,27 +113,35 @@ describe('chop chop', () => {
     expect(g.lastRound).toBe(0);
   });
 
-  it('branch shield breaks branches instead of bonking, for 2 s', () => {
+  it('branch shield breaks branches instead of bonking, for its next 12 chops', () => {
     const g = fresh({ powers: ['shield', 'shield'] });
     const c = g.choppers[0];
     g.energy[0].value = 1;
     g.step(DT, [{ chop: 0, power: true }, idle]);
-    expect(c.shield).toBeCloseTo(RULES.shield, 1);
+    expect(RULES.shield).toBe(12);
+    expect(c.shield).toBe(12);
+    // A count, not seconds: standing still (or frozen) doesn't use it up.
+    for (let i = 0; i < 120; i++) g.step(DT, [idle, idle]);
+    expect(c.shield).toBe(12);
     let n = 0;
     while (g.branch(0, c.idx + 1) === 0 && n++ < 100) g.step(DT, [{ chop: safe(g, 0), power: false }, idle]);
+    const left = c.shield;
     const bad = g.branch(0, c.idx + 1) as -1 | 1;
     g.step(DT, [{ chop: bad, power: false }, idle]);
     expect(c.out).toBe(false);
     expect(g.events.some((e) => e.type === 'shieldBreak')).toBe(true);
-    // Still shielded: mashing one side breaks every branch on it until the time runs out.
-    expect(c.shield).toBeGreaterThan(0);
+    expect(c.shield).toBe(left - 1);
+    // Still shielded: mashing one side breaks every branch on it until the chops run out.
     const side = c.side;
     let breaks = 0;
+    let chops = 0;
     while (c.shield > 0 && !c.out) {
       g.step(DT, [{ chop: side, power: false }, idle]);
+      if (g.events.some((e) => e.type === 'chop')) chops++;
       if (g.events.some((e) => e.type === 'shieldBreak')) breaks++;
     }
     expect(c.out).toBe(false);
+    expect(chops).toBe(left - 1);
     expect(breaks).toBeGreaterThan(0);
     // Once it's gone, a branch bonks again.
     n = 0;

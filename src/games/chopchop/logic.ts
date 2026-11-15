@@ -25,8 +25,8 @@ export const RULES = {
   /** Double Chop covers this many chops (a count, not seconds, so a slow tapper gets as much from it). */
   doubleChop: 8,
   freeze: 1,
-  /** Seconds Branch Shield keeps branches off you. */
-  shield: 2,
+  /** Chops Branch Shield covers (a count, like Double Chop, so its worth doesn't grow with tapping speed). */
+  shield: 12,
   energyPerChop: 0.02,
   energyLose: 0.35,
 };
@@ -43,7 +43,7 @@ export type Chopper = {
   timer: number;
   out: boolean;
   outReason: 'bonk' | 'time' | null;
-  /** Seconds left in which branches break instead of bonking. */
+  /** Chops left in which branches break instead of bonking. */
   shield: number;
   frozen: number;
   /** Chops left that count twice. */
@@ -141,7 +141,6 @@ export class ChopChop {
       this.energy[p].tick(dt);
       const c = this.choppers[p];
       c.frozen = Math.max(0, c.frozen - dt);
-      if (this.phase === 'play') c.shield = Math.max(0, c.shield - dt);
     }
     if (this.phase === 'intro') {
       this.phaseT -= dt;
@@ -217,6 +216,7 @@ export class ChopChop {
     this.events.push({ type: 'chop', p, side, count: n });
     // The tree drops one segment: a branch now at your level on your side lands on you.
     this.hit(p, c.idx, side);
+    if (c.shield > 0) c.shield--;
   }
 
   private firePower(p: PlayerIndex): void {
@@ -225,7 +225,7 @@ export class ChopChop {
     if (!power || c.out) return;
     if (power.id === 'shield' && c.shield > 0) return;
     if (!this.energy[p].spend(power.duration ?? 0)) return;
-    if (power.id === 'shield') c.shield = power.duration ?? RULES.shield;
+    if (power.id === 'shield') c.shield = power.count ?? RULES.shield;
     else if (power.id === 'freeze') this.choppers[other(p)].frozen = power.duration ?? RULES.freeze;
     else if (power.id === 'double') c.double = power.count ?? RULES.doubleChop;
     this.events.push({ type: 'power', p, id: power.id });
