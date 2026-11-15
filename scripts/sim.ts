@@ -4,9 +4,10 @@
 // unfinished matches and the average match length, so difficulty tuning across games
 // starts from numbers. The kid rows show whether a mashing small kid, with no head start
 // and with the full one, ever beats the easy bot. Options: `npm run sim -- --n 40 --game sumo --powers`.
-// `--idle`: one seat never touches the screen. `--selfout`: lost points that were self-outs (scripts/selfout.ts).
+// `--idle`: one seat never touches the screen, then a both-idle row per game (F324). `--selfout`: lost points that were self-outs (scripts/selfout.ts).
 import { LONG_T, pairing, playMatch, type SimLevel, SPECS } from './simlib';
 import { selfOutCounter } from './selfout';
+import { IDLE_PAUSE } from '../src/app/runner';
 
 // "kid" is a small kid who just mashes (scripts/simlib.ts Masher); "kid+3" has the full head start.
 const PAIRS: [SimLevel, SimLevel][] = [
@@ -44,6 +45,21 @@ function main() {
       }
     }
     console.log(stalls ? `${stalls} row(s) with matches over ${LONG_T / 60} min against an idle seat.` : 'Every match against an idle seat ends inside 3 min.');
+    // F324: both seats idle (two people who walked away). A game that can't end on its own
+    // is fine only because the app pauses two idle people after IDLE_PAUSE s (F322).
+    console.log('');
+    console.log(`Both seats idle: ${n} matches per game, nobody touches the screen. "ends" = matches over inside 5 min.`);
+    console.log(['game'.padEnd(12), ' ends', 'draws', ' long', ' avg s', ' then'].join(' '));
+    const never: string[] = [];
+    for (const spec of SPECS) {
+      if (only && spec.id !== only) continue;
+      const r = pairing(spec, ['idle', 'idle'], n, powers);
+      const ends = 1 - r.unfinished;
+      if (ends < 1) never.push(spec.id);
+      const then = ends === 1 ? 'ends' : `app pauses at ${IDLE_PAUSE} s`;
+      console.log([spec.id.padEnd(12), pct(ends), pct(r.draws), pct(r.long), r.avgT.toFixed(0).padStart(6), ` ${then}`].join(' '));
+    }
+    console.log(never.length ? `${never.length} game(s) don't end with nobody playing (${never.join(', ')}); the app pauses them after ${IDLE_PAUSE} s.` : 'Every game ends with nobody playing.');
     return;
   }
   if (args.includes('--selfout')) {

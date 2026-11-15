@@ -1,13 +1,16 @@
 // Chop Chop view: each player has a tree in their own half. Each half is drawn
 // in the bottom player's frame and rotated 180° for the top player.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, fitSize, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, fitFirst, fitSize, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
 import { blink } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { ChopBot, ChopChop, RULES, type Intent, type Side } from './logic';
+
+/** Width of the small "<rival>: N" pill by each seat's chop bar. */
+const RIVAL_PILL = 74;
 const SKY = '#9fd8ff';
 const SKY_LOW = '#d9f1ff';
 const GRASS = '#7cc96b';
@@ -274,8 +277,11 @@ class ChopView implements GameInstance {
     const o = g.choppers[other(p)];
     if (!silentSeat(this.ctx.players, p)) {
       // On a dark pill like the goal label: dark text over the sky fell under 4.5:1 with light seats.
-      rrect(gx, bx - 10, L.barY + 20, 74, 20, 10, 'rgba(20,20,40,0.75)');
-      text(gx, `${this.ctx.players[other(p)].bot ? 'bot' : 'them'}: ${o.chops}`, bx - 3, L.barY + 30, { size: 13, color: '#ffffff', align: 'left' });
+      rrect(gx, bx - 10, L.barY + 20, RIVAL_PILL, 20, 10, 'rgba(20,20,40,0.75)');
+      // F326: the other seat by name ("Ann: 9", "Bot: 9") when it fits the pill, else "Them: 9".
+      const rival = this.ctx.players[other(p)];
+      const pill = fitFirst(gx, [`${rival.name}: ${o.chops}`, `${rival.bot ? 'Bot' : 'Them'}: ${o.chops}`], RIVAL_PILL - 14, 13);
+      text(gx, pill.str, bx - 3, L.barY + 30, { size: pill.size, color: '#ffffff', align: 'left' });
     }
     // Power status
     if (c.double > 0) text(gx, `✌️ x2 ·${c.double}`, W / 2 + 96, L.barY + 54, { size: 16, color: COLORS.gold, stroke: 'rgba(0,0,0,0.4)' });
