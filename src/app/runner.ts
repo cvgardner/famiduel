@@ -53,7 +53,8 @@ export class Runner {
       },
     });
     // F274: nor before a setup screen (Sea Battle's fleet: "3" sat on Shuffle and Ready).
-    if (this.game.opensOnCover?.() || this.game.opensOnSetup?.()) this.countdown = 0;
+    // F275: nor before an untimed pick (RPS against the bot waits for the person anyway).
+    if (this.game.opensOnCover?.() || this.game.opensOnSetup?.() || this.game.opensOnPick?.()) this.countdown = 0;
     stage.onStep = (dt) => this.step(dt);
     stage.onRender = (g) => this.render(g);
   }

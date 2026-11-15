@@ -47,6 +47,13 @@ export interface GameInstance {
    * (it showed the play gesture over the setup's buttons).
    */
   opensOnSetup?(): boolean;
+  /**
+   * F275: true when the match opens on an untimed pick (Rock Paper Scissors against the bot:
+   * the round waits for the person). The runner skips the "3 2 1" (its digit sat on the hands
+   * and "Pick one!" couldn't be answered until it ended); the in-play ghost finger stays, since
+   * it shows the tap on the hands.
+   */
+  opensOnPick?(): boolean;
 }
 
 /** A player's power meter in a running game, if its rules have one (`game.energy`). */
