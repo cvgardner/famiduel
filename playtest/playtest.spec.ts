@@ -1040,12 +1040,15 @@ test('layout: every tap target is at least 44px on a small phone', async ({ page
 // dive buttons, RPS throws) aren't DOM, so the check above can't see them. Each one's touch
 // area (drawn radius plus slop) must stay a little-hand-sized target on a 320x568 phone.
 const MIN_CANVAS_TARGET = 56;
-test('layout: every in-game canvas button is a 56px touch target on a small phone, also with Little hands', async ({ page }) => {
+const MIN_CANVAS_GAP = 8;
+const MIN_TOUCH_OVERLAP = 2;
+test('layout: every in-game canvas button is a 56px touch target, 8px from its neighbours, on a small phone, also with Little hands', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
   await boot(page, errors);
   const small: string[] = [];
   const clash: string[] = [];
+  const tight: string[] = [];
   let seen = 0;
   let grown = 0;
   const grownOther = new Set<string>();
@@ -1070,12 +1073,12 @@ test('layout: every in-game canvas button is a 56px touch target on a small phon
         const scale = Math.min(c.width / 360, c.height / 640);
         type B = { r: number; slop: number; owner: number; hit: unknown; x: number; y: number };
         const isButton = (o: unknown): o is B => !!o && typeof o === 'object' && typeof (o as B).hit === 'function' && typeof (o as B).r === 'number' && typeof (o as B).slop === 'number';
-        const out: { where: string; css: number; x: number; y: number; r: number; power: boolean }[] = [];
+        const out: { where: string; css: number; x: number; y: number; r: number; slop: number; scale: number; power: boolean }[] = [];
         const seen = new Set<unknown>();
         const walk = (o: unknown, where: string, depth: number, power: boolean) => {
           if (!o || typeof o !== 'object' || seen.has(o) || depth > 4) return;
           seen.add(o);
-          if (isButton(o)) return void out.push({ where, css: 2 * (o.r + o.slop) * scale, x: o.x, y: o.y, r: o.r, power });
+          if (isButton(o)) return void out.push({ where, css: 2 * (o.r + o.slop) * scale, x: o.x, y: o.y, r: o.r, slop: o.slop, scale, power });
           const isPower = !!(o as { power?: unknown }).power && 'button' in (o as object);
           for (const [k, v] of Object.entries(o as Record<string, unknown>)) if (k !== 'ctx' && k !== 'game') walk(v, `${where}.${k}`, depth + 1, isPower);
         };
@@ -1084,6 +1087,18 @@ test('layout: every in-game canvas button is a 56px touch target on a small phon
       });
       seen += found.length;
       const tag = big ? ' (little hands)' : '';
+      // F289: kids hit the neighbouring target (NN/g children's UX), so targets need space
+      // between them, not just size: every pair of drawn buttons at least MIN_CANVAS_GAP CSS px
+      // apart, and touch areas (radius + slop) overlapping by no more than MIN_TOUCH_OVERLAP.
+      // Measured 2026-11-15: closest drawn gap 10.6 px (Penalty's dives, Little hands), touch
+      // areas overlap 1 px only at Snack Snatch's power button and critters.
+      for (const a of found) for (const b of found) {
+        if (a.where >= b.where || (a.x === b.x && a.y === b.y)) continue;
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        const gap = (d - a.r - b.r) * a.scale;
+        const touch = (d - a.r - a.slop - b.r - b.slop) * a.scale;
+        if (gap < MIN_CANVAS_GAP || touch < -MIN_TOUCH_OVERLAP) tight.push(`${id}${tag} ${a.where} | ${b.where}: ${gap.toFixed(1)}px apart, touch areas ${touch.toFixed(1)}px`);
+      }
       for (const f of found) if (f.css < MIN_CANVAS_TARGET - 0.5) small.push(`${id}${tag} ${f.where}: ${Math.round(f.css)}px`);
       for (const f of found.filter((b) => b.power)) {
         if (big && f.r > 22) grown++;
@@ -1117,6 +1132,7 @@ test('layout: every in-game canvas button is a 56px touch target on a small phon
   expect([...grownOther].sort(), 'dive buttons and FIRE drawn bigger with Little hands').toEqual(['penalty', 'tanks'].filter((g) => built.includes(g)));
   expect(small, `canvas buttons whose touch area is under ${MIN_CANVAS_TARGET}px on a 320x568 phone`).toEqual([]);
   expect(clash, 'power buttons on screen and clear of other canvas buttons').toEqual([]);
+  expect(tight, `canvas buttons under ${MIN_CANVAS_GAP}px apart or with touch areas overlapping over ${MIN_TOUCH_OVERLAP}px`).toEqual([]);
   expect(errors).toEqual([]);
 });
 

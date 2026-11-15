@@ -2164,3 +2164,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the HOLD button's charge ring (drawn at r + 9, 7 wide) on a small phone (little-hands-sumo.png).
       Now MID ± 150: clear of that ring and of the wrestler waiting at MID ± 72.
       tests/sumo-countdown.test.ts counts the ring as part of HOLD.
+
+## Ideas found 2026-11-15 (research: kids' tap accuracy)
+- [x] 2026-11-15 (F289, PR #317): kids hit the neighbouring target (NN/g children's UX,
+      Google's building-for-kids guide), so the canvas-button playtest now also checks the
+      space between buttons on a 320x568 phone, normal and Little hands: every pair of drawn
+      buttons at least 8 CSS px apart and touch areas overlapping by at most 2 px. All games
+      pass today (closest: Penalty's dive buttons 10.6 px with Little hands; touch areas only
+      overlap 1 px at Snack Snatch's power button and critters). Tanks' FIRE and stick and
+      Sumo's HOLD are drawn outside the Button walk; Tanks' FIRE has its own edge check.
