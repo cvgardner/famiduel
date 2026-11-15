@@ -639,7 +639,10 @@ export class App {
     this.runner = new Runner(this.stage, def, seed, players, powersOn, this.sfx, (r) => this.finish(r), false, this.starters.next(meta.id), this.dailyDay ?? undefined);
     // F159: a match that opens on the pass-the-phone cover gets no in-play finger (it tapped
     // over "look away!", in the half of the person who should not be looking).
-    const gesture = this.runner.game.opensOnCover?.() ? null : meta.gesture;
+    // F274: nor one that opens on a setup screen (Sea Battle's fleet: the firing tap looped
+    // over the Ready button); the intro's finger has already shown the gesture.
+    const g = this.runner.game;
+    const gesture = g.opensOnCover?.() || g.opensOnSetup?.() ? null : meta.gesture;
     this.playDemo(meta.id, gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined, this.runner.game.firstMover?.() ?? null);
     this.stage.start();
   }
