@@ -2309,7 +2309,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       8px sides and gap and 14px button sides (local 16px spare each side).
 
 ## Ideas found 2026-11-15 (11:17 run, long names on the pass-the-phone cover)
-- [x] 2026-11-15 (F314, PR #TBD): with a 12-letter name and Bigger text on a 320 px phone the
+- [x] 2026-11-15 (F314, PR #340): with a 12-letter name and Bigger text on a 320 px phone the
       pass-the-phone cover (Sea Battle and RPS) ran the big name off both screen edges and
       "Tap when only <name>" out of its pill ("Grandma Jose" spilled even at usual text). Names
       now fit NAME_ROOM (clear of the pause button), the pill's words shrink to fit (not under
