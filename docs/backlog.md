@@ -2195,3 +2195,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       average to 67 / 70 / 74% (it already beats None 83% at easy); a smaller honey (155/140)
       did the same. Every honey/magnet rule trades normal for easy (as F110 found for hard);
       the remaining gap is Magnet fired into honey already poured. tests/snacksnatch-sticky-waits.test.ts.
+## Ideas found 2026-11-15 (head-to-head power sweep)
+- [x] 2026-11-15 (F291, measured): `npm run sim:powers` at easy/normal/hard (n=80, suspects
+      rechecked at n=240), head-to-head pairs only. In band: Air Hockey, Ping Pong (hard
+      41-59%), Sumo (easy Grow v Slip 40%), Tanks, Chop Chop (hard Freeze v Double 38%).
+      Outliers: Snack Snatch Magnet beats Sticky 87% at normal (96% hard) and Double beats
+      Magnet 73% (75% hard), so the second pick wins (F294); Quick Draw hard Slow Time 65-67%
+      against every pick (F295, below); Snake normal Boost v Phase 34% (F12, Boost's old
+      weakness).
+- [x] 2026-11-15 (F295, PR #319): Quick Draw's hard bot gets a smaller head start from Slow
+      Time's "get ready" glow (0.035 s, BOT.hard.edge; easy and normal keep 0.06): the full
+      0.06 s was twice its reaction spread, so Slow Time won 65-67% against every pick at hard.
+      Now 61-62% (n=240), as at normal (59-61%). People play exactly as before.
+      tests/quickdraw-slowtime-hard.test.ts.

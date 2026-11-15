@@ -28,7 +28,7 @@ export const RULES = {
    */
   pulseLeadMin: 0.45,
   pulseLeadMax: 1.1,
-  /** How much faster a warned bot reacts to DRAW! (a "get ready" cue shortens reaction a little). */
+  /** How much faster a warned bot reacts to DRAW! (a "get ready" cue shortens reaction a little); hard bots gain less (BOT.hard.edge, F295). */
   pulseEdge: 0.06,
   /** After a forgiven early tap, taps are ignored this long (so one press can't be both). */
   forgiveLock: 0.25,
@@ -283,10 +283,12 @@ export class QuickDraw {
  * Shot, and Fake-out's bait) were worth far less against a bot than against a family.
  */
 const BOT = {
-  easy: { mean: 0.5, sd: 0.07, fooled: 0.22, jump: 0.1 },
-  normal: { mean: 0.38, sd: 0.045, fooled: 0.05, jump: 0.04 },
-  hard: { mean: 0.3, sd: 0.03, fooled: 0, jump: 0.01 },
-} satisfies Record<BotLevel, { mean: number; sd: number; fooled: number; jump: number }>;
+  easy: { mean: 0.5, sd: 0.07, fooled: 0.22, jump: 0.1, edge: RULES.pulseEdge },
+  normal: { mean: 0.38, sd: 0.045, fooled: 0.05, jump: 0.04, edge: RULES.pulseEdge },
+  // F295: a fast, steady reactor is already near its best, so a "get ready" cue saves it less
+  // (0.035 s); with the full 0.06 s against a 0.03 s spread Slow Time won 65-67% vs every pick.
+  hard: { mean: 0.3, sd: 0.03, fooled: 0, jump: 0.01, edge: 0.035 },
+} satisfies Record<BotLevel, { mean: number; sd: number; fooled: number; jump: number; edge: number }>;
 
 export const BOT_LEVELS = BOT;
 export const MIN_REACTION = HUMAN.reaction + HUMAN.touchLag;
@@ -346,7 +348,7 @@ export class QuickDrawBot {
         this.mode = 'pulse';
       }
     } else if (game.phase === 'draw' && (this.mode === null || this.mode === 'fooled' || this.mode === 'jump' || this.mode === 'pulse')) {
-      this.tapIn = this.mode === 'pulse' ? Math.max(0.08, this.reaction() - RULES.pulseEdge) : this.reaction();
+      this.tapIn = this.mode === 'pulse' ? Math.max(0.08, this.reaction() - cfg.edge) : this.reaction();
       this.mode = 'draw';
     }
     let tap = false;
