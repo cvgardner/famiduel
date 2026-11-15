@@ -2294,3 +2294,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Play (and New tournament) now stays pinned at the bottom while the lineup scrolls under it,
       and sits in its usual place at the end of the list. e2e/taps.spec.ts counts home -> a
       tournament game (4 taps) at 390x844 and 320x568 with Bigger text.
+- [x] 2026-11-15 (F309): Home player chips: seat 2's name lines up right, and with no width cap
+      a long name (12 letters, the editor's limit) ran left over the VS badge and into seat 1's
+      chip at every phone size; on a 320px phone with Bigger text the 36px badge also covered
+      the start of "Player 2". Names are capped to their chip, each chip's inner side keeps
+      clear of the badge, and the badge is 26px on a 320px phone with Bigger text.
+      e2e/home-names.spec.ts (short, default and 12-letter names, 320 and 390 wide).
