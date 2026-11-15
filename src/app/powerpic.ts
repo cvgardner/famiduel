@@ -221,6 +221,22 @@ const PICS: Record<string, Record<string, string>> = {
       // Each chop knocks out two logs.
       [0, 0.45].flatMap((t0) => [28, 18].map((y) => `<rect x="28" y="${y}" width="8" height="8" fill="#ffd166" stroke="#8b5a2b" stroke-width="1">${anim('x', [28, 28, 4, 4], [0, t0 + 0.05, t0 + 0.3, 1])}${anim('opacity', [0, 0, 1, 1, 0, 0], [0, t0 + 0.05, t0 + 0.07, t0 + 0.22, t0 + 0.3, 1])}</rect>`)).join('') +
       circle(44, 31, 4, YOU, anim('cx', [44, 44, 40, 44, 44, 40, 44, 44], [0, 0.03, 0.06, 0.1, 0.48, 0.51, 0.55, 1])),
+    // The other tree grows taller: they have more to chop.
+    tall:
+      woods +
+      `<rect x="10" y="18" width="8" height="19" fill="#8b5a2b">${anim('y', [18, 18, 5, 5, 18], [0, 0.2, 0.45, 0.9, 1])}${anim('height', [19, 19, 32, 32, 19], [0, 0.2, 0.45, 0.9, 1])}</rect>` +
+      `<circle cx="14" cy="16" r="6" fill="#3f9b4f">${anim('cy', [16, 16, 4, 4, 16], [0, 0.2, 0.45, 0.9, 1])}</circle>` +
+      [12, 20, 28].map((y, i) => `<rect x="9" y="${y}" width="10" height="2" rx="1" fill="#5aa04a">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.25 + i * 0.07, 0.3 + i * 0.07, 0.9, 1])}</rect>`).join('') +
+      circle(6, 31, 4, THEM) +
+      tree(46, '#8b5a2b') +
+      circle(40, 31, 4, YOU),
+    // Your axe glows hot: one chop burns through 4 pieces at once.
+    hotaxe:
+      woods +
+      tree(32, '#8b5a2b') +
+      `<circle cx="40" cy="27" r="4" fill="#ff7a1a">${anim('r', [3, 5, 3, 5, 3, 3], [0, 0.1, 0.2, 0.3, 0.4, 1])}${anim('opacity', [1, 1, 1, 1, 1, 0, 0, 1], [0, 0.1, 0.2, 0.3, 0.4, 0.45, 0.95, 1])}</circle>` +
+      [30, 22, 14, 6].map((y, i) => `<rect x="28" y="${y}" width="8" height="7" fill="#ff9f43" stroke="#c0392b" stroke-width="1">${anim('x', [28, 28, 4 - i * 2, 4 - i * 2], [0, 0.42, 0.7, 1])}${anim('opacity', [0, 0, 1, 1, 0, 0], [0, 0.42, 0.44, 0.6, 0.72, 1])}</rect>`).join('') +
+      circle(44, 31, 4, YOU, anim('cx', [44, 44, 40, 44, 44], [0, 0.4, 0.43, 0.47, 1])),
   },
   quickdraw: {
     // A fake signal that only you know is fake: the other player jumps the gun.
