@@ -2044,6 +2044,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       pot stayed a red "0" in the field next to the bowl (solo-round-snacksnatch.png), which
       read like a third score. The clock now goes blank at 0 (the ring already shows empty);
       tests/snacksnatch-time-up.test.ts.
+- [x] 2026-11-14 (F267 + F268, PR #298): Penalty: a scored ball rolled on through the back of
+      the 30-deep net and stopped on the keeper's right arrow (solo-round-penalty.png), and a
+      wide or over shot rolled ~130 units past the goal line, over the keeper's buttons. A goal
+      now stops at the back of the net, inside the posts (RULES.netDepth); any other ball stops
+      at most RULES.missRoll (50) past the goal line and inside the pitch lines (holdBall());
+      tests/penalty-ball-stops.test.ts plays 18 bot matches and checks every result frame.
 - [x] 2026-11-14 (F269, PR #299): Sea Battle placement without dragging. NN/g's kids' UX
       research: under-9s struggle with precise drag-and-drop; give a tap-a-destination way. A
       tap on a ship still turns it and now also picks it (dashed white ring); a tap on open
@@ -2051,7 +2057,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       along it that fits; "Doesn't fit there" if none). The hint line says "Tap a spot to move
       it · tap it to turn" while a ship is picked. tests/seabattle-tap-move.test.ts, playtest
       "sea battle: tap a ship, then tap a spot" (seabattle-tap-move.png).
-- [x] 2026-11-14 (F270, PR #PRNUM): Sea Battle firing forgives a near miss. The second tap had
+- [x] 2026-11-14 (F270, PR #300): Sea Battle firing forgives a near miss. The second tap had
       to land in the exact aimed square (27 units, ~29 px on a 390 px phone), so a kid's
       slightly-off finger re-aimed the next square instead of firing (NN/g: don't punish
       near misses). A second tap within 0.7 of a square of the aimed square's middle

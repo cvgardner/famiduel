@@ -24,6 +24,10 @@ export const RULES = {
   goalW: 150,
   goalWMax: 172,
   ballR: 8,
+  /** Depth of the net behind the goal line: a goal's ball stops at its back (F267). */
+  netDepth: 30,
+  /** A miss rolls at most this far past the goal line, short of the keeper's buttons (F268). */
+  missRoll: 50,
   /** Shot speed (units/s) at power 0 and 1. */
   speedMin: 260,
   speedMax: 820,
@@ -117,6 +121,8 @@ export class Penalty {
   /** Ball after the goal line, for the result animation. */
   ball = { x: W / 2, y: 0, vx: 0, vy: 0, z: 0 };
   lastResult: KickResult | null = null;
+  /** Where the ball may roll after the kick: a goal stays in the net, anything else stops before the buttons and inside the pitch lines. */
+  rollStop: { lineY: number; toward: number; depth: number; xMin: number; xMax: number } | null = null;
   winner: PlayerIndex | null = null;
   over = false;
   events: Event[] = [];
@@ -250,6 +256,7 @@ export class Penalty {
       const k2 = Math.pow(0.05, dt);
       b.vx *= k2;
       b.vy *= k2;
+      this.holdBall();
       if (this.phaseT >= RULES.resultTime) this.nextKick();
     }
   }
@@ -327,6 +334,11 @@ export class Penalty {
     const toward = Math.sign(f.y1 - f.y0);
     const sp = Math.abs(f.y1 - f.y0) / f.T;
     const b = this.ball;
+    const r = RULES.ballR;
+    this.rollStop =
+      why === 'goal'
+        ? { lineY: f.y1, toward, depth: RULES.netDepth - r, xMin: W / 2 - half + r, xMax: W / 2 + half - r }
+        : { lineY: f.y1, toward, depth: RULES.missRoll, xMin: 8 + r, xMax: W - 8 - r };
     if (why === 'goal') {
       b.vx = (f.aimX - f.x0) / f.T;
       b.vy = toward * sp * 0.6;
@@ -353,6 +365,22 @@ export class Penalty {
     this.events.push({ type: 'result', shooter: s, result, why, x: f.aimX, y: f.y1 });
     this.setPhase('result');
     this.checkWinner();
+  }
+
+  /** F267/F268: a goal's ball stops at the back of the net and inside the posts; a miss stops
+   *  short of the keeper's buttons and inside the pitch lines. */
+  private holdBall(): void {
+    const s = this.rollStop;
+    if (!s) return;
+    const b = this.ball;
+    if ((b.y - s.lineY) * s.toward > s.depth) {
+      b.y = s.lineY + s.toward * s.depth;
+      b.vy = 0;
+    }
+    if (b.x < s.xMin || b.x > s.xMax) {
+      b.x = Math.min(s.xMax, Math.max(s.xMin, b.x));
+      b.vx = 0;
+    }
   }
 
   /** Decided once one side can't catch up, or after a sudden-death pair. */
@@ -395,6 +423,7 @@ export class Penalty {
     this.diveT = 0;
     this.divedEarly = false;
     this.lastResult = null;
+    this.rollStop = null;
     this.placeBall();
     this.setPhase('ready');
     this.events.push({ type: 'ready', shooter: this.shooter });
