@@ -9,9 +9,10 @@ import { boot, botMatch } from './helpers';
 //   result -> another game: Games, the card, then each person's Ready (2 + 1 each)
 type Hook = { store: { data: { profiles: { bot: string | null }[]; settings: { bigText: boolean } }; save(): void }; showHome(): void };
 
-async function tap(target: Locator, taps: { n: number }) {
+/** A button must show whole; a game card (a big tile in a list) needs half of it on screen to tap. */
+async function tap(target: Locator, taps: { n: number }, ratio = 1) {
   await expect(target).toBeVisible();
-  await expect(target, 'on screen without scrolling').toBeInViewport({ ratio: 1 });
+  await expect(target, 'on screen without scrolling').toBeInViewport({ ratio });
   await target.click();
   taps.n++;
 }
@@ -44,7 +45,7 @@ for (const [label, size, big] of [
       await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
       const taps = { n: 0 };
       // The first card shows without scrolling (others are a scroll down the list).
-      await tap(page.locator('.game-card[data-ready="1"]').first(), taps);
+      await tap(page.locator('.game-card[data-ready="1"]').first(), taps, 0.5);
       await readyUp(page, taps);
       expect(taps.n).toBe(3);
       expect(errors).toEqual([]);
@@ -67,7 +68,7 @@ for (const [label, size, big] of [
       const other = { n: 0 };
       await tap(page.locator('#homeBtn'), other);
       await expect(page.locator('#home')).toBeVisible();
-      await tap(page.locator('.game-card[data-ready="1"]').first(), other);
+      await tap(page.locator('.game-card[data-ready="1"]').first(), other, 0.5);
       await readyUp(page, other);
       expect(other.n).toBe(4);
       expect(errors).toEqual([]);
