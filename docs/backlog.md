@@ -2089,7 +2089,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       skips the in-play finger, as it already did for the pass-the-phone cover (F159). The
       intro's finger still teaches the tap. tests/setup-start.test.ts + playtest "ghost finger:
       Sea Battle's first match ...".
-- [x] 2026-11-14 (F277, PR #PRNUM): Same rules for the bot, guarded. Reviews of a rival two-player app
+- [x] 2026-11-14 (F277, PR #306): Same rules for the bot, guarded. Reviews of a rival two-player app
       complain its hard bot scored 2 points per slap and its power-ups spawned in front of the bot.
       Here only the *Bot classes know a seat is a bot; tests/bot-same-rules.test.ts fails if a
       rules class in any src/games/<id>/logic.ts reads a seat's `.bot`, `isBot` or a BotLevel.
