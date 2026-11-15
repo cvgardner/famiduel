@@ -2044,3 +2044,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       pot stayed a red "0" in the field next to the bowl (solo-round-snacksnatch.png), which
       read like a third score. The clock now goes blank at 0 (the ring already shows empty);
       tests/snacksnatch-time-up.test.ts.
+- [x] 2026-11-14 (F269, PR #PRNUM): Sea Battle placement without dragging. NN/g's kids' UX
+      research: under-9s struggle with precise drag-and-drop; give a tap-a-destination way. A
+      tap on a ship still turns it and now also picks it (dashed white ring); a tap on open
+      water moves the picked ship there, its middle on the tapped square (or the nearest slide
+      along it that fits; "Doesn't fit there" if none). The hint line says "Tap a spot to move
+      it · tap it to turn" while a ship is picked. tests/seabattle-tap-move.test.ts, playtest
+      "sea battle: tap a ship, then tap a spot" (seabattle-tap-move.png).

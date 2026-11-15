@@ -1974,6 +1974,43 @@ test('sea battle: where the bot hit your fleet stays on screen long enough to fi
   expect(errors).toEqual([]);
 });
 
+test('sea battle: tap a ship, then tap a spot, moves it (no drag needed)', async ({ page }) => {
+  // F269: under-9s struggle with precise dragging (NN/g); a tap-a-destination way sets the fleet too.
+  const errors: string[] = [];
+  await boot(page, errors);
+  await setPlayers(page, [null, 'easy']);
+  await page.locator('.game-card[data-id="seabattle"]').tap();
+  await introAsPeople(page, [0]);
+  type Ship = { x: number; y: number; len: number; horiz: boolean };
+  type SeaHook = { runner: null | { game: { picked: number | null; mode: { kind: string; t: number }; game: { seas: { ships: Ship[]; occ: number[] }[]; canPlace(p: number, i: number, x: number, y: number, h: boolean): boolean } } } };
+  const N = 10, C = 27, GX = (360 - N * C) / 2, GY = 82;
+  const at = (cell: number) => [GX + (cell % N) * C + C / 2, GY + Math.floor(cell / N) * C + C / 2] as const;
+  await expect.poll(() => page.evaluate(() => { const m = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner?.game.mode; return m ? m.kind === 'place' && m.t > 0.3 : false; }), { timeout: 8000 }).toBe(true);
+  const first = await page.evaluate(() => { const s = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner!.game.game.seas[0].ships[0]; return s.y * 10 + s.x; });
+  await tapWorld(page, 41, ...at(first));
+  await page.waitForTimeout(150);
+  // Where a person would tap: the middle of open water the (maybe now turned) ship fits on.
+  const spot = await page.evaluate(() => {
+    const v = (window as unknown as { __famiduel: SeaHook }).__famiduel.runner!.game;
+    const s = v.game.seas[0].ships[0];
+    const mid = Math.floor((s.len - 1) / 2);
+    for (let y = 0; y < 10; y++)
+      for (let x = 0; x < 10; x++) {
+        const tx = s.horiz ? x - mid : x, ty = s.horiz ? y : y - mid;
+        if (Math.abs(tx - s.x) + Math.abs(ty - s.y) >= 3 && v.game.canPlace(0, 0, tx, ty, s.horiz)) return { cell: y * 10 + x, picked: v.picked };
+      }
+    return { cell: -1, picked: v.picked };
+  });
+  expect(spot.picked, 'the tapped ship is picked').toBe(0);
+  expect(spot.cell).toBeGreaterThanOrEqual(0);
+  await tapWorld(page, 42, ...at(spot.cell));
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: path.join(OUT, 'seabattle-tap-move.png') });
+  const occ = await page.evaluate((c) => (window as unknown as { __famiduel: SeaHook }).__famiduel.runner!.game.game.seas[0].occ[c], spot.cell);
+  expect(occ, 'the picked ship now sits on the tapped square').toBe(0);
+  expect(errors).toEqual([]);
+});
+
 test('sea battle: two people see where their own shot landed before passing the phone', async ({ page }) => {
   // The shooter's beat used to start at the shot, so the result showed for ~0.9 s after the
   // 0.38 s flight, and after hit, hit, miss the header said "Direct hit!".

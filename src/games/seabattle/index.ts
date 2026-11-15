@@ -66,6 +66,11 @@ class SeaBattleView implements GameInstance {
   private armed: string | null = null;
   private drag: Drag | null = null;
   private dragId = -1;
+  /**
+   * F269: the ship last tapped in placement (outlined). A tap on empty water moves it there, so a
+   * kid who can't drag a ship precisely can still set the fleet (tap a ship, tap a spot).
+   */
+  picked: number | null = null;
   private powerBtn: (PowerButton | null)[];
   private notice: (string | null)[] = [null, null];
   /** Cells the opponent fired at on their last turn, highlighted on your fleet. */
@@ -122,6 +127,7 @@ class SeaBattleView implements GameInstance {
     const g = this.game;
     this.aim = null;
     this.armed = null;
+    this.picked = null;
     if (g.phase === 'over') {
       this.mode = { kind: 'over', t: 0 };
       return;
@@ -284,19 +290,27 @@ class SeaBattleView implements GameInstance {
           const s = sea.ships[i];
           this.drag = { i, offX: (cell % N) - s.x, offY: Math.floor(cell / N) - s.y, moved: false, sx: l.x, sy: l.y, x: l.x, y: l.y };
           this.dragId = f.id;
+        } else if (cell !== null && this.picked !== null) {
+          this.moveTo(p, this.picked, cell, l.x, l.y);
         } else if (inBtn(SHUFFLE, l.x, l.y)) {
+          this.picked = null;
           g.placeRandom(p);
           sfx.play('whoosh');
           this.burst(SHUFFLE.x + SHUFFLE.w / 2, GY + 150, '#7fd3ff', 20, 220, 3);
         } else if (inBtn(READY, l.x, l.y)) {
+          this.picked = null;
           sfx.play('coin');
           this.burst(READY.x + READY.w / 2, READY.y + 29, this.ctx.players[p].color, 24, 220, 4);
           g.setReady(p);
           this.advance();
         }
       }
-      if (input.keyPressed(KEYS[p].power)) g.placeRandom(p);
+      if (input.keyPressed(KEYS[p].power)) {
+        this.picked = null;
+        g.placeRandom(p);
+      }
       if (input.keyPressed(KEYS[p].action)) {
+        this.picked = null;
         g.setReady(p);
         this.advance();
       }
@@ -315,12 +329,13 @@ class SeaBattleView implements GameInstance {
       if (d.moved) {
         const tx = Math.round((d.x - GX) / C - 0.5) - d.offX;
         const ty = Math.round((d.y - GY) / C - 0.5) - d.offY;
+        this.picked = null;
         if (g.setShip(p, d.i, tx, ty, s.horiz)) sfx.play('click');
         else if (!(tx === s.x && ty === s.y)) {
           sfx.play('buzz');
           this.misfit("Doesn't fit there", d.x, d.y);
         }
-      } else if (g.rotateShip(p, d.i)) sfx.play('pop');
+      } else if ((this.picked = d.i, g.rotateShip(p, d.i))) sfx.play('pop');
       else {
         sfx.play('buzz');
         this.ctx.fx.shake(3, 0.12);
@@ -328,6 +343,29 @@ class SeaBattleView implements GameInstance {
       }
       this.drag = null;
     }
+  }
+
+  /**
+   * Move ship i so it covers the tapped cell, its middle there if it fits, else the nearest
+   * slide along it that does (a tap a square off is forgiven); keeps its direction.
+   */
+  private moveTo(p: PlayerIndex, i: number, cell: number, x: number, y: number): void {
+    const g = this.game;
+    const s = g.seas[p].ships[i];
+    const cx = cell % N;
+    const cy = Math.floor(cell / N);
+    const mid = (s.len - 1) / 2;
+    const offs = [...Array(s.len).keys()].sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid) || a - b);
+    for (const k of offs) {
+      const tx = s.horiz ? cx - k : cx;
+      const ty = s.horiz ? cy : cy - k;
+      if (g.setShip(p, i, tx, ty, s.horiz)) {
+        this.ctx.sfx.play('click');
+        return;
+      }
+    }
+    this.ctx.sfx.play('buzz');
+    this.misfit("Doesn't fit there", x, y);
   }
 
   private fireInput(p: PlayerIndex, input: Input, taps: { x: number; y: number }[]): void {
@@ -604,7 +642,7 @@ class SeaBattleView implements GameInstance {
     let sub = '';
     if (m.kind === 'place') {
       title = `${an}, hide your fleet`;
-      sub = 'Tap a ship to turn it · drag to move it';
+      sub = this.picked !== null ? 'Tap a spot to move it · tap it to turn' : 'Tap a ship to turn it · drag to move it';
     } else if (m.kind === 'fire') {
       const again = this.again > 0 && this.shells.length === 0;
       const first = this.opening(m.p);
@@ -771,6 +809,12 @@ class SeaBattleView implements GameInstance {
       if (drag) glow(gx, '#fff', 16);
       rrect(gx, sx + inset, sy + inset, w - inset * 2, h - inset * 2, (Math.min(w, h) - inset * 2) / 2, sunkShown ? 'rgba(40,40,60,0.9)' : shade(col, -0.15), sunkShown ? alpha(col, 0.9) : shade(col, 0.35), big ? 2.5 : 1.5);
       noGlow(gx);
+      // F269: the picked ship wears a dashed white ring until it moves (tap a spot to move it).
+      if (big && !drag && i === this.picked && this.mode.kind === 'place' && owner === this.mode.p) {
+        gx.setLineDash([5, 4]);
+        rrect(gx, sx + 0.5, sy + 0.5, w - 1, h - 1, (Math.min(w, h) - 1) / 2, undefined, '#ffffff', 2);
+        gx.setLineDash([]);
+      }
       if (big)
         for (let k = 0; k < s.len; k++) {
           const px = sx + (s.horiz ? k * c + c / 2 : c / 2);
