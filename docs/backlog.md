@@ -2398,7 +2398,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-15 (F323, PR #352): a pause the match made itself (F322) says why under "Paused":
       "Nobody was playing, so we paused.", so a family coming back knows nobody pressed
       anything; a held pause keeps the plain sheet. `.sheet .why`, e2e checks both.
-- [x] 2026-11-15 (F327, PR #TBD): Snake: two hard snakes met head-on in ~40% of rounds (half of
+- [x] 2026-11-15 (F327, PR #354): Snake: two hard snakes met head-on in ~40% of rounds (half of
       all rounds drawn, matches ran to the 9-round cap; a rival app's review: its hard snake
       "mimics my actions, making it impossible to win or lose"). The hard bot's territory pull
       outweighed its head-on worry, and a turn locks the next cell straight (no second tap that
