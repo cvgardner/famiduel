@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { BIG_TEXT, fitSize, MIN_TEXT, scaledSize, setTextScale, type G } from '../src/engine/draw';
-import { TIME_W, timeLine } from '../src/games/quickdraw/index';
+import { handicapLine, secs, TIME_W, timeLine } from '../src/games/quickdraw/index';
 
 // F263: a seat that never drew read "You —" on the round card (solo-round-quickdraw.png);
 // a young kid won't read a dash.
@@ -11,7 +11,17 @@ describe('Quick Draw round card: no-shot words', () => {
     expect(timeLine('You', null)).toBe('You: no shot');
     expect(timeLine('Bot', null)).toBe('Bot: no shot');
     expect(timeLine('Them', null)).toBe('Them: no shot');
-    expect(timeLine('You', 0.4204)).toBe('You 420 ms');
+    expect(timeLine('You', 0.4204)).toBe('You 0.42 s');
+    for (const who of ['You', 'Bot', 'Them']) expect(timeLine(who, null)).not.toMatch(/—/);
+  });
+
+  // F304: times in seconds, which a kid has met on a clock; "ms" means nothing to them.
+  it('says times and handicaps in seconds, never "ms"', () => {
+    expect(secs(0.5)).toBe('0.50 s');
+    expect(secs(0.3125)).toBe('0.31 s');
+    expect(timeLine('Bot', 0.5)).toBe('Bot 0.50 s');
+    expect(handicapLine(0.12)).toBe('+0.12 s handicap');
+    for (const t of [0.18, 0.4204, 0.999, 1.5]) expect(timeLine('You', t)).not.toMatch(/ms/);
     for (const who of ['You', 'Bot', 'Them']) expect(timeLine(who, null)).not.toMatch(/—/);
   });
 

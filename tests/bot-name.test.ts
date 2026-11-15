@@ -38,9 +38,9 @@ const solo: [PlayerInfo, PlayerInfo] = [player({ bot: null }), player({ bot: 'ea
 // F165: in Play the bot, the person's half called the bot "them" ("Them 500 ms", "them: 9").
 describe('the person\'s half names the bot', () => {
   it('Quick Draw result card: "Bot" against a bot, "Them" between people', () => {
-    expect(words('quickdraw', solo, result({}))).toContain('Bot 500 ms');
+    expect(words('quickdraw', solo, result({}))).toContain('Bot 0.50 s');
     expect(words('quickdraw', solo, result({})).some((s) => /\bthem\b/i.test(s))).toBe(false);
-    expect(words('quickdraw', people, result({}))).toContain('Them 500 ms');
+    expect(words('quickdraw', people, result({}))).toContain('Them 0.50 s');
     expect(words('quickdraw', solo, result({ winner: 0, reason: 'fooled', early: 1 }))).toContain('Bot got fooled!');
     expect(words('quickdraw', people, result({ winner: 0, reason: 'fooled', early: 1 }))).toContain('They got fooled!');
   });

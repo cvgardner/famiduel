@@ -59,14 +59,23 @@ function waitHand(gx: G, y: number): void {
 /** Local point in player p's frame to a screen point. */
 const toScreen = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
 
-const ms = (s: number) => `${Math.round(s * 1000)} ms`;
+/**
+ * F304: reaction times in seconds ("0.42 s"), not milliseconds ("420 ms"): a young kid has
+ * met seconds on a clock, never "ms". Same width on the card.
+ */
+export const secs = (s: number): string => `${s.toFixed(2)} s`;
+
+/** The small line under a time when a handicap was added ("+0.12 s handicap"). */
+export function handicapLine(pen: number): string {
+  return `+${secs(pen)} handicap`;
+}
 
 /**
  * F263: one side of the round card's time line. A seat that never drew says so in words
  * ("You: no shot"); a lone dash ("You —") means nothing to a young kid.
  */
 export function timeLine(who: string, s: number | null): string {
-  return s === null ? `${who}: no shot` : `${who} ${ms(s)}`;
+  return s === null ? `${who}: no shot` : `${who} ${secs(s)}`;
 }
 
 /** Each half of the round card is this wide around its time line's centre. */
@@ -318,7 +327,7 @@ class QuickDrawView implements GameInstance {
     } else if (g.phase === 'result' && g.last && !silentSeat(this.ctx.players, p)) {
       const r = g.last;
       const won = r.winner === p;
-      // F165: against a bot the card names it ("Bot 420 ms", "Bot got fooled!"), not "them".
+      // F165: against a bot the card names it ("Bot 0.42 s", "Bot got fooled!"), not "them".
       const bot = !!this.ctx.players[other(p)].bot;
       let title: string;
       let color = won ? '#1f7a3a' : '#a02a1f';
@@ -338,9 +347,9 @@ class QuickDrawView implements GameInstance {
       text(gx, left, W / 2 - 74, y + 16, { size: fitSize(gx, left, TIME_W, 17), color: shade(this.ctx.players[p].color, -0.65) });
       text(gx, right, W / 2 + 74, y + 16, { size: fitSize(gx, right, TIME_W, 17), color: shade(this.ctx.players[other(p)].color, -0.65) });
       const pen = r.penalty[p];
-      if (pen > 0.001 && mine !== null) text(gx, `+${Math.round(pen * 1000)} ms handicap`, W / 2 - 74, y + 32, { size: 13, color: '#4a2c0c' });
+      if (pen > 0.001 && mine !== null) text(gx, handicapLine(pen), W / 2 - 74, y + 32, { size: 13, color: '#4a2c0c' });
       const penO = r.penalty[other(p)];
-      if (penO > 0.001 && theirs !== null) text(gx, `+${Math.round(penO * 1000)} ms handicap`, W / 2 + 74, y + 32, { size: 13, color: '#4a2c0c' });
+      if (penO > 0.001 && theirs !== null) text(gx, handicapLine(penO), W / 2 + 74, y + 32, { size: 13, color: '#4a2c0c' });
     }
   }
 

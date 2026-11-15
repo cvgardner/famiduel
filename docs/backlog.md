@@ -2264,3 +2264,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (3), result -> rematch (3) and result -> another game (4) at 390x844 and at 320x568 with
       Bigger text, and checks every button on those paths shows without scrolling. Counts in
       docs/verification.md.
+- [x] 2026-11-15 (F304): Quick Draw's round card said reaction times in milliseconds ("Bot 500 ms",
+      "+120 ms handicap"), which means nothing to a young kid. Times now read in seconds
+      ("Bot 0.50 s", "+0.12 s handicap"), the same width on the card; secs() / handicapLine(),
+      tests/quickdraw-no-shot.test.ts + tests/bot-name.test.ts.
