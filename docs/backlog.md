@@ -2095,6 +2095,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       countdown there; the first-match ghost finger stays, since it shows the tap on the hands.
       The bot still waits its usual 0.4-2 s before picking ("Choosing..."). tests/setup-start.test.ts
       + playtest "ghost finger: Rock Paper Scissors against the bot opens on the pick ...".
+- [x] 2026-11-14 (F277, PR #306): Same rules for the bot, guarded. Reviews of a rival two-player app
+      complain its hard bot scored 2 points per slap and its power-ups spawned in front of the bot.
+      Here only the *Bot classes know a seat is a bot; tests/bot-same-rules.test.ts fails if a
+      rules class in any src/games/<id>/logic.ts reads a seat's `.bot`, `isBot` or a BotLevel.
 - [x] 2026-11-14 (F278, PR #308): Playing the bot, Sea Battle's how-to said "pass the phone" and
       RPS's said "the other looks away", though no phone is passed. content/games.json `howToSolo`
       for those two ("then take turns with the bot", "The bot never peeks at your pick"), used by
