@@ -656,6 +656,33 @@ test('ghost finger: Rock Paper Scissors against the bot opens on the pick with n
   expect(errors).toEqual([]);
 });
 
+test('play the bot: Sea Battle and RPS how-tos say nothing about passing the phone, two people keep it', async ({ page }) => {
+  // F278: against the bot the intro and the pause how-to said "pass the phone" (Sea Battle) and
+  // "the other looks away" (RPS), though no phone is passed. They read the game's howToSolo.
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  const twoPeople = /pass the phone|looks? away|two people/i;
+  const read = (id: string) =>
+    page.evaluate((g) => {
+      (window as unknown as { __famiduel: Hook }).__famiduel.openGame(g);
+      return [...document.querySelectorAll('#intro .half:not(.bot) .howto')].map((el) => el.textContent ?? '');
+    }, id);
+  for (const id of ['seabattle', 'rps']) {
+    await setPlayers(page, [null, 'normal']);
+    const solo = await read(id);
+    expect(solo.length, `${id}: one person's how-to`).toBe(1);
+    expect(solo[0], `${id} vs bot`).not.toMatch(twoPeople);
+    if (id === 'seabattle') await page.screenshot({ path: path.join(OUT, 'solo-howto-seabattle.png') });
+    await setPlayers(page, [null, null]);
+    const both = await read(id);
+    expect(both.length, `${id}: two people's how-tos`).toBe(2);
+    for (const t of both) expect(t, `${id} two people`).toMatch(twoPeople);
+  }
+  await setPlayers(page, [null, null]);
+  expect(errors).toEqual([]);
+});
+
 test('countdown: no game words under a person\'s "3 2 1" digit, on a small phone', async ({ page }) => {
   // F158: Chop Chop's "Round 1" card, Penalty's "Kick in 3" and Quick Draw's "Steady…" sat
   // under the digit (F155-F157, found by eye). Every label drawn during the countdown is

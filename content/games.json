@@ -32,6 +32,7 @@
       "handicap": "Slower timer" },
     { "id": "seabattle", "gesture": "tap2", "name": "Sea Battle", "icon": "🚢", "kind": "Strategy · turns", "free": false, "color": "#1e88e5",
       "blurb": "Sink every ship.", "howTo": "Shuffle or move your 5 ships, pass the phone, then take turns: tap a square, tap again to fire. A hit fires again.",
+      "howToSolo": "Shuffle or move your 5 ships, then take turns with the bot: tap a square, tap again to fire. A hit fires again.",
       "handicap": "Bonus shot every few turns" },
     { "id": "fourinarow", "hidden": true, "gesture": "drop", "name": "Four in a Row", "icon": "🔴", "kind": "Strategy · turns", "free": false, "color": "#e53935",
       "blurb": "Four in a line. Best of 3.", "howTo": "On your turn, tap (or slide and let go) on your side to drop a disc in that column.",
@@ -42,6 +43,7 @@
     { "id": "tictactoe", "hidden": true, "gesture": "tap", "name": "Tic-Tac-Toe", "icon": "❌", "kind": "Extra", "free": true, "color": "#90a4ae",
       "blurb": "First to 3 games.", "howTo": "X goes first. Take turns tapping a square; three in a row wins the game. Draws don't count.", "handicap": "Goes first more often" },
     { "id": "rps", "gesture": "tap", "name": "Rock Paper Scissors", "icon": "✊", "kind": "Extra", "free": true, "color": "#ffb74d",
-      "blurb": "First to 3.", "howTo": "Both pick in secret, then reveal. With two people the phone turns to one player at a time while the other looks away.", "handicap": "None" }
+      "blurb": "First to 3.", "howTo": "Both pick in secret, then reveal. With two people the phone turns to one player at a time while the other looks away.",
+      "howToSolo": "Tap rock, paper or scissors, then both hands show. The bot never peeks at your pick.", "handicap": "None" }
   ]
 }
