@@ -525,6 +525,50 @@ class SeaBattleView implements GameInstance {
     }
   }
 
+  /**
+   * F273: a shot's word ("Splash", "HIT!", "MINE!") popped a fixed line above the shot square
+   * (below it on the top rows), and on the defender's own big board that line was often one
+   * of their ships (54% of readable frames in bot matches). It now takes the spot near the
+   * square whose words, over their bright rise, cover the fewest shown ships, then the fewest
+   * shot marks: a line above or below, nudged up to two squares sideways.
+   */
+  private shotWord(str: string, owner: PlayerIndex, x: number, y: number, color: string, size: number): void {
+    const lay = this.layout();
+    const sea = this.game.seas[owner];
+    const half = ([...str].length * size * 0.55) / 2;
+    const h = size * 0.45;
+    const near = size / 2 + C / 2 + 2;
+    const first = y < GY + 70 ? 1 : -1;
+    const cost = (px: number, py: number): number => {
+      let n = 0;
+      // Its readable rise: about 18 units up the viewer's screen.
+      const x0 = px - half, x1 = px + half, y0 = py - h - 18, y1 = py + h;
+      for (let c = 0; c < N * N; c++) {
+        const cx = GX + (c % N) * C;
+        const cy = GY + Math.floor(c / N) * C;
+        if (!(x0 < cx + C - 3 && cx + 3 < x1 && y0 < cy + C - 3 && cy + 3 < y1)) continue;
+        if (lay.bigShips && sea.occ[c] >= 0) n += 4;
+        else if (sea.marks[c]) n += 1;
+      }
+      return n;
+    };
+    let best: [number, number] = [x, y + first * near];
+    let bestCost = Infinity;
+    for (const dy of [first * near, -first * near, first * (near + C), -first * (near + C), first * (near + 2 * C), -first * (near + 2 * C)]) {
+      const py = y + dy;
+      if (py - h - 18 < GY - 30 || py + h > GY + N * C + 10) continue;
+      for (const dx of [0, -C, C, -2 * C, 2 * C, -3 * C, 3 * C]) {
+        const px = clamp(x + dx, GX + half + 2, GX + N * C - half - 2);
+        const k = cost(px, py) * 10 + Math.abs(dx) / C + (dy === first * near ? 0 : 1);
+        if (k < bestCost) {
+          bestCost = k;
+          best = [px, py];
+        }
+      }
+    }
+    this.pop(str, best[0], best[1], color, size);
+  }
+
   private cellXY(cell: number): [number, number] {
     return [GX + (cell % N) * C + C / 2, GY + Math.floor(cell / N) * C + C / 2];
   }
@@ -551,7 +595,7 @@ class SeaBattleView implements GameInstance {
         this.turnHits[s.a].push(s.cell);
         this.volley.hits++;
       }
-      if (big && !s.quiet) this.pop(s.result === 'hitBack' ? 'Hit back!' : 'HIT!', x, y + (y < GY + 70 ? 26 : -24), '#ff8a3d', 24);
+      if (big && !s.quiet) this.shotWord(s.result === 'hitBack' ? 'Hit back!' : 'HIT!', s.owner, x, y, '#ff8a3d', 24);
       const sea = this.game.seas[s.owner];
       const ship = sea.ships[sea.occ[s.cell]];
       if (s.result === 'hit' && isSunk(ship) && cellsOf(ship).every((c) => !this.shells.some((o) => o !== s && o.owner === s.owner && o.cell === c && o.t < SHOT_T))) {
@@ -570,13 +614,13 @@ class SeaBattleView implements GameInstance {
       sfx.play('splash');
       fx.shake(10, 0.3);
       this.burst(x, y, '#ffb020', 30, 300, 5);
-      if (big) this.pop('MINE!', x, y + (y < GY + 70 ? 26 : -24), COLORS.bad, 28);
+      if (big) this.shotWord('MINE!', s.owner, x, y, COLORS.bad, 28);
       log.misses++;
       this.volley.misses++;
     } else {
       sfx.play('splash');
       this.burst(x, y, '#bfe9ff', big ? 12 : 6, big ? 140 : 70, big ? 3 : 2);
-      if (big && !s.quiet) this.pop('Splash', x, y + (y < GY + 70 ? 24 : -22), '#bfe9ff', 18);
+      if (big && !s.quiet) this.shotWord('Splash', s.owner, x, y, '#bfe9ff', 18);
       log.misses++;
       this.volley.misses++;
     }
