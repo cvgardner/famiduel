@@ -1082,9 +1082,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       fine for a kid's opponent, but watch it in playtests.
 
 ## Ideas found 2026-11-01 (ping pong landing spot run)
-- [ ] Hard Snake turns about 3× as often as Easy/Normal (it re-plans territory every cell);
+- [x] Hard Snake turns about 3× as often as Easy/Normal (it re-plans territory every cell);
       fine for strength, but if a kid calls it twitchy, a "turns per second" motion check
       like Tanks' wag measure would show it.
+      2026-11-14 (F281): measured over 20 matches each against a normal bot: easy 0.41, normal
+      0.50, hard 0.77 turns a second (snakes move ~9 cells a second), so hard turns ~1.7× as
+      often as easy, not 3×, and calmly. No bot change; tests/snake-turn-rate.test.ts keeps
+      hard under 1.5 turns a second.
 - [x] Penalty's first shooter wins ~54% between equal bots. If families feel it, an ABBA
       order (A, B, B, A...) is the known fix in real shootouts; measure before changing.
       2026-11-07 (F95): no edge now. Each seed played twice with the starter forced to each
