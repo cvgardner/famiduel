@@ -231,6 +231,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* The result's buttons fade in while it ignores taps (RESULT_SETTLE_MS), instead of looking broken. */
 #result.settling .btn:disabled { opacity: 0.6; }
 #result .btn { transition: opacity 0.25s; white-space: nowrap; }
+/* F310: with Bigger text on a 320px phone, Games + Rematch were ~310px wide in a 296px row and
+   spilled past the screen edge on wider (Linux CI) fonts; a narrow phone gets a roomier row. */
+@media (max-width: 340px) {
+  #result .intro-mid { padding-inline: 8px; gap: 8px; }
+  #result .intro-mid .btn { padding-inline: 14px; min-width: 0; }
+}
 #helpResume, #resumeBtn { white-space: nowrap; }
 .btn-ico { margin-right: 6px; }
 
@@ -372,10 +378,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
    link (~46px), which pushed the first game card a quarter below the fold with Bigger text.
    Tighter gaps keep a whole card on screen; tap targets keep their size. */
 @media (max-height: 600px) {
-  #home { gap: 10px; }
+  /* CI's Linux fonts sit taller than a phone's: keep ~20px spare so the card stays whole. */
+  #home { gap: 8px; }
   .brand { padding-top: 0; }
   .brand .tag { display: none; }
-  .versus { padding: 8px 10px; gap: 8px; }
+  .versus { padding: 8px 10px; gap: 6px; }
+  .group { gap: 6px; }
   /* After a match the "New night" link sits beside the score instead of under it; the
      label's words stay for screen readers ("1 – 0 · 2 games" still reads as the night). */
   .night:has(#newNightBtn) { flex-direction: row; gap: 6px; }
