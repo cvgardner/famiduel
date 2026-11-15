@@ -2401,3 +2401,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       missing every serve, so idle Ping Pong matches ended in the sim (avg 43 s) while the app
       rallied forever; it now rests on its line like the app (35% end inside 5 min, the rest
       rally). tests/sim-both-idle.test.ts.
+- [x] 2026-11-15 (F323, PR #352): a pause the match made itself (F322) says why under "Paused":
+      "Nobody was playing, so we paused.", so a family coming back knows nobody pressed
+      anything; a held pause keeps the plain sheet. `.sheet .why`, e2e checks both.
