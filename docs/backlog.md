@@ -2076,3 +2076,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (powerPopY()), so the rise ends short of the clock: 0.5-1.3% left, from a power used while
       "+N" pops fill every line (fx.pop then stacks the name back toward the field, and can put
       "Mouth!" above "Magnet"). tests/snacksnatch-power-clock.test.ts.
+- [x] 2026-11-14 (F273): Sea Battle's shot words ("Splash", "HIT!", "MINE!") popped a fixed line
+      above the shot square (below on the top rows), often right on the defender's own ships on
+      their big "Your ships" board (26,438 of 49,218 readable frames in 48 bot matches). shotWord()
+      now takes the spot near the square (a line or two above or below, up to three squares
+      sideways, inside the board) whose words cover the fewest shown ships, then the fewest shot
+      marks: 305 frames left. tests/seabattle-shot-words.test.ts.
