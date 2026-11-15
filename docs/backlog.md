@@ -2396,6 +2396,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       people think between shots. Runner.watchIdle()/onIdle, tests/idle-pause.test.ts, e2e
       'two people who both walk away ...'.
 ## Ideas found 2026-11-15 (14:17 run, 320 px sweep with long names)
-- [x] 2026-11-15 (F325, PR #PRNUM): playing the bot, Tank Duel's bot half read "bot: 1 bonk" and
+- [x] 2026-11-15 (F325, PR #351): playing the bot, Tank Duel's bot half read "bot: 1 bonk" and
       Chop Chop's rival pill "bot: 9" in lower case, while every other card calls it "Bot"; both
       now use the bot's own name ("Bot: 1 bonk", "Bot: 9"). tests/bot-name.test.ts.
