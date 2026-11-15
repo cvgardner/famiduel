@@ -2184,6 +2184,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       placement misfits do (F257). tests/seabattle-refused.test.ts. Hidden board games
       (Checkers, Four in a Row) still only buzz on a refused move; no work on them.
 
+## Ideas found 2026-11-15 (power sweep F291 follow-ups)
+- [x] 2026-11-15 (F294): Snack Snatch Magnet beat Sticky 87% at normal (n=240). Cause: honey
+      poured while the other Magnet pulls kills the snacks' speed, so the magnet steers every
+      slowed snack straight across. Normal and hard bots now wait the other side's Magnet out
+      before pouring honey (a person sees the telegraphed power); easy bots don't plan. Normal
+      Magnet v Sticky 87% -> 69% (n=240), easy unchanged (57%), every other cell unchanged.
+      Rule tweaks tried and reverted (n=240-480): the magnet pulling a snack in the other's
+      honey at 0.8 / 0.6 / 0.3 strength took normal to 66 / 57 / 53% but pushed easy Sticky's
+      average to 67 / 70 / 74% (it already beats None 83% at easy); a smaller honey (155/140)
+      did the same. Every honey/magnet rule trades normal for easy (as F110 found for hard);
+      the remaining gap is Magnet fired into honey already poured. tests/snacksnatch-sticky-waits.test.ts.
 ## Ideas found 2026-11-15 (head-to-head power sweep)
 - [x] 2026-11-15 (F291, measured): `npm run sim:powers` at easy/normal/hard (n=80, suspects
       rechecked at n=240), head-to-head pairs only. In band: Air Hockey, Ping Pong (hard
