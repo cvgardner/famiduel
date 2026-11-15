@@ -2313,5 +2313,3 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       first ship of the tally with Bigger text on a 320 px phone (pills started at a fixed
       GX + 86). The tally now starts 10 units after the label as drawn and shrinks evenly to
       end at the grid's edge; tallyLayout(), tests/seabattle-tally.test.ts.
-- [ ] F314: Sea Battle's hand-over screen with a 12-letter name runs off the screen edges.
-- [ ] F315: Minigolf's strip name and "<name>'s shot" banner with a 12-letter name.
