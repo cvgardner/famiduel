@@ -2036,7 +2036,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the round card (solo-round-quickdraw.png); a young kid won't read a dash. It now says
       "You: no shot" / "Bot: no shot" (timeLine()), shrunk to fit its half of the card with
       Bigger text (TIME_W); tests/quickdraw-no-shot.test.ts.
-- [x] 2026-11-14 (F265, PR #TBD): Ping Pong: the first-match hint "Flick up hard: SMASH" sat at
+- [x] 2026-11-14 (F265, PR #296): Ping Pong: the first-match hint "Flick up hard: SMASH" sat at
       MID ± 150, right on that seat's dashed lunge line (MID ± 152; lefty-pingpong.png, both
       seats). Both hint lines now sit between the score card and the lunge line (hintLines());
       tests/pingpong-hint-lines.test.ts checks the bands with and without Bigger text.
