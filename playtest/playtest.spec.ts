@@ -606,6 +606,33 @@ test('ghost finger: Minigolf\'s card stays off the hole card through GO, on a sm
   expect(errors).toEqual([]);
 });
 
+test('ghost finger: Sea Battle\'s first match against the bot opens on the fleet with no finger and no 3-2-1, on a small phone', async ({ page }) => {
+  // F274: the in-play finger (the firing tap) looped over the "hide your fleet" screen, its dark
+  // card on the Ready button, and a "3 2 1" sat on Shuffle and Ready. A match that opens on a
+  // setup screen gets neither; Penalty still gets both.
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await setPlayers(page, [null, 'normal']);
+  type H = { openGame(id: string): void; startMatch(): void; showHome(): void; store: { data: { history: { game: string }[] } }; runner: { countdownLeft(): number; game: { opensOnSetup?(): boolean } } };
+  const open = (id: string) =>
+    page.evaluate((g) => {
+      const a = (window as unknown as { __famiduel: H }).__famiduel;
+      a.store.data.history = [];
+      a.showHome();
+      a.openGame(g);
+      a.startMatch();
+      return { setup: !!a.runner.game.opensOnSetup?.(), fingers: document.querySelectorAll('#play .play-demo').length, countdown: a.runner.countdownLeft() > 0 };
+    }, id);
+  const sea = await open('seabattle');
+  await page.screenshot({ path: path.join(OUT, 'ghost-finger-seabattle-fleet.png') });
+  expect(sea, 'Sea Battle opens on the fleet with no finger').toEqual({ setup: true, fingers: 0, countdown: false });
+  const pen = await open('penalty');
+  expect(pen, 'Penalty keeps its first-match finger').toEqual({ setup: false, fingers: 1, countdown: true });
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
+  expect(errors).toEqual([]);
+});
+
 test('countdown: no game words under a person\'s "3 2 1" digit, on a small phone', async ({ page }) => {
   // F158: Chop Chop's "Round 1" card, Penalty's "Kick in 3" and Quick Draw's "Steady…" sat
   // under the digit (F155-F157, found by eye). Every label drawn during the countdown is

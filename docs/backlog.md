@@ -2082,3 +2082,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       now takes the spot near the square (a line or two above or below, up to three squares
       sideways, inside the board) whose words cover the fewest shown ships, then the fewest shot
       marks: 305 frames left. tests/seabattle-shot-words.test.ts.
+- [x] 2026-11-14 (F274): Sea Battle against the bot opened on "hide your fleet" under a "3 2 1"
+      (the digit sat on Shuffle and Ready) and, at the first match on a phone, the in-play ghost
+      finger looped the firing tap with its dark card on the Ready button. A game that opens on
+      a setup screen says so (opensOnSetup()); the runner skips the countdown there and the app
+      skips the in-play finger, as it already did for the pass-the-phone cover (F159). The
+      intro's finger still teaches the tap. tests/setup-start.test.ts + playtest "ghost finger:
+      Sea Battle's first match ...".

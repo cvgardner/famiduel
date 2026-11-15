@@ -52,7 +52,8 @@ export class Runner {
         if (!this.result) this.result = r;
       },
     });
-    if (this.game.opensOnCover?.()) this.countdown = 0;
+    // F274: nor before a setup screen (Sea Battle's fleet: "3" sat on Shuffle and Ready).
+    if (this.game.opensOnCover?.() || this.game.opensOnSetup?.()) this.countdown = 0;
     stage.onStep = (dt) => this.step(dt);
     stage.onRender = (g) => this.render(g);
   }

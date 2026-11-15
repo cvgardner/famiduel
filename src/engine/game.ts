@@ -41,6 +41,12 @@ export interface GameInstance {
    * its own "ready" step, so the runner skips the "3 2 1" (a turn game needs no GO).
    */
   opensOnCover?(): boolean;
+  /**
+   * F274: true when the match opens on a setup screen of the view's own (Sea Battle's "hide
+   * your fleet"), not on play: no "3 2 1" (nothing is timed yet) and no in-play ghost finger
+   * (it showed the play gesture over the setup's buttons).
+   */
+  opensOnSetup?(): boolean;
 }
 
 /** A player's power meter in a running game, if its rules have one (`game.energy`). */

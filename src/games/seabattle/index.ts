@@ -111,6 +111,11 @@ class SeaBattleView implements GameInstance {
     return this.mode.kind === 'cover';
   }
 
+  /** F274: playing the bot, the match opens on placing the fleet (the finger showed firing over Ready). */
+  opensOnSetup(): boolean {
+    return this.mode.kind === 'place';
+  }
+
   private get twoHumans(): boolean {
     return this.humans.length === 2;
   }
