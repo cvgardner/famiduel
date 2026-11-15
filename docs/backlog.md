@@ -2259,3 +2259,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       since the bare glyph wouldn't read 3:1 on the pale sand; the wrestler shows round it.
       tests/sumo-pause-ring.test.ts; the 'pause button' playtest checks ring + core on Sumo
       and saves pause-button-sumo.png.
+- [x] 2026-11-15 (F305): Fewest taps to play (a rival two-player minigame app's top store
+      complaint is a hard-to-navigate UI): e2e/taps.spec.ts counts the taps home -> playing
+      (3), result -> rematch (3) and result -> another game (4) at 390x844 and at 320x568 with
+      Bigger text, and checks every button on those paths shows without scrolling. Counts in
+      docs/verification.md.
