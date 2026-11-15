@@ -912,7 +912,9 @@ class MinigolfView implements GameInstance {
     const lead = g.leadOff;
     if (!silentSeat(this.ctx.players, p)) {
       const who = lead === p ? 'You tee off first' : `${this.ctx.players[lead].name} tees off first`;
-      text(gx, who, W / 2, y + 42, { size: 14, color: liftOn(this.ctx.players[lead].color, INTRO_CARD), weight: 700 });
+      // F320: fitted to the card (a 12-letter name ran to its edges with Bigger text).
+      const tee = fitName(gx, who, W - 80 - 24, 14, ' tees off first');
+      text(gx, tee.str, W / 2, y + 42, { size: tee.size, color: liftOn(this.ctx.players[lead].color, INTRO_CARD), weight: 700 });
     }
     gx.globalAlpha = 1;
   }
@@ -935,7 +937,10 @@ class MinigolfView implements GameInstance {
     const hy = y0 + 46;
     text(gx, 'Hole', colHole, hy, { size: 13, color: '#7a6f99', align: 'left' });
     text(gx, 'You', colA, hy, { size: 13, color: shade(this.ctx.players[p].color, -0.25) });
-    text(gx, short(this.ctx.players[q].name), colB, hy, { size: 13, color: shade(this.ctx.players[q].color, -0.25) });
+    // F320: the other seat's column header, cut to the room between "You" and the card's edge
+    // (short()'s 8 letters + "…" of W's ran over "You" and off the card with Bigger text).
+    const head = fitName(gx, short(this.ctx.players[q].name), 2 * Math.min(x0 + w - 8 - colB, colB - colA - nameWidth(gx, 'You', 13) / 2 - 6), 13);
+    text(gx, head.str, colB, hy, { size: head.size, color: shade(this.ctx.players[q].color, -0.25) });
     line(gx, x0 + 10, hy + 13, x0 + w - 10, hy + 13, 'rgba(43,36,89,0.2)', 1.5);
     for (let i = 0; i < rows; i++) {
       const y = hy + 30 + i * 30;
@@ -963,10 +968,13 @@ class MinigolfView implements GameInstance {
     text(gx, String(tp), colA, ty, { size: 22, color: shade(this.ctx.players[p].color, -0.2) });
     text(gx, String(tq), colB, ty, { size: 22, color: shade(this.ctx.players[q].color, -0.2) });
     // Who is ahead, from this seat
+    const tail = final ? ' wins!' : ` leads by ${tp - tq}`;
     const msg = final
-      ? tp < tq ? 'You win! 🏆' : tq < tp ? `${this.ctx.players[q].name} wins!` : 'All square: a draw!'
-      : tp < tq ? `You lead by ${tq - tp}` : tq < tp ? `${this.ctx.players[q].name} leads by ${tp - tq}` : 'All square!';
-    if (!silentSeat(this.ctx.players, p)) text(gx, msg, W / 2, y0 + hgt + 20, { size: 18, color: '#ffffff', stroke: 'rgba(0,0,0,0.5)' });
+      ? tp < tq ? 'You win! 🏆' : tq < tp ? `${this.ctx.players[q].name}${tail}` : 'All square: a draw!'
+      : tp < tq ? `You lead by ${tq - tp}` : tq < tp ? `${this.ctx.players[q].name}${tail}` : 'All square!';
+    // F320: "<12-letter name> leads by 2" ran off a 320 px screen with Bigger text.
+    const lead = fitName(gx, msg, W - 24, 18, tail);
+    if (!silentSeat(this.ctx.players, p)) text(gx, lead.str, W / 2, y0 + hgt + 20, { size: lead.size, color: '#ffffff', stroke: 'rgba(0,0,0,0.5)' });
     text(gx, 'Lowest total wins', W / 2, y0 + hgt + 40, { size: 13, color: COLORS.dim, weight: 600 });
   }
 }

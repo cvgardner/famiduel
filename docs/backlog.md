@@ -2349,3 +2349,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       half, which peeked out under the card's corner on a 320 px phone. It now stands a little
       smaller (0.8) at MID + 139, in the gap between the cards (to MID + 92) and Slow Time's
       "get ready" line. SIGNAL_CARD / READY_Y, tests/quickdraw-cactus.test.ts.
+
+## Ideas found 2026-11-15 (12:17 run, long names on Minigolf's cards)
+- [x] 2026-11-15 (F320): Minigolf between two people with 12-letter names on a 320 px phone
+      with Bigger text: the scorecard's "<name> leads by 2" ran off the screen, its column
+      header ("WWWWWWWW…") ran over "You" and off the card, and the hole card's "<name> tees off
+      first" reached its card's edges. All three are fitted (fitName, keeping " leads by N" /
+      " wins!" / " tees off first"); tests/minigolf-long-names.test.ts,
+      e2e/minigolf-long-names.spec.ts (edge probe over the hole card and the scorecard; fails
+      on the old lines).
