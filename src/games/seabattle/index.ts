@@ -432,7 +432,7 @@ class SeaBattleView implements GameInstance {
       return;
     }
     const kind = this.armed === 'radar' ? 'radar' : this.armed === 'airstrike' ? 'airstrike' : this.armed === 'mine' ? 'mine' : 'fire';
-    this.doMove({ kind, cell });
+    this.doMove({ kind, cell }, true);
   }
 
   private togglePower(p: PlayerIndex): void {
@@ -445,9 +445,20 @@ class SeaBattleView implements GameInstance {
       this.ctx.sfx.play('power');
     } else {
       this.ctx.sfx.play('buzz');
+      // F293: a power that isn't ready only buzzed; say why on the sea above the button.
+      this.misfit(g.usedFree.has(pw) ? 'Used up this match' : 'Not charged yet', 264, GY + N * C);
       return;
     }
     this.aim = null;
+  }
+
+  /** F293: why a person's shot was refused (it only buzzed before), for the words on the sea. */
+  private refused(mv: Move): string {
+    const enemy = this.game.seas[other(this.game.turn)];
+    if (mv.kind === 'fire') return enemy.marks[mv.cell] !== MARK.none ? 'Already fired there' : "Can't fire now";
+    if (mv.kind === 'airstrike') return 'Nothing left to hit there';
+    if (mv.kind === 'mine') return "Can't hide a mine there";
+    return "Can't scan now";
   }
 
   private botStep(m: Extract<Mode, { kind: 'bot' }>, busy: boolean): void {
@@ -475,11 +486,13 @@ class SeaBattleView implements GameInstance {
     }
   }
 
-  private doMove(mv: Move): void {
+  private doMove(mv: Move, person = false): void {
     const g = this.game;
     const a = g.turn;
+    const why = person ? this.refused(mv) : '';
     if (!g.apply(mv)) {
       this.ctx.sfx.play('buzz');
+      if (person) this.misfit(why, GX + (mv.cell % N) * C + C / 2, GY + Math.floor(mv.cell / N) * C + C / 2);
       return;
     }
     if (mv.kind === 'fire' || mv.kind === 'airstrike') {

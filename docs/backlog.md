@@ -2174,6 +2174,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       overlap 1 px at Snack Snatch's power button and critters). Tanks' FIRE and stick and
       Sumo's HOLD are drawn outside the Button walk; Tanks' FIRE has its own edge check.
 
+## Ideas found 2026-11-15 (research: nothing only heard)
+- [x] 2026-11-15 (F293, PR #318): Xbox Accessibility Guideline 103 (game sounds need a
+      visual twin; families often play muted). Every `sfx.play` in the action games and Sea
+      Battle / RPS was checked beside its visual. Only Sea Battle had taps that just buzzed:
+      firing at a square already fired at ("Already fired there"), an airstrike row with
+      nothing left, a mine where it can't go, and a power that isn't charged or is used up
+      ("Not charged yet" / "Used up this match"); the words now pop on the sea, as the
+      placement misfits do (F257). tests/seabattle-refused.test.ts. Hidden board games
+      (Checkers, Four in a Row) still only buzz on a refused move; no work on them.
+
 ## Ideas found 2026-11-15 (head-to-head power sweep)
 - [x] 2026-11-15 (F291, measured): `npm run sim:powers` at easy/normal/hard (n=80, suspects
       rechecked at n=240), head-to-head pairs only. In band: Air Hockey, Ping Pong (hard
