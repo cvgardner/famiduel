@@ -2246,3 +2246,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       player who lost the point read it as theirs. Each seat now reads whose point it was:
       "Your point!" for the scorer, "Their point" (or "Bot's point") for the other seat
       (pointLines()); a bot facing the one person says nothing. tests/pingpong-point-words.test.ts.
+- [x] 2026-11-15 (F300): Minigolf's strip status line ran under the Hole score with Bigger text
+      on a 320 px phone ("Your shot! Pull back, let go" over the "0"). The line now takes the
+      longest wording that fits before the nearer score column (fitLine(), STATUS_GAP 8):
+      "Pull back, let go" / "Your shot!", "<name> shoots" / "Wait…", badges alone. The usual
+      text size keeps the full line. Playtest 'minigolf: the strip's status line stays clear'
+      boxes both strips' words; tests/minigolf-strip.test.ts.

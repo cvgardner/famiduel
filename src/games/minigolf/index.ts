@@ -3,7 +3,7 @@
 import { dailyHoleIds } from './daily';
 import { clearLine, turned, type Box } from './bannerline';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, scaledSize, silentSeat, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -22,6 +22,13 @@ const MAX_PULL = 120;
 const MIN_PULL = 14;
 const TURN_ANIM = 0.6;
 const STRIP = 62;
+/** Room kept between a strip's status line and the nearer score column (F300). */
+export const STATUS_GAP = 8;
+
+/** The first wording that fits `room` (longest first); the last one if none does. */
+export function fitLine(lines: string[], room: number, width: (str: string) => number): string {
+  return lines.find((l) => width(l) <= room) ?? lines[lines.length - 1];
+}
 /** Height of the coloured outer edge of each player's strip (see drawStrip). */
 const EDGE = 3;
 /** The dark cards behind the hole intro and the "<name>'s shot" line. */
@@ -755,10 +762,14 @@ class MinigolfView implements GameInstance {
     // Lifted for the dark strip: Purple was 4.3:1 there.
     text(gx, name, x0, y0 + 19, { size: 17, color: liftOn(c, STRIP_CARD), align: 'left' });
     let status: string;
+    // F300: shorter wordings, longest first, for when Bigger text leaves no room for the full
+    // line before the Hole / Total columns (it ran under the Hole score at 320 px).
+    let shorter: string[] = [];
     let sc: string = COLORS.dim;
     if (g.phase === 'over') status = 'Match over';
     else if (myTurn) {
       status = this.bots[p] ? 'Lining up…' : 'Your shot! Pull back, let go';
+      if (!this.bots[p]) shorter = ['Pull back, let go', 'Your shot!'];
       sc = '#ffffff';
     } else if (g.balls[p].done && g.phase !== 'card' && g.phase !== 'intro') status = g.balls[p].sunk ? 'In the hole ✓' : 'Picked up';
     else if (g.phase === 'roll' && g.shooter === p) status = 'Rolling…';
@@ -772,7 +783,10 @@ class MinigolfView implements GameInstance {
     // While a bot lines up its shot the waiting seat reads the same "🤖 Bot is thinking…"
     // line as the board games, so the pause reads as the bot's, not a stuck game.
     else if (this.bots[other(p)] && (g.phase === 'turn' || g.phase === 'aim')) status = waitingLine(this.ctx.players[other(p)]);
-    else status = `Wait · ${this.ctx.players[other(p)].name} shoots`;
+    else {
+      status = `Wait · ${this.ctx.players[other(p)].name} shoots`;
+      shorter = [`${this.ctx.players[other(p)].name} shoots`, 'Wait…'];
+    }
     // Armed power badges
     const badges: string[] = [];
     if (g.magnet[p]) badges.push('🧲');
@@ -781,10 +795,21 @@ class MinigolfView implements GameInstance {
     const quiet = silentSeat(this.ctx.players, p);
     if (g.wind[p]) badges.push(quiet ? '🌬️ wind' : '🌬️ on you');
     if (g.wind[p]?.dir && myTurn) badges[badges.length - 1] = '🌬️ Wind!';
-    if (badges.length) status = myTurn ? `${badges.join(' ')} · ${this.bots[p] ? 'Lining up…' : 'Pull back, let go'}` : `${badges.join(' ')} next shot`;
+    if (badges.length) {
+      status = myTurn ? `${badges.join(' ')} · ${this.bots[p] ? 'Lining up…' : 'Pull back, let go'}` : `${badges.join(' ')} next shot`;
+      shorter = myTurn && !this.bots[p] ? [`${badges.join(' ')} · Shoot!`, badges.join(' ')] : [badges.join(' ')];
+    }
+    const hs = g.phase === 'card' || g.phase === 'over' || g.phase === 'intro' ? '–' : String(g.balls[p].strokes);
+    // The status line ends before the nearer score column's widest word.
+    const wide = (str: string, size: number, weight = 800) => {
+      gx.font = `${weight} ${scaledSize(size)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+      return gx.measureText(str).width;
+    };
+    const near = Math.min(colHole, colTotal);
+    const colHalf = Math.max(wide('Hole', 13), wide(hs, 24), wide('Total', 13), wide(String(g.total(p)), 24)) / 2;
+    status = fitLine([status, ...shorter], near - colHalf - STATUS_GAP - x0, (str) => wide(str, 13, 700));
     text(gx, status, x0, y0 + 42, { size: 13, color: sc, align: 'left', weight: 700 });
     // Scores
-    const hs = g.phase === 'card' || g.phase === 'over' || g.phase === 'intro' ? '–' : String(g.balls[p].strokes);
     text(gx, 'Hole', colHole, y0 + 14, { size: 13, color: COLORS.dim });
     text(gx, hs, colHole, y0 + 36, { size: 24, color: '#ffffff' });
     text(gx, 'Total', colTotal, y0 + 14, { size: 13, color: COLORS.dim });

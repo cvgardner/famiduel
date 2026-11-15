@@ -3029,6 +3029,54 @@ for (const [id, person] of boardPersons) {
 
 // Minigolf is a turn game too: while the bot lines up its shot, the person's strip says so
 // with the same line as the board games ("🤖 Bot is thinking…").
+// F300: with Bigger text on a 320 px phone the strip's "Your shot! Pull back, let go" ran under
+// the Hole score. Both strips' words are boxed by the draw probe; no status line may meet a
+// score column, and with the usual text size the full line still shows.
+test('minigolf: the strip\'s status line stays clear of the Hole / Total columns, Bigger text on a small phone', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await setPlayers(page, [null, null]);
+  type Box = { str: string; size: number; l: number; t: number; r: number; b: number };
+  const strips = async (shot?: string) => {
+    await openFromHome(page, 'minigolf');
+    await introAsPeople(page, [0, 1]);
+    await page.waitForTimeout(2600); // the hole card, then the first shooter aims
+    const boxes = await page.evaluate(async () => {
+      const w = window as unknown as { __boxes: { on: boolean; boxes: Box[] } };
+      const frame = () => new Promise((res) => requestAnimationFrame(() => res(null)));
+      w.__boxes.boxes = [];
+      w.__boxes.on = true;
+      await frame();
+      w.__boxes.on = false;
+      return w.__boxes.boxes;
+    });
+    if (shot) await page.screenshot({ path: path.join(OUT, shot) });
+    await leaveMatch(page);
+    return boxes;
+  };
+  const isCol = (b: Box) => /^(Hole|Total|\d+|–)$/.test(b.str);
+  const isStatus = (b: Box) => /shot|shoots|Wait|Pull back/.test(b.str);
+  const overlaps = (boxes: Box[]) => {
+    const hits: string[] = [];
+    for (const s of boxes.filter(isStatus))
+      for (const c of boxes.filter(isCol))
+        if (s.l < c.r - 1 && s.r > c.l + 1 && s.t < c.b - 1 && s.b > c.t + 1) hits.push(`"${s.str}" meets "${c.str}"`);
+    return hits;
+  };
+  const usual = await strips();
+  expect(usual.filter(isStatus).length, 'both strips show a status line').toBeGreaterThanOrEqual(2);
+  expect(usual.map((b) => b.str), 'the usual text size keeps the full line').toContain('Your shot! Pull back, let go');
+  expect(overlaps(usual), 'usual text: status lines clear of the score columns').toEqual([]);
+  await page.click('#settingsBtn');
+  await page.locator('input[data-k="bigText"]').check();
+  await page.click('#settingsBack');
+  const big = await strips('minigolf-strip-bigtext-320.png');
+  expect(big.filter(isStatus).length, 'both strips show a status line with Bigger text').toBeGreaterThanOrEqual(2);
+  expect(overlaps(big), 'Bigger text: status lines clear of the score columns').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('minigolf: the waiting player sees the bot lining up', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
