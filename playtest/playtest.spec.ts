@@ -2609,7 +2609,7 @@ test('minigolf: every hole comes up in a match, fits the phone and can be finish
         const idx = g.holes.findIndex((x) => x.id === id);
         if (idx < 0) continue;
         g.startHole(idx);
-        app.runner!.fastForward(5); // countdown and the hole card
+        app.runner!.fastForward(3.2); // the hole card and into the first turn (F276: no countdown before it now)
         return { idx, tries, phase: g.phase, pars: g.holes.map((x) => x.par) };
       }
       return null;
