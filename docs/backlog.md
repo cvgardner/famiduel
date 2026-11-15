@@ -2044,3 +2044,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       pot stayed a red "0" in the field next to the bowl (solo-round-snacksnatch.png), which
       read like a third score. The clock now goes blank at 0 (the ring already shows empty);
       tests/snacksnatch-time-up.test.ts.
+- [x] 2026-11-14 (F267 + F268, PR #298): Penalty: a scored ball rolled on through the back of
+      the 30-deep net and stopped on the keeper's right arrow (solo-round-penalty.png), and a
+      wide or over shot rolled ~130 units past the goal line, over the keeper's buttons. A goal
+      now stops at the back of the net, inside the posts (RULES.netDepth); any other ball stops
+      at most RULES.missRoll (50) past the goal line and inside the pitch lines (holdBall());
+      tests/penalty-ball-stops.test.ts plays 18 bot matches and checks every result frame.

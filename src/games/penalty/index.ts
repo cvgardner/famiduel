@@ -328,7 +328,7 @@ class PenaltyView implements GameInstance {
     const active = g.keeper === k && g.phase !== 'done';
     const gw = g.goalW(other(k));
     const gy = RULES.goalY[k];
-    const back = k === 1 ? -30 : 30;
+    const back = k === 1 ? -RULES.netDepth : RULES.netDepth;
     const x0 = W / 2 - gw / 2;
     gx.globalAlpha = active ? 1 : 0.55;
     rrect(gx, x0, Math.min(gy, gy + back), gw, Math.abs(back), 4, 'rgba(255,255,255,0.18)');
