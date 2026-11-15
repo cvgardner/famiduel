@@ -2309,7 +2309,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       8px sides and gap and 14px button sides (local 16px spare each side).
 
 ## Ideas found 2026-11-15 (11:17 run, long names in Minigolf)
-- [x] 2026-11-15 (F315, PR #TBD): with a 12-letter name and Bigger text on a 320 px phone,
+- [x] 2026-11-15 (F315, PR #341): with a 12-letter name and Bigger text on a 320 px phone,
       Minigolf's strip name ran under the "Hole" header and "<name>'s shot" out of its card.
       The strip name now fits the room before the score columns (as the status line, F300),
       the card widens up to the course's width for a long name, and a name that won't fit
