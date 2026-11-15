@@ -60,7 +60,8 @@ To look at one game quickly: build, `npx vite preview`, open `/?seed=x`, then in
 ## Taps to play (F305)
 
 `e2e/taps.spec.ts` counts the taps on the common paths at 390x844 and at 320x568 with Bigger
-text, and fails if a button on them is off screen (needs a scroll): home -> playing 3 (the
+text, and fails if a button or game card on them is not wholly on screen (needs a scroll; F307
+holds the first card whole even after a match): home -> playing 3 (the
 game's card, then each person's Ready), result -> rematch 3 (Rematch + each Ready), result ->
 another game 4 (Games, the card, each Ready). If a change adds a tap, update the counts here
 and say why in the PR.
