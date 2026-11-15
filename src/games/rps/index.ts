@@ -56,6 +56,11 @@ class RpsView implements GameInstance {
     return this.pass;
   }
 
+  /** F275: playing the bot, the match opens on the person's pick, which nothing times. */
+  opensOnPick(): boolean {
+    return !this.pass;
+  }
+
   private color(p: PlayerIndex): string {
     return this.ctx.players[p].color;
   }

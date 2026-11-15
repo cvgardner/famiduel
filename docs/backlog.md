@@ -2089,3 +2089,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       skips the in-play finger, as it already did for the pass-the-phone cover (F159). The
       intro's finger still teaches the tap. tests/setup-start.test.ts + playtest "ghost finger:
       Sea Battle's first match ...".
+- [x] 2026-11-14 (F275, PR #305): Rock Paper Scissors against the bot opened on a 1.8 s "3 2 1"
+      though nothing is timed (the round waits for the person's pick); the digit sat on the hands
+      and "Pick one!" couldn't be answered until it ended. opensOnPick() lets the runner skip the
+      countdown there; the first-match ghost finger stays, since it shows the tap on the hands.
+      The bot still waits its usual 0.4-2 s before picking ("Choosing..."). tests/setup-start.test.ts
+      + playtest "ghost finger: Rock Paper Scissors against the bot opens on the pick ...".

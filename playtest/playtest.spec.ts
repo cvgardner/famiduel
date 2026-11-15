@@ -633,6 +633,29 @@ test('ghost finger: Sea Battle\'s first match against the bot opens on the fleet
   expect(errors).toEqual([]);
 });
 
+test('ghost finger: Rock Paper Scissors against the bot opens on the pick with no 3-2-1 but keeps its finger, on a small phone', async ({ page }) => {
+  // F275: the match opened on a 1.8 s "3 2 1" though nothing is timed (the round waits for the
+  // person's pick); the digit sat on the hands and "Pick one!" couldn't be answered until it
+  // ended. It now opens straight on the pick; the first-match finger still shows the tap.
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await setPlayers(page, [null, 'normal']);
+  type H = { openGame(id: string): void; startMatch(): void; showHome(): void; store: { data: { history: { game: string }[] } }; runner: { countdownLeft(): number; game: { opensOnPick?(): boolean } } };
+  const rps = await page.evaluate(() => {
+    const a = (window as unknown as { __famiduel: H }).__famiduel;
+    a.store.data.history = [];
+    a.showHome();
+    a.openGame('rps');
+    a.startMatch();
+    return { pick: !!a.runner.game.opensOnPick?.(), fingers: document.querySelectorAll('#play .play-demo').length, countdown: a.runner.countdownLeft() };
+  });
+  await page.screenshot({ path: path.join(OUT, 'ghost-finger-rps-pick.png') });
+  expect(rps, 'RPS opens on the pick, finger kept, no countdown').toEqual({ pick: true, fingers: 1, countdown: 0 });
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
+  expect(errors).toEqual([]);
+});
+
 test('countdown: no game words under a person\'s "3 2 1" digit, on a small phone', async ({ page }) => {
   // F158: Chop Chop's "Round 1" card, Penalty's "Kick in 3" and Quick Draw's "Steady…" sat
   // under the digit (F155-F157, found by eye). Every label drawn during the countdown is
