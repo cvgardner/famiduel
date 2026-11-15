@@ -392,8 +392,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Bumper Bowl now sits among the par 2s; Lily Pond and Hill Climb lead the par 3s.
 
 ## Ideas found 2026-10-31 (haptics run)
-- [ ] Store wrapper: plug a native haptics call (Capacitor Haptics, iOS Taptic) into
-      `new Haptics(vibrate)` so iPhones get the same feel.
+- [x] 2026-11-15 (iOS store build): Store wrapper: native haptics. `engine/native.ts` turns
+      each vibration pattern into a Taptic feel inside the iOS app (tests/native.test.ts).
 - [ ] Haptics per seat isn't possible on one phone (both players feel every buzz); keep
       patterns for shared moments only. If kids find it distracting, default it off for
       the turn-based games.
@@ -1627,8 +1627,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       for room). At iPad portrait 768x1024 home, intros and Air Hockey / Sumo / Minigolf fill
       the height with 96 px side bars, buttons and text as on a phone: fine. In landscape
       (1024x768) the portrait board is a narrow column at about 1.2x with wide bars.
-- [ ] Store wrapper: lock portrait, also on iPad (UIRequiresFullScreen / Capacitor
-      orientation), so a landscape tablet never shows the narrow board (F168). A turned
+- [x] 2026-11-15 (iOS store build): Store wrapper: portrait only (Info.plist and
+      GameViewController). v1 is iPhone-only, so an iPad runs the iPhone app, portrait (F168). A turned
       landscape layout would need the world rotated and input remapped: only if families ask.
 
 ## Ideas found 2026-11-08 (bigger-text solo run)

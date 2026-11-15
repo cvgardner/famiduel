@@ -218,7 +218,7 @@ export class App {
           </div>` + this.toggle('bigText', '🔠', 'Bigger text', 'Larger words in games and menus', !!settings.bigText) +
           this.toggle('bigButtons', '🖐️', 'Little hands', 'Bigger Ready and power buttons, in games too', !!settings.bigButtons), 'Auto follows your phone\'s light or dark mode.')}
       ${group('For grown-ups', `<button class="set-row set-link" id="grownUps"><span class="set-ico" aria-hidden="true">👪</span><span class="set-txt"><b>Grown-ups corner</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
-      <footer class="foot">FamiDuel prototype · no ads, no accounts · everything stays on this device</footer>`;
+      <footer class="foot">FamiDuel · no ads, no accounts · everything stays on this device</footer>`;
     $('#grownUps').addEventListener('click', () => {
       this.sfx.play('tap');
       this.showGate(() => this.showGrownUps());
@@ -746,10 +746,16 @@ export class App {
     });
     // A call, a notification or switching apps pauses the match, so coming back
     // shows the pause sheet (and Resume's 3-2-1) instead of a puck already moving.
+    this.interrupt = () => {
+      if (inPlay() && !this.runner?.result) this.pause();
+    };
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden' && inPlay() && !this.runner?.result) this.pause();
+      if (document.visibilityState === 'hidden') this.interrupt();
     });
   }
+
+  /** Pauses a running match because the app left the screen (also the iOS app's pause event, see main.ts). */
+  interrupt: () => void = () => undefined;
 
   /** Quick taps on the pause button that did not pause (playtest counts them). */
   pauseTaps = 0;

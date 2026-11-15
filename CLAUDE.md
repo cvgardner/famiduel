@@ -79,4 +79,22 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
 - Settled (don't reopen without new evidence): Sea Battle's seat bias was noise (2000
   mirrored games, 49-50%); Minigolf's easy bot was made weaker for small kids (+0.8 over par).
 - Not built yet: ads / remove-ads unlock, highlight clips, rivalry cards, daily course sharing,
-  Family Wrapped, store wrapper (Capacitor), mini pool.
+  Family Wrapped, mini pool.
+
+## iOS store build (15 Nov 2026, Chris: "get the app in front of users, not iterate more")
+
+- Capacitor 8 wraps the same web build: `capacitor.config.ts`, `ios/` (Swift Package Manager,
+  no CocoaPods). v1 is free, no ads, no purchases, iPhone-only (TARGETED_DEVICE_FAMILY = 1;
+  iPads run the iPhone app), portrait only.
+- Native bits live in `src/engine/native.ts` (no-ops in a browser): Taptic haptics from the
+  same patterns as `engine/haptics.ts`, and the app's pause event pausing a match.
+  `GameViewController` in `ios/App/App/SceneDelegate.swift`: no status bar, edge swipes
+  deferred (both short edges are play areas), home indicator auto-hides.
+- Bundle ID placeholder `com.gardenogames.famiduel`: set the real one with
+  `scripts/ios-set-ids.sh`. Release steps: docs/release-checklist.md; store text and form
+  answers: docs/app-store/; support and privacy pages: site/.
+- `npm run store:art` redraws the icon and splash; `npm run store:shots` takes App Store
+  screenshots (needs a browser, so not in cloud sessions); `npm run ios:release` (Mac only)
+  archives and uploads to TestFlight.
+- When ads or the purchase ship, redo the App Privacy and age rating answers and the privacy
+  policy (docs/app-store/app-review-answers.md).
