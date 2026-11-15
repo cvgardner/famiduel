@@ -129,7 +129,8 @@ export function drawCover(
   const tap = tapLines(gx, picker.name);
   text(gx, tap.lines[0], W / 2, 432, { size: tap.size, color: ink });
   text(gx, tap.lines[1], W / 2, 458, { size: tap.size, color: ink });
-  if (note) text(gx, note, W / 2, 530, { size: 16, color: COLORS.gold, weight: 700 });
+  // F319: "<12-letter name> has picked ✓" ran off the screen at size 16 with Bigger text.
+  if (note) text(gx, note, W / 2, 530, { size: fitSize(gx, note, W - 24, 16, 700), color: COLORS.gold, weight: 700 });
 }
 
 /** A strip at the far edge of the picker's frame, turned to face the other player. */
