@@ -2307,3 +2307,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       screen's Games + Rematch row: ~310px of buttons in a 296px row spilled past the screen
       edge with CI's wider fonts (Rematch 98.6% on screen); on a 320px phone the row now has
       8px sides and gap and 14px button sides (local 16px spare each side).
+
+## Ideas found 2026-11-15 (11:17 run, long names and Bigger text at 320 px)
+- [x] 2026-11-15 (F313, PR #TBD): Sea Battle's "Their ships" / "Your ships" label ran into the
+      first ship of the tally with Bigger text on a 320 px phone (pills started at a fixed
+      GX + 86). The tally now starts 10 units after the label as drawn and shrinks evenly to
+      end at the grid's edge; tallyLayout(), tests/seabattle-tally.test.ts.
+- [ ] F314: Sea Battle's hand-over screen with a 12-letter name runs off the screen edges.
+- [ ] F315: Minigolf's strip name and "<name>'s shot" banner with a 12-letter name.
