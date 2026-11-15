@@ -2300,3 +2300,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the start of "Player 2". Names are capped to their chip, each chip's inner side keeps
       clear of the badge, and the badge is 26px on a 320px phone with Bigger text.
       e2e/home-names.spec.ts (short, default and 12-letter names, 320 and 390 wide).
+- [x] 2026-11-15 (F310): GitHub Actions did run on #332-334 and the 320x568 + Bigger text taps
+      check failed there: CI's Linux fonts sit taller, so the first game card after a match was
+      98.6% on screen (local 559 of 568). Home under max-height 600px now keeps ~20px spare
+      (gaps 8, scoreboard gap 6, group gap 6); local 547.
