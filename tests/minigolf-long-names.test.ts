@@ -36,3 +36,22 @@ describe('Minigolf fits long names', () => {
     }
   });
 });
+
+// F320: the hole card's "<name> tees off first" and the scorecard's "<name> leads by 2" /
+// "<name> wins!" were drawn at a fixed size and ran to (or off) the card and screen edges.
+describe('Minigolf hole card and scorecard fit long names', () => {
+  afterEach(() => setTextScale(1));
+  it('12 W\'s with Bigger text keep the tail, inside the room', () => {
+    setTextScale(1.2);
+    const g = fakeCanvas();
+    for (const [str, room, size, tail] of [
+      ['WWWWWWWWWWWW tees off first', 360 - 80 - 24, 14, ' tees off first'],
+      ['WWWWWWWWWWWW leads by 2', 360 - 24, 18, ' leads by 2'],
+      ['WWWWWWWWWWWW wins!', 360 - 24, 18, ' wins!'],
+    ] as const) {
+      const r = fitName(g, str, room, size, tail);
+      expect(r.str.endsWith(tail), r.str).toBe(true);
+      expect(nameWidth(g, r.str, r.size)).toBeLessThanOrEqual(room);
+    }
+  });
+});
