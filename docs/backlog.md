@@ -2104,3 +2104,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       button 2.6% of frames, mostly hidden 1.1%, about a second a match; people chase pucks into
       corners more). A puck touching a power button is now drawn again over it (underButton()),
       both seats, left- and right-handed. tests/airhockey-puck-over-button.test.ts.
+- [x] 2026-11-14 (F276, PR #307): Minigolf opened hole 1 on a 1.8 s "3 2 1" over the bare course,
+      then the hole card faded in at GO, though no shot is ever timed (holes 2 and 3 open on the
+      card with no count). opensOnCard() lets the runner skip the countdown; the hole card shows
+      its usual 1.9 s at once and the first-match ghost finger stays (it shows the pull-back).
+      Resume after a pause still counts 3-2-1. tests/setup-start.test.ts + playtest "ghost finger:
+      Minigolf opens straight on the hole card ...".
