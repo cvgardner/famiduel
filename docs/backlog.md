@@ -2132,3 +2132,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       hard v normal 33% / 25%. Ping Pong easy mirror 20% long (max 198 s), normal 5%, hard 10%.
       Snake normal mirror 5%. Every other game, and every kid / kid+3 row, stays under 3 min.
       Follow-up F283: shorten Air Hockey's long scoreless spells between evenly matched players.
+- [x] 2026-11-15 (F283): Air Hockey's long scoreless spells, tried "lively air" (after 20-40 s
+      without a goal, friction eases from 0.4 to 0.2 / 0.1 / 0.05, a goal resets it): n=160 normal
+      mirror long 45% -> 33-36%, hard mirror 38% -> 43-44%, noise-sized, because the tail is equal
+      bots saving well, not a slow puck. Not merged. A familiar fix would be the arcade table's
+      match clock (e.g. 3 min, most goals wins, a tie plays on to the next goal), but that changes
+      the match format: Chris's call (todo F283).
+- [x] 2026-11-15 (F284, PR #313): Ping Pong Slow-mo was the weak pick (n=160 normal bots: 42%,
+      and None beat it 57%). The bot set its misjudgement of an incoming ball from the ball's full
+      speed, so a Slow-mo or head-start ball was no easier for it to read, though a person sees a
+      slow ball. It now reads the speed it sees (speed × the ball's slow factor). n=160 sim:powers,
+      Slow-mo easy / normal / hard: 51% / 54% / 56% (was ~38-42%); Smash 57 / 52 / 45%, Curve
+      55 / 53 / 55%, None 36 / 41 / 43%. Powers-off pace table unchanged. Test in
+      tests/pingpong.test.ts (a normal bot misses 50 of 150 fast angled balls with or without
+      Slow-mo before; now under 60% of that with it).
