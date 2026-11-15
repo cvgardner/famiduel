@@ -2,7 +2,7 @@
 // full-screen "pass the phone" cover hides everything, and the active player's
 // screen is turned to face them. Against a bot the screen always faces the person.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, fitSize, glow, line, nameLabel, noGlow, rrect, scaledSize, seatEdges, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, fitFirst, fitName, fitSize, glow, line, nameLabel, noGlow, rrect, scaledSize, seatEdges, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -96,7 +96,8 @@ class SeaBattleView implements GameInstance {
    */
   picked: number | null = null;
   private powerBtn: (PowerButton | null)[];
-  private notice: (string | null)[] = [null, null];
+  /** A note for each seat, as wordings longest first (F321: a 12-letter name needs the short one). */
+  private notice: (string[] | null)[] = [null, null];
   /** Cells the opponent fired at on their last turn, highlighted on your fleet. */
   private lastShots: number[][] = [[], []];
   private turnLog: { hits: number; misses: number; sunk: number }[] = [
@@ -536,7 +537,7 @@ class SeaBattleView implements GameInstance {
         sfx.play('whoosh');
       } else if (e.type === 'hitBack') {
         this.shells.push({ owner: e.victim, cell: e.cell, t: -delay - 0.35, result: 'hitBack', a: other(e.victim) });
-        this.notice[e.victim] = '💥 You hit a mine! It hit one of your ships back.';
+        this.notice[e.victim] = ['💥 You hit a mine! It hit one of your ships back.', '💥 You hit a mine! It hit a ship back.'];
       } else if (e.type === 'power') {
         const pw = this.ctx.players[e.p].power!;
         sfx.play('power');
@@ -547,10 +548,10 @@ class SeaBattleView implements GameInstance {
         const [x, y] = this.cellXY(e.cell);
         this.pop(e.found ? 'Ship nearby!' : 'All clear', x, y - 30, e.found ? COLORS.gold : '#bfe9ff', 22);
         this.burst(x, y, e.found ? COLORS.gold : '#7fd3ff', 20, 160, 3);
-        this.notice[d] = `📡 ${this.ctx.players[a].name} scanned your sea.`;
+        this.notice[d] = noticeLines('scan', this.ctx.players[a].name);
       } else if (e.type === 'mine') {
         sfx.play('thud');
-        this.notice[d] = `💥 ${this.ctx.players[a].name} hid a mine somewhere in their sea!`;
+        this.notice[d] = noticeLines('mine', this.ctx.players[a].name);
       }
     }
     if (g.turn !== a || g.phase === 'over') {
@@ -715,7 +716,10 @@ class SeaBattleView implements GameInstance {
       const res = lg.sunk ? `They sank a ship of yours!` : lg.hits ? `They hit you ${lg.hits === 1 ? 'once' : lg.hits + ' times'}.` : 'They missed!';
       text(gx, res, W / 2, 530, { size: 18, color: lg.hits ? '#ffb08a' : '#bfe9ff', weight: 700 });
     }
-    if (n) text(gx, n, W / 2, 566, { size: 14, color: COLORS.gold, weight: 700 });
+    if (n) {
+      const fit = fitFirst(gx, n, W - 24, 14, 700);
+      text(gx, fit.str, W / 2, 566, { size: fit.size, color: COLORS.gold, weight: 700 });
+    }
   }
 
   private drawPlay(gx: G): void {
@@ -763,9 +767,10 @@ class SeaBattleView implements GameInstance {
     this.header = title;
     const tc = m.kind === 'over' ? this.ctx.players[g.winner ?? 0].color : this.ctx.players[a].color;
     rrect(gx, 12, 8, W - 24, 62, 18, alpha(tc, 0.28), alpha(tc, 0.9), 2);
-    text(gx, title, W / 2, 30, { size: 22, color: '#fff', stroke: 'rgba(0,0,0,0.35)' });
+    // F321: a 12-letter name in the title ("WWWWWWWWWWWW, you go first!") shrinks to fit the header.
+    text(gx, title, W / 2, 30, { size: fitSize(gx, title, W - 24 - 16, 22), color: '#fff', stroke: 'rgba(0,0,0,0.35)' });
     // Full white: the dim grey fell to ~4.2:1 on a light seat's (Mint, Orange) header tint.
-    text(gx, sub, W / 2, 55, { size: 13, color: '#ffffff', weight: 700 });
+    text(gx, sub, W / 2, 55, { size: fitSize(gx, sub, W - 24 - 16, 13, 700), color: '#ffffff', weight: 700 });
 
     // Big grid
     this.drawSea(gx, lay.big, GX, GY, C, lay.bigShips, true);
@@ -801,7 +806,9 @@ class SeaBattleView implements GameInstance {
       if (isSunk(s)) line(gx, x, GY + N * C + 20, x + w, GY + N * C + 20, COLORS.bad, 2);
     });
     // Small grid
-    text(gx, lay.small === v ? 'Your fleet' : `${this.ctx.players[lay.small].name}'s fleet`, SX, SY - 12, { size: 13, color: COLORS.dim, align: 'left', weight: 700 });
+    // F321: "<12-letter name>'s fleet" is cut to the small sea's width (it ran under the score).
+    const fleet = fitName(gx, lay.small === v ? 'Your fleet' : `${this.ctx.players[lay.small].name}'s fleet`, N * SC + 10, 13, "'s fleet");
+    text(gx, fleet.str, SX, SY - 12, { size: fleet.size, color: COLORS.dim, align: 'left', weight: 700 });
     this.drawSea(gx, lay.small, SX, SY, SC, lay.smallShips, false);
     for (const c of this.lastShots[lay.small]) {
       if (lay.small !== v || m.kind === 'over') break;
@@ -833,7 +840,8 @@ class SeaBattleView implements GameInstance {
     const n = this.notice[v];
     if (n && m.kind !== 'over') {
       rrect(gx, 12, 606, W - 24, 28, 10, 'rgba(0,0,0,0.4)');
-      text(gx, n, W / 2, 620, { size: 13, color: COLORS.gold, weight: 700 });
+      const fit = fitFirst(gx, n, W - 24 - 16, 13, 700);
+      text(gx, fit.str, W / 2, 620, { size: fit.size, color: COLORS.gold, weight: 700 });
     }
     // Shells in flight
     for (const s of this.shells) {
@@ -984,3 +992,13 @@ class SeaBattleView implements GameInstance {
 
 const def: GameDef = { id: 'seabattle', create: (ctx) => new SeaBattleView(ctx) };
 export default def;
+
+/**
+ * What the other seat reads after a Radar scan or a hidden Mine, longest wording first
+ * (F321: "💥 <12-letter name> hid a mine somewhere in their sea!" ran off the screen).
+ */
+export function noticeLines(kind: 'scan' | 'mine', name: string): string[] {
+  return kind === 'scan'
+    ? [`📡 ${name} scanned your sea.`, '📡 They scanned your sea.']
+    : [`💥 ${name} hid a mine somewhere in their sea!`, `💥 ${name} hid a mine in their sea!`, '💥 They hid a mine in their sea!'];
+}
