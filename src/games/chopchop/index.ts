@@ -2,7 +2,7 @@
 // in the bottom player's frame and rotated 180° for the top player.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, facing, fitSize, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
-import { blink } from '../../engine/calm';
+import { blink, pulse } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -117,10 +117,22 @@ class ChopView implements GameInstance {
     if (g.phase === 'intro') this.chunks = [[], []];
     const { sfx, fx, players } = this.ctx;
     for (const e of g.events) {
-      if (e.type === 'chop') {
+      if (e.type === 'hotChop') {
+        // Hot Axe: the burned pieces fly off and the trunk drops them all at once.
+        sfx.play('whoosh');
+        fx.shake(5, 0.2);
+        this.drop[e.p] = e.count;
+        for (let k = 1; k < e.count; k++) {
+          this.chunks[e.p].push({ x: W / 2, y: L.baseY - k * L.segH, vx: -e.side * (300 + 60 * k), vy: -220 - 40 * k, rot: 0, vr: -e.side * (8 + k), t: 0, branch: 0 });
+        }
+        const s = toScreen(e.p, W / 2, L.baseY - L.segH);
+        fx.burst(s.x, s.y, '#ff7a1a', 26, 240, 4);
+        fx.burst(s.x, s.y, '#ffd54a', 14, 180, 3);
+      } else if (e.type === 'chop') {
         sfx.play('chop');
         this.swing[e.p] = 0.12;
-        this.drop[e.p] = 1;
+        // At least one piece: a Hot Axe chop (its event comes first) drops several.
+        this.drop[e.p] = Math.max(this.drop[e.p], 1);
         const cx = W / 2;
         const chopped = g.branch(e.p, g.choppers[e.p].idx - 1);
         this.chunks[e.p].push({ x: cx, y: L.baseY, vx: -e.side * 380, vy: -260, rot: 0, vr: -e.side * 10, t: 0, branch: chopped });
@@ -130,7 +142,7 @@ class ChopView implements GameInstance {
         // over the next branch up, the one the player is reading).
         if (e.count > 1) {
           const t = toScreen(e.p, W / 2 + e.side * BONK_DX, L.baseY - 30);
-          fx.pop('+2', t.x, t.y, COLORS.gold, e.p, 18);
+          fx.pop(`+${e.count}`, t.x, t.y, COLORS.gold, e.p, 18);
         }
         const c = g.choppers[e.p];
         if (c.chops > 0 && c.chops % 10 < e.count) {
@@ -176,6 +188,14 @@ class ChopView implements GameInstance {
           // F207: no "🧊 Frozen!" pop: the frozen tree's own "🧊 frozen" label says it, and the
           // pop printed right over that label for its whole bright half.
 
+        } else if (e.id === 'tall') {
+          // Tall Tree: leaves burst at the top of the other tree, and its player is told why
+          // their goal went up (their "/ 53" pill turns gold).
+          const o = other(e.p);
+          const top = toScreen(o, W / 2, L.barY + 40);
+          fx.burst(top.x, top.y, '#4caf50', 26, 220, 4);
+          const t = toScreen(o, W / 2, L.barY + 70);
+          fx.pop(`${pw.icon} +${pw.count ?? RULES.tallTree} to chop!`, t.x, t.y, '#b9f6ca', o, 20);
         }
       } else if (e.type === 'roundStart') {
         sfx.play('go');
@@ -266,7 +286,8 @@ class ChopView implements GameInstance {
     // goes on the other side of the count (at +40 it showed left of it: "/ 50  1").
     const gs = silentSeat(this.ctx.players, p) ? -1 : 1;
     rrect(gx, W / 2 + gs * 40 - 16, L.barY + 23, 32, 20, 10, 'rgba(20,20,40,0.75)');
-    text(gx, `/ ${RULES.goal}`, W / 2 + gs * 40, L.barY + 33, { size: 13, color: '#ffffff' });
+    // Tall Tree raised this round's goal: it shows in gold.
+    text(gx, `/ ${g.goal(p)}`, W / 2 + gs * 40, L.barY + 33, { size: 13, color: c.extra > 0 ? COLORS.gold : '#ffffff' });
     // Round wins
     for (let i = 0; i < RULES.winRounds; i++) circle(gx, bx + bw + 22, L.barY + 4 + i * 20 - 0, 7, i < g.score[p] ? COLORS.gold : 'rgba(255,255,255,0.35)', 'rgba(0,0,0,0.3)', 1.5);
     // Rival progress, small. F124: not in a bot's half facing the one person, where
@@ -279,6 +300,8 @@ class ChopView implements GameInstance {
     }
     // Power status
     if (c.double > 0) text(gx, `✌️ x2 ·${c.double}`, W / 2 + 96, L.barY + 54, { size: 16, color: COLORS.gold, stroke: 'rgba(0,0,0,0.4)' });
+    // Hot Axe (one power a seat, so it shares Double Chop's spot): the next chop burns through.
+    if (c.hot > 0) text(gx, `🔥 hot axe`, W / 2 + 96, L.barY + 54, { size: 16, color: '#ffb36b', stroke: 'rgba(0,0,0,0.5)' });
     // Tap hints near the player's edge, on a dark pill so they stay readable over the
     // grass during play too (they used to fade to 45% once play started: about 1.6:1).
     // A bot's half shows none: nobody reads them (F119).
@@ -308,6 +331,11 @@ class ChopView implements GameInstance {
       rrect(gx, x - tw / 2, y - L.segH / 2, tw, L.segH + 1, 3, k % 2 ? '#9a6a3a' : '#a8743f', '#6b4423', 2);
       line(gx, x - tw / 2 + 10, y - 8, x - tw / 2 + 10, y + 8, 'rgba(80,40,10,0.35)', 2);
       line(gx, x + tw / 2 - 14, y - 4, x + tw / 2 - 14, y + 12, 'rgba(80,40,10,0.35)', 2);
+      // Hot Axe: the pieces the next chop will burn through glow orange, so both players see it coming.
+      if (c.hot > 0 && k <= c.hot && f > 0) {
+        gx.globalAlpha = (0.15 + 0.3 * pulse(this.t)) * f;
+        rrect(gx, x - tw / 2 - 3, y - L.segH / 2 - 1, tw + 6, L.segH + 3, 5, '#ff7a1a');
+      }
       const b = g.branch(p, i);
       gx.globalAlpha = f;
       if (b !== 0 && f > 0) this.drawBranch(gx, x + b * (tw / 2), y, b);
@@ -376,6 +404,7 @@ class ChopView implements GameInstance {
     // Axe: raised over the shoulder, swung flat into the trunk on a chop.
     const toward = -side; // the trunk is on this side of the chopper
     const theta = this.swing[p] > 0 ? 1.45 : -0.45;
+    const hot = c.hot > 0;
     const hx = x + toward * 10;
     const hy = y - 2;
     const dx = toward * Math.sin(theta);
@@ -386,8 +415,19 @@ class ChopView implements GameInstance {
     gx.save();
     gx.translate(ax, ay);
     gx.rotate(Math.atan2(dy, dx));
-    rrect(gx, -6, -2, 12, 16 * 1, 3, '#cfd8dc', '#607d8b', 2);
+    if (hot) glow(gx, '#ff7a1a', 16);
+    rrect(gx, -6, -2, 12, 16 * 1, 3, hot ? '#ff9f43' : '#cfd8dc', hot ? '#c0392b' : '#607d8b', 2);
+    noGlow(gx);
     gx.restore();
+    if (hot) {
+      // Little flames lick up off the hot axe head.
+      for (let i = 0; i < 3; i++) {
+        const k = (this.t * 2 + i / 3) % 1;
+        gx.globalAlpha = 1 - k;
+        circle(gx, ax + (i - 1) * 4, ay - 6 - k * 16, 4 - k * 2, i === 1 ? '#ffd54a' : '#ff7a1a');
+      }
+      gx.globalAlpha = 1;
+    }
     gx.restore();
     if (bonked) {
       for (let i = 0; i < 3; i++) {
@@ -415,7 +455,7 @@ class ChopView implements GameInstance {
       else if (w === p) {
         msg = 'You win the round!';
         col = this.ctx.players[p].color;
-      } else msg = g.choppers[p].outReason === 'bonk' ? 'Bonked!' : g.choppers[p].outReason === 'time' ? 'Out of time!' : 'They got to 50!';
+      } else msg = g.choppers[p].outReason === 'bonk' ? 'Bonked!' : g.choppers[p].outReason === 'time' ? 'Out of time!' : `They got to ${g.goal(other(p))}!`;
     }
     if (!msg || silentSeat(this.ctx.players, p)) return;
     const y = CARD_Y;

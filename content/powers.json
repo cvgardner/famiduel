@@ -124,6 +124,18 @@
         "name": "Double Shot",
         "icon": "🎯",
         "desc": "One early tap is forgiven."
+      },
+      {
+        "id": "headstart",
+        "name": "Head Start",
+        "icon": "⚡",
+        "desc": "Next round, your tap after DRAW! counts a tiny bit sooner."
+      },
+      {
+        "id": "fly",
+        "name": "Buzzy Fly",
+        "icon": "🪰",
+        "desc": "Next round, a fly buzzes round the other player. Will they jump?"
       }
     ],
     "chopchop": [
@@ -146,6 +158,20 @@
         "name": "Double Chop",
         "icon": "✌️",
         "desc": "Your next 4 chops count twice.",
+        "count": 4
+      },
+      {
+        "id": "tall",
+        "name": "Tall Tree",
+        "icon": "🌲",
+        "desc": "The other tree grows 3 pieces taller, so they need 3 more chops.",
+        "count": 3
+      },
+      {
+        "id": "hotaxe",
+        "name": "Hot Axe",
+        "icon": "🔥",
+        "desc": "Your next chop burns through 4 pieces at once, branches and all.",
         "count": 4
       }
     ],

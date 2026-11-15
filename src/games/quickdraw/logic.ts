@@ -30,6 +30,8 @@ export const RULES = {
   pulseLeadMax: 1.1,
   /** How much faster a warned bot reacts to DRAW! (a "get ready" cue shortens reaction a little); hard bots gain less (BOT.hard.edge, F295). */
   pulseEdge: 0.06,
+  /** Head Start: seconds taken off the user's next tap after DRAW! (shown on both sides; a tap before DRAW! still loses). */
+  headStart: 0.05,
   /** After a forgiven early tap, taps are ignored this long (so one press can't be both). */
   forgiveLock: 0.25,
   energyWin: 0.3,
@@ -54,6 +56,8 @@ export type RoundResult = {
   times: [number | null, number | null];
   /** The handicap delay that was added to each player's time. */
   penalty: [number, number];
+  /** Head Start: seconds taken off each player's time (0 without one). */
+  head?: [number, number];
 };
 
 export type Event =
@@ -96,6 +100,12 @@ export class QuickDraw {
   shots: [number, number] = [0, 0];
   /** Slow Time armed for the next DRAW!. */
   focus: [boolean, boolean] = [false, false];
+  /** Head Start armed for the next DRAW! (seconds off that player's tap). */
+  head: [number, number] = [0, 0];
+  /** Head Start in play this DRAW! (moved from `head` when DRAW! comes up). */
+  headNow: [number, number] = [0, 0];
+  /** Buzzy Fly: a fly buzzes round this player's side until DRAW! or the round's end (a distraction: it changes no rule). */
+  fly: [boolean, boolean] = [false, false];
   private lock: [number, number] = [0, 0];
   last: RoundResult | null = null;
   history: RoundResult[] = [];
@@ -190,6 +200,9 @@ export class QuickDraw {
         this.phaseT = 0;
         this.fake = null;
         this.focus = [false, false];
+        this.headNow = this.head;
+        this.head = [0, 0];
+        this.fly = [false, false];
         this.events.push({ type: 'draw' });
       }
       return;
@@ -203,9 +216,11 @@ export class QuickDraw {
         this.events.push({ type: 'shot', p, time: this.taps[p]! });
       }
     }
-    const eff = (p: PlayerIndex) => (this.taps[p] === null ? Infinity : this.taps[p]! + this.penalty[p]);
+    // Each tap's time on the card's clock: the handicap added, a Head Start taken off.
+    const adj = (p: PlayerIndex) => this.penalty[p] - this.headNow[p];
+    const eff = (p: PlayerIndex) => (this.taps[p] === null ? Infinity : this.taps[p]! + adj(p));
     const best = Math.min(eff(0), eff(1));
-    const settled = ([0, 1] as PlayerIndex[]).every((p) => this.taps[p] !== null || this.phaseT + this.penalty[p] > best);
+    const settled = ([0, 1] as PlayerIndex[]).every((p) => this.taps[p] !== null || this.phaseT + adj(p) > best);
     if (best < Infinity && settled) {
       const a = eff(0);
       const b = eff(1);
@@ -244,12 +259,26 @@ export class QuickDraw {
     } else if (power.id === 'double') {
       this.energy[p].spend();
       this.shots[p]++;
+    } else if (power.id === 'headstart') {
+      if (this.head[p] > 0) return;
+      this.energy[p].spend();
+      this.head[p] = RULES.headStart;
+    } else if (power.id === 'fly') {
+      if (this.fly[other(p)]) return;
+      this.energy[p].spend();
+      this.fly[other(p)] = true;
     } else return;
     this.events.push({ type: 'power', p, id: power.id });
   }
 
   private finishRound(winner: PlayerIndex | null, reason: RoundReason, early: PlayerIndex | null): void {
-    const result: RoundResult = { winner, reason, early, times: [...this.taps] as [number | null, number | null], penalty: [...this.penalty] as [number, number] };
+    const result: RoundResult = {
+      winner, reason, early, times: [...this.taps] as [number | null, number | null], penalty: [...this.penalty] as [number, number],
+      head: [...this.headNow] as [number, number],
+    };
+    this.headNow = [0, 0];
+    // The fly goes with the round it was sent to, even one that ended before DRAW!.
+    this.fly = [false, false];
     this.last = result;
     this.history.push(result);
     this.phase = 'result';
@@ -281,14 +310,17 @@ export class QuickDraw {
  * `jump`: the chance per round that the bot's thumb twitches before DRAW! with nothing on
  * screen to fool it, the way people jump the gun. Without it the forgiving powers (Double
  * Shot, and Fake-out's bait) were worth far less against a bot than against a family.
+ * `rattled`: the chance per round that a Buzzy Fly on its side makes the thumb twitch too (on
+ * top of `jump`), the way a buzzing fly makes a person flinch. The fly changes no rule, so like
+ * a fake-out it only costs the bot what it costs a person: a jump before DRAW!.
  */
 const BOT = {
-  easy: { mean: 0.5, sd: 0.07, fooled: 0.22, jump: 0.1, edge: RULES.pulseEdge },
-  normal: { mean: 0.38, sd: 0.045, fooled: 0.05, jump: 0.04, edge: RULES.pulseEdge },
+  easy: { mean: 0.5, sd: 0.07, fooled: 0.22, jump: 0.1, edge: RULES.pulseEdge, rattled: 0.4 },
+  normal: { mean: 0.38, sd: 0.045, fooled: 0.05, jump: 0.04, edge: RULES.pulseEdge, rattled: 0.25 },
   // F295: a fast, steady reactor is already near its best, so a "get ready" cue saves it less
   // (0.035 s); with the full 0.06 s against a 0.03 s spread Slow Time won 65-67% vs every pick.
-  hard: { mean: 0.3, sd: 0.03, fooled: 0, jump: 0.01, edge: 0.035 },
-} satisfies Record<BotLevel, { mean: number; sd: number; fooled: number; jump: number; edge: number }>;
+  hard: { mean: 0.3, sd: 0.03, fooled: 0, jump: 0.01, edge: 0.035, rattled: 0.1 },
+} satisfies Record<BotLevel, { mean: number; sd: number; fooled: number; jump: number; edge: number; rattled: number }>;
 
 export const BOT_LEVELS = BOT;
 export const MIN_REACTION = HUMAN.reaction + HUMAN.touchLag;
@@ -301,6 +333,8 @@ export class QuickDrawBot {
   private round = -1;
   /** Whether this round's jump-the-gun roll has been made (once per round, at the wait). */
   private rolled = false;
+  /** Whether a Buzzy Fly on its side has had its one roll this round. */
+  private flyRolled = false;
 
   constructor(
     readonly p: PlayerIndex,
@@ -324,6 +358,7 @@ export class QuickDrawBot {
       this.mode = null;
       this.tapIn = Infinity;
       this.rolled = false;
+      this.flyRolled = false;
     }
     if (game.phase === 'wait') {
       if (!this.rolled) {
@@ -332,6 +367,14 @@ export class QuickDrawBot {
         if (this.mode === null && this.rng.chance(cfg.jump)) {
           this.mode = 'jump';
           this.tapIn = this.rng.range(RULES.waitMin * 0.5, RULES.waitMax);
+        }
+      }
+      if (game.fly[this.p] && !this.flyRolled) {
+        // It sees the fly (it can arrive mid-wait): one flinch roll a round, like `jump`.
+        this.flyRolled = true;
+        if (this.mode === null && this.rng.chance(cfg.rattled)) {
+          this.mode = 'jump';
+          this.tapIn = this.rng.range(0.2, RULES.waitMax);
         }
       }
       if (game.fake && game.fake.id !== this.seenFake) {
