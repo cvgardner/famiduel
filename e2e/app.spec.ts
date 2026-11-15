@@ -338,3 +338,40 @@ test('settings and player cards are remembered after a reload', async ({ page })
   await expect(page.locator('#pHand button.on')).toHaveAttribute('data-v', 'left');
   expect(errors).toEqual([]);
 });
+
+// F311: a bare "2 – 3" didn't say whose number was whose. Each half names both numbers,
+// own first, and long names stay inside the half on a small phone with Bigger text.
+test('result: each score number names its player, also with long names at 320 px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  const errors = await boot(page, 'E2E', false);
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: { store: { data: { profiles: { name: string; bot: string | null }[]; settings: { bigText?: boolean } }; save(): void }; applyBigText(): void; showHome(): void; openGame(id: string): void } }).__famiduel;
+    app.store.data.profiles[0].name = 'Maximiliana';
+    app.store.data.profiles[1].name = 'Bartholomew';
+    app.store.data.profiles[0].bot = null;
+    app.store.data.profiles[1].bot = null;
+    app.store.data.settings.bigText = true;
+    app.store.save();
+    app.applyBigText();
+    app.showHome();
+    app.openGame('airhockey');
+  });
+  for (const b of await page.locator('#intro .btn.ready').all()) await b.click();
+  await expect(page.locator('#play')).toBeVisible();
+  await page.evaluate(() => {
+    (window as unknown as { __famiduel: { runner: { result: unknown } } }).__famiduel.runner.result = { winner: 1, score: [2, 3] };
+  });
+  await expect(page.locator('#result')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-bigtext', '1');
+  await expect(page.locator('#result .half.p0 .rs-n')).toHaveText(['2', '3']);
+  await expect(page.locator('#result .half.p0 .rs-who')).toHaveText(['You', 'Bartholomew']);
+  await expect(page.locator('#result .half.p1 .rs-n')).toHaveText(['3', '2']);
+  await expect(page.locator('#result .half.p1 .rs-who')).toHaveText(['You', 'Maximiliana']);
+  for (const sel of ['#result .half.p0 .res-score', '#result .half.p1 .res-score']) {
+    const box = (await page.locator(sel).boundingBox())!;
+    expect(box.x, sel).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, sel).toBeLessThanOrEqual(320);
+  }
+  await page.screenshot({ path: 'test-results/result-score-labels.png' });
+  expect(errors).toEqual([]);
+});
