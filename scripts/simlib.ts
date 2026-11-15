@@ -136,7 +136,7 @@ export function playMatch(spec: Spec, levels: [SimLevel, SimLevel], seed: number
 
 /** Win share of levels[0] over n matches, with the seats swapped every other match. */
 export function pairing(spec: Spec, levels: [SimLevel, SimLevel], n: number, powersOn = false, picks: [PowerDef | null, PowerDef | null] = [null, null]) {
-  let wins = 0, seat0Wins = 0, draws = 0, unfinished = 0, time = 0, long = 0;
+  let wins = 0, seat0Wins = 0, draws = 0, unfinished = 0, time = 0, long = 0, maxT = 0;
   for (let i = 0; i < n; i++) {
     // Each seed is played both ways round, so a seed that favours one seat (who starts, a
     // lucky spawn) favours each side once and cancels out. Swapping seats on alternate
@@ -144,6 +144,7 @@ export function pairing(spec: Spec, levels: [SimLevel, SimLevel], n: number, pow
     const swap = i % 2 === 1;
     const r = playMatch(spec, swap ? [levels[1], levels[0]] : levels, 1000 + (i >> 1), powersOn, swap ? [picks[1], picks[0]] : picks);
     time += r.t;
+    maxT = Math.max(maxT, r.t);
     if (r.t > LONG_T) long++;
     if (!r.finished) unfinished++;
     else if (r.winner === null) draws++;
@@ -152,6 +153,6 @@ export function pairing(spec: Spec, levels: [SimLevel, SimLevel], n: number, pow
       if (r.winner === (swap ? 1 : 0)) wins++;
     }
   }
-  return { wins: wins / n, seat0: seat0Wins / n, draws: draws / n, unfinished: unfinished / n, avgT: time / n, long: long / n };
+  return { wins: wins / n, seat0: seat0Wins / n, draws: draws / n, unfinished: unfinished / n, avgT: time / n, long: long / n, maxT };
 }
 

@@ -74,14 +74,15 @@ function main() {
   }
   console.log(`Bot pace table: ${n} matches per row, seats swapped every other match, powers ${powers ? 'on' : 'off'}.`);
   console.log('"wins" = share won by the first-named level; for a mirror match it shows seat bias instead (bottom seat).');
-  console.log(['game'.padEnd(12), 'pairing'.padEnd(15), 'wins', ' draws', ' unfin', ' avg s'].join(' '));
+  console.log(`"long" = matches over ${LONG_T / 60} min (a match that drags on); "max s" = the longest match.`);
+  console.log(['game'.padEnd(12), 'pairing'.padEnd(15), 'wins', ' draws', ' unfin', ' long', ' avg s', ' max s'].join(' '));
   for (const spec of SPECS) {
     if (only && spec.id !== only) continue;
     for (const pr of PAIRS) {
       const r = pairing(spec, pr, n, powers);
       const mirror = pr[0] === pr[1];
       const name = mirror ? `${pr[0]} (seat 0)` : `${pr[0]} v ${pr[1]}`;
-      console.log([spec.id.padEnd(12), name.padEnd(15), pct(mirror ? r.seat0 : r.wins), pct(r.draws), pct(r.unfinished), r.avgT.toFixed(0).padStart(6)].join(' '));
+      console.log([spec.id.padEnd(12), name.padEnd(15), pct(mirror ? r.seat0 : r.wins), pct(r.draws), pct(r.unfinished), pct(r.long), r.avgT.toFixed(0).padStart(6), r.maxT.toFixed(0).padStart(6)].join(' '));
     }
   }
 }

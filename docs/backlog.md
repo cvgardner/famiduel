@@ -2124,3 +2124,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       for those two ("then take turns with the bot", "The bot never peeks at your pick"), used by
       the intro and the pause how-to via howToText(); two people keep the full text.
       tests/demo.test.ts + playtest "play the bot: Sea Battle and RPS how-tos ...".
+- [x] 2026-11-15 (F282, PR #312): Match length tails. A rival app's reviews say its rallies "go
+      back and forth so it takes kind of long to finish". `npm run sim` now prints "long"
+      (matches over 3 min) and "max s" beside the average. n=40, powers off / on:
+      Air Hockey drags between equal bots: normal mirror 35% / 45% long (max 264 / 289 s),
+      hard mirror 15% / 55% (10% unfinished at 5 min with powers), easy mirror 10% / 15%,
+      hard v normal 33% / 25%. Ping Pong easy mirror 20% long (max 198 s), normal 5%, hard 10%.
+      Snake normal mirror 5%. Every other game, and every kid / kid+3 row, stays under 3 min.
+      Follow-up F283: shorten Air Hockey's long scoreless spells between evenly matched players.
