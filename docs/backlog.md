@@ -2266,3 +2266,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       drifts slower so its whole rise stays 36 units (every lane and lookahead built on that
       still holds) and stays "bright" (new pops move off it) for its extra time; Minigolf's turn
       banner waits for the longer centre pop. tests/pop-read-time.test.ts.
+- [x] 2026-11-15 (F304): Quick Draw's round card said reaction times in milliseconds ("Bot 500 ms",
+      "+120 ms handicap"), which means nothing to a young kid. Times now read in seconds
+      ("Bot 0.50 s", "+0.12 s handicap"), the same width on the card; secs() / handicapLine(),
+      tests/quickdraw-no-shot.test.ts + tests/bot-name.test.ts.
