@@ -2264,6 +2264,19 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (3), result -> rematch (3) and result -> another game (4) at 390x844 and at 320x568 with
       Bigger text, and checks every button on those paths shows without scrolling. Counts in
       docs/verification.md.
+- [x] 2026-11-15 (F306): Every rising pop lived 0.9 s whatever its length, so "What a rally! 12
+      hits" or "Super Robot's point" flashed by at 270-330 words a minute (Game Accessibility
+      Guidelines: show text at a words-per-minute fit for the age group). popLife(): pops of
+      three or more words get 0.4 s a word (150 wpm); two words or fewer keep 0.9 s. A long pop
+      drifts slower so its whole rise stays 36 units (every lane and lookahead built on that
+      still holds) and stays "bright" (new pops move off it) for its extra time; Minigolf's turn
+      banner waits for the longer centre pop. tests/pop-read-time.test.ts.
+- [x] 2026-11-15 (F303): Ping Pong's point words rise past the score card of the seat reading
+      them; centred at size 34 the scorer's "Your point!" ended ~2 units from its card, and a
+      longer bot name ("Super Robot's point") ran under the other seat's card. pointSpot() now
+      centres each seat's word in the room beside its card (8 units clear), nudging it off the
+      middle only as far as it needs (~20 units for "Your point!") and shrinking only if even
+      that room is too narrow. tests/pingpong-point-room.test.ts (fails on the old centring).
 - [x] 2026-11-15 (F304): Quick Draw's round card said reaction times in milliseconds ("Bot 500 ms",
       "+120 ms handicap"), which means nothing to a young kid. Times now read in seconds
       ("Bot 0.50 s", "+0.12 s handicap"), the same width on the card; secs() / handicapLine(),

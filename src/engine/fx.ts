@@ -7,7 +7,7 @@ import { COLORS, fitSize, insideX, text, type G } from './draw';
 import { W, H } from './world';
 
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number };
-type Floater = { str: string; x: number; y: number; life: number; max: number; color: string; size: number; player: 0 | 1; halo?: string };
+type Floater = { str: string; x: number; y: number; life: number; max: number; color: string; size: number; player: 0 | 1; halo?: string; rise: number };
 
 /**
  * Outline round pop-up words. Pops land on anything (dark floors, sand, grass),
@@ -55,7 +55,22 @@ export function liftOn(color: string, under: string, behind = '#ffffff', need = 
 /** F184: a pop this young (seconds) is still bright, so a new one won't print over it. */
 export const POP_FRESH = 0.55;
 
-const fresh = (f: { life: number; max: number }) => f.max - f.life < POP_FRESH;
+/**
+ * F306: how long a pop lives. Two words or fewer keep the usual 0.9 s; a longer one gets
+ * READ_PER_WORD a word (150 words a minute, a young reader's pace) so "What a rally! 12 hits"
+ * doesn't flash by at 330 a minute. Only words with a letter or digit count (not an icon).
+ */
+export const POP_LIFE = 0.9;
+export const READ_PER_WORD = 0.4;
+export function popLife(str: string): number {
+  const words = str.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+  return Math.max(POP_LIFE, words * READ_PER_WORD);
+}
+/** A pop's whole rise (units): 40 a second for 0.9 s; a longer-lived pop drifts slower, the same distance. */
+export const POP_RISE = 40 * POP_LIFE;
+
+/** Bright for POP_FRESH, plus whatever extra reading time a long pop has (its fade stays as short). */
+const fresh = (f: { life: number; max: number }) => f.max - f.life < POP_FRESH + (f.max - POP_LIFE);
 
 /** Test hook (F149): with `on`, pop() lists new pops printed over a still-bright one. */
 export const popProbe = { on: false, hits: [] as string[] };
@@ -70,13 +85,17 @@ function overlaps(a: [number, number, number, number], b: [number, number, numbe
   return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
 }
 
-/** How far (world units) a pop rises while it is still bright. */
-const FRESH_RISE = 40 * POP_FRESH;
+/** How far (world units) a pop with this text rises while it is still bright (22 for a short one). */
+function freshRise(str: string): number {
+  const life = popLife(str);
+  return (POP_RISE / life) * (POP_FRESH + life - POP_LIFE);
+}
 
 /** A pop's box over its bright time: it rises toward its seat's far side (up for seat 0). */
 function sweptBox(str: string, x: number, y: number, size: number, player: 0 | 1): [number, number, number, number] {
   const b = popBox(str, x, y, size);
-  return player === 0 ? [b[0], b[1] - FRESH_RISE, b[2], b[3]] : [b[0], b[1], b[2], b[3] + FRESH_RISE];
+  const r = freshRise(str);
+  return player === 0 ? [b[0], b[1] - r, b[2], b[3]] : [b[0], b[1], b[2], b[3] + r];
 }
 
 /**
@@ -129,9 +148,9 @@ export class Fx {
    */
   fadeBand(y0: number, y1: number, t = 0.15): void {
     for (const f of this.floaters) {
-      // Where its words go for the rest of its life (pops rise 40 a second, up their reader's screen).
+      // Where its words go for the rest of its life (pops rise POP_RISE over their life, up their reader's screen).
       const half = f.size * 0.45;
-      const end = f.y + (f.player === 0 ? -40 : 40) * f.life;
+      const end = f.y + (f.player === 0 ? -f.rise : f.rise) * f.life;
       if (Math.max(f.y, end) + half > y0 && Math.min(f.y, end) - half < y1) f.life = Math.min(f.life, t);
     }
   }
@@ -195,7 +214,8 @@ export class Fx {
         if (f.player === player && fresh(f) && overlaps(popBox(f.str, f.x, f.y, f.size), b)) popProbe.hits.push(`${f.str} | ${str} (seat ${player})`);
       }
     }
-    this.floaters.push({ str, x, y, life: 0.9, max: 0.9, color, size, player, halo });
+    const life = popLife(str);
+    this.floaters.push({ str, x, y, life, max: life, color, size, player, halo, rise: POP_RISE / life });
   }
 
   /** Camera shake; none when the phone asks for reduced motion. */
@@ -230,7 +250,7 @@ export class Fx {
     this.particles = this.particles.filter((p) => p.life > 0);
     for (const f of this.floaters) {
       f.life -= dt;
-      f.y += (f.player === 0 ? -40 : 40) * dt;
+      f.y += (f.player === 0 ? -f.rise : f.rise) * dt;
     }
     this.floaters = this.floaters.filter((f) => f.life > 0);
     this.shakeT = Math.max(0, this.shakeT - dt);

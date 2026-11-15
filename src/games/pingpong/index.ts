@@ -4,7 +4,7 @@
 // it back chops, and a sideways or diagonal swipe through the ball curves it. The ball shows its spin, a shadow,
 // a bounce ring on the table and a trail that heats up as the rally grows.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, line, MIN_TEXT, noGlow, rrect, scaledSize, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -188,7 +188,8 @@ class PingPongView implements GameInstance {
         for (const p of PLAYERS) {
           // A bot facing the one person says nothing (its words would turn to face them).
           if (silentSeat(this.ctx.players, p)) continue;
-          fx.pop(lines[p], W / 2, p === 0 ? MID + POINT_LANE : MID - POINT_LANE, col(e.scorer), p, p === e.scorer ? 34 : 28);
+          const at = pointSpot(p, lines[p], p === e.scorer ? 34 : 28);
+          fx.pop(lines[p], at.x, p === 0 ? MID + POINT_LANE : MID - POINT_LANE, col(e.scorer), p, at.size);
         }
         if (e.rally >= 10) this.popBoth(`What a rally! ${e.rally} hits`, COLORS.gold, 18);
         this.matchPointPops(RALLY_LANE);
@@ -434,4 +435,31 @@ export function pointLines(scorer: PlayerIndex, players: readonly { name: string
   const sc = players[scorer];
   const lost = sc.bot ? `${shortName(sc.name)}'s point` : 'Their point';
   return scorer === 0 ? ['Your point!', lost] : [lost, 'Your point!'];
+}
+
+/** Half the score card's width (it is 60 x 68 round scoreSpot). */
+export const CARD_HALF_W = 30;
+/** Room kept between a point word and the score card, and the screen's edge. */
+export const POINT_GAP = 8;
+/** A word's width the way pops measure it (bold system font, about 0.55 em a letter). */
+function popWidth(str: string, size: number): number {
+  return [...str].length * scaledSize(size) * 0.55;
+}
+
+/**
+ * F303: where seat p's point word goes. Its lane (MID ± POINT_LANE) rises past that seat's
+ * score card, and centred at size 34 "Your point!" ended ~2 units from it (it ran under it
+ * with a longer bot name); the word now centres in the room beside the card, nudged off the
+ * middle only as far as it needs, and shrinks only if even that room is too narrow.
+ */
+export function pointSpot(p: PlayerIndex, str: string, size: number): { x: number; size: number } {
+  const [cx] = scoreSpot(p);
+  // The room between the screen edge and the card, in world x.
+  const lo = p === 0 ? POINT_GAP : cx + CARD_HALF_W + POINT_GAP;
+  const hi = p === 0 ? cx - CARD_HALF_W - POINT_GAP : W - POINT_GAP;
+  let s = size;
+  while (s > MIN_TEXT && popWidth(str, s) > hi - lo) s--;
+  const half = popWidth(str, s) / 2;
+  const x = Math.max(lo + half, Math.min(hi - half, W / 2));
+  return { x, size: s };
 }

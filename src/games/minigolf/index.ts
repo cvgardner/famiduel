@@ -7,7 +7,7 @@ import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, scaledSize, s
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
-import { liftOn } from '../../engine/fx';
+import { liftOn, popLife } from '../../engine/fx';
 import { H, MID, W } from '../../engine/world';
 import { waitingLine } from '../../core/turnline';
 import { Minigolf, MinigolfBot, RULES, type Intent, type Shot } from './logic';
@@ -288,7 +288,7 @@ class MinigolfView implements GameInstance {
     const both = (str: string, x: number, y: number, color: string, size = 26) => {
       fx.pop(str, x, this.clearPopY(str, size, x, y + 40, 0), color, 0, size);
       fx.pop(str, x, this.clearPopY(str, size, x, y - 40, 1), color, 1, size);
-      this.centrePop = 0.9;
+      this.centrePop = Math.max(this.centrePop, popLife(str));
     };
     for (const e of g.events) {
       if (e.type === 'holeStart') {
