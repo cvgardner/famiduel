@@ -2315,3 +2315,30 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the card widens up to the course's width for a long name, and a name that won't fit
       even at the smallest size is cut with "…" (keeping "'s shot"); fitName(),
       tests/minigolf-long-names.test.ts.
+
+## Ideas found 2026-11-15 (11:17 run, long names on the pass-the-phone cover)
+- [x] 2026-11-15 (F314, PR #340): with a 12-letter name and Bigger text on a 320 px phone the
+      pass-the-phone cover (Sea Battle and RPS) ran the big name off both screen edges and
+      "Tap when only <name>" out of its pill ("Grandma Jose" spilled even at usual text). Names
+      now fit NAME_ROOM (clear of the pause button), the pill's words shrink to fit (not under
+      15) or read "Tap when only you / are looking 👀" (the big name above says who), and the
+      "<name>, look away!" lines fit their room; tapLines() in src/engine/secret.ts, playtest
+      'pass the phone: long names ...' checks edges and the pill with two name pairs.
+
+## Ideas found 2026-11-15 (11:17 run, long names and Bigger text at 320 px)
+- [x] 2026-11-15 (F313, PR #339): Sea Battle's "Their ships" / "Your ships" label ran into the
+      first ship of the tally with Bigger text on a 320 px phone (pills started at a fixed
+      GX + 86). The tally now starts 10 units after the label as drawn and shrinks evenly to
+      end at the grid's edge; tallyLayout(), tests/seabattle-tally.test.ts.
+- [x] 2026-11-15 (F311): the result screen's big score read "2 – 3" with nothing saying which
+      number was whose (a kid playing the bot couldn't tell; families ask how the app "picked"
+      a winner). Each number now has a small name under it, the half's own first: "You" /
+      "Bot" playing the bot, "You" / the other player's name between two people (bots keep
+      their names in a bot-vs-bot match). Two equal columns keep the dash centred; long names
+      end in an ellipsis. scoreLabels() in src/app/resulttitle.ts, tests/result-score.test.ts,
+      e2e 'result: each score number names its player' (long names, 320 px + Bigger text).
+- [x] 2026-11-15 (F312): Quick Draw's left cactus (foot at MID + 120, scale 0.9) reached up
+      under the signal cards: a worded fake-out ("Open the DRAW-er!") or DRAW! card hid its top
+      half, which peeked out under the card's corner on a 320 px phone. It now stands a little
+      smaller (0.8) at MID + 139, in the gap between the cards (to MID + 92) and Slow Time's
+      "get ready" line. SIGNAL_CARD / READY_Y, tests/quickdraw-cactus.test.ts.
