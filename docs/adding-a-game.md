@@ -10,7 +10,7 @@ src/games/<id>/logic.ts   rules + honest bot. Pure TypeScript: no DOM, no Math.r
 src/games/<id>/index.ts   view: default-exports a GameDef { id, create(ctx) }.
 tests/<id>.test.ts        vitest: bot-vs-bot finishes, determinism, handicap, each power.
 content/games.json        already has an entry for every planned game (name, how-to, handicap text).
-content/powers.json       add "<id>": [3 powers] if the game has powers.
+content/powers.json       add "<id>": [5 powers] if the game has powers (the week offers 3).
 src/games/registry.ts     import the def and add it to GAMES.
 ```
 
