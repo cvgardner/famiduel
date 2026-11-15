@@ -54,7 +54,9 @@ export class Runner {
     });
     // F274: nor before a setup screen (Sea Battle's fleet: "3" sat on Shuffle and Ready).
     // F275: nor before an untimed pick (RPS against the bot waits for the person anyway).
-    if (this.game.opensOnCover?.() || this.game.opensOnSetup?.() || this.game.opensOnPick?.()) this.countdown = 0;
+    // F276: nor before a hole card (Minigolf: no shot is timed, and holes 2 and 3 open on it with no count).
+    const g = this.game;
+    if (g.opensOnCover?.() || g.opensOnSetup?.() || g.opensOnPick?.() || g.opensOnCard?.()) this.countdown = 0;
     stage.onStep = (dt) => this.step(dt);
     stage.onRender = (g) => this.render(g);
   }
