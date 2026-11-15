@@ -2386,7 +2386,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] F319-F321 on the todo list: RPS pick lines, Minigolf scorecard lines and Sea Battle
       notices with 12-letter names (found reading the code, not yet measured).
 ## Ideas found 2026-11-15 (13:17 run, both players walk away)
-- [x] 2026-11-15 (F322, PR #TBD): with nobody touching, Air Hockey (a resting puck), Sumo (two
+- [x] 2026-11-15 (F322, PR #349): with nobody touching, Air Hockey (a resting puck), Sumo (two
       still wrestlers) and Ping Pong (a straight serve between two centred paddles, a 900 s
       run ended 1-1 at "Rally 879") never end, so a match left on the table ran forever. Now
       a real-time game between two people pauses itself after IDLE_PAUSE (30 s of play) with no
