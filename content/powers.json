@@ -60,6 +60,20 @@
         "icon": "✨",
         "desc": "The puck splits in two. Either one can score.",
         "duration": 6
+      },
+      {
+        "id": "guard",
+        "name": "Goal Guard",
+        "icon": "🧱",
+        "desc": "A low wall guards the middle of your goal for 5 seconds.",
+        "duration": 5
+      },
+      {
+        "id": "tiny",
+        "name": "Tiny Paddle",
+        "icon": "🐜",
+        "desc": "The other paddle shrinks small for 5 seconds.",
+        "duration": 5
       }
     ],
     "tanks": [
@@ -219,6 +233,20 @@
         "icon": "👅",
         "desc": "Your next 3 snaps reach twice as far.",
         "duration": 0
+      },
+      {
+        "id": "rain",
+        "name": "Snack Rain",
+        "icon": "🌧️",
+        "desc": "Three speedy extra snacks zoom your way. Catch them quick!",
+        "duration": 2
+      },
+      {
+        "id": "sleepy",
+        "name": "Nap Time",
+        "icon": "😴",
+        "desc": "The other critters snap in slow motion for 3 seconds.",
+        "duration": 3
       }
     ],
     "pingpong": [
@@ -241,6 +269,20 @@
         "name": "Curve Ball",
         "icon": "🌀",
         "desc": "Your next return bends away from the other paddle.",
+        "duration": 0
+      },
+      {
+        "id": "wide",
+        "name": "Wide Paddle",
+        "icon": "↔️",
+        "desc": "Your paddle grows extra wide for 5 seconds.",
+        "duration": 5
+      },
+      {
+        "id": "wobble",
+        "name": "Wobble Ball",
+        "icon": "〰️",
+        "desc": "Your next return wobbles side to side all the way over.",
         "duration": 0
       }
     ],

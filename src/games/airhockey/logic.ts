@@ -22,6 +22,12 @@ export const RULES = {
   energyHit: 0.12,
   energyConcede: 0.25,
   giantScale: 1.6,
+  /** Tiny Paddle: the other paddle shrinks to this size. */
+  tinyScale: 0.6,
+  /** Goal Guard: the low wall covers this share of the middle of your goal mouth. */
+  guardFrac: 0.5,
+  /** Goal Guard blinks for this long before it drops, so the shooter can time a shot. */
+  guardWarn: 1,
   /**
    * Stall rule (real tables give a player 7 s to shoot): a puck that stays in one
    * half this long gets a "Your shot!" nudge, and after `driftAfter` the table's
@@ -46,11 +52,14 @@ export const RULES = {
 
 /** `held`: which half the puck is resting in and for how long (the stall rule). */
 export type Puck = { x: number; y: number; vx: number; vy: number; alive: boolean; held?: { p: PlayerIndex; t: number; nudged: boolean } };
-export type Paddle = { x: number; y: number; vx: number; vy: number; r: number; frozen: number; giant: number };
+/** `tiny`: seconds left of the other player's Tiny Paddle. */
+export type Paddle = { x: number; y: number; vx: number; vy: number; r: number; frozen: number; giant: number; tiny: number };
 
 export type Event =
   | { type: 'hit'; x: number; y: number; p: PlayerIndex; speed: number }
   | { type: 'wall'; x: number; y: number }
+  /** The puck bounced off `p`'s Goal Guard. */
+  | { type: 'block'; x: number; y: number; p: PlayerIndex }
   | { type: 'goal'; scorer: PlayerIndex; x: number }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'nudge'; p: PlayerIndex }
@@ -65,6 +74,8 @@ export class AirHockey {
   pucks: Puck[] = [];
   paddles: [Paddle, Paddle];
   energy: [Energy, Energy];
+  /** Seconds left of each player's Goal Guard (a low wall in the middle of their own goal mouth). */
+  guard: [number, number] = [0, 0];
   /** Each player's target goal width (the goal at the far end, defended by the other). */
   goalW: [number, number];
   serve = RULES.serveDelay;
@@ -84,8 +95,8 @@ export class AirHockey {
   ) {
     const r = (p: PlayerIndex) => lerpAssist(players[p].assist, RULES.paddleR, RULES.paddleRMax);
     this.paddles = [
-      { x: W / 2, y: H - 80, vx: 0, vy: 0, r: r(0), frozen: 0, giant: 0 },
-      { x: W / 2, y: 80, vx: 0, vy: 0, r: r(1), frozen: 0, giant: 0 },
+      { x: W / 2, y: H - 80, vx: 0, vy: 0, r: r(0), frozen: 0, giant: 0, tiny: 0 },
+      { x: W / 2, y: 80, vx: 0, vy: 0, r: r(1), frozen: 0, giant: 0, tiny: 0 },
     ];
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     this.goalW = [lerpAssist(players[0].assist, RULES.goalW, RULES.goalWMax), lerpAssist(players[1].assist, RULES.goalW, RULES.goalWMax)];
@@ -99,7 +110,13 @@ export class AirHockey {
 
   paddleRadius(p: PlayerIndex): number {
     const pd = this.paddles[p];
-    return pd.giant > 0 ? pd.r * RULES.giantScale : pd.r;
+    return pd.r * (pd.giant > 0 ? RULES.giantScale : 1) * (pd.tiny > 0 ? RULES.tinyScale : 1);
+  }
+
+  /** Half the width of `p`'s Goal Guard (0 while it is down). It sits in the goal `p` defends. */
+  guardHalf(p: PlayerIndex): number {
+    if (this.guard[p] <= 0) return 0;
+    return (this.goalAt(p === 0 ? 'bottom' : 'top') * RULES.guardFrac) / 2;
   }
 
   resetPuck(toward: PlayerIndex): void {
@@ -123,6 +140,8 @@ export class AirHockey {
       const pd = this.paddles[p];
       pd.frozen = Math.max(0, pd.frozen - dt);
       pd.giant = Math.max(0, pd.giant - dt);
+      pd.tiny = Math.max(0, pd.tiny - dt);
+      this.guard[p] = Math.max(0, this.guard[p] - dt);
       if (this.powersOn && intents[p].power) this.firePower(p);
       this.movePaddle(p, intents[p], dt);
     }
@@ -190,6 +209,10 @@ export class AirHockey {
       a.vx = Math.cos(ang - 0.35) * sp;
       a.vy = Math.sin(ang - 0.35) * sp;
       this.pucks.push({ x: a.x, y: a.y, vx: Math.cos(ang + 0.35) * sp, vy: Math.sin(ang + 0.35) * sp, alive: true });
+    } else if (power.id === 'guard') {
+      this.guard[p] = power.duration ?? 5;
+    } else if (power.id === 'tiny') {
+      foe.tiny = power.duration ?? 5;
     }
     this.events.push({ type: 'power', p, id: power.id });
   }
@@ -249,7 +272,16 @@ export class AirHockey {
       if (!atEdge) continue;
       const half = this.goalAt(edge) / 2;
       const inMouth = Math.abs(pk.x - W / 2) < half - r * 0.3;
-      if (inMouth) {
+      // Goal Guard: a low wall across the middle of the mouth turns the puck back like a wall.
+      const keeper: PlayerIndex = edge === 'top' ? 1 : 0;
+      const gh = this.guardHalf(keeper);
+      // Only a puck arriving at the goal line: one already deeper in the mouth went past it.
+      const arriving = edge === 'top' ? pk.y > w + r - 8 : pk.y < H - w - r + 8;
+      if (inMouth && gh > 0 && arriving && Math.abs(pk.x - W / 2) < gh + r * 0.5) {
+        pk.y = edge === 'top' ? w + r : H - w - r;
+        pk.vy = edge === 'top' ? Math.abs(pk.vy) : -Math.abs(pk.vy);
+        this.events.push({ type: 'block', x: pk.x, y: pk.y, p: keeper });
+      } else if (inMouth) {
         const beyond = edge === 'top' ? pk.y < -r : pk.y > H + r;
         if (beyond) this.goal(pk, edge === 'top' ? 0 : 1);
       } else {
@@ -704,6 +736,11 @@ export class AirHockeyBot {
     const inMyHalf = this.p === 0 ? pk.y > MID : pk.y < MID;
     if (id === 'freeze') return inMyHalf; // freeze them right before we strike
     if (id === 'giant') return !inMyHalf;
+    const slow = Math.hypot(pk.vx, pk.vy) < 300;
+    // Shrink their paddle as we line up a shot: a small paddle blocks less of the goal.
+    if (id === 'tiny') return inMyHalf;
+    // Put the wall up while they line up a shot at our goal.
+    if (id === 'guard') return !inMyHalf && slow;
     // Split right after a hit, while the puck is heading at their goal: splitting a puck
     // that is coming at you only gives you two to stop.
     const towardFoe = this.p === 0 ? pk.vy < -150 : pk.vy > 150;

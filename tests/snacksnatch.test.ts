@@ -334,6 +334,90 @@ describe('snack snatch', () => {
     expect(g.doubleLeft[0]).toBe(0);
     expect(g.nextReach(0)).toBe(RULES.reach);
   });
+
+  it('Snack Rain shoots three speedy extra snacks your way over 2 s, never gold', () => {
+    const g = game({ powers: [power('snacksnatch', 'rain'), null] });
+    expect(power('snacksnatch', 'rain').duration).toBe(2);
+    only(g, { x: 30, y: 250, vx: 0, vy: 0 });
+    g.energy[0].value = 1;
+    const shot: Snack[] = [];
+    const seen = new Set<number>([999]);
+    g.step(DT, [{ snap: [false, false], power: true }, idle]);
+    for (let t = 0; t < 4; t += DT) {
+      for (const sn of g.snacks) if (!seen.has(sn.id)) (seen.add(sn.id), shot.push({ ...sn }));
+      g.step(DT, [idle, idle]);
+    }
+    expect(g.rainOn(0)).toBe(false);
+    expect(shot).toHaveLength(3);
+    for (const sn of shot) {
+      expect(sn.vy).toBeGreaterThan(0); // toward player 0, at the bottom
+      expect(sn.gold).toBe(false);
+      expect(Math.hypot(sn.vx, sn.vy)).toBeGreaterThanOrEqual(RULES.speedMin * RULES.rainSpeed - 1e-6);
+    }
+    // The top player's rain falls their way.
+    const g1 = game({ powers: [null, power('snacksnatch', 'rain')] });
+    only(g1, { x: 30, y: 250 });
+    g1.energy[1].value = 1;
+    g1.step(DT, [idle, { snap: [false, false], power: true }]);
+    expect(g1.snacks.filter((sn) => sn.id !== 999).every((sn) => sn.vy < 0)).toBe(true);
+    expect(g1.snacks).toHaveLength(2);
+  });
+
+  it('Snack Rain adds nothing during a sudden snack', () => {
+    const g = game({ powers: [power('snacksnatch', 'rain'), null] });
+    g.sudden = true;
+    only(g, { x: 30, y: 250 });
+    g.energy[0].value = 1;
+    for (let t = 0; t < 2; t += DT) g.step(DT, [{ snap: [false, false], power: t === 0 }, idle]);
+    expect(g.snacks.every((sn) => sn.id === 999)).toBe(true);
+  });
+
+  it('Nap Time slows the other critters\' snaps for 3 s, not your own', () => {
+    expect(power('snacksnatch', 'sleepy').duration).toBe(3);
+    const g = game({ powers: [power('snacksnatch', 'sleepy'), null] });
+    only(g, { x: 30, y: 250 });
+    g.energy[0].value = 1;
+    g.step(DT, [{ snap: [false, false], power: true }, idle]);
+    expect(g.sleepy(1)).toBe(true);
+    expect(g.sleepy(0)).toBe(false);
+    // Both snap at once: after the usual reach-out time, the sleepy head is well short.
+    g.step(DT, [{ snap: [true, false], power: false }, { snap: [true, false], power: false }]);
+    for (let t = DT; t < RULES.extendT - 1e-9; t += DT) g.step(DT, [idle, idle]);
+    const mine = g.extension(g.critters[0][0]);
+    const theirs = g.extension(g.critters[1][0]);
+    expect(mine).toBeGreaterThan(g.reach[0] * 0.95);
+    expect(theirs).toBeLessThan(g.reach[1] * 0.75);
+    // It still gets there, just slowly; and it wears off.
+    for (let t = 0; t < 3; t += DT) g.step(DT, [idle, idle]);
+    expect(g.sleepy(1)).toBe(false);
+    expect(g.snapRate(1)).toBe(1);
+  });
+
+  it('bots use Snack Rain and Nap Time at sensible times', () => {
+    const asks = (id: string, setup: (g: SnackSnatch) => void) => {
+      const pw = power('snacksnatch', id);
+      const g = game({ powers: [pw, pw] });
+      setup(g);
+      g.energy[0].value = 1;
+      const bot = new SnackSnatchBot(0, 'normal', makeRng(3));
+      let asked = 0;
+      for (let i = 0; i < 30; i++) if (bot.think(g, DT).power) asked++;
+      return asked;
+    };
+    const few = (g: SnackSnatch) => void only(g, { x: 30, y: 300 });
+    const crowd = (g: SnackSnatch) => {
+      g.snacks = Array.from({ length: 9 }, (_, i) => ({ id: 500 + i, x: 40 + i * 30, y: 300, vx: 0, vy: 0, gold: false, r: RULES.snackR, alive: true, kind: 0 }));
+    };
+    expect(asks('rain', few)).toBeGreaterThan(0);
+    expect(asks('rain', crowd)).toBe(0); // no room for more
+    expect(asks('rain', (g) => (few(g), (g.sudden = true)))).toBe(0);
+    // Sleepy: when snacks are reaching their critters (at the top).
+    const nearThem = (g: SnackSnatch) => {
+      g.snacks = [0, 1].map((i) => ({ id: 600 + i, x: 95 + i * 170, y: RULES.gum[1] + 40, vx: 0, vy: 0, gold: false, r: RULES.snackR, alive: true, kind: 0 }));
+    };
+    expect(asks('sleepy', nearThem)).toBeGreaterThan(0);
+    expect(asks('sleepy', few)).toBe(0);
+  });
 });
 
 describe('snack snatch miss pop (F143)', () => {

@@ -107,6 +107,19 @@ const PICS: Record<string, Record<string, string>> = {
       circle(32, 8, 6, THEM) +
       circle(32, 36, 6, YOU) +
       [-1, 1].map((d) => circle(32, 28, 3, '#fff', anim('cx', [32, 32, 32 + d * 8, 32 + d * 8], [0, 0.35, 0.85, 1]) + anim('cy', [28, 22, 4, 4], [0, 0.35, 0.85, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.8, 0.85, 1]))).join(''),
+    // A low wall pops up in the middle of your goal; their shot bounces off it.
+    guard:
+      table +
+      circle(32, 10, 6, THEM) +
+      circle(14, 34, 6, YOU) +
+      rect(25, 38, 14, 4, YOU, anim('opacity', [0, 0, 1, 1, 0], [0, 0.1, 0.15, 0.9, 1])) +
+      circle(32, 17, 3, '#fff', anim('cx', [32, 32, 32, 44, 44], [0, 0.25, 0.55, 0.85, 1]) + anim('cy', [17, 17, 35, 16, 16], [0, 0.25, 0.55, 0.85, 1]) + anim('opacity', [1, 1, 1, 1, 0], [0, 0.25, 0.55, 0.85, 1])),
+    // The other paddle shrinks small; your shot slips past it into their goal.
+    tiny:
+      table +
+      circle(32, 10, 6, THEM, anim('r', [6, 6, 3, 3, 6], [0, 0.15, 0.3, 0.85, 1])) +
+      circle(32, 36, 6, YOU) +
+      circle(36, 28, 3, '#fff', anim('cx', [36, 36, 37, 37], [0, 0.4, 0.75, 1]) + anim('cy', [28, 28, 2, 2], [0, 0.4, 0.75, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.4, 0.75, 1])),
   },
   pingpong: {
     // Your return flies super fast, leaving a streak.
@@ -129,6 +142,18 @@ const PICS: Record<string, Record<string, string>> = {
       rect(16, 4, 12, 3, THEM) +
       rect(24, 37, 16, 4, YOU) +
       circle(32, 34, 2.5, '#fff', anim('cx', [32, 32, 24, 34, 50, 50], [0, 0.15, 0.35, 0.55, 0.75, 1]) + anim('cy', [34, 34, 26, 16, 6, 6], [0, 0.15, 0.35, 0.55, 0.75, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.75, 0.8, 0.85, 1])),
+    // Your paddle grows extra wide and reaches a ball far out to the side.
+    wide:
+      pong +
+      rect(26, 4, 12, 3, THEM) +
+      rect(24, 37, 16, 4, YOU, anim('x', [24, 24, 16, 16, 24], [0, 0.1, 0.25, 0.9, 1]) + anim('width', [16, 16, 32, 32, 16], [0, 0.1, 0.25, 0.9, 1])) +
+      circle(32, 8, 2.5, '#fff', anim('cx', [32, 32, 45, 36, 36], [0, 0.2, 0.55, 0.85, 1]) + anim('cy', [8, 8, 35, 10, 10], [0, 0.2, 0.55, 0.85, 1]) + anim('opacity', [1, 1, 1, 1, 0], [0, 0.2, 0.55, 0.85, 1])),
+    // Your return wobbles side to side all the way over.
+    wobble:
+      pong +
+      rect(26, 4, 12, 3, THEM) +
+      rect(24, 37, 16, 4, YOU) +
+      circle(32, 34, 2.5, '#5eead4', anim('cx', [32, 32, 40, 24, 40, 24, 32, 32], [0, 0.1, 0.22, 0.34, 0.46, 0.58, 0.7, 1]) + anim('cy', [34, 34, 29, 24, 19, 14, 8, 8], [0, 0.1, 0.22, 0.34, 0.46, 0.58, 0.7, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.7, 0.75, 0.8, 1]), ' stroke="#fff" stroke-width="0.8"'),
   },
   penalty: {
     // Your shot swings out wide, then bends back on target past the keeper.
@@ -176,6 +201,20 @@ const PICS: Record<string, Record<string, string>> = {
       mat +
       circle(32, 6, 3, '#ffb347', anim('opacity', [1, 1, 0, 0, 1], [0, 0.55, 0.6, 0.9, 1])) +
       `<line x1="32" y1="34" x2="32" y2="34" stroke="#ff7eb3" stroke-width="4" stroke-linecap="round">${anim('y2', [34, 34, 22, 22, 34, 34, 7, 34, 34], [0, 0.1, 0.2, 0.25, 0.32, 0.4, 0.55, 0.7, 1])}</line>` +
+      rect(22, 34, 20, 8, YOU),
+    // Three speedy extra snacks shoot out of the pot your way.
+    rain:
+      mat +
+      circle(32, 12, 6, '#c0703f', anim('r', [6, 6, 7, 6, 7, 6, 7, 6, 6], [0, 0.1, 0.13, 0.35, 0.38, 0.6, 0.63, 0.85, 1])) +
+      rect(22, 34, 20, 8, YOU) +
+      [0, 0.25, 0.5].map((t0, i) => circle(32, 12, 3, '#ffb347', anim('cx', [32, 32, 22 + i * 10, 22 + i * 10], [0, t0 + 0.1, t0 + 0.3, 1]) + anim('cy', [12, 12, 33, 33], [0, t0 + 0.1, t0 + 0.3, 1]) + anim('opacity', [0, 0, 1, 1, 0, 0], [0, t0 + 0.1, t0 + 0.11, t0 + 0.3, t0 + 0.32, 1]))).join(''),
+    // The other critters doze off: their snap creeps out too slowly and the snack rolls past.
+    sleepy:
+      mat +
+      rect(22, 2, 20, 8, THEM) +
+      `<line x1="32" y1="10" x2="32" y2="10" stroke="#ff7eb3" stroke-width="4" stroke-linecap="round">${anim('y2', [10, 10, 20, 20, 10], [0, 0.2, 0.85, 0.9, 1])}</line>` +
+      `<polyline points="46,4 52,4 46,10 52,10" fill="none" stroke="#dfe6ff" stroke-width="1.5">${anim('opacity', [0, 1, 0.3, 1, 0], [0, 0.2, 0.5, 0.8, 1])}</polyline>` +
+      circle(4, 20, 3, '#ffb347', anim('cx', [4, 4, 60, 60], [0, 0.2, 0.7, 1]) + anim('opacity', [0, 1, 1, 0, 0], [0, 0.2, 0.7, 0.72, 1])) +
       rect(22, 34, 20, 8, YOU),
   },
   tanks: {

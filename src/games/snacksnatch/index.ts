@@ -1,7 +1,7 @@
 // Snack Snatch view: taps become snaps; state becomes a picnic blanket with a
 // snack pot in the middle and two round frog-like "Chompers" per player.
-import { PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, noGlow, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
+import { other, PLAYERS, type PlayerIndex } from '../../core/types';
+import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { POP_OUTLINE_LIGHT } from '../../engine/fx';
@@ -234,6 +234,14 @@ class SnackSnatchView implements GameInstance {
         const py = this.powerPopY(first, second, e.p);
         fx.pop(first, W / 2, py, COLORS.gold, e.p, 24);
         if (second) fx.pop(second, W / 2, py, COLORS.gold, e.p, 24);
+        // Sleepy Critters: the other seat reads why their frogs went slow (the frogs show it too).
+        const foe = other(e.p);
+        if (pw.id === 'sleepy' && !silentSeat(players, foe)) {
+          const [a, b] = powerLines('😴 Slow snaps!');
+          const fy = this.powerPopY(a, b, foe);
+          fx.pop(a, W / 2, fy, COLORS.gold, foe, 24);
+          if (b) fx.pop(b, W / 2, fy, COLORS.gold, foe, 24);
+        }
       } else if (e.type === 'win') {
         sfx.play('win');
         if (!this.ended) {
@@ -322,6 +330,18 @@ class SnackSnatchView implements GameInstance {
         rrect(gx, RULES.wall, y0, W - RULES.wall * 2, RULES.stickyRange, 18, '#ffb627');
         gx.globalAlpha = 1;
       }
+      if (g.rainOn(p)) {
+        // Snack Rain: streaks run from the pot toward this player's critters, in their colour.
+        const dir = p === 0 ? 1 : -1;
+        for (let k = 0; k < 5; k++) {
+          const x = W / 2 + (k - 2) * 34;
+          const ph = (this.t * 2.2 + k * 0.27) % 1;
+          const y0 = MID + dir * (RULES.potR + 16 + ph * 110);
+          gx.globalAlpha = 0.7 * (1 - ph);
+          line(gx, x, y0, x + (k - 2) * 6, y0 + dir * 22, c, 4);
+          gx.globalAlpha = 1;
+        }
+      }
       if (g.magnetOn(p)) {
         for (const cr of g.critters[p]) {
           for (let k = 0; k < 3; k++) {
@@ -337,7 +357,11 @@ class SnackSnatchView implements GameInstance {
     const k = this.potKick;
     const r = RULES.potR * (1 + 0.12 * k);
     circle(gx, W / 2, MID + 4, r + 2, 'rgba(0,0,0,0.25)');
+    // Snack Rain: the pot glows in the colour of the player it is pouring for.
+    const rain = PLAYERS.find((p) => this.game.rainOn(p));
+    if (rain !== undefined) glow(gx, this.ctx.players[rain].color, 18 + 6 * Math.sin(this.t * 10));
     circle(gx, W / 2, MID, r, '#c0703f', '#7a3f1d', 4);
+    noGlow(gx);
     circle(gx, W / 2, MID, r * 0.62, '#5a2d14');
     // Snacks peeking out of the pot
     circle(gx, W / 2 - 6, MID - 3, 5, KINDS[0]);
@@ -506,6 +530,7 @@ class SnackSnatchView implements GameInstance {
     const ext = g.extension(c);
     const btn = this.buttons[p][c.i];
     const double = g.doubleLeft[p] > 0;
+    const sleepy = g.sleepy(p);
     // Draw in the critter's own frame: "up" is toward the field.
     facing(gx, p, c.x, bodyY, () => {
       const by = bodyY;
@@ -536,6 +561,8 @@ class SnackSnatchView implements GameInstance {
         gx.lineWidth = 18;
         gx.stroke();
       }
+      // Sleepy Critters: a soft night-blue ring round the body while its snaps run slow.
+      if (sleepy) circle(gx, c.x, by + press, 47, 'rgba(120,150,255,0.25)', 'rgba(150,175,255,0.8)', 2);
       // Body (also the tap button)
       circle(gx, c.x, by + 6, 40, 'rgba(0,0,0,0.3)');
       circle(gx, c.x, by + press, 40, col, dark, 4);
@@ -573,6 +600,10 @@ class SnackSnatchView implements GameInstance {
         circle(gx, c.x + s * 12, eyeY, 9, '#fff', dark, 2.5);
         if (c.dizzy) {
           text(gx, '@', c.x + s * 12, eyeY, { size: 12, color: dark });
+        } else if (sleepy) {
+          // Droopy, half-shut eyes.
+          rrect(gx, c.x + s * 12 - 8, eyeY - 4, 16, 6, 3, col);
+          line(gx, c.x + s * 12 - 6, eyeY + 2, c.x + s * 12 + 6, eyeY + 2, '#1b1430', 2.5);
         } else {
           circle(gx, c.x + s * 12, eyeY - 2, 4, '#1b1430');
         }
@@ -586,6 +617,7 @@ class SnackSnatchView implements GameInstance {
         gx.lineCap = 'round';
         gx.stroke();
       }
+      if (sleepy) text(gx, 'Zz', c.x + 34, by - 40 - 6 * Math.sin(this.t * 3 + c.i), { size: 16, color: '#dfe6ff', stroke: 'rgba(20,20,60,0.7)' });
       // F162: no "TAP" on a bot's hippo facing the one person (a how-to word nobody reads).
       if (!silentSeat(this.ctx.players, c.p)) text(gx, 'TAP', c.x, by + 14 + press, { size: 14, color: inkOn(col) });
     });

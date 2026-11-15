@@ -1,5 +1,6 @@
 // Air Hockey view: fingers and bots become intents, state becomes pixels.
-import { PLAYERS, type PlayerIndex } from '../../core/types';
+import { other, PLAYERS, type PlayerIndex } from '../../core/types';
+import { blink } from '../../engine/calm';
 import { alpha, circle, COLORS, glow, line, noGlow, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
@@ -136,6 +137,10 @@ class AirHockeyView implements GameInstance {
         if (e.speed > 800) fx.shake(4, 0.12);
       } else if (e.type === 'wall') {
         sfx.play('bounce');
+      } else if (e.type === 'block') {
+        // The puck bounced off a Goal Guard: a heavier knock than a wall, in the keeper's colour.
+        sfx.play('thud');
+        fx.burst(e.x, e.y, this.ctx.players[e.p].color, 10, 160, 3);
       } else if (e.type === 'goal') {
         sfx.play('score');
         this.lastScorer = e.scorer;
@@ -153,6 +158,10 @@ class AirHockeyView implements GameInstance {
         // goal no longer prints over GOAL! (it sat at 50, inside the banner as both rose).
         const name = `${pw.icon} ${pw.name}!`;
         fx.pop(name, W / 2, this.clearOfPucks(name, 26, e.p === 0 ? MID + POWER_POP_Y : MID - POWER_POP_Y, e.p), COLORS.gold, e.p, 26);
+        // Goal Guard and Tiny Paddle change what the other player has to do: tell them too.
+        const foe = other(e.p);
+        const warn = pw.id === 'guard' ? '🧱 Aim wide!' : pw.id === 'tiny' ? '🐜 You shrank!' : '';
+        if (warn && !silentSeat(this.ctx.players, foe)) fx.pop(warn, W / 2, this.clearOfPucks(warn, 26, foe === 0 ? MID + POWER_POP_Y : MID - POWER_POP_Y, foe), COLORS.gold, foe, 26);
       } else if (e.type === 'nudge') {
         // Only the player holding the puck needs to read it, upright on their side.
         if (!silentSeat(this.ctx.players, e.p)) fx.pop('Your shot!', W / 2, this.clearOfPucks('Your shot!', 26, e.p === 0 ? MID + SHOT_POP_Y : MID - SHOT_POP_Y, e.p), '#2b2459', e.p, 26);
@@ -210,6 +219,21 @@ class AirHockeyView implements GameInstance {
       gx.fillRect(W / 2 - gw / 2, edge === 'top' ? 0 : H - 5, gw, 5);
       gx.fillStyle = '#2b2459';
     }
+    // Goal Guard: a low brick wall across the middle of the keeper's own goal mouth, in their
+    // colour. It blinks for its last second, so the shooter can wait it out.
+    for (const p of [0, 1] as PlayerIndex[]) {
+      const gh = g.guardHalf(p);
+      if (gh <= 0) continue;
+      const left = g.guard[p];
+      gx.globalAlpha = left < RULES.guardWarn && !blink(this.t) ? 0.35 : 1;
+      const y = p === 0 ? H - wall : 0;
+      glow(gx, COLORS.gold, 12);
+      rrect(gx, W / 2 - gh, y, gh * 2, wall, 3, p === 0 ? c0 : c1);
+      noGlow(gx);
+      for (let x = W / 2 - gh + 12; x < W / 2 + gh - 4; x += 12) line(gx, x, y + 2, x, y + wall - 2, shade(p === 0 ? c0 : c1, -0.35), 2);
+      line(gx, W / 2 - gh + 2, y + wall / 2, W / 2 + gh - 2, y + wall / 2, shade(p === 0 ? c0 : c1, -0.35), 1.5);
+      gx.globalAlpha = 1;
+    }
     // Scores, read by each player on their side of the midline
     text(gx, String(g.score[0]), W - 60, MID + 28, { size: 34, color: alpha(c0, 0.85), player: 0 });
     text(gx, String(g.score[1]), 60, MID - 28, { size: 34, color: alpha(c1, 0.85), player: 1 });
@@ -238,6 +262,15 @@ class AirHockeyView implements GameInstance {
       noGlow(gx);
       circle(gx, pd.x, pd.y, r * 0.55, shade(c, 0.25), shade(c, -0.25), 3);
       circle(gx, pd.x, pd.y, r * 0.22, shade(c, -0.2));
+      if (pd.tiny > 0) {
+        // Tiny Paddle: a dashed ring in the shrinker's colour shows the size it will grow back to.
+        const shrinker = this.ctx.players[other(p)].color;
+        const dim = pd.tiny < 1 && !blink(this.t);
+        gx.setLineDash([5, 5]);
+        circle(gx, pd.x, pd.y, pd.r * (pd.giant > 0 ? RULES.giantScale : 1), undefined, alpha(shrinker, dim ? 0.3 : 0.8), 2);
+        gx.setLineDash([]);
+        text(gx, '🐜', pd.x, pd.y, { size: 14, player: p });
+      }
       if (pd.frozen > 0) {
         circle(gx, pd.x, pd.y, r + 6, 'rgba(160,220,255,0.55)', '#bfe9ff', 3);
         text(gx, '🧊', pd.x, pd.y, { size: 22, player: p });

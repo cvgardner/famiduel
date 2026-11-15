@@ -60,6 +60,16 @@ export const RULES = {
   stickyRoll: 35,
   doubleSnaps: 3,
   doubleScale: 2,
+  /**
+   * Snack Rain: while it lasts (2 s: three snacks), the pot shoots one extra snack your way this
+   * often, never gold, this much faster than usual. Speedy is the catch: one you miss bounces off
+   * your gum line and over to the other side. (At normal speed, even one extra snack won 63%
+   * between normal bots and three won 95%: every match shares one mirrored supply.)
+   */
+  rainEvery: 0.8,
+  rainSpeed: 1.5,
+  /** Sleepy Critters: the other player's snaps go out and back at this share of their usual speed. */
+  sleepyRate: 0.4,
   energyPerSec: 0.05,
   energyPerPoint: 0.05,
 };
@@ -113,6 +123,8 @@ export class SnackSnatch {
   missCooldown: [number, number];
   /** Remaining "Double Grab" snaps. */
   doubleLeft: [number, number] = [0, 0];
+  /** Seconds to each player's next Snack Rain snack. */
+  private rainIn: [number, number] = [0, 0];
   /** Seconds left in regulation, then in sudden snack. */
   timeLeft = RULES.matchTime;
   sudden = false;
@@ -188,6 +200,22 @@ export class SnackSnatch {
     return this.players[p].power?.id === 'sticky' && this.energy[p].active > 0;
   }
 
+  /** Player p's Snack Rain is falling (extra snacks roll their way). */
+  rainOn(p: PlayerIndex): boolean {
+    return this.players[p].power?.id === 'rain' && this.energy[p].active > 0;
+  }
+
+  /** Player p's critters are sleepy: the other player's Sleepy Critters is on. */
+  sleepy(p: PlayerIndex): boolean {
+    const q = other(p);
+    return this.players[q].power?.id === 'sleepy' && this.energy[q].active > 0;
+  }
+
+  /** How fast player p's snaps run (1 = usual; Sleepy Critters slows them). */
+  snapRate(p: PlayerIndex): number {
+    return this.sleepy(p) ? RULES.sleepyRate : 1;
+  }
+
   step(dt: number, intents: [Intent, Intent]): void {
     this.events = [];
     if (this.finished) return;
@@ -204,6 +232,7 @@ export class SnackSnatch {
       }
     }
     this.spawn(dt);
+    this.rain(dt);
     const sub = 3;
     for (let s = 0; s < sub; s++) {
       for (const p of [0, 1] as PlayerIndex[]) for (const c of this.critters[p]) this.advanceSnap(c, dt / sub);
@@ -232,7 +261,7 @@ export class SnackSnatch {
   private advanceSnap(c: Critter, h: number): void {
     if (c.snapT < 0) return;
     const wasBiting = this.biting(c);
-    c.snapT += h;
+    c.snapT += h * this.snapRate(c.p);
     if (wasBiting && !this.biting(c) && c.gulps === 0) {
       c.cooldown = Math.max(c.cooldown, this.missCooldown[c.p] - RULES.extendT - RULES.holdT);
       c.dizzy = true;
@@ -273,6 +302,24 @@ export class SnackSnatch {
       this.spawnIn = this.rng.range(RULES.spawnMin, RULES.spawnMax) * (frenzy ? RULES.frenzySpawn : 1);
     }
     this.launchPair(this.rng.chance(RULES.goldChance) || (frenzy && this.rng.chance(0.15)), frenzy ? this.rng.range(RULES.speedMin, RULES.speedMax) * RULES.frenzySpeed : undefined);
+  }
+
+  /**
+   * Snack Rain: while it lasts, the pot shoots single speedy snacks at the player who used it. One
+   * that gets past bounces off that player's gum line and rolls on toward the other side. None
+   * during the sudden snack (any gulp there decides the match).
+   */
+  private rain(dt: number): void {
+    if (this.sudden) return;
+    for (const p of [0, 1] as PlayerIndex[]) {
+      if (!this.rainOn(p)) continue;
+      this.rainIn[p] -= dt;
+      if (this.rainIn[p] > 0 || this.snacks.length >= RULES.frenzyMaxSnacks) continue;
+      this.rainIn[p] = RULES.rainEvery;
+      const a = Math.PI / 2 + this.rng.range(-0.9, 0.9);
+      const sp = this.rng.range(RULES.speedMin, RULES.speedMax) * RULES.rainSpeed * (this.frenzy ? RULES.frenzySpeed : 1);
+      this.launch(false, sp, Math.cos(a), Math.sin(a) * (p === 0 ? 1 : -1), this.rng.int(0, SNACK_KINDS - 1));
+    }
   }
 
   /**
@@ -446,6 +493,7 @@ export class SnackSnatch {
     const power = this.players[p].power;
     if (!power || !this.energy[p].spend(power.duration ?? 0)) return;
     if (power.id === 'double') this.doubleLeft[p] = RULES.doubleSnaps;
+    if (power.id === 'rain') this.rainIn[p] = 0;
     this.events.push({ type: 'power', p, id: power.id });
   }
 }
@@ -489,7 +537,8 @@ export class SnackSnatchBot {
       }
       if (c.cooldown > cfg.react) continue;
       // When will the head be out? After our reaction delay plus most of the extend.
-      const lookAhead = cfg.react * cfg.anticip + RULES.extendT * 0.8 + this.rng.range(-cfg.noise, cfg.noise);
+      // A sleepy critter (shown on screen) is slower to get there, so it snaps earlier, as a person would.
+      const lookAhead = cfg.react * cfg.anticip + (RULES.extendT * 0.8) / game.snapRate(this.p) + this.rng.range(-cfg.noise, cfg.noise);
       const hit = game.snacks.some((s) => {
         const x = s.x + s.vx * lookAhead;
         const y = s.y + s.vy * lookAhead;
@@ -514,6 +563,11 @@ export class SnackSnatchBot {
     // person who reads the telegraphed power would. Easy bots don't plan around it.
     if (id === 'sticky') return near >= 2 && (this.level === 'easy' || !game.magnetOn((1 - this.p) as PlayerIndex));
     if (id === 'double') return game.snacks.length >= 3;
+    // Rain while there's room on the blanket for the extra snacks (it does nothing in a sudden snack).
+    if (id === 'rain') return !game.sudden && game.snacks.length <= 6;
+    // Make them sleepy just as snacks reach their critters.
+    const foe = other(this.p);
+    if (id === 'sleepy') return game.snacks.filter((s) => Math.abs(s.y - RULES.gum[foe]) < RULES.stickyRange).length >= 2;
     return false;
   }
 }
