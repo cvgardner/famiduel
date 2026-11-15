@@ -1395,7 +1395,9 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     await expect(page.locator('#result .half.p0 .res-night'), id).toHaveText(`You vs the bot: 0 – ${n}`);
     // F229: the score and record show once, in the person's half (the bot's half repeated them back to front).
     await expect(page.locator('#result .half.p1 .res-score, #result .half.p1 .res-unit, #result .half.p1 .res-night'), `${id}: no score lines in the bot's half`).toHaveCount(0);
-    await expect(page.locator('#result .half.p0 .res-score'), id).toHaveText('0 – 1');
+    await expect(page.locator('#result .half.p0 .res-score .rs-n'), id).toHaveText(['0', '1']);
+    // F311: each number says whose it is, inside the half on a small phone.
+    await expect(page.locator('#result .half.p0 .res-score .rs-who'), id).toHaveText(['You', 'Bot']);
     if (id === 'airhockey') await page.screenshot({ path: path.join(OUT, 'solo-result.png') });
     await page.locator('#homeBtn').tap();
   }

@@ -2281,3 +2281,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       "+120 ms handicap"), which means nothing to a young kid. Times now read in seconds
       ("Bot 0.50 s", "+0.12 s handicap"), the same width on the card; secs() / handicapLine(),
       tests/quickdraw-no-shot.test.ts + tests/bot-name.test.ts.
+- [x] 2026-11-15 (F311): the result screen's big score read "2 – 3" with nothing saying which
+      number was whose (a kid playing the bot couldn't tell; families ask how the app "picked"
+      a winner). Each number now has a small name under it, the half's own first: "You" /
+      "Bot" playing the bot, "You" / the other player's name between two people (bots keep
+      their names in a bot-vs-bot match). Two equal columns keep the dash centred; long names
+      end in an ellipsis. scoreLabels() in src/app/resulttitle.ts, tests/result-score.test.ts,
+      e2e 'result: each score number names its player' (long names, 320 px + Bigger text).
