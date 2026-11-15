@@ -1444,7 +1444,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Shield 51% (29-34% against the others). Real matches give both seats a power, so the
       "none" column matters less; Shield is the weak pick at normal but the strongest at
       easy (60%). A power call if families find Shield useless against a fast chopper.
-      2026-11-15 (F286, PR #TBD): Branch Shield now covers your next 12 chops instead of
+      2026-11-15 (F286, PR #315): Branch Shield now covers your next 12 chops instead of
       2 seconds (a count, like Double Chop). In a race to 50 a 2 s shield was worth ~0.5 s of
       extra taps, so it grew with tapping speed (weak at normal, strong at hard); 12 chops is
       worth about the same 4 chops as Double at every speed, and a slow tapper (or a frozen
