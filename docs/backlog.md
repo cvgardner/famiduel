@@ -2152,7 +2152,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tests/sumo-countdown.test.ts counts the ring as part of HOLD.
 
 ## Ideas found 2026-11-15 (research: kids' tap accuracy)
-- [x] 2026-11-15 (F289, PR #TBD): kids hit the neighbouring target (NN/g children's UX,
+- [x] 2026-11-15 (F289, PR #317): kids hit the neighbouring target (NN/g children's UX,
       Google's building-for-kids guide), so the canvas-button playtest now also checks the
       space between buttons on a 320x568 phone, normal and Little hands: every pair of drawn
       buttons at least 8 CSS px apart and touch areas overlapping by at most 2 px. All games
