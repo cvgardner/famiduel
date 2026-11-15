@@ -2138,7 +2138,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       bots saving well, not a slow puck. Not merged. A familiar fix would be the arcade table's
       match clock (e.g. 3 min, most goals wins, a tie plays on to the next goal), but that changes
       the match format: Chris's call (todo F283).
-- [x] 2026-11-15 (F284, PR #PRNUM): Ping Pong Slow-mo was the weak pick (n=160 normal bots: 42%,
+- [x] 2026-11-15 (F284, PR #313): Ping Pong Slow-mo was the weak pick (n=160 normal bots: 42%,
       and None beat it 57%). The bot set its misjudgement of an incoming ball from the ball's full
       speed, so a Slow-mo or head-start ball was no easier for it to read, though a person sees a
       slow ball. It now reads the speed it sees (speed × the ball's slow factor). n=160 sim:powers,
