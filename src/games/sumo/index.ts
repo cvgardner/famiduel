@@ -26,8 +26,10 @@ export const BANNER_PAD = 12;
 /**
  * F280: each person's "3 2 1" digit sits this far from the middle (default 120, where it
  * covered the wrestler waiting at MID ± 72): out on the rope, short of the HOLD button.
+ * F285: 164 still put the biggest digit's foot on HOLD's charge ring (r + 9, 7 wide), so 150,
+ * which clears both the waiting wrestler and that ring on a small phone.
  */
-export const COUNT_DY_SUMO = 164;
+export const COUNT_DY_SUMO = 150;
 /** World units the pause button covers from the left edge on the narrowest phone (44 px at 320 px wide). */
 export const PAUSE_CLEAR = 52;
 

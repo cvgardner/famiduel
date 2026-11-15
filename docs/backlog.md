@@ -2146,3 +2146,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       55 / 53 / 55%, None 36 / 41 / 43%. Powers-off pace table unchanged. Test in
       tests/pingpong.test.ts (a normal bot misses 50 of 150 fast angled balls with or without
       Slow-mo before; now under 60% of that with it).
+- [x] 2026-11-15 (F285, PR #314): Sumo's biggest "3 2 1" digit (F280's MID ± 164) put its foot on
+      the HOLD button's charge ring (drawn at r + 9, 7 wide) on a small phone (little-hands-sumo.png).
+      Now MID ± 150: clear of that ring and of the wrestler waiting at MID ± 72.
+      tests/sumo-countdown.test.ts counts the ring as part of HOLD.
