@@ -2095,6 +2095,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       countdown there; the first-match ghost finger stays, since it shows the tap on the hands.
       The bot still waits its usual 0.4-2 s before picking ("Choosing..."). tests/setup-start.test.ts
       + playtest "ghost finger: Rock Paper Scissors against the bot opens on the pick ...".
+- [x] 2026-11-14 (F277, PR #306): Same rules for the bot, guarded. Reviews of a rival two-player app
+      complain its hard bot scored 2 points per slap and its power-ups spawned in front of the bot.
+      Here only the *Bot classes know a seat is a bot; tests/bot-same-rules.test.ts fails if a
+      rules class in any src/games/<id>/logic.ts reads a seat's `.bot`, `isBot` or a BotLevel.
 - [x] 2026-11-14 (F276, PR #PRNUM): Minigolf opened hole 1 on a 1.8 s "3 2 1" over the bare course,
       then the hole card faded in at GO, though no shot is ever timed (holes 2 and 3 open on the
       card with no count). opensOnCard() lets the runner skip the countdown; the hole card shows
