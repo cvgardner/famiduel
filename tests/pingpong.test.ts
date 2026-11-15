@@ -250,6 +250,84 @@ describe('ping pong', () => {
     expect(g.ball.x).toBeGreaterThan(straight + 40);
   });
 
+  it('Wide Paddle: your paddle grows wide for 5 seconds and reaches a ball the usual one misses', () => {
+    const reach = (wide: boolean) => {
+      const g = new PingPong([player({ power: power('pingpong', 'wide') }), player()], true, makeRng(9));
+      g.energy[0].value = 1;
+      rallyToward(g, 0);
+      // The ball comes down 45 units off the paddle's centre: past a normal paddle's edge (33 + 7).
+      g.ball.x = 225;
+      g.step(DT, [{ tx: 180, power: wide }, still()]);
+      for (let i = 0; i < 200; i++) {
+        g.step(DT, [still(), still()]);
+        if (g.events.some((e) => e.type === 'hit' && e.p === 0)) return { g, hit: true };
+        if (g.events.some((e) => e.type === 'point')) return { g, hit: false };
+      }
+      return { g, hit: false };
+    };
+    expect(reach(false).hit).toBe(false);
+    const { g, hit } = reach(true);
+    expect(hit).toBe(true);
+    expect(g.paddles[0].w).toBeCloseTo(RULES.paddleW * RULES.wideScale);
+    expect(g.paddles[1].w).toBe(RULES.paddleW);
+    for (let t = 0; t < 5; t += DT) g.step(DT, [still(), still()]);
+    expect(g.paddles[0].w).toBe(RULES.paddleW);
+  });
+
+  it('Wobble Ball: the next return sways side to side all the way over, then play goes straight', () => {
+    const g = new PingPong([player({ power: power('pingpong', 'wobble') }), player()], true, makeRng(8));
+    g.energy[0].value = 1;
+    rallyToward(g, 0);
+    g.step(DT, [{ tx: 180, power: true }, still()]);
+    expect(g.paddles[0].wobble).toBe(true);
+    const e = untilHit(g, 0, () => still());
+    expect(e.wobble).toBe(true);
+    expect(g.paddles[0].wobble).toBe(false);
+    expect(g.ball.wob).toBe(RULES.wobbleAmp);
+    // Off the straight line it would fly, to both sides.
+    const x0 = g.ball.x;
+    const y0 = g.ball.y;
+    const { vx, vy } = g.ball;
+    let left = 0;
+    let right = 0;
+    const fc = forecast({ ...g.ball }, g.faceY(1));
+    while (g.ball.vy < 0 && g.ball.y - RULES.ballR > g.faceY(1)) {
+      g.step(DT, [still(), still(20)]);
+      const line = x0 + (vx * (g.ball.y - y0)) / vy;
+      left = Math.min(left, g.ball.x - line);
+      right = Math.max(right, g.ball.x - line);
+    }
+    expect(left).toBeLessThan(-RULES.wobbleAmp * 0.8);
+    expect(right).toBeGreaterThan(RULES.wobbleAmp * 0.8);
+    // A player can read it: the sway is regular, and the bot's forecast follows it too.
+    expect(Math.abs(g.ball.x - fc.x)).toBeLessThan(8);
+    // The other player's return is straight again.
+    const back = untilHit(g, 1, () => still(g.ball.x));
+    expect(back.wobble).toBe(false);
+    expect(g.ball.wob).toBe(0);
+  });
+
+  it('the bot widens its paddle for a hard ball on its way, and wobbles the return it is about to hit', () => {
+    const asks = (id: string, y: number, speed: number) => {
+      const pw = power('pingpong', id);
+      const g = new PingPong([player({ bot: 'normal', power: pw }), player({ bot: 'normal', power: pw })], true, makeRng(4));
+      const bot = new PingPongBot(0, 'normal', makeRng(5));
+      g.energy[0].value = 1;
+      g.serveT = 0;
+      let asked = 0;
+      for (let i = 0; i < 30; i++) {
+        Object.assign(g.ball, { x: 180, y, vx: 0, vy: speed });
+        if (bot.think(g, DT).power) asked++;
+      }
+      return asked;
+    };
+    expect(asks('wide', H * 0.3, 600)).toBeGreaterThan(0); // fast, on its way over
+    expect(asks('wide', H * 0.3, 300)).toBe(0); // an easy ball
+    expect(asks('wide', H * 0.3, -600)).toBe(0); // going away
+    expect(asks('wobble', H * 0.7, 400)).toBeGreaterThan(0); // about to hit it
+    expect(asks('wobble', H * 0.3, 400)).toBe(0);
+  });
+
   it('a still paddle blocks: rally speed, no spin', () => {
     const g = new PingPong([player(), player()], false, makeRng(10));
     rallyToward(g, 0);

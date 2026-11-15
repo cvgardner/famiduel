@@ -218,6 +218,20 @@
         "icon": "🌀",
         "desc": "Your next return bends away from the other paddle.",
         "duration": 0
+      },
+      {
+        "id": "wide",
+        "name": "Wide Paddle",
+        "icon": "↔️",
+        "desc": "Your paddle grows extra wide for 5 seconds.",
+        "duration": 5
+      },
+      {
+        "id": "wobble",
+        "name": "Wobble Ball",
+        "icon": "〰️",
+        "desc": "Your next return wobbles side to side all the way over.",
+        "duration": 0
       }
     ],
     "penalty": [

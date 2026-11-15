@@ -130,6 +130,18 @@ const PICS: Record<string, Record<string, string>> = {
       rect(16, 4, 12, 3, THEM) +
       rect(24, 37, 16, 4, YOU) +
       circle(32, 34, 2.5, '#fff', anim('cx', [32, 32, 24, 34, 50, 50], [0, 0.15, 0.35, 0.55, 0.75, 1]) + anim('cy', [34, 34, 26, 16, 6, 6], [0, 0.15, 0.35, 0.55, 0.75, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.75, 0.8, 0.85, 1])),
+    // Your paddle grows extra wide and reaches a ball far out to the side.
+    wide:
+      pong +
+      rect(26, 4, 12, 3, THEM) +
+      rect(24, 37, 16, 4, YOU, anim('x', [24, 24, 16, 16, 24], [0, 0.1, 0.25, 0.9, 1]) + anim('width', [16, 16, 32, 32, 16], [0, 0.1, 0.25, 0.9, 1])) +
+      circle(32, 8, 2.5, '#fff', anim('cx', [32, 32, 45, 36, 36], [0, 0.2, 0.55, 0.85, 1]) + anim('cy', [8, 8, 35, 10, 10], [0, 0.2, 0.55, 0.85, 1]) + anim('opacity', [1, 1, 1, 1, 0], [0, 0.2, 0.55, 0.85, 1])),
+    // Your return wobbles side to side all the way over.
+    wobble:
+      pong +
+      rect(26, 4, 12, 3, THEM) +
+      rect(24, 37, 16, 4, YOU) +
+      circle(32, 34, 2.5, '#5eead4', anim('cx', [32, 32, 40, 24, 40, 24, 32, 32], [0, 0.1, 0.22, 0.34, 0.46, 0.58, 0.7, 1]) + anim('cy', [34, 34, 29, 24, 19, 14, 8, 8], [0, 0.1, 0.22, 0.34, 0.46, 0.58, 0.7, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.7, 0.75, 0.8, 1]), ' stroke="#fff" stroke-width="0.8"'),
   },
   penalty: {
     // Your shot swings out wide, then bends back on target past the keeper.

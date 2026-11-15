@@ -68,6 +68,11 @@ export const RULES = {
   assistSlow: 0.8,
   slowmo: 0.45,
   curveAccel: 190,
+  /** Wide Paddle: your paddle grows this much wider for the power's duration. */
+  wideScale: 1.5,
+  /** Wobble Ball: the return sways this far each side of its line, this many times a second. */
+  wobbleAmp: 26,
+  wobbleHz: 1.6,
   serveDelay: 1.0,
   pointDelay: 0.9,
   /** Where along a flight the ball bounces on the table (0 = hitter, 1 = receiver). */
@@ -95,6 +100,9 @@ export type Ball = {
   fromY: number;
   toY: number;
   bounced: boolean;
+  /** Wobble Ball: how far it sways side to side (0 = a straight ball), and its sway clock. */
+  wob: number;
+  wobT: number;
 };
 
 export type Paddle = {
@@ -104,6 +112,12 @@ export type Paddle = {
   vx: number;
   vy: number;
   w: number;
+  /** Width without Wide Paddle (handicap included). */
+  baseW: number;
+  /** Seconds left of Wide Paddle. */
+  wide: number;
+  /** Wobble Ball is armed for the next return. */
+  wobble: boolean;
   /** Recent swing speed per axis (see RULES.swingFade); this is what shots read. */
   swingX: number;
   swingY: number;
@@ -113,7 +127,7 @@ export type Paddle = {
 };
 
 export type Event =
-  | { type: 'hit'; p: PlayerIndex; x: number; y: number; speed: number; smash: boolean; curve: boolean; shot: Shot; spin: number }
+  | { type: 'hit'; p: PlayerIndex; x: number; y: number; speed: number; smash: boolean; curve: boolean; wobble: boolean; shot: Shot; spin: number }
   | { type: 'wall'; x: number; y: number }
   | { type: 'table'; x: number; y: number; top: number }
   | { type: 'serve'; p: PlayerIndex }
@@ -192,7 +206,7 @@ export class PingPong {
     private readonly rng: Rng,
   ) {
     const w = (p: PlayerIndex) => lerpAssist(players[p].assist, RULES.paddleW, RULES.paddleWMax);
-    const mk = (p: PlayerIndex): Paddle => ({ x: W / 2, y: RULES.paddleY[p], vx: 0, vy: 0, swingX: 0, swingY: 0, w: w(p), smash: false, curve: false, slowmo: 0 });
+    const mk = (p: PlayerIndex): Paddle => ({ x: W / 2, y: RULES.paddleY[p], vx: 0, vy: 0, swingX: 0, swingY: 0, w: w(p), baseW: w(p), wide: 0, wobble: false, smash: false, curve: false, slowmo: 0 });
     this.paddles = [mk(0), mk(1)];
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     this.towardFactor = [lerpAssist(players[0].assist, 1, RULES.assistSlow), lerpAssist(players[1].assist, 1, RULES.assistSlow)];
@@ -255,7 +269,7 @@ export class PingPong {
   private serveBall(): Ball {
     const p = this.server;
     const y = this.faceY(p) + fwdSign(p) * (RULES.ballR + 1);
-    return { x: this.paddles[p].x, y, vx: 0, vy: 0, ax: 0, top: 0, shot: 'serve', smash: false, fromY: y, toY: this.homeFaceY(other(p)), bounced: false };
+    return { x: this.paddles[p].x, y, vx: 0, vy: 0, ax: 0, top: 0, shot: 'serve', smash: false, fromY: y, toY: this.homeFaceY(other(p)), bounced: false, wob: 0, wobT: 0 };
   }
 
   /** Who serves after `total` points: every 2 points, every point at deuce. */
@@ -276,7 +290,9 @@ export class PingPong {
       this.energy[p].tick(dt);
       const pd = this.paddles[p];
       pd.slowmo = Math.max(0, pd.slowmo - dt);
+      pd.wide = Math.max(0, pd.wide - dt);
       if (this.powersOn && intents[p].power) this.firePower(p);
+      pd.w = pd.wide > 0 ? pd.baseW * RULES.wideScale : pd.baseW;
       const half = pd.w / 2;
       const tx = clamp(intents[p].tx, RULES.wallX0 + half, RULES.wallX1 - half);
       const [y0, y1] = this.zone(p);
@@ -339,6 +355,8 @@ export class PingPong {
     if (power.id === 'smash') pd.smash = true;
     else if (power.id === 'curve') pd.curve = true;
     else if (power.id === 'slowmo') pd.slowmo = power.duration ?? 3;
+    else if (power.id === 'wide') pd.wide = power.duration ?? 5;
+    else if (power.id === 'wobble') pd.wobble = true;
     this.events.push({ type: 'power', p, id: power.id });
   }
 
@@ -346,7 +364,7 @@ export class PingPong {
     const b = this.ball;
     const r = RULES.ballR;
     b.vx += b.ax * h;
-    b.x += b.vx * h;
+    b.x += b.vx * h + wobbleDx(b, h);
     b.y += b.vy * h;
     if (b.x < RULES.wallX0 + r) {
       b.x = RULES.wallX0 + r;
@@ -432,10 +450,15 @@ export class PingPong {
       // Bend away from the side the opponent is standing on.
       b.ax = (this.paddles[other(p)].x < W / 2 ? 1 : -1) * RULES.curveAccel;
     }
+    // Wobble Ball: this return sways side to side all the way over, then the next hit is straight.
+    const wobble = pd.wobble;
+    pd.wobble = false;
+    b.wob = wobble ? RULES.wobbleAmp : 0;
+    b.wobT = 0;
     b.fromY = b.y;
     b.toY = this.homeFaceY(other(p));
     b.bounced = false;
-    this.events.push({ type: 'hit', p, x: b.x, y: b.y, speed: sp, smash: b.smash, curve, shot, spin: b.ax });
+    this.events.push({ type: 'hit', p, x: b.x, y: b.y, speed: sp, smash: b.smash, curve, wobble, shot, spin: b.ax });
     if ((RULES.rallyMarks as number[]).includes(this.hits)) this.events.push({ type: 'rally', hits: this.hits });
     // Long rallies charge the meter faster.
     const rallyBoost = 1 + Math.min(this.hits, 12) / 12;
@@ -464,6 +487,18 @@ function swing(prev: number, v: number, dt: number): number {
   if (prev * v <= 0 && Math.abs(v) > 1) return v;
   if (Math.abs(v) >= Math.abs(prev)) return v;
   return v + (prev - v) * Math.exp(-dt / RULES.swingFade);
+}
+
+/**
+ * Wobble Ball's sideways step over `h` seconds of ball time: the ball sways on a sine,
+ * `wob` either side of the line it would fly straight. Shared with the bot's forecast.
+ */
+export function wobbleDx(b: { wob: number; wobT: number }, h: number): number {
+  if (b.wob <= 0) return 0;
+  const w = 2 * Math.PI * RULES.wobbleHz;
+  const dx = b.wob * (Math.sin(w * (b.wobT + h)) - Math.sin(w * b.wobT));
+  b.wobT += h;
+  return dx;
 }
 
 /** What the table bounce does to a spinning ball. Shared with the bot's forecast. */
@@ -586,7 +621,8 @@ export class PingPongBot {
       // A fresh read of the incoming ball: new misjudgement, aim and swing.
       // What the eye sees: a slowed ball (Slow-mo, head start) is easier to read.
       const speed = Math.hypot(s.vx, s.vy) * s.factor;
-      this.err = this.rng.range(-1, 1) * cfg.noise * (speed / 450) ** 2 * (1 + Math.abs(s.ax) / 300);
+      // A wobbling ball is harder to read too.
+      this.err = this.rng.range(-1, 1) * cfg.noise * (speed / 450) ** 2 * (1 + Math.abs(s.ax) / 300 + s.wob / 40);
       const foe = game.paddles[other(p)];
       const away = foe.x < W / 2 ? 1 : -1;
       this.aimOff = away * cfg.aim * this.rng.range(0.5, 1.2);
@@ -627,7 +663,9 @@ export class PingPongBot {
     if (!comingAtMe) return false;
     const myHalf = this.p === 0 ? game.ball.y > MID : game.ball.y < MID;
     if (id === 'slowmo') return Math.hypot(game.ball.vx, game.ball.vy) > 520 && !myHalf;
-    return myHalf; // smash / curve arm for the return we are about to hit
+    // Widen for a hard ball on its way, or one that wobbles or bends, while there's time to see it.
+    if (id === 'wide') return !myHalf && (Math.hypot(game.ball.vx, game.ball.vy) > 480 || Math.abs(game.ball.ax) > 60 || game.ball.wob > 0);
+    return myHalf; // smash / curve / wobble arm for the return we are about to hit
   }
 }
 
@@ -645,7 +683,7 @@ export function forecast(b: Ball, y: number): { x: number; t: number } {
   const reached = () => (c.vy > 0 ? c.y >= y : c.y <= y);
   for (let i = 0; i < 480 && !reached(); i++) {
     c.vx += c.ax * h;
-    c.x += c.vx * h;
+    c.x += c.vx * h + wobbleDx(c, h);
     c.y += c.vy * h;
     t += h;
     if (c.x < lo) {
