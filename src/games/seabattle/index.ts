@@ -53,6 +53,8 @@ type Drag = { i: number; offX: number; offY: number; moved: boolean; sx: number;
 type Btn = { x: number; y: number; w: number; h: number };
 
 const inBtn = (b: Btn, x: number, y: number) => x >= b.x - 6 && x <= b.x + b.w + 6 && y >= b.y - 6 && y <= b.y + b.h + 6;
+/** F270: how far (in squares) from the aimed square's middle a second tap still fires it. */
+export const FORGIVE = 0.7;
 const SHUFFLE: Btn = { x: 46, y: 404, w: 140, h: 58 };
 const READY: Btn = { x: 204, y: 404, w: 140, h: 58 };
 
@@ -194,6 +196,14 @@ class SeaBattleView implements GameInstance {
     if (m.kind !== 'bot' && this.armed === 'mine') return { big: a, bigShips: true, small: other(a), smallShips: false };
     const d = other(a);
     return { big: d, bigShips: d === v, small: a, smallShips: a === v };
+  }
+
+  /** Within FORGIVE of the aimed square's middle (a second tap a little off still fires it). */
+  private nearAim(x: number, y: number): boolean {
+    const a = this.aim!;
+    const ax = GX + (a % N) * C + C / 2;
+    const ay = GY + Math.floor(a / N) * C + C / 2;
+    return Math.hypot(x - ax, y - ay) <= FORGIVE * C;
   }
 
   private cellAt(x: number, y: number): number | null {
@@ -384,8 +394,11 @@ class SeaBattleView implements GameInstance {
       }
       const c = this.cellAt(tp.x, tp.y);
       if (c !== null) {
-        cell = c;
-        cmd = this.aim === c ? 'confirm' : 'aim';
+        // F270: a second tap just over the line into the next square still fires the aimed one
+        // (a kid's finger lands a few px off); a tap nearer a neighbour's middle re-aims.
+        const near = this.aim !== null && c !== this.aim && this.nearAim(tp.x, tp.y);
+        cell = near ? this.aim : c;
+        cmd = this.aim === cell ? 'confirm' : 'aim';
       }
     }
     // Keys: move a cursor, action fires, power arms.
