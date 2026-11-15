@@ -2032,3 +2032,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-14 (F262, PR #294): Quick Draw: a left-hander's power button (moved to the right
       corner, F38) sat on the small cactus drawn there (lefty-quickdraw.png). The cactus now
       takes the corner across from the button (cacti()); tests/quickdraw-cactus.test.ts.
+- [x] 2026-11-14 (F263, PR #295): Quick Draw: a seat that never drew read "You —" / "Bot —" on
+      the round card (solo-round-quickdraw.png); a young kid won't read a dash. It now says
+      "You: no shot" / "Bot: no shot" (timeLine()), shrunk to fit its half of the card with
+      Bigger text (TIME_W); tests/quickdraw-no-shot.test.ts.
