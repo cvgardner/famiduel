@@ -561,7 +561,8 @@ test('quick draw: two people tapping in the same frame, the first touch wins (no
 test('ghost finger: Minigolf\'s card stays off the hole card through GO, on a small phone', async ({ page }) => {
   // F185: the card beside the countdown digit sat on the right end of the hole card, which fades
   // in at GO while the finger is still out ("Speed Bumps" read "Speed Bump"). Minigolf's card
-  // sits low (demoAt), over the scorecard strip; checked from the countdown to a second after GO.
+  // sits low (demoAt), over the scorecard strip; checked from the start to a second after GO
+  // (F276: Minigolf has no countdown now, so the card is up from the first frame).
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
   await boot(page, errors);
@@ -652,6 +653,33 @@ test('ghost finger: Rock Paper Scissors against the bot opens on the pick with n
   });
   await page.screenshot({ path: path.join(OUT, 'ghost-finger-rps-pick.png') });
   expect(rps, 'RPS opens on the pick, finger kept, no countdown').toEqual({ pick: true, fingers: 1, countdown: 0 });
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
+  expect(errors).toEqual([]);
+});
+
+test('ghost finger: Minigolf opens straight on the hole card with no 3-2-1 but keeps its finger, on a small phone', async ({ page }) => {
+  // F276: hole 1 opened on a 1.8 s "3 2 1" over the bare course, then the hole card faded in at
+  // GO, though no shot is ever timed (holes 2 and 3 open on the card with no count). It now opens
+  // on the hole card at once, which still shows its usual time; the first-match finger stays.
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  await setPlayers(page, [null, 'normal']);
+  type H = { openGame(id: string): void; startMatch(): void; showHome(): void; store: { data: { history: { game: string }[] } }; runner: { countdownLeft(): number; game: { opensOnCard?(): boolean; game: { phase: string } } } };
+  const golf = await page.evaluate(() => {
+    const a = (window as unknown as { __famiduel: H }).__famiduel;
+    a.store.data.history = [];
+    a.showHome();
+    a.openGame('minigolf');
+    a.startMatch();
+    return { card: !!a.runner.game.opensOnCard?.(), fingers: document.querySelectorAll('#play .play-demo').length, countdown: a.runner.countdownLeft() };
+  });
+  expect(golf, 'Minigolf opens on the hole card, finger kept, no countdown').toEqual({ card: true, fingers: 1, countdown: 0 });
+  const phase = () => page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.runner.game.game.phase);
+  await page.waitForTimeout(900);
+  await page.screenshot({ path: path.join(OUT, 'minigolf-opens-on-hole-card.png') });
+  expect(await phase(), 'the hole card is still up most of a second in').toBe('intro');
+  await expect.poll(phase, { message: 'the first turn follows the hole card', timeout: 3000 }).not.toBe('intro');
   await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
   expect(errors).toEqual([]);
 });

@@ -2095,3 +2095,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       countdown there; the first-match ghost finger stays, since it shows the tap on the hands.
       The bot still waits its usual 0.4-2 s before picking ("Choosing..."). tests/setup-start.test.ts
       + playtest "ghost finger: Rock Paper Scissors against the bot opens on the pick ...".
+- [x] 2026-11-14 (F276, PR #PRNUM): Minigolf opened hole 1 on a 1.8 s "3 2 1" over the bare course,
+      then the hole card faded in at GO, though no shot is ever timed (holes 2 and 3 open on the
+      card with no count). opensOnCard() lets the runner skip the countdown; the hole card shows
+      its usual 1.9 s at once and the first-match ghost finger stays (it shows the pull-back).
+      Resume after a pause still counts 3-2-1. tests/setup-start.test.ts + playtest "ghost finger:
+      Minigolf opens straight on the hole card ...".
