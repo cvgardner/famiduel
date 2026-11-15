@@ -2057,7 +2057,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       along it that fits; "Doesn't fit there" if none). The hint line says "Tap a spot to move
       it · tap it to turn" while a ship is picked. tests/seabattle-tap-move.test.ts, playtest
       "sea battle: tap a ship, then tap a spot" (seabattle-tap-move.png).
-- [x] 2026-11-14 (F270, PR #PRNUM): Sea Battle firing forgives a near miss. The second tap had
+- [x] 2026-11-14 (F270, PR #300): Sea Battle firing forgives a near miss. The second tap had
       to land in the exact aimed square (27 units, ~29 px on a 390 px phone), so a kid's
       slightly-off finger re-aimed the next square instead of firing (NN/g: don't punish
       near misses). A second tap within 0.7 of a square of the aimed square's middle
