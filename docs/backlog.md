@@ -2044,7 +2044,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       pot stayed a red "0" in the field next to the bowl (solo-round-snacksnatch.png), which
       read like a third score. The clock now goes blank at 0 (the ring already shows empty);
       tests/snacksnatch-time-up.test.ts.
-- [x] 2026-11-14 (F269, PR #PRNUM): Sea Battle placement without dragging. NN/g's kids' UX
+- [x] 2026-11-14 (F269, PR #299): Sea Battle placement without dragging. NN/g's kids' UX
       research: under-9s struggle with precise drag-and-drop; give a tap-a-destination way. A
       tap on a ship still turns it and now also picks it (dashed white ring); a tap on open
       water moves the picked ship there, its middle on the tapped square (or the nearest slide
