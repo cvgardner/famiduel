@@ -35,8 +35,15 @@ const L = {
  */
 export const POP_Y = L.cowboyY + 30;
 
+/**
+ * F312: the box every signal card fills (a fake-out card at signalY ± 34 from x 24, DRAW! at
+ * ± 36 from x 30), local to a half, plus its 2-unit stroke.
+ */
+export const SIGNAL_CARD = { x0: 22, x1: W - 22, y0: L.signalY - 38, y1: L.signalY + 38 };
+
 /** Slow Time's "get ready" line: left of the cowboy (his arm ends at x 147). */
 export const READY_X = 82;
+export const READY_Y = L.cowboyY - 6;
 
 const FAKE_TEXT: Record<FakeKind, [string, string]> = {
   picture: ['DRAW...', 'a picture! 🖍️'],
@@ -295,7 +302,7 @@ class QuickDrawView implements GameInstance {
       gx.fillRect(0, MID, W, MID);
       // F178: beside the cowboy, clear of his hat and the cactus (it sat on the hat's crown,
       // between the signal and the cowboy, where a fake-out's card also reaches).
-      text(gx, '⏳ get ready…', READY_X, L.cowboyY - 6, { size: 17, color: '#5a3400' });
+      text(gx, '⏳ get ready…', READY_X, READY_Y, { size: 17, color: '#5a3400' });
     }
     this.drawSignal(gx, p);
     this.drawCowboy(gx, p, c);
@@ -501,7 +508,10 @@ class QuickDrawView implements GameInstance {
  */
 export function cacti(lefty: boolean): [number, number, number][] {
   return [
-    [34, 120, 0.9],
+    // F312: the left cactus sits between the signal card (a fake-out or DRAW! card reaches
+    // MID + 90) and Slow Time's "get ready" line (from ~MID + 147); at 120 / 0.9 its top half
+    // hid under every card. A little smaller, so it fits the gap whole.
+    [34, 139, 0.8],
     [lefty ? 30 : W - 30, 280, 0.7],
   ];
 }

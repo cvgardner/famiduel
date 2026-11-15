@@ -2300,3 +2300,22 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the start of "Player 2". Names are capped to their chip, each chip's inner side keeps
       clear of the badge, and the badge is 26px on a 320px phone with Bigger text.
       e2e/home-names.spec.ts (short, default and 12-letter names, 320 and 390 wide).
+- [x] 2026-11-15 (F310): GitHub Actions did run on #332-334 and the 320x568 + Bigger text taps
+      check failed there: CI's Linux fonts sit taller, so the first game card after a match was
+      98.6% on screen (local 559 of 568). Home under max-height 600px now keeps ~20px spare
+      (gaps 8, scoreboard gap 6, group gap 6); local 547. The real CI failure was the result
+      screen's Games + Rematch row: ~310px of buttons in a 296px row spilled past the screen
+      edge with CI's wider fonts (Rematch 98.6% on screen); on a 320px phone the row now has
+      8px sides and gap and 14px button sides (local 16px spare each side).
+- [x] 2026-11-15 (F311): the result screen's big score read "2 – 3" with nothing saying which
+      number was whose (a kid playing the bot couldn't tell; families ask how the app "picked"
+      a winner). Each number now has a small name under it, the half's own first: "You" /
+      "Bot" playing the bot, "You" / the other player's name between two people (bots keep
+      their names in a bot-vs-bot match). Two equal columns keep the dash centred; long names
+      end in an ellipsis. scoreLabels() in src/app/resulttitle.ts, tests/result-score.test.ts,
+      e2e 'result: each score number names its player' (long names, 320 px + Bigger text).
+- [x] 2026-11-15 (F312): Quick Draw's left cactus (foot at MID + 120, scale 0.9) reached up
+      under the signal cards: a worded fake-out ("Open the DRAW-er!") or DRAW! card hid its top
+      half, which peeked out under the card's corner on a 320 px phone. It now stands a little
+      smaller (0.8) at MID + 139, in the gap between the cards (to MID + 92) and Slow Time's
+      "get ready" line. SIGNAL_CARD / READY_Y, tests/quickdraw-cactus.test.ts.
