@@ -176,6 +176,8 @@ export type HowToSeat = {
   name: string;
   color: string;
   bot: boolean;
+  /** F278: the other seat is a bot (Play the bot), so the how-to drops pass-the-phone words. */
+  solo?: boolean;
   lefty?: boolean;
   power?: { id?: string; icon: string; name: string; desc: string } | null;
   /** The power meter right now (0..1 full, seconds still active); left out = not shown. */
@@ -224,12 +226,20 @@ export function goalHtml(blurb: string): string {
   return `<b class="goal">${blurb}</b> `;
 }
 
-export function howToHalfHtml(seat: HowToSeat, game: { id?: string; icon: string; name: string; blurb?: string; howTo: string; gesture?: string; seatRing?: boolean }): string {
+/**
+ * F278: the how-to a person reads. Playing the bot, a game whose two-person how-to talks about
+ * passing the phone or looking away (Sea Battle, RPS) uses its `howToSolo` instead.
+ */
+export function howToText(game: { howTo: string; howToSolo?: string }, solo: boolean): string {
+  return solo && game.howToSolo ? game.howToSolo : game.howTo;
+}
+
+export function howToHalfHtml(seat: HowToSeat, game: { id?: string; icon: string; name: string; blurb?: string; howTo: string; howToSolo?: string; gesture?: string; seatRing?: boolean }): string {
   const g = isGesture(game.gesture) ? game.gesture : null;
   const head = `<div class="intro-head"><div class="intro-title">${game.icon} ${game.name}</div>${g && !seat.bot ? demoHtml(g, !!seat.lefty) : ''}</div>`;
   const body = seat.bot
     ? `<p class="howto">🤖 Waiting for you</p>`
-    : `<p class="howto">${game.blurb ? goalHtml(game.blurb) : ''}${game.howTo}</p>${
+    : `<p class="howto">${game.blurb ? goalHtml(game.blurb) : ''}${howToText(game, !!seat.solo)}</p>${
         seat.power ? `<p class="my-power">${game.id && seat.power.id ? powerPicHtml(game.id, seat.power.id) : ''}<span class="picon">${seat.power.icon}</span> <b>Your power: ${seat.power.name}</b> ${seat.power.desc}${
             seat.charge ? chargeHtml(seat.charge) : ''
           }</p>` : ''
