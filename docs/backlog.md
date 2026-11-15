@@ -2300,3 +2300,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the start of "Player 2". Names are capped to their chip, each chip's inner side keeps
       clear of the badge, and the badge is 26px on a 320px phone with Bigger text.
       e2e/home-names.spec.ts (short, default and 12-letter names, 320 and 390 wide).
+- [x] 2026-11-15 (F312): Quick Draw's left cactus (foot at MID + 120, scale 0.9) reached up
+      under the signal cards: a worded fake-out ("Open the DRAW-er!") or DRAW! card hid its top
+      half, which peeked out under the card's corner on a 320 px phone. It now stands a little
+      smaller (0.8) at MID + 139, in the gap between the cards (to MID + 92) and Slow Time's
+      "get ready" line. SIGNAL_CARD / READY_Y, tests/quickdraw-cactus.test.ts.
