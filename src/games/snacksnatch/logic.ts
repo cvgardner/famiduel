@@ -55,7 +55,7 @@ export const RULES = {
   maxRoll: 400,
   friction: 0.15,
   magnetPull: 110,
-  stickyRange: 175,
+  stickyRange: 120,
   stickyDamp: 4,
   stickyRoll: 35,
   doubleSnaps: 3,
@@ -375,9 +375,12 @@ export class SnackSnatch {
     sn.vy *= k;
     let sticky = false;
     for (const p of [0, 1] as PlayerIndex[]) {
-      if (!this.stickyOn(p) || Math.abs(sn.y - RULES.gum[p]) >= RULES.stickyRange) continue;
+      if (sn.gold || !this.stickyOn(p) || Math.abs(sn.y - RULES.gum[p]) >= RULES.stickyRange) continue;
       // Honey: snacks near you slow right down (F106: the same both ways; a stronger pull-back
       // toward you kept the snacks off the other side and won 91% between easy bots).
+      // F297: golden snacks roll on, and the band stops 120 short of your gum (was 175, past
+      // the centre line): slowed gold won easy bots 83% over no power, and a half-wide band
+      // let the other side's Magnet steer every slowed snack across (89% at hard).
       sticky = true;
       const h = Math.exp(-RULES.stickyDamp * dt);
       sn.vx *= h;
