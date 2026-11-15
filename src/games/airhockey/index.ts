@@ -42,6 +42,11 @@ class AirHockeyView implements GameInstance {
   }
 
 
+  /** F279: does this puck touch a power button (drawn over the pucks)? */
+  underButton(pk: { x: number; y: number }): boolean {
+    return this.powerBtns.some((b) => !!b && Math.hypot(pk.x - b.button.x, pk.y - b.button.y) < b.button.r + RULES.puckR);
+  }
+
   /**
    * F196: the line nearest `home`, inside seat `p`'s own half, where that seat's centred pop
    * (it rises 36 px toward the middle for 0.9 s) misses every puck. A goal serves the puck at
@@ -210,11 +215,7 @@ class AirHockeyView implements GameInstance {
     text(gx, String(g.score[1]), 60, MID - 28, { size: 34, color: alpha(c1, 0.85), player: 1 });
     // Puck trail + pucks
     this.trail.forEach((p, i) => circle(gx, p.x, p.y, RULES.puckR * (i / this.trail.length) * 0.9, `rgba(30,30,60,${0.04 * i})`));
-    for (const pk of g.pucks) {
-      circle(gx, pk.x, pk.y + 3, RULES.puckR, 'rgba(0,0,0,0.25)');
-      circle(gx, pk.x, pk.y, RULES.puckR, '#1d1840', '#3a3170', 3);
-      circle(gx, pk.x - 4, pk.y - 4, 3, 'rgba(255,255,255,0.35)');
-    }
+    for (const pk of g.pucks) drawPuck(gx, pk);
     if (g.serve > 0 && g.pucks[0]) {
       const pk = g.pucks[0];
       circle(gx, pk.x, pk.y, RULES.puckR + 6 + 6 * Math.sin(this.t * 10), undefined, 'rgba(29,24,64,0.4)', 2);
@@ -244,6 +245,8 @@ class AirHockeyView implements GameInstance {
     }
     // Power buttons
     for (const p of [0, 1] as PlayerIndex[]) this.powerBtns[p]?.render(gx, g.energy[p], this.t);
+    // F279: a puck in a corner slid under the power button there; draw it again on top.
+    for (const pk of g.pucks) if (this.underButton(pk)) drawPuck(gx, pk);
     // Who scored banner
     if (this.goalFlash > 0) {
       const c = this.ctx.players[this.lastScorer].color;
@@ -252,6 +255,13 @@ class AirHockeyView implements GameInstance {
       gx.globalAlpha = 1;
     }
   }
+}
+
+/** One puck: shadow, body, shine. */
+function drawPuck(gx: G, pk: { x: number; y: number }): void {
+  circle(gx, pk.x, pk.y + 3, RULES.puckR, 'rgba(0,0,0,0.25)');
+  circle(gx, pk.x, pk.y, RULES.puckR, '#1d1840', '#3a3170', 3);
+  circle(gx, pk.x - 4, pk.y - 4, 3, 'rgba(255,255,255,0.35)');
 }
 
 const def: GameDef = { id: 'airhockey', create: (ctx) => new AirHockeyView(ctx) };
