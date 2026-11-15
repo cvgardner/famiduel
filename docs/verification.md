@@ -63,5 +63,6 @@ To look at one game quickly: build, `npx vite preview`, open `/?seed=x`, then in
 text, and fails if a button or game card on them is not wholly on screen (needs a scroll; F307
 holds the first card whole even after a match): home -> playing 3 (the
 game's card, then each person's Ready), result -> rematch 3 (Rematch + each Ready), result ->
-another game 4 (Games, the card, each Ready). If a change adds a tap, update the counts here
+another game 4 (Games, the card, each Ready), home -> a tournament game 4 (the tournament,
+Play, each Ready; F308 keeps Play on screen while the lineup scrolls). If a change adds a tap, update the counts here
 and say why in the PR.

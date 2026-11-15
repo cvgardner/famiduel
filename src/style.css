@@ -528,6 +528,10 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* 7-game tournament */
 #tourney { overflow-y: auto; }
 .tourney { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 20px 16px 28px; max-width: 480px; margin: 0 auto; }
+/* F308: Play (or New tournament) stays on screen while the lineup scrolls under it (on a small
+   phone the 7 tiles pushed it below the fold); at the end of the list it sits in its place. */
+.tourney > .btn.primary { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 2;
+  box-shadow: 0 4px 0 #c99a12, 0 10px 24px rgba(0,0,0,0.35); }
 .tourney-title { font-size: 24px; font-weight: 900; text-align: center; margin: 0; }
 .tourney-sub { color: var(--dim); font-size: calc(14px * var(--ts)); font-weight: 700; margin: -6px 0 0; text-align: center; }
 .lineup { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; width: 100%; }
