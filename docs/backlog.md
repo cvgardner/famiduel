@@ -2316,6 +2316,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       even at the smallest size is cut with "…" (keeping "'s shot"); fitName(),
       tests/minigolf-long-names.test.ts.
 
+## Ideas found 2026-11-15 (11:17 run, long names in Sumo)
+- [x] 2026-11-15 (F316, PR #342): Sumo's seat names, centred over the round pips at W - 62,
+      already sat at the smallest size (13), so a 12-letter name ran off a 320 px phone's edge
+      and into the HOLD button's charge ring with Bigger text. Names now fit nameRoom() (clear
+      of the edge and the ring) and are cut with "…" when they can't shrink ("Grandma Jo…" with
+      Bigger text); fitName() from draw.ts (F315), tests/sumo-names.test.ts.
+
 ## Ideas found 2026-11-15 (11:17 run, long names on the pass-the-phone cover)
 - [x] 2026-11-15 (F314, PR #340): with a 12-letter name and Bigger text on a 320 px phone the
       pass-the-phone cover (Sea Battle and RPS) ran the big name off both screen edges and
