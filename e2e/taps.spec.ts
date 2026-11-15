@@ -7,6 +7,7 @@ import { boot, botMatch } from './helpers';
 //   home -> playing: the game's card, then each person's Ready (1 + 1 each)
 //   result -> rematch: Rematch, then each person's Ready (1 + 1 each)
 //   result -> another game: Games, the card, then each person's Ready (2 + 1 each)
+//   home -> a tournament game: the tournament, Play, then each person's Ready (2 + 1 each)
 type Hook = { store: { data: { profiles: { bot: string | null }[]; settings: { bigText: boolean } }; save(): void }; showHome(): void; applyBigText(): void };
 
 /** A button or the first game card must show whole (F307: also after a match, on a small phone). */
@@ -51,6 +52,19 @@ for (const [label, size, big] of [
       await tap(page.locator('.game-card[data-ready="1"]').first(), taps);
       await readyUp(page, taps);
       expect(taps.n).toBe(3);
+      expect(errors).toEqual([]);
+    });
+    test('home -> tournament game takes the tournament, Play and each Ready', async ({ page }) => {
+      // F308: on a small phone the 7 tiles pushed Play below the fold; it stays on screen.
+      const errors = await boot(page, 'E2E', false);
+      await people(page, big);
+      await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
+      const taps = { n: 0 };
+      await tap(page.locator('#tourneyBtn'), taps);
+      await expect(page.locator('#tourney')).toBeVisible();
+      await tap(page.locator('#tourneyPlay'), taps);
+      await readyUp(page, taps);
+      expect(taps.n).toBe(4);
       expect(errors).toEqual([]);
     });
     test('result -> rematch, and result -> another game', async ({ page }) => {

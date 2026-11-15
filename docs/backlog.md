@@ -2289,3 +2289,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       stay for screen readers only. The first card now shows
       whole (bottom at 559 of 568), tap targets keep 44px. e2e/taps.spec.ts applies Bigger text
       (checks html[data-bigtext]) and needs every card it taps wholly on screen (was half).
+- [x] 2026-11-15 (F308): Tournament screen on a small phone: the 7 game tiles pushed "Play"
+      below the fold (y 656 of 568, 728 with Bigger text), so a family had to scroll to start.
+      Play (and New tournament) now stays pinned at the bottom while the lineup scrolls under it,
+      and sits in its usual place at the end of the list. e2e/taps.spec.ts counts home -> a
+      tournament game (4 taps) at 390x844 and 320x568 with Bigger text.
