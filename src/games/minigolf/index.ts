@@ -107,6 +107,11 @@ class MinigolfView implements GameInstance {
     return this.game.firstLeadOff;
   }
 
+  /** F276: every hole opens on its hole card, the first one too: no "3 2 1" before it. */
+  opensOnCard(): boolean {
+    return true;
+  }
+
   update(dt: number, input: Input): void {
     this.t += dt;
     const g = this.game;
