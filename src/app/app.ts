@@ -18,7 +18,7 @@ import { GAMES } from '../games/registry';
 import { dayKey } from '../games/minigolf/daily';
 import { powerPicHtml, watchPowerPics } from './powerpic';
 import { loserTitle } from './resulttitle';
-import { demoHelpHtml, demoHtml, firstMatchOf, goalHtml, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
+import { demoHelpHtml, demoHtml, firstMatchOf, goalHtml, HelpMemory, howToHalfHtml, howToText, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
@@ -495,6 +495,8 @@ export class App {
     const gesture = isGesture(meta.gesture) ? meta.gesture : null;
     const firstMatches = showsDemo(this.store.data.history, id);
     this.helpShown = [];
+    // F278: playing the bot, no phone is passed: the how-to says so (Sea Battle, RPS).
+    const solo = [0, 1].some((q) => !!botFor(this.store.data.profiles[q], id));
     const half = (p: PlayerIndex) => {
       const pr = this.store.data.profiles[p];
       const assist = this.assistFor(p);
@@ -506,7 +508,7 @@ export class App {
       return `<div class="half p${p}${bot ? ' bot' : ''}${faces ? ' faces' : ''}" style="--c:${pr.color};--ink:${inkOn(pr.color)}">
         <div class="half-inner">
           <div class="intro-head"><div class="intro-title">${meta.icon} ${meta.name}</div>${!gesture ? '' : firstMatches || again ? demoHtml(gesture, !!pr.lefty && !bot) : bot ? '' : demoHelpHtml(p)}</div>
-          <p class="howto">${goalHtml(meta.blurb)}${meta.howTo}</p>
+          <p class="howto">${goalHtml(meta.blurb)}${howToText(meta, solo)}</p>
           ${assist ? `<p class="assist">⚖️ Handicap help ${'★'.repeat(assist)}: ${meta.handicap.toLowerCase()}</p>` : ''}
           ${powers.length ? `<div class="powers">${powers.map((pw) => `<button class="power-card" data-p="${p}" data-id="${pw.id}"><span class="picon">${pw.icon}</span>${powerPicHtml(id, pw.id)}<b>${pw.name}</b><small>${pw.desc}</small></button>`).join('')}</div>${bot ? '' : '<p class="pick-desc"></p>'}` : ''}
           ${bot ? botRow(p, bot) : `<button class="btn ready" id="ready${p}" data-p="${p}" aria-label="${powers.length ? 'Pick a power' : 'Ready!'}">${readyLabel(powers.length ? 'pick' : 'ready')}</button>`}
@@ -794,7 +796,7 @@ export class App {
       const pl = players[p];
       const e = energyOf(this.runner!.game, p);
       const charge = pl.power && e ? { value: e.value, active: e.active } : null;
-      return howToHalfHtml({ p, name: pl.name, color: pl.color, bot: !!pl.bot, lefty: !!pl.lefty, power: pl.power, charge }, meta);
+      return howToHalfHtml({ p, name: pl.name, color: pl.color, bot: !!pl.bot, solo: players.some((q) => !!q.bot), lefty: !!pl.lefty, power: pl.power, charge }, meta);
     };
     modal.classList.add('help');
     modal.innerHTML = `<div class="pause-help">${seat(1)}<div class="intro-mid"><button id="helpBack" class="link">← Menu</button><button id="helpResume" class="btn primary" aria-label="Resume"><span class="btn-ico" aria-hidden="true">▶️</span>Resume</button></div>${seat(0)}</div>`;

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import games from '../content/games.json';
-import { besideCountdown, DEMO_MATCHES, demoHelpHtml, demoHtml, firstMatchOf, GESTURES, HelpMemory, howToHalfHtml, isGesture, PLAY_DEMO_MS, PLAY_DEMO_OUT, PLAY_DEMO_OUT_KEEPER, playDemoHtml, SHOOTER_LOOP, playDemoOut, powerStatus, showsDemo } from '../src/app/demo';
+import { besideCountdown, DEMO_MATCHES, demoHelpHtml, demoHtml, firstMatchOf, GESTURES, HelpMemory, howToHalfHtml, howToText, isGesture, PLAY_DEMO_MS, PLAY_DEMO_OUT, PLAY_DEMO_OUT_KEEPER, playDemoHtml, SHOOTER_LOOP, playDemoOut, powerStatus, showsDemo } from '../src/app/demo';
 
 describe('ghost finger demo', () => {
   it('every game names a known gesture', () => {
@@ -214,5 +214,32 @@ describe('F214: the in-play finger card fades out with its finger', () => {
     const rule = css.match(/\.play-demo \{[^}]*\}/)![0];
     expect(rule).toContain('var(--out');
     expect(rule).toContain('var(--fade');
+  });
+});
+
+// F278: playing the bot, Sea Battle's how-to said "pass the phone" and RPS's "the other looks
+// away", though nobody passes anything. Those games carry a `howToSolo` used in Play the bot.
+describe('how to play against the bot', () => {
+  const twoPeople = /pass the phone|looks? away|two people/i;
+  type G = { id: string; howTo: string; howToSolo?: string };
+  const all = games.games as G[];
+
+  it('every game whose how-to talks about passing the phone has a solo how-to without it', () => {
+    for (const g of all) {
+      if (twoPeople.test(g.howTo)) expect(g.howToSolo, g.id).toBeTruthy();
+      expect(howToText(g, true), g.id).not.toMatch(twoPeople);
+    }
+    expect(all.filter((g) => g.howToSolo).map((g) => g.id).sort()).toEqual(['rps', 'seabattle']);
+  });
+
+  it('two people keep the full how-to; a solo seat reads the solo one, in the pause how-to too', () => {
+    const sea = all.find((g) => g.id === 'seabattle')!;
+    const tanks = all.find((g) => g.id === 'tanks')!;
+    expect(howToText(sea, false)).toBe(sea.howTo);
+    expect(howToText(sea, true)).toBe(sea.howToSolo);
+    expect(howToText(tanks, true)).toBe(tanks.howTo);
+    const seat = { p: 0, name: 'Mia', color: '#3fa9ff', bot: false };
+    expect(howToHalfHtml({ ...seat, solo: true }, { ...sea, icon: '', name: '' })).toContain(sea.howToSolo!);
+    expect(howToHalfHtml(seat, { ...sea, icon: '', name: '' })).toContain(sea.howTo);
   });
 });

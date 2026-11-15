@@ -2105,3 +2105,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       its usual 1.9 s at once and the first-match ghost finger stays (it shows the pull-back).
       Resume after a pause still counts 3-2-1. tests/setup-start.test.ts + playtest "ghost finger:
       Minigolf opens straight on the hole card ...".
+- [x] 2026-11-14 (F278, PR #308): Playing the bot, Sea Battle's how-to said "pass the phone" and
+      RPS's said "the other looks away", though no phone is passed. content/games.json `howToSolo`
+      for those two ("then take turns with the bot", "The bot never peeks at your pick"), used by
+      the intro and the pause how-to via howToText(); two people keep the full text.
+      tests/demo.test.ts + playtest "play the bot: Sea Battle and RPS how-tos ...".
