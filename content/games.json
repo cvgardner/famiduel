@@ -6,7 +6,7 @@
     { "id": "airhockey", "gesture": "drag", "name": "Air Hockey", "icon": "🏒", "kind": "Action", "free": true, "color": "#3fa9ff",
       "blurb": "First to 5 goals.", "howTo": "Drag your paddle around your half and hit the puck into the far goal.",
       "handicap": "Bigger paddle, wider goal to shoot at" },
-    { "id": "sumo", "seatRing": true, "gesture": "hold", "name": "Sumo", "icon": "🤼", "kind": "Action", "free": true, "color": "#ff9f43",
+    { "id": "sumo", "seatRing": true, "pauseRing": "core", "gesture": "hold", "name": "Sumo", "icon": "🤼", "kind": "Action", "free": true, "color": "#ff9f43",
       "blurb": "Push the other wrestler out. Best of 3.", "howTo": "Hold your side to stop turning and charge; let go to dash where the arrow points.",
       "handicap": "Heavier wrestler, more room and more rope saves at the edge" },
     { "id": "pingpong", "gesture": "slide", "demoAt": 0.9, "name": "Ping Pong", "icon": "🏓", "kind": "Action", "free": false, "color": "#f25070",
