@@ -2124,7 +2124,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       for those two ("then take turns with the bot", "The bot never peeks at your pick"), used by
       the intro and the pause how-to via howToText(); two people keep the full text.
       tests/demo.test.ts + playtest "play the bot: Sea Battle and RPS how-tos ...".
-- [x] 2026-11-15 (F282, PR #TBD): Match length tails. A rival app's reviews say its rallies "go
+- [x] 2026-11-15 (F282, PR #312): Match length tails. A rival app's reviews say its rallies "go
       back and forth so it takes kind of long to finish". `npm run sim` now prints "long"
       (matches over 3 min) and "max s" beside the average. n=40, powers off / on:
       Air Hockey drags between equal bots: normal mirror 35% / 45% long (max 264 / 289 s),
