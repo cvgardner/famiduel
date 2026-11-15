@@ -391,7 +391,9 @@ class SnackSnatchView implements GameInstance {
 
   private renderSeconds(gx: G): void {
     const g = this.game;
-    const sec = Math.max(0, Math.ceil(g.timeLeft));
+    // F266: once time is up the clock goes blank (a red "0" by the bowl read like a third score).
+    if (g.timeLeft <= 0) return;
+    const sec = Math.ceil(g.timeLeft);
     const urgent = g.timeLeft <= 5;
     const size = urgent ? 30 + 6 * (g.timeLeft % 1) : 24;
     // Each player reads the clock beside the pot, on their side. F160: a bot's copy would turn
