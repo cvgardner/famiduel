@@ -80,7 +80,14 @@ class TankView implements GameInstance {
       return Math.hypot(x - base.x, y - base.y) < STICK_R + 40 || (inStrip && cs.stickSide(fx));
     };
     let fire = false;
+    let hold = false;
     for (const f of input.of(p)) {
+      // F298: a finger that landed on the FIRE button itself and stays down keeps firing (see
+      // RULES.holdFire); not the wider strip, where a resting palm would fire on its own.
+      if (f.down && !onButton(f.startX, f.startY) && Math.hypot(f.startX - fireAt.x, f.startY - fireAt.y) < this.fireR + 16) {
+        hold = true;
+        this.fireHeld[p] = 0.12;
+      }
       if (!f.pressed || onButton(f.x, f.y)) continue;
       if (fireZone(f.x, f.y)) {
         fire = true;
@@ -117,8 +124,9 @@ class TankView implements GameInstance {
       fire = true;
       this.fireHeld[p] = 0.12;
     }
+    if (input.key(k.action)) hold = true;
     this.stickVec[p] = { x: vx, y: vy };
-    return { mx: vx, my: vy, fire, power };
+    return { mx: vx, my: vy, fire, power, hold };
   }
 
   update(dt: number, input: Input): void {

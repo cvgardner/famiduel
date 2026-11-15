@@ -16,7 +16,7 @@
       "blurb": "Most points in 30 seconds. Gold is worth 3.", "howTo": "Tap left or right to snap that critter at the snacks. A miss makes it dizzy.",
       "handicap": "Longer reach" },
     { "id": "tanks", "seatRing": true, "gesture": "stick", "name": "Tank Duel", "icon": "🛡️", "kind": "Action", "free": false, "color": "#8bc34a",
-      "blurb": "Five bonks wins.", "howTo": "Push your stick to turn and drive (a little push just turns). Tap FIRE. Shells bounce off blocks, so watch out for your own!",
+      "blurb": "Five bonks wins.", "howTo": "Push your stick to turn and drive (a little push just turns). Tap or hold FIRE. Shells bounce off blocks, so watch out for your own!",
       "handicap": "Extra armor: more bonks to knock out" },
     { "id": "snake", "seatRing": true, "pauseRing": true, "gesture": "sides", "name": "Snake Duel", "icon": "🐍", "kind": "Action", "free": false, "color": "#26d0ce",
       "blurb": "Don't crash. Best of 5.", "howTo": "Tap your left or right button to turn your snake. Walls and trails crash you. Make the other snake crash first!",
