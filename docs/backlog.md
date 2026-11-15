@@ -2398,3 +2398,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-15 (F323, PR #352): a pause the match made itself (F322) says why under "Paused":
       "Nobody was playing, so we paused.", so a family coming back knows nobody pressed
       anything; a held pause keeps the plain sheet. `.sheet .why`, e2e checks both.
+- [x] 2026-11-15 (F327, PR #TBD): Snake: two hard snakes met head-on in ~40% of rounds (half of
+      all rounds drawn, matches ran to the 9-round cap; a rival app's review: its hard snake
+      "mimics my actions, making it impossible to win or lose"). The hard bot's territory pull
+      outweighed its head-on worry, and a turn locks the next cell straight (no second tap that
+      soon), so it turned into a head-on it then couldn't leave. Hard now weighs a head-on 1000
+      (cell the other head enters next, or one it can reach) and checks the locked cell after a
+      turn; easy/normal unchanged. 40 hard mirrors: head-ons 0, drawn rounds 52% -> 8%, match
+      draws 15% -> 0%; hard v normal 93%, sim:powers hard all in band. A packed arena (both
+      trapped together) has no clear line for "CRASH!", so the pop is skipped there (the
+      round-end banner says it). tests/snake-headon.test.ts.
+- [ ] Easy snakes also meet head-on (51 of 221 easy-mirror rounds drawn this way); easy has no
+      head-on worry at all. Fine for a kid's bot, but if families say easy rounds "just draw",
+      give easy a small one.
