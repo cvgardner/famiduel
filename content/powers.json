@@ -195,6 +195,20 @@
         "icon": "👅",
         "desc": "Your next 3 snaps reach twice as far.",
         "duration": 0
+      },
+      {
+        "id": "rain",
+        "name": "Snack Rain",
+        "icon": "🌧️",
+        "desc": "Three speedy extra snacks zoom your way. Catch them quick!",
+        "duration": 2
+      },
+      {
+        "id": "sleepy",
+        "name": "Nap Time",
+        "icon": "😴",
+        "desc": "The other critters snap in slow motion for 3 seconds.",
+        "duration": 3
       }
     ],
     "pingpong": [

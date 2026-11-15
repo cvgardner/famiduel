@@ -179,6 +179,20 @@ const PICS: Record<string, Record<string, string>> = {
       circle(32, 6, 3, '#ffb347', anim('opacity', [1, 1, 0, 0, 1], [0, 0.55, 0.6, 0.9, 1])) +
       `<line x1="32" y1="34" x2="32" y2="34" stroke="#ff7eb3" stroke-width="4" stroke-linecap="round">${anim('y2', [34, 34, 22, 22, 34, 34, 7, 34, 34], [0, 0.1, 0.2, 0.25, 0.32, 0.4, 0.55, 0.7, 1])}</line>` +
       rect(22, 34, 20, 8, YOU),
+    // Three speedy extra snacks shoot out of the pot your way.
+    rain:
+      mat +
+      circle(32, 12, 6, '#c0703f', anim('r', [6, 6, 7, 6, 7, 6, 7, 6, 6], [0, 0.1, 0.13, 0.35, 0.38, 0.6, 0.63, 0.85, 1])) +
+      rect(22, 34, 20, 8, YOU) +
+      [0, 0.25, 0.5].map((t0, i) => circle(32, 12, 3, '#ffb347', anim('cx', [32, 32, 22 + i * 10, 22 + i * 10], [0, t0 + 0.1, t0 + 0.3, 1]) + anim('cy', [12, 12, 33, 33], [0, t0 + 0.1, t0 + 0.3, 1]) + anim('opacity', [0, 0, 1, 1, 0, 0], [0, t0 + 0.1, t0 + 0.11, t0 + 0.3, t0 + 0.32, 1]))).join(''),
+    // The other critters doze off: their snap creeps out too slowly and the snack rolls past.
+    sleepy:
+      mat +
+      rect(22, 2, 20, 8, THEM) +
+      `<line x1="32" y1="10" x2="32" y2="10" stroke="#ff7eb3" stroke-width="4" stroke-linecap="round">${anim('y2', [10, 10, 20, 20, 10], [0, 0.2, 0.85, 0.9, 1])}</line>` +
+      `<polyline points="46,4 52,4 46,10 52,10" fill="none" stroke="#dfe6ff" stroke-width="1.5">${anim('opacity', [0, 1, 0.3, 1, 0], [0, 0.2, 0.5, 0.8, 1])}</polyline>` +
+      circle(4, 20, 3, '#ffb347', anim('cx', [4, 4, 60, 60], [0, 0.2, 0.7, 1]) + anim('opacity', [0, 1, 1, 0, 0], [0, 0.2, 0.7, 0.72, 1])) +
+      rect(22, 34, 20, 8, YOU),
   },
   tanks: {
     // Your shells glow and bounce off the walls.
