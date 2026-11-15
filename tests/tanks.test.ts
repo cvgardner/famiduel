@@ -377,6 +377,30 @@ describe('tank duel', () => {
     expect(g.score[0]).toBe(1);
   });
 
+  it("a mine never hurts its own tank (F299); the other tank still sets it off", () => {
+    const g = fresh(['mine', null]);
+    g.mines.push({ id: 9, owner: 0, x: g.tanks[0].x, y: g.tanks[0].y, arm: 0, alive: true });
+    for (let i = 0; i < 30; i++) g.step(DT, idle2);
+    expect(g.mines).toHaveLength(1);
+    expect(g.tanks[0].hits).toBe(0);
+    g.mines[0].x = g.tanks[1].x;
+    g.mines[0].y = g.tanks[1].y;
+    g.step(DT, idle2);
+    expect(g.mines).toHaveLength(0);
+    expect(g.tanks[1].hits).toBe(1);
+    // Its blast skips the owner even when the owner sits right beside it.
+    const h = fresh(['mine', null], 3);
+    h.tanks[0].x = 180;
+    h.tanks[0].y = 300;
+    h.tanks[1].x = 300;
+    h.tanks[1].y = 500;
+    h.mines.push({ id: 9, owner: 0, x: 200, y: 300, arm: 0, alive: true });
+    h.shells.push({ id: 1, owner: 1, x: 240, y: 300, vx: -200, vy: 0, bounces: 0, maxBounces: 2, age: 1, bouncy: false, alive: true });
+    for (let i = 0; i < 20; i++) h.step(DT, idle2);
+    expect(h.mines).toHaveLength(0);
+    expect(h.tanks[0].hits).toBe(0);
+  });
+
   it('a shell sets a mine off from afar', () => {
     const g = fresh([null, null], 3);
     g.mines.push({ id: 9, owner: 1, x: 180, y: 300, arm: 0, alive: true });

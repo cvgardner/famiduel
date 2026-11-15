@@ -468,7 +468,12 @@ export class TankDuel {
       if (!m.alive) continue;
       m.arm = Math.max(0, m.arm - dt);
       if (m.arm > 0) continue;
+      // F299: your own mine never hurts you. Its owner drove back over it when turning round,
+      // and shells aimed at the owner hit the mine just behind it: between bots a dropped mine
+      // bonked its owner 33-72 times per 120 matches and the other tank 1-2 times. Only the
+      // other tank sets it off by rolling over it; a shell still sets it off.
       for (const tk of this.tanks) {
+        if (tk === this.tanks[m.owner]) continue;
         if (Math.hypot(tk.x - m.x, tk.y - m.y) < RULES.mineR + RULES.tankR) {
           this.detonate(m, victims);
           break;
@@ -483,6 +488,7 @@ export class TankDuel {
     this.events.push({ type: 'boom', x: m.x, y: m.y });
     for (const p of PLAYERS) {
       const tk = this.tanks[p];
+      if (p === m.owner) continue; // F299: your own mine can't hurt you
       if (Math.hypot(tk.x - m.x, tk.y - m.y) >= RULES.blastR + RULES.tankR) continue;
       if (tk.shield > 0) {
         this.events.push({ type: 'block', p, x: tk.x, y: tk.y });
@@ -792,7 +798,7 @@ export class TankBot {
    * routes the bot keeps the one it is already driving, then the one that needs
    * the least turning from where it's facing.
    */
-  /** Does this bot know about mine m? Its own always; the other's with BOT.spot odds. */
+  /** Does this bot know about mine m? Its own always (and drives over it: it is harmless to it); the other's with BOT.spot odds. */
   private sees(m: Mine): boolean {
     if (m.owner === this.p) return true;
     let seen = this.spotted.get(m.id);
@@ -808,7 +814,7 @@ export class TankBot {
     const [gc, gr] = game.arena.cellOf(to.x, to.y);
     const blocked = new Set<number>();
     for (const m of game.mines) {
-      if (!this.sees(m)) continue;
+      if (m.owner === this.p || !this.sees(m)) continue; // F299: your own mine is safe to drive over
       const [mc, mr] = game.arena.cellOf(m.x, m.y);
       blocked.add(mr * COLS + mc);
     }
