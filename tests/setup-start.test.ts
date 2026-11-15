@@ -37,3 +37,21 @@ describe('games that open on a setup screen', () => {
     }
   });
 });
+
+// F275: Rock Paper Scissors against the bot opens on the person's pick, which nothing times,
+// so the runner skips the "3 2 1" there too (its digit sat on the hands and "Pick one!").
+describe('games that open on an untimed pick', () => {
+  it('RPS against the bot opens on a pick, either seat; two people get the cover', () => {
+    expect(open('rps', withBot).opensOnPick?.()).toBe(true);
+    expect(open('rps', botFirst).opensOnPick?.()).toBe(true);
+    expect(open('rps', people).opensOnPick?.()).toBe(false);
+    expect(open('rps', people).opensOnCover?.()).toBe(true);
+  });
+
+  it('no other game opens on a pick', () => {
+    for (const id of Object.keys(GAMES)) {
+      if (id === 'rps') continue;
+      for (const ps of [people, withBot]) expect(open(id, ps).opensOnPick?.() ?? false, id).toBe(false);
+    }
+  });
+});
