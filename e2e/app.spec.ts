@@ -345,13 +345,14 @@ test('result: each score number names its player, also with long names at 320 px
   await page.setViewportSize({ width: 320, height: 568 });
   const errors = await boot(page, 'E2E', false);
   await page.evaluate(() => {
-    const app = (window as unknown as { __famiduel: { store: { data: { profiles: { name: string; bot: string | null }[]; settings: { bigText?: boolean } }; save(): void }; showHome(): void; openGame(id: string): void } }).__famiduel;
+    const app = (window as unknown as { __famiduel: { store: { data: { profiles: { name: string; bot: string | null }[]; settings: { bigText?: boolean } }; save(): void }; applyBigText(): void; showHome(): void; openGame(id: string): void } }).__famiduel;
     app.store.data.profiles[0].name = 'Maximiliana';
     app.store.data.profiles[1].name = 'Bartholomew';
     app.store.data.profiles[0].bot = null;
     app.store.data.profiles[1].bot = null;
     app.store.data.settings.bigText = true;
     app.store.save();
+    app.applyBigText();
     app.showHome();
     app.openGame('airhockey');
   });
@@ -361,6 +362,7 @@ test('result: each score number names its player, also with long names at 320 px
     (window as unknown as { __famiduel: { runner: { result: unknown } } }).__famiduel.runner.result = { winner: 1, score: [2, 3] };
   });
   await expect(page.locator('#result')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-bigtext', '1');
   await expect(page.locator('#result .half.p0 .rs-n')).toHaveText(['2', '3']);
   await expect(page.locator('#result .half.p0 .rs-who')).toHaveText(['You', 'Bartholomew']);
   await expect(page.locator('#result .half.p1 .rs-n')).toHaveText(['3', '2']);
