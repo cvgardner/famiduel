@@ -23,7 +23,7 @@ import { shownGames } from './catalog';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
 import { homeGroups } from './homegroups';
-import { BOT_LEVELS, BOT_NAME, botFace, PLAYER_COLORS, Store, botFor, easierOffer, ownBotLevel, seatName, type ThemePref } from './store';
+import { BOT_LEVELS, BOT_NAME, botFace, PLAYER_COLORS, Store, botFor, easierOffer, ownBotLevel, seatName, textSizeOf, type TextSize, type ThemePref } from './store';
 import { applyTheme, watchSystemTheme } from './theme';
 import { DARK_INK, inkOn } from '../core/contrast';
 import { cardInk } from './cardink';
@@ -176,7 +176,10 @@ export class App {
   }
 
   /**
-   * Bigger text: canvas words through the text scale, menus through <html data-bigtext>.
+   * Text size: Bigger draws canvas words through the text scale and menus through
+   * <html data-bigtext> (1.2x). Largest adds <html data-largesttext>: home and settings at 2x
+   * (Apple's Larger Text label asks for 200%); split game screens, sheets and canvas words keep
+   * Bigger, as each player has under half the phone there.
    * Little hands: <html data-bighands> makes the intro's Ready and power buttons taller, and
    * the in-game power buttons are drawn bigger (setBigHands).
    */
@@ -186,6 +189,8 @@ export class App {
     const root = document.documentElement.dataset;
     if (bigText) root.bigtext = '1';
     else delete root.bigtext;
+    if (bigText && this.store.data.settings.largestText) root.largesttext = '1';
+    else delete root.largesttext;
     setBigHands(!!bigButtons);
     if (bigButtons) root.bighands = '1';
     else delete root.bighands;
@@ -196,6 +201,7 @@ export class App {
     this.show('settings');
     const { settings } = this.store.data;
     const theme = settings.theme ?? 'auto';
+    const textSize = textSizeOf(settings);
     const group = (title: string, rows: string, note = '') =>
       `<section class="set-group"><h2 class="group-title">${title}</h2><div class="settings">${rows}</div>${note ? `<p class="set-note">${note}</p>` : ''}</section>`;
     $('#settings').innerHTML = `
@@ -215,8 +221,8 @@ export class App {
             <div class="seg theme-seg" id="themeSeg" role="group" aria-label="Light or dark look">${(['auto', 'light', 'dark'] as const)
               .map((v) => `<button data-v="${v}" class="${theme === v ? 'on' : ''}" aria-pressed="${theme === v}">${v === 'auto' ? 'Auto' : v === 'light' ? '☀️' : '🌙'}</button>`)
               .join('')}</div>
-          </div>` + this.toggle('bigText', '🔠', 'Bigger text', 'Larger words in games and menus', !!settings.bigText) +
-          this.toggle('bigButtons', '🖐️', 'Little hands', 'Bigger Ready and power buttons, in games too', !!settings.bigButtons), 'Auto follows your phone\'s light or dark mode.')}
+          </div>` + this.textSizeRow(textSize) +
+          this.toggle('bigButtons', '🖐️', 'Little hands', 'Bigger Ready and power buttons, in games too', !!settings.bigButtons), 'Auto follows your phone\'s light or dark mode. Largest text doubles menu words; game screens use Bigger.')}
       ${group('For grown-ups', `<button class="set-row set-link" id="grownUps"><span class="set-ico" aria-hidden="true">👪</span><span class="set-txt"><b>Grown-ups corner</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
       <footer class="foot">FamiDuel prototype · no ads, no accounts · everything stays on this device</footer>`;
     $('#grownUps').addEventListener('click', () => {
@@ -236,9 +242,21 @@ export class App {
         this.showSettings();
       });
     }
+    for (const el of document.querySelectorAll<HTMLElement>('#textSeg button')) {
+      el.addEventListener('click', () => {
+        const v = el.dataset.v as TextSize;
+        settings.bigText = v !== 'usual';
+        settings.largestText = v === 'largest';
+        this.store.save();
+        this.applyBigText();
+        this.sfx.play('tap');
+        this.showSettings();
+        document.querySelector<HTMLElement>(`#textSeg button[data-v="${v}"]`)?.focus();
+      });
+    }
     for (const el of document.querySelectorAll<HTMLInputElement>('.settings input')) {
       el.addEventListener('change', () => {
-        const k = el.dataset.k as 'powers' | 'autoHandicap' | 'sound' | 'haptics' | 'bigText' | 'bigButtons';
+        const k = el.dataset.k as 'powers' | 'autoHandicap' | 'sound' | 'haptics' | 'bigButtons';
         settings[k] = el.checked;
         this.applyBigText();
         this.sfx.muted = !settings.sound;
@@ -246,6 +264,19 @@ export class App {
         this.store.save();
       });
     }
+  }
+
+  /**
+   * Settings > Look > Text size: three "A"s drawn at their own fixed sizes (they show the step,
+   * and don't grow with it), named for screen readers.
+   */
+  private textSizeRow(on: TextSize): string {
+    const steps: [TextSize, string][] = [['usual', 'Usual text'], ['bigger', 'Bigger text'], ['largest', 'Largest text']];
+    return `<div class="set-row theme-row text-row"><span class="set-ico" aria-hidden="true">🔠</span><span class="set-txt"><b>Text size</b></span>
+            <div class="seg theme-seg text-seg" id="textSeg" role="group" aria-label="Text size">${steps
+              .map(([v, name]) => `<button data-v="${v}" class="${on === v ? 'on' : ''}" aria-pressed="${on === v}" aria-label="${name}"><span aria-hidden="true">A</span></button>`)
+              .join('')}</div>
+          </div>`;
   }
 
   /**

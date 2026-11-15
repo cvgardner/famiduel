@@ -63,7 +63,7 @@ knob, each power), and it is covered automatically by the e2e "bot vs bot" test.
 
 All 13 launch games plus Tic-Tac-Toe and RPS are playable, each with an honest bot, a
 handicap knob and (except Checkers, TTT, RPS) three powers. Since then: Play the bot (solo,
-bot words face the person), Bigger text and Little hands settings, menus at 200% text,
+bot words face the person), Text size (Usual / Bigger / Largest) and Little hands settings, menus at 200% text,
 light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match nights, the
 7-game tournament, and many weekend-loop polish passes (docs/backlog.md has each with its PR).
 - 7-game tournament (Chris, 1 Nov 2026): best of 7 across different action/aim games
@@ -75,7 +75,8 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
 - Daily minigolf course: on-device only (intro "📅 Today" switch, day's best kept on the phone);
   its share link / leaderboard is not built.
 - App Store accessibility labels we can claim and the test behind each:
-  docs/accessibility-labels.md (Larger Text needs a setting that reaches 2x: Chris's call).
+  docs/accessibility-labels.md (Larger Text: Text size > Largest puts home and settings at 2x;
+  the player sheet at 2x is what's left before claiming it).
 - Settled (don't reopen without new evidence): Sea Battle's seat bias was noise (2000
   mirrored games, 49-50%); Minigolf's easy bot was made weaker for small kids (+0.8 over par).
 - Not built yet: ads / remove-ads unlock, highlight clips, rivalry cards, daily course sharing,

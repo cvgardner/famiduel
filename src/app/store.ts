@@ -96,7 +96,13 @@ export function easierOffer(history: readonly MatchRecord[], game: string, profi
 
 /** 'auto' follows the phone's light/dark setting. Missing in older saves (= auto). */
 export type ThemePref = 'auto' | 'light' | 'dark';
-export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean; haptics: boolean; theme?: ThemePref; /** Draws game words ~1.2x larger (missing in older saves = off). */ bigText?: boolean; /** Little hands: taller Ready and power buttons on the intro (missing = off). */ bigButtons?: boolean };
+export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean; haptics: boolean; theme?: ThemePref; /** Draws game words ~1.2x larger (missing in older saves = off). */ bigText?: boolean; /** Text size "Largest": menu words 2x (Apple's Larger Text label); needs bigText, which game screens keep using (missing = off). */ largestText?: boolean; /** Little hands: taller Ready and power buttons on the intro (missing = off). */ bigButtons?: boolean };
+
+/** Settings > Look > Text size. Usual 1x; Bigger 1.2x everywhere; Largest 2x on home and settings (Bigger elsewhere). */
+export type TextSize = 'usual' | 'bigger' | 'largest';
+export function textSizeOf(s: Pick<Settings, 'bigText' | 'largestText'>): TextSize {
+  return !s.bigText ? 'usual' : s.largestText ? 'largest' : 'bigger';
+}
 export type MatchRecord = {
   game: string;
   at: number;
