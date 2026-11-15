@@ -48,6 +48,20 @@
         "icon": "✨",
         "desc": "The puck splits in two. Either one can score.",
         "duration": 6
+      },
+      {
+        "id": "guard",
+        "name": "Goal Guard",
+        "icon": "🧱",
+        "desc": "A low wall guards the middle of your goal for 5 seconds.",
+        "duration": 5
+      },
+      {
+        "id": "tiny",
+        "name": "Tiny Paddle",
+        "icon": "🐜",
+        "desc": "The other paddle shrinks small for 5 seconds.",
+        "duration": 5
       }
     ],
     "tanks": [

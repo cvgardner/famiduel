@@ -95,6 +95,19 @@ const PICS: Record<string, Record<string, string>> = {
       circle(32, 8, 6, THEM) +
       circle(32, 36, 6, YOU) +
       [-1, 1].map((d) => circle(32, 28, 3, '#fff', anim('cx', [32, 32, 32 + d * 8, 32 + d * 8], [0, 0.35, 0.85, 1]) + anim('cy', [28, 22, 4, 4], [0, 0.35, 0.85, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.8, 0.85, 1]))).join(''),
+    // A low wall pops up in the middle of your goal; their shot bounces off it.
+    guard:
+      table +
+      circle(32, 10, 6, THEM) +
+      circle(14, 34, 6, YOU) +
+      rect(25, 38, 14, 4, YOU, anim('opacity', [0, 0, 1, 1, 0], [0, 0.1, 0.15, 0.9, 1])) +
+      circle(32, 17, 3, '#fff', anim('cx', [32, 32, 32, 44, 44], [0, 0.25, 0.55, 0.85, 1]) + anim('cy', [17, 17, 35, 16, 16], [0, 0.25, 0.55, 0.85, 1]) + anim('opacity', [1, 1, 1, 1, 0], [0, 0.25, 0.55, 0.85, 1])),
+    // The other paddle shrinks small; your shot slips past it into their goal.
+    tiny:
+      table +
+      circle(32, 10, 6, THEM, anim('r', [6, 6, 3, 3, 6], [0, 0.15, 0.3, 0.85, 1])) +
+      circle(32, 36, 6, YOU) +
+      circle(36, 28, 3, '#fff', anim('cx', [36, 36, 37, 37], [0, 0.4, 0.75, 1]) + anim('cy', [28, 28, 2, 2], [0, 0.4, 0.75, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.4, 0.75, 1])),
   },
   pingpong: {
     // Your return flies super fast, leaving a streak.
