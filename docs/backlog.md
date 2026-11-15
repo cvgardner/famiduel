@@ -2411,3 +2411,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Easy snakes also meet head-on (51 of 221 easy-mirror rounds drawn this way); easy has no
       head-on worry at all. Fine for a kid's bot, but if families say easy rounds "just draw",
       give easy a small one.
+- [x] 2026-11-15 (F328, no change): a rival app's review says "the person who goes first wins if
+      they get all their shots". Measured who started vs who won in bot mirrors (no powers):
+      Penalty 50/52/47% (easy/normal/hard, n=200), Minigolf 51/53/48% (n=600, ties left out),
+      Sea Battle 48/48/52% (n=600). No starter edge in our turn games; nothing to fix.
