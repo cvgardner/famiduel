@@ -1451,7 +1451,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       one) gets as much from it. `sim:powers` n=240, Shield vs Freeze / Double: normal 33/31%
       -> 46/49%, easy 55/57% -> 58/60%, hard 53/46% -> 36/48%. Hard Freeze (time-based, 1 s
       of the other side's taps) stays the hard outlier, 71% -> 77% average: filed as F290.
-      2026-11-15 (F290, PR #TBD): Freeze Tree is a count too: the other tree's next 3 taps
+      2026-11-15 (F290, PR #316): Freeze Tree is a count too: the other tree's next 3 taps
       only crack the ice (was 1 s of no chopping, worth more the faster the other side taps);
       the frozen label counts them down ("🧊 frozen ·3") and the bot taps through the ice like
       a person. With F286, every head-to-head pair is in 35-65% at every level
