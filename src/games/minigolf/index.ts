@@ -3,7 +3,7 @@
 import { dailyHoleIds } from './daily';
 import { clearLine, turned, type Box } from './bannerline';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, fitSize, glow, line, noGlow, rrect, scaledSize, silentSeat, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, fitName, glow, line, noGlow, rrect, nameWidth, scaledSize, silentSeat, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -28,25 +28,6 @@ export const STATUS_GAP = 8;
 /** The first wording that fits `room` (longest first); the last one if none does. */
 export function fitLine(lines: string[], room: number, width: (str: string) => number): string {
   return lines.find((l) => width(l) <= room) ?? lines[lines.length - 1];
-}
-/** Width of `str` drawn at `size` (800 weight) under the current text scale. */
-export function nameWidth(gx: G, str: string, size: number): number {
-  gx.font = `800 ${scaledSize(size)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
-  return gx.measureText(str).width;
-}
-/**
- * F315: a line holding a player's name, fitted to `room`: shrunk (to MIN_TEXT at least), and if
- * even that is too wide, the name before `tail` cut short with "…" (12 W's are a lot of name).
- */
-export function fitName(gx: G, str: string, room: number, size: number, tail = ''): { str: string; size: number } {
-  const s = fitSize(gx, str, room, size);
-  if (nameWidth(gx, str, s) <= room) return { str, size: s };
-  const head = str.slice(0, str.length - tail.length);
-  for (let n = head.length - 1; n > 1; n--) {
-    const cut = `${head.slice(0, n).trimEnd()}…${tail}`;
-    if (nameWidth(gx, cut, s) <= room) return { str: cut, size: s };
-  }
-  return { str: `${head.slice(0, 1)}…${tail}`, size: s };
 }
 /** Height of the coloured outer edge of each player's strip (see drawStrip). */
 const EDGE = 3;

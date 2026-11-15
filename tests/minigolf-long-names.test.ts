@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { setTextScale, type G } from '../src/engine/draw';
-import { fitName, nameWidth } from '../src/games/minigolf/index';
+import { fitName, nameWidth, setTextScale, type G } from '../src/engine/draw';
 
 // A canvas whose words are 0.6 of their font size per letter (W is wider: 0.9).
 function fakeCanvas(): G {
