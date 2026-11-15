@@ -2366,6 +2366,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       "Pick in secret", "<name> picks next", "You 0 – 0 <them>"), short names keep the full
       lines. tests/rps-long-names.test.ts, e2e/rps-long-names.spec.ts (edge probe through two
       picks; fails on the old lines).
+
+## Ideas found 2026-11-15 (12:17 run, long names in Sea Battle)
+- [x] 2026-11-15 (F321): Sea Battle between two people with 12-letter names on a 320 px phone
+      with Bigger text: the header ("WWWWWWWWWWWW, hide your fleet", "..., you go first!") ran
+      off the screen, and the Radar / Mine notices ("💥 <name> hid a mine somewhere in their
+      sea!") would too. The header shrinks to fit; notices are wordings longest first
+      (noticeLines(), drawn with fitFirst: "💥 They hid a mine in their sea!"); "<name>'s fleet"
+      is cut to the small sea's width. tests/seabattle-long-names.test.ts,
+      e2e/seabattle-long-names.spec.ts (edge probe through placement and the hand-overs; fails
+      on the old header).
 ## Ideas found 2026-11-15 (12:17 run, long names in every game's countdown and cards)
 - [x] 2026-11-15 (F318): a turn game's countdown pill ("<name> goes first", fixed 260 wide,
       size 20) ran ~35 units off both screen edges in Penalty with a 12-letter name on a 320 px
