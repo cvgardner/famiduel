@@ -506,7 +506,10 @@ export class SnackSnatchBot {
     const id = game.players[this.p].power?.id;
     const near = game.snacks.filter((s) => Math.abs(s.y - RULES.gum[this.p]) < RULES.stickyRange).length;
     if (id === 'magnet') return game.snacks.length >= 3;
-    if (id === 'sticky') return near >= 2;
+    // F294: honey under the other side's Magnet only steers the slowed snacks straight to them
+    // (Magnet beat Sticky 87% at normal), so normal and hard bots wait the Magnet out, as a
+    // person who reads the telegraphed power would. Easy bots don't plan around it.
+    if (id === 'sticky') return near >= 2 && (this.level === 'easy' || !game.magnetOn((1 - this.p) as PlayerIndex));
     if (id === 'double') return game.snacks.length >= 3;
     return false;
   }
