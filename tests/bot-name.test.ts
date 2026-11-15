@@ -45,12 +45,22 @@ describe('the person\'s half names the bot', () => {
     expect(words('quickdraw', people, result({ winner: 0, reason: 'fooled', early: 1 }))).toContain('They got fooled!');
   });
   // F325: the bot is called by its name ("Bot", capital B, as on every other card), not "bot".
-  it('Chop Chop rival pill: "Bot: N" against a bot, "them: N" between people', () => {
+  it('Chop Chop rival pill: "Bot: N" against a bot, the other person\'s name between people', () => {
     const chops = (game: unknown) => {
       (game as ChopChop).choppers[1].chops = 9;
     };
     expect(words('chopchop', solo, chops)).toContain('Bot: 9');
-    expect(words('chopchop', people, chops)).toContain('them: 9');
+    expect(words('chopchop', [player({ bot: null, name: 'Ann' }), player({ bot: null, name: 'Ann' })], chops)).toContain('Ann: 9');
+  });
+  // F326: between two people the pill names the other person when the name fits, else "Them".
+  it('Chop Chop rival pill: a 12-letter name falls back to "Them: N"', () => {
+    const chops = (game: unknown) => {
+      (game as ChopChop).choppers[1].chops = 9;
+    };
+    const long: [PlayerInfo, PlayerInfo] = [player({ bot: null, name: 'Ann' }), player({ bot: null, name: 'WWWWWWWWWWWW' })];
+    const ws = words('chopchop', long, chops);
+    expect(ws).toContain('Them: 9');
+    expect(ws.some((w) => /^them:/.test(w))).toBe(false);
   });
 });
 

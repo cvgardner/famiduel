@@ -2402,3 +2402,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-15 (F323, PR #352): a pause the match made itself (F322) says why under "Paused":
       "Nobody was playing, so we paused.", so a family coming back knows nobody pressed
       anything; a held pause keeps the plain sheet. `.sheet .why`, e2e checks both.
+- [x] 2026-11-15 (F326, PR #PRNUM): between two people Chop Chop's small rival pill read "them: 9" in
+      lower case; it now names the other person when the name fits the pill at 13 ("Ann: 9"),
+      else "Them: 9" ("Grandma Jose" with Bigger text at 320 px). fitFirst(), RIVAL_PILL,
+      tests/bot-name.test.ts.
