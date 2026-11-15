@@ -131,7 +131,7 @@ export class App {
           ${[0, 1].map((i) => this.playerChip(i as PlayerIndex)).join('<div class="vs" aria-hidden="true">VS</div>')}
         </div>
         <div class="night" aria-label="${solo ? 'You vs the bot' : 'Match night'}">
-          <div class="night-score">${score(0)}<span>${solo ? 'You vs the bot' : 'Match night'} · <i class="nw">${played} game${played === 1 ? '' : 's'}</i></span>${score(1)}</div>
+          <div class="night-score">${score(0)}<span><i class="nl">${solo ? 'You vs the bot' : 'Match night'} · </i><i class="nw">${played} game${played === 1 ? '' : 's'}</i></span>${score(1)}</div>
           ${played ? `<button id="newNightBtn" class="link">${solo ? 'Start over' : 'New night'}</button>` : ''}
         </div>
       </section>

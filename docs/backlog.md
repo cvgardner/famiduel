@@ -2281,6 +2281,25 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       "+120 ms handicap"), which means nothing to a young kid. Times now read in seconds
       ("Bot 0.50 s", "+0.12 s handicap"), the same width on the card; secs() / handicapLine(),
       tests/quickdraw-no-shot.test.ts + tests/bot-name.test.ts.
+- [x] 2026-11-15 (F307): Home after a match on an iPhone SE (1st gen) with Bigger text. The
+      taps check (F305) set Bigger text but never applied it to the menus, so it measured usual
+      text; applied, the first game card was 82% below the fold after a match (45% before one).
+      Under max-height 600px: the tagline and the tournament button's second line hide, gaps
+      tighten, and after a match "New night" sits beside the score, whose "Match night ·" words
+      stay for screen readers only. The first card now shows
+      whole (bottom at 559 of 568), tap targets keep 44px. e2e/taps.spec.ts applies Bigger text
+      (checks html[data-bigtext]) and needs every card it taps wholly on screen (was half).
+- [x] 2026-11-15 (F308): Tournament screen on a small phone: the 7 game tiles pushed "Play"
+      below the fold (y 656 of 568, 728 with Bigger text), so a family had to scroll to start.
+      Play (and New tournament) now stays pinned at the bottom while the lineup scrolls under it,
+      and sits in its usual place at the end of the list. e2e/taps.spec.ts counts home -> a
+      tournament game (4 taps) at 390x844 and 320x568 with Bigger text.
+- [x] 2026-11-15 (F309): Home player chips: seat 2's name lines up right, and with no width cap
+      a long name (12 letters, the editor's limit) ran left over the VS badge and into seat 1's
+      chip at every phone size; on a 320px phone with Bigger text the 36px badge also covered
+      the start of "Player 2". Names are capped to their chip, each chip's inner side keeps
+      clear of the badge, and the badge is 26px on a 320px phone with Bigger text.
+      e2e/home-names.spec.ts (short, default and 12-letter names, 320 and 390 wide).
 - [x] 2026-11-15 (F311): the result screen's big score read "2 – 3" with nothing saying which
       number was whose (a kid playing the bot couldn't tell; families ask how the app "picked"
       a winner). Each number now has a small name under it, the half's own first: "You" /

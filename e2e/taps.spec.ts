@@ -7,12 +7,13 @@ import { boot, botMatch } from './helpers';
 //   home -> playing: the game's card, then each person's Ready (1 + 1 each)
 //   result -> rematch: Rematch, then each person's Ready (1 + 1 each)
 //   result -> another game: Games, the card, then each person's Ready (2 + 1 each)
-type Hook = { store: { data: { profiles: { bot: string | null }[]; settings: { bigText: boolean } }; save(): void }; showHome(): void };
+//   home -> a tournament game: the tournament, Play, then each person's Ready (2 + 1 each)
+type Hook = { store: { data: { profiles: { bot: string | null }[]; settings: { bigText: boolean } }; save(): void }; showHome(): void; applyBigText(): void };
 
-/** A button must show whole; a game card (a big tile in a list) needs half of it on screen to tap. */
-async function tap(target: Locator, taps: { n: number }, ratio = 1) {
+/** A button or the first game card must show whole (F307: also after a match, on a small phone). */
+async function tap(target: Locator, taps: { n: number }) {
   await expect(target).toBeVisible();
-  await expect(target, 'on screen without scrolling').toBeInViewport({ ratio });
+  await expect(target, 'on screen without scrolling').toBeInViewport({ ratio: 1 });
   await target.click();
   taps.n++;
 }
@@ -23,7 +24,10 @@ async function people(page: Page, bigText: boolean) {
     for (const p of app.store.data.profiles) p.bot = null;
     app.store.data.settings.bigText = big;
     app.store.save();
+    // F307: menus only take Bigger text once it's applied (as the Settings switch does).
+    app.applyBigText();
   }, bigText);
+  if (bigText) await expect(page.locator('html')).toHaveAttribute('data-bigtext', '1');
 }
 
 async function readyUp(page: Page, taps: { n: number }) {
@@ -44,10 +48,23 @@ for (const [label, size, big] of [
       await people(page, big);
       await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
       const taps = { n: 0 };
-      // The first card shows without scrolling (others are a scroll down the list).
-      await tap(page.locator('.game-card[data-ready="1"]').first(), taps, 0.5);
+      // The first card shows whole without scrolling (others are a scroll down the list).
+      await tap(page.locator('.game-card[data-ready="1"]').first(), taps);
       await readyUp(page, taps);
       expect(taps.n).toBe(3);
+      expect(errors).toEqual([]);
+    });
+    test('home -> tournament game takes the tournament, Play and each Ready', async ({ page }) => {
+      // F308: on a small phone the 7 tiles pushed Play below the fold; it stays on screen.
+      const errors = await boot(page, 'E2E', false);
+      await people(page, big);
+      await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showHome());
+      const taps = { n: 0 };
+      await tap(page.locator('#tourneyBtn'), taps);
+      await expect(page.locator('#tourney')).toBeVisible();
+      await tap(page.locator('#tourneyPlay'), taps);
+      await readyUp(page, taps);
+      expect(taps.n).toBe(4);
       expect(errors).toEqual([]);
     });
     test('result -> rematch, and result -> another game', async ({ page }) => {
@@ -68,7 +85,7 @@ for (const [label, size, big] of [
       const other = { n: 0 };
       await tap(page.locator('#homeBtn'), other);
       await expect(page.locator('#home')).toBeVisible();
-      await tap(page.locator('.game-card[data-ready="1"]').first(), other, 0.5);
+      await tap(page.locator('.game-card[data-ready="1"]').first(), other);
       await readyUp(page, other);
       expect(other.n).toBe(4);
       expect(errors).toEqual([]);
