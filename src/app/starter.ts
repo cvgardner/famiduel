@@ -6,7 +6,8 @@
 // is still the game's own seeded coin toss.
 import { shortName } from '../core/turnline';
 import { other, type PlayerIndex } from '../core/types';
-import { silentSeat } from '../engine/draw';
+import { fitSize, scaledSize, silentSeat, type G } from '../engine/draw';
+import { W } from '../engine/world';
 
 export class StarterLog {
   private last = new Map<string, PlayerIndex>();
@@ -45,4 +46,22 @@ export function starterLines(first: PlayerIndex | null | undefined, names: [stri
  */
 export function countdownSeats(players: readonly { bot: unknown }[]): PlayerIndex[] {
   return ([0, 1] as const).filter((p) => !silentSeat(players, p));
+}
+
+/** The countdown pill's usual width; it grows (up to the screen less PILL_EDGE each side) for a long name. */
+export const PILL_W = 260;
+export const PILL_EDGE = 8;
+const PILL_PAD = 16;
+
+/**
+ * Size and pill width for a seat's starter line (F318). "WWWWWWWWWWWW goes first" at a fixed
+ * size 20 ran ~35 units off both screen edges on a 320 px phone with Bigger text: the words
+ * now shrink to fit (no smaller than MIN_TEXT) and the pill widens to hold them.
+ */
+export function starterPill(g: G, line: string, mine: boolean): { size: number; w: number } {
+  const max = W - 2 * PILL_EDGE;
+  const size = fitSize(g, line, max - 2 * PILL_PAD, mine ? 26 : 20);
+  g.font = `800 ${scaledSize(size)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  const w = Math.min(max, Math.max(PILL_W, g.measureText(line).width + 2 * PILL_PAD));
+  return { size, w };
 }
