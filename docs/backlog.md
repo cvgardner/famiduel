@@ -2395,3 +2395,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       match); turn games (Minigolf, Penalty, Sea Battle) and the extras never auto-pause, since
       people think between shots. Runner.watchIdle()/onIdle, tests/idle-pause.test.ts, e2e
       'two people who both walk away ...'.
+- [x] 2026-11-15 (F323, PR #TBD): a pause the match made itself (F322) says why under "Paused":
+      "Nobody was playing, so we paused.", so a family coming back knows nobody pressed
+      anything; a held pause keeps the plain sheet. `.sheet .why`, e2e checks both.
