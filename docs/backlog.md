@@ -2175,7 +2175,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Sumo's HOLD are drawn outside the Button walk; Tanks' FIRE has its own edge check.
 
 ## Ideas found 2026-11-15 (research: nothing only heard)
-- [x] 2026-11-15 (F293, PR #PRNUM): Xbox Accessibility Guideline 103 (game sounds need a
+- [x] 2026-11-15 (F293, PR #318): Xbox Accessibility Guideline 103 (game sounds need a
       visual twin; families often play muted). Every `sfx.play` in the action games and Sea
       Battle / RPS was checked beside its visual. Only Sea Battle had taps that just buzzed:
       firing at a square already fired at ("Already fired there"), an airstrike row with
