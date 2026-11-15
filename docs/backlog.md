@@ -2103,3 +2103,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       complain its hard bot scored 2 points per slap and its power-ups spawned in front of the bot.
       Here only the *Bot classes know a seat is a bot; tests/bot-same-rules.test.ts fails if a
       rules class in any src/games/<id>/logic.ts reads a seat's `.bot`, `isBot` or a BotLevel.
+- [x] 2026-11-14 (F276, PR #307): Minigolf opened hole 1 on a 1.8 s "3 2 1" over the bare course,
+      then the hole card faded in at GO, though no shot is ever timed (holes 2 and 3 open on the
+      card with no count). opensOnCard() lets the runner skip the countdown; the hole card shows
+      its usual 1.9 s at once and the first-match ghost finger stays (it shows the pull-back).
+      Resume after a pause still counts 3-2-1. tests/setup-start.test.ts + playtest "ghost finger:
+      Minigolf opens straight on the hole card ...".

@@ -4,6 +4,7 @@ import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
 import type { Sfx } from '../src/engine/sfx';
 import { GAMES } from '../src/games/registry';
+import { RULES as GOLF } from '../src/games/minigolf/logic';
 import { player } from './helpers';
 
 // F274: playing the bot, Sea Battle opens on "hide your fleet", not on play. The runner skips
@@ -52,6 +53,28 @@ describe('games that open on an untimed pick', () => {
     for (const id of Object.keys(GAMES)) {
       if (id === 'rps') continue;
       for (const ps of [people, withBot]) expect(open(id, ps).opensOnPick?.() ?? false, id).toBe(false);
+    }
+  });
+});
+
+// F276: Minigolf opens on its hole card ("HOLE 1 OF 3 · ... tees off first"), which no shot is
+// timed against, so the runner skips the "3 2 1" (it counted on the bare course, then the card
+// faded in at GO). The card still shows its usual RULES.introTime before the first turn.
+describe('games that open on a hole card', () => {
+  it('Minigolf opens on the hole card with two people or the bot, either seat', () => {
+    for (const ps of [people, withBot, botFirst]) {
+      const g = open('minigolf', ps);
+      expect(g.opensOnCard?.()).toBe(true);
+      const rules = g.game as { phase: string; timer: number };
+      expect(rules.phase).toBe('intro');
+      expect(rules.timer).toBe(GOLF.introTime);
+    }
+  });
+
+  it('no other game opens on a hole card', () => {
+    for (const id of Object.keys(GAMES)) {
+      if (id === 'minigolf') continue;
+      for (const ps of [people, withBot]) expect(open(id, ps).opensOnCard?.() ?? false, id).toBe(false);
     }
   });
 });
