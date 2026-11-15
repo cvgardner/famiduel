@@ -123,8 +123,8 @@
         "id": "freeze",
         "name": "Freeze Tree",
         "icon": "🧊",
-        "desc": "The other tree freezes: no chopping for 1 second.",
-        "duration": 1
+        "desc": "The other tree freezes: their next 3 taps only crack the ice.",
+        "count": 3
       },
       {
         "id": "double",

@@ -1451,6 +1451,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       one) gets as much from it. `sim:powers` n=240, Shield vs Freeze / Double: normal 33/31%
       -> 46/49%, easy 55/57% -> 58/60%, hard 53/46% -> 36/48%. Hard Freeze (time-based, 1 s
       of the other side's taps) stays the hard outlier, 71% -> 77% average: filed as F290.
+      2026-11-15 (F290, PR #TBD): Freeze Tree is a count too: the other tree's next 3 taps
+      only crack the ice (was 1 s of no chopping, worth more the faster the other side taps);
+      the frozen label counts them down ("🧊 frozen ·3") and the bot taps through the ice like
+      a person. With F286, every head-to-head pair is in 35-65% at every level
+      (`sim:powers` n=240; Shield/Freeze/Double row vs row): easy 59 60 / 41 58 / 40 42,
+      normal 54 49 / 46 35 / 51 65, hard 60 48 / 40 38 / 52 63 (hard Freeze vs Double was
+      69%). The averages over 65% at normal/hard are only beating "none" (~90-99%).
 - [x] 2026-11-07 (F128): Play the bot: small per-seat lines the bot's half drew twice now show
       once, in the person's half: Snake's corner "Round N" and score line (its copy read back
       to front, "0 – 1" beside "1 – 0"), Quick Draw's score under the stars, Tank Duel's

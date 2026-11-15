@@ -24,7 +24,8 @@ export const RULES = {
   refill: 0.1,
   /** Double Chop covers this many chops (a count, not seconds, so a slow tapper gets as much from it). */
   doubleChop: 8,
-  freeze: 1,
+  /** Taps the other tree's ice takes to crack (a count, like Double Chop, so it costs a fast tapper no more than a slow one). */
+  freeze: 3,
   /** Chops Branch Shield covers (a count, like Double Chop, so its worth doesn't grow with tapping speed). */
   shield: 12,
   energyPerChop: 0.02,
@@ -137,11 +138,7 @@ export class ChopChop {
     this.events = [];
     if (this.done) return;
     this.t += dt;
-    for (const p of [0, 1] as PlayerIndex[]) {
-      this.energy[p].tick(dt);
-      const c = this.choppers[p];
-      c.frozen = Math.max(0, c.frozen - dt);
-    }
+    for (const p of [0, 1] as PlayerIndex[]) this.energy[p].tick(dt);
     if (this.phase === 'intro') {
       this.phaseT -= dt;
       if (this.phaseT > 0) return;
@@ -201,6 +198,8 @@ export class ChopChop {
     const c = this.choppers[p];
     if (c.out) return;
     if (c.frozen > 0) {
+      // Each tap on a frozen tree only cracks the ice; the last one thaws it.
+      c.frozen--;
       this.events.push({ type: 'frozenTap', p });
       return;
     }
@@ -226,7 +225,7 @@ export class ChopChop {
     if (power.id === 'shield' && c.shield > 0) return;
     if (!this.energy[p].spend(power.duration ?? 0)) return;
     if (power.id === 'shield') c.shield = power.count ?? RULES.shield;
-    else if (power.id === 'freeze') this.choppers[other(p)].frozen = power.duration ?? RULES.freeze;
+    else if (power.id === 'freeze') this.choppers[other(p)].frozen = power.count ?? RULES.freeze;
     else if (power.id === 'double') c.double = power.count ?? RULES.doubleChop;
     this.events.push({ type: 'power', p, id: power.id });
   }
@@ -285,7 +284,8 @@ export class ChopBot {
     const shielded = c.shield > 0;
     const rate = shielded ? Math.min(cfg.rate * BOT_MASH, 1 / HUMAN.tapGap) : cfg.rate;
     this.wait = Math.max(HUMAN.tapGap, (1 / rate) * (1 + this.rng.range(-cfg.jitter, cfg.jitter)));
-    if (c.frozen > 0) return { chop: 0, power };
+    // A frozen tree takes taps to crack, so it taps on, the way a person does.
+    if (c.frozen > 0) return { chop: c.side, power };
     const safe = (s: -1 | 1) => game.branch(this.p, c.idx) !== s && game.branch(this.p, c.idx + 1) !== s;
     if (shielded) return { chop: c.side, power };
     let side: -1 | 1 = safe(c.side) ? c.side : (-c.side as -1 | 1);

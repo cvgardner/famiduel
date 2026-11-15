@@ -150,15 +150,23 @@ describe('chop chop', () => {
     expect(c.out).toBe(true);
   });
 
-  it('freeze tree stops the other player chopping for 1 s', () => {
+  it("freeze tree: the other player's next 3 taps only crack the ice", () => {
     const g = fresh({ powers: ['freeze', 'freeze'] });
     g.energy[0].value = 1;
     g.step(DT, [{ chop: 0, power: true }, idle]);
     const c = g.choppers[1];
-    expect(c.frozen).toBeGreaterThan(0.9);
-    g.step(DT, [idle, { chop: safe(g, 1), power: false }]);
-    expect(c.chops).toBe(0);
-    for (let i = 0; i < 62; i++) g.step(DT, [idle, idle]);
+    expect(RULES.freeze).toBe(3);
+    expect(c.frozen).toBe(3);
+    // A count, not seconds: waiting doesn't thaw it.
+    for (let i = 0; i < 120; i++) g.step(DT, [idle, idle]);
+    expect(c.frozen).toBe(3);
+    for (let k = 0; k < 3; k++) {
+      g.step(DT, [idle, { chop: safe(g, 1), power: false }]);
+      expect(g.events.some((e) => e.type === 'frozenTap')).toBe(true);
+      expect(c.chops).toBe(0);
+      for (let i = 0; i < 10; i++) g.step(DT, [idle, idle]);
+    }
+    expect(c.frozen).toBe(0);
     g.step(DT, [idle, { chop: safe(g, 1), power: false }]);
     expect(c.chops).toBe(1);
   });

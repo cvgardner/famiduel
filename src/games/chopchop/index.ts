@@ -317,7 +317,7 @@ class ChopView implements GameInstance {
       gx.globalAlpha = 0.55 + 0.2 * Math.sin(this.t * 10);
       rrect(gx, x - tw / 2 - 6, MID + 4, tw + 12, L.baseY - MID + 20, 8, '#bfe9ff', '#ffffff', 2);
       gx.globalAlpha = 1;
-      text(gx, '🧊 frozen', x, L.baseY - 2 * L.segH, { size: 18, color: '#0d4d7a', stroke: '#ffffff' });
+      text(gx, `🧊 frozen ·${c.frozen}`, x, L.baseY - 2 * L.segH, { size: 18, color: '#0d4d7a', stroke: '#ffffff' });
     }
   }
 
