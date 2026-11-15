@@ -23,6 +23,11 @@ export const BANNER_OFF = 26;
 export const BANNER_MAX = 30;
 /** F225: room left and right of a boxed banner's words inside its box. */
 export const BANNER_PAD = 12;
+/**
+ * F280: each person's "3 2 1" digit sits this far from the middle (default 120, where it
+ * covered the wrestler waiting at MID ± 72): out on the rope, short of the HOLD button.
+ */
+export const COUNT_DY_SUMO = 164;
 /** World units the pause button covers from the left edge on the narrowest phone (44 px at 320 px wide). */
 export const PAUSE_CLEAR = 52;
 
@@ -89,6 +94,10 @@ class SumoView implements GameInstance {
     this.bannerColor = color;
     this.banner = time;
     this.bannerBoxed = boxed;
+  }
+
+  countdownDy(): number {
+    return COUNT_DY_SUMO;
   }
 
   update(dt: number, input: Input): void {

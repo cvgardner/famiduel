@@ -95,6 +95,11 @@ export function playDemoOut(g: Gesture, keeper = false): readonly [number, numbe
 /** Each person's "3 2 1" digit sits this far from the middle line (world units; runner.ts). */
 export const COUNT_DY = 120;
 
+/** F280: the digit's distance for this game (a game whose pieces start at COUNT_DY moves it). */
+export function countdownDy(inst: { countdownDy?(): number }): number {
+  return inst.countdownDy?.() ?? COUNT_DY;
+}
+
 /**
  * F152: a finger card at the same height as a person's countdown digit covered "3 2 1"
  * with its dark tile (the default 0.72 is the digit's height). Such a card moves to the
