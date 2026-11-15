@@ -2103,6 +2103,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       complain its hard bot scored 2 points per slap and its power-ups spawned in front of the bot.
       Here only the *Bot classes know a seat is a bot; tests/bot-same-rules.test.ts fails if a
       rules class in any src/games/<id>/logic.ts reads a seat's `.bot`, `isBot` or a BotLevel.
+- [x] 2026-11-14 (F280): Sumo's "3 2 1" digit sat at the usual MID ± 120, right on each wrestler
+      waiting at MID ± 72, so for the whole countdown a kid couldn't see their wrestler or which
+      way it faced. A game can now move the digit (GameInstance.countdownDy(), countdownDy() in
+      src/app/demo.ts); Sumo puts it at MID ± 164, out on the rope, clear of both wrestlers and
+      the HOLD and power buttons. tests/sumo-countdown.test.ts.
+- [x] 2026-11-14 (F279): Air Hockey's power buttons sit in the rink's corners and were drawn over
+      the pucks, so a puck in a corner slid out of sight (bot matches at every level: a puck on a
+      button 2.6% of frames, mostly hidden 1.1%, about a second a match; people chase pucks into
+      corners more). A puck touching a power button is now drawn again over it (underButton()),
+      both seats, left- and right-handed. tests/airhockey-puck-over-button.test.ts.
 - [x] 2026-11-14 (F276, PR #307): Minigolf opened hole 1 on a 1.8 s "3 2 1" over the bare course,
       then the hole card faded in at GO, though no shot is ever timed (holes 2 and 3 open on the
       card with no count). opensOnCard() lets the runner skip the countdown; the hole card shows

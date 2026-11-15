@@ -61,6 +61,11 @@ export interface GameInstance {
    * hole card faded in at GO); the in-play ghost finger stays, since it shows the pull-back.
    */
   opensOnCard?(): boolean;
+  /**
+   * F280: how far from the middle line each person's "3 2 1" digit sits (default COUNT_DY in
+   * src/app/demo.ts), for a game whose pieces start right where the digit would be.
+   */
+  countdownDy?(): number;
 }
 
 /** A player's power meter in a running game, if its rules have one (`game.energy`). */
