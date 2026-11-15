@@ -3,6 +3,9 @@
     "assistBonus": 0.15,
     "trailingBonus": 0.25
   },
+  "rotation": {
+    "perWeek": 3
+  },
   "games": {
     "minigolf": [
       {
@@ -266,5 +269,6 @@
         "desc": "Pick a column they can't play on their next turn. You still drop a disc."
       }
     ]
-  }
+  },
+  "sets": []
 }
