@@ -28,6 +28,11 @@ const READY_DY = 66;
  */
 export const PICK_DY = 100;
 /**
+ * F296: the shooter's "Your kick!" starts this far past the ball (it rises 36 more toward the
+ * goal); from READY_DY its rise ended on the keeper's "Save it!", which rises to meet it.
+ */
+export const KICK_POP_DY = 40;
+/**
  * F260: the keeper's "Kick in 3" / "Here it comes!" line sits this far out from their goal
  * line: inside the penalty box (its front edge is BOX_DEPTH out), clear of that white edge
  * (at 74 the edge ran through the words) and of the keeper's 🧤 (Wide Keeper, 26 out).
@@ -156,7 +161,9 @@ class PenaltyView implements GameInstance {
     // F206: the shooter's line starts just past the ball toward the goal, where the "<power>
     // ready" line goes once aiming starts (at MID ± 70 it sat right on the ball: 62% of its
     // readable frames). It rises toward the goal, away from the ball.
-    const kickY = g.spotY() + this.toward() * READY_DY;
+    // F296: KICK_POP_DY, not READY_DY: both words rise toward the centre line, and from 66 out
+    // the shooter's met the keeper's "Save it!" there, one printed over the other.
+    const kickY = g.spotY() + this.toward() * KICK_POP_DY;
     if (!silentSeat(players, s)) fx.pop(g.suddenDeath ? 'Sudden death! Your kick' : 'Your kick!', W / 2, kickY, players[s].color, s, g.suddenDeath ? 20 : 26);
     if (!silentSeat(players, k)) fx.pop(g.suddenDeath ? 'Sudden death! Save it' : 'Save it!', W / 2, ys(k), players[k].color, k, 26);
   }

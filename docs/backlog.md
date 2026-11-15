@@ -2184,6 +2184,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       placement misfits do (F257). tests/seabattle-refused.test.ts. Hidden board games
       (Checkers, Four in a Row) still only buzz on a refused move; no work on them.
 
+## Ideas found 2026-11-15 (playtest shots)
+- [x] 2026-11-15 (F296): Penalty's kick-off words met in the middle (playtest-report/lefty-penalty.png):
+      both rise toward the centre line, and the shooter's "Your kick!" (from 66 past the ball)
+      ended its rise on the keeper's "Save it!". It now starts 40 past the ball (KICK_POP_DY),
+      still clear of the ball; frames where the two touch in 18 bot matches 692/8,648 -> 0.
+      tests/penalty-kickoff-words.test.ts.
 ## Ideas found 2026-11-15 (power sweep F291 follow-ups)
 - [x] 2026-11-15 (F294): Snack Snatch Magnet beat Sticky 87% at normal (n=240). Cause: honey
       poured while the other Magnet pulls kills the snacks' speed, so the magnet steers every
