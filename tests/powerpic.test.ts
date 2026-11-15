@@ -13,7 +13,8 @@ describe('power pictures', () => {
     const FREE = Object.keys(table).filter((g) => shown.has(g));
     expect(FREE.length).toBe(11);
     for (const g of FREE) {
-      expect(table[g]?.length, g).toBeGreaterThanOrEqual(3);
+      // Weekly rotation: every shown game keeps a pool of 5 (3 offered a week).
+      expect(table[g]?.length, g).toBe(5);
       for (const p of table[g]) {
         expect(hasPowerPic(g, p.id), `${g}/${p.id}`).toBe(true);
         const svg = powerPicHtml(g, p.id);
