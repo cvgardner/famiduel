@@ -55,6 +55,13 @@ export interface GameInstance {
    */
   opensOnPick?(): boolean;
   /**
+   * F276: true when the match opens on a ready card of the game's own that no shot is timed
+   * against (Minigolf's hole card, "HOLE 1 OF 3 · ... tees off first", the same card holes 2
+   * and 3 open on). The runner skips the "3 2 1" (it counted down on the bare course, then the
+   * hole card faded in at GO); the in-play ghost finger stays, since it shows the pull-back.
+   */
+  opensOnCard?(): boolean;
+  /**
    * F280: how far from the middle line each person's "3 2 1" digit sits (default COUNT_DY in
    * src/app/demo.ts), for a game whose pieces start right where the digit would be.
    */
