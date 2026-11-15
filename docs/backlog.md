@@ -2314,3 +2314,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       their names in a bot-vs-bot match). Two equal columns keep the dash centred; long names
       end in an ellipsis. scoreLabels() in src/app/resulttitle.ts, tests/result-score.test.ts,
       e2e 'result: each score number names its player' (long names, 320 px + Bigger text).
+- [x] 2026-11-15 (F312): Quick Draw's left cactus (foot at MID + 120, scale 0.9) reached up
+      under the signal cards: a worded fake-out ("Open the DRAW-er!") or DRAW! card hid its top
+      half, which peeked out under the card's corner on a 320 px phone. It now stands a little
+      smaller (0.8) at MID + 139, in the gap between the cards (to MID + 92) and Slow Time's
+      "get ready" line. SIGNAL_CARD / READY_Y, tests/quickdraw-cactus.test.ts.
