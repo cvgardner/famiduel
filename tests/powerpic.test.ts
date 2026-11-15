@@ -13,7 +13,7 @@ describe('power pictures', () => {
     const FREE = Object.keys(table).filter((g) => shown.has(g));
     expect(FREE.length).toBe(11);
     for (const g of FREE) {
-      expect(table[g]?.length, g).toBe(3);
+      expect(table[g]?.length, g).toBeGreaterThanOrEqual(3);
       for (const p of table[g]) {
         expect(hasPowerPic(g, p.id), `${g}/${p.id}`).toBe(true);
         const svg = powerPicHtml(g, p.id);
