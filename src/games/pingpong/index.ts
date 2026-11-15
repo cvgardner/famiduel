@@ -11,6 +11,7 @@ import { PowerButton, powerSpot } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
 import { FingerPaddle, fwdSign, PingPong, PingPongBot, RULES, type Intent, type Shot } from './logic';
 import { inkOn } from '../../core/contrast';
+import { shortName } from '../../core/turnline';
 import { liftOn } from '../../engine/fx';
 import { BounceMark, type Spot } from './bouncemark';
 const FLOOR = '#2a2350';
@@ -43,7 +44,7 @@ export const SURFACES: readonly string[] = [FLOOR, TABLE_GREEN];
 /**
  * Pop lanes, measured from the net into each seat's half. Words born on the same hit or point
  * take different lanes (F149: "Rally x5!" printed over SMASH!/Curve!, "What a rally!" over
- * "Match point!"): POINT! 90, shot words and "What a rally!" 130, rally count and
+ * "Match point!"): "Your point!" 90, shot words and "What a rally!" 130, rally count and
  * "Match point!" 170, a second "Match point!" 210 (the paddles sit at 574).
  */
 export const POINT_LANE = 90;
@@ -182,8 +183,13 @@ class PingPongView implements GameInstance {
         fx.shake(5, 0.2);
         fx.flash(col(e.scorer), 0.14);
         fx.burst(e.x, e.y, col(e.scorer), 26, 260, 4);
-        fx.pop('POINT!', W / 2, MID + POINT_LANE, col(e.scorer), 0, 34);
-        fx.pop('POINT!', W / 2, MID - POINT_LANE, col(e.scorer), 1, 34);
+        // F302: each seat reads whose point it was ("POINT!" to both read as theirs to the loser too).
+        const lines = pointLines(e.scorer, this.ctx.players);
+        for (const p of PLAYERS) {
+          // A bot facing the one person says nothing (its words would turn to face them).
+          if (silentSeat(this.ctx.players, p)) continue;
+          fx.pop(lines[p], W / 2, p === 0 ? MID + POINT_LANE : MID - POINT_LANE, col(e.scorer), p, p === e.scorer ? 34 : 28);
+        }
         if (e.rally >= 10) this.popBoth(`What a rally! ${e.rally} hits`, COLORS.gold, 18);
         this.matchPointPops(RALLY_LANE);
       } else if (e.type === 'power') {
@@ -419,3 +425,13 @@ class PingPongView implements GameInstance {
 
 const def: GameDef = { id: 'pingpong', create: (ctx) => new PingPongView(ctx) };
 export default def;
+
+/**
+ * F302: the words each seat reads when a point is scored: "Your point!" for the scorer, and
+ * for the other seat "<bot>'s point" when a bot scored, else "Their point".
+ */
+export function pointLines(scorer: PlayerIndex, players: readonly { name: string; bot?: unknown }[]): [string, string] {
+  const sc = players[scorer];
+  const lost = sc.bot ? `${shortName(sc.name)}'s point` : 'Their point';
+  return scorer === 0 ? ['Your point!', lost] : [lost, 'Your point!'];
+}
