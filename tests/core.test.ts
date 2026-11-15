@@ -48,13 +48,13 @@ describe('handicap', () => {
 });
 
 describe('content', () => {
-  it('every game has a unique id, and powers only reference known games, 3 each', () => {
+  it('every game has a unique id, and powers only reference known games, 3 or more each (the weekly rotation offers 3)', () => {
     const ids = games.games.map((g) => g.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const [game, list] of Object.entries(powers.games)) {
       expect(ids).toContain(game);
-      expect(list).toHaveLength(3);
-      expect(new Set(list.map((p) => p.id)).size).toBe(3);
+      expect(list.length).toBeGreaterThanOrEqual(3);
+      expect(new Set(list.map((p) => p.id)).size).toBe(list.length);
     }
   });
 
