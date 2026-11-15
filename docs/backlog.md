@@ -2040,7 +2040,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       MID ± 150, right on that seat's dashed lunge line (MID ± 152; lefty-pingpong.png, both
       seats). Both hint lines now sit between the score card and the lunge line (hintLines());
       tests/pingpong-hint-lines.test.ts checks the bands with and without Bigger text.
-- [x] 2026-11-14 (F267 + F268, PR #TBD): Penalty: a scored ball rolled on through the back of
+- [x] 2026-11-14 (F267 + F268, PR #298): Penalty: a scored ball rolled on through the back of
       the 30-deep net and stopped on the keeper's right arrow (solo-round-penalty.png), and a
       wide or over shot rolled ~130 units past the goal line, over the keeper's buttons. A goal
       now stops at the back of the net, inside the posts (RULES.netDepth); any other ball stops
