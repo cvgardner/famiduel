@@ -1661,7 +1661,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Chop Chop is fast tapping by design, Sumo is hold-to-charge. A "Little hands" auto-fire
       for Tank Duel would change balance vs the bot (it waits a human reaction after reload),
       so it's a call for Chris if families say small kids tire of tapping FIRE.
-      2026-11-15 (F298, PR #TBD): holding the FIRE button fires again RULES.holdFire (= HUMAN.reaction,
+      2026-11-15 (F298, PR #323): holding the FIRE button fires again RULES.holdFire (= HUMAN.reaction,
       0.2 s, the bot's own trigger delay) after each reload, for everyone, so it never beats
       tapping and the bot balance is unchanged; only a finger that landed on the button itself
       counts (a palm resting on the strip doesn't fire). How-to: "Tap or hold FIRE".
