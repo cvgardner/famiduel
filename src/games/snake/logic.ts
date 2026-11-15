@@ -34,7 +34,19 @@ export const RULES = {
   energyLose: 0.3,
   boostMult: 1.45,
   bombRadius: 3.3,
+  /**
+   * Brick Wall: this many bricks across the other snake's path, solid after the fuse. They land
+   * where its head will be when they set, plus brickLead cells, so it always gets the whole
+   * fuse and a little more to turn (never less than brickAhead cells away).
+   */
+  brickLen: 5,
+  brickAhead: 4,
+  brickLead: 2,
+  brickFuse: 0.7,
 };
+
+/** Grid value of a brick (0 empty, 1 and 2 are the two snakes' trails). */
+export const BRICK = 3;
 
 export const DX = [0, 1, 0, -1];
 export const DY = [-1, 0, 1, 0];
@@ -55,6 +67,8 @@ export type Snake = {
   phasing: boolean;
   /** Trail cells crossed in the current crossing (at most RULES.phaseCells). */
   phased: number;
+  /** Seconds Wall Wrap stays on: a wall lets this snake through to the opposite side. */
+  wrap: number;
   moves: number;
   speedMul: number;
   turnAssist: boolean;
@@ -67,6 +81,11 @@ export type Event =
   | { type: 'headon'; x: number; y: number }
   | { type: 'phaseThrough'; p: PlayerIndex; x: number; y: number }
   | { type: 'bomb'; p: PlayerIndex; x: number; y: number; cleared: number }
+  /** Brick Wall: bricks dropped (blinking) at these cells; `set` when they turn solid. */
+  | { type: 'brick'; p: PlayerIndex; cells: [number, number][] }
+  | { type: 'brickSet'; p: PlayerIndex; cells: [number, number][] }
+  /** Wall Wrap: the snake left at (fx, fy) and came back in at (x, y). */
+  | { type: 'wrap'; p: PlayerIndex; fx: number; fy: number; x: number; y: number }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'roundStart'; round: number }
   | { type: 'roundEnd'; winner: PlayerIndex | null }
@@ -78,8 +97,12 @@ export type Phase = 'intro' | 'play' | 'over';
 
 export class SnakeDuel {
   score: [number, number] = [0, 0];
-  /** 0 empty, 1 player 0's trail, 2 player 1's trail. */
+  /** 0 empty, 1 player 0's trail, 2 player 1's trail, BRICK a brick. */
   grid: Uint8Array;
+  /** Cells where a dropped brick is blinking and will soon be solid (1), else 0. */
+  soon: Uint8Array;
+  /** Bricks blinking before they set, with the seconds left. */
+  bricks: { owner: PlayerIndex; cells: [number, number][]; fuse: number }[] = [];
   snakes: [Snake, Snake];
   energy: [Energy, Energy];
   phase: Phase = 'intro';
@@ -98,6 +121,7 @@ export class SnakeDuel {
     private readonly rng: Rng,
   ) {
     this.grid = new Uint8Array(RULES.cols * RULES.rows);
+    this.soon = new Uint8Array(RULES.cols * RULES.rows);
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     this.snakes = [this.newSnake(0), this.newSnake(1)];
     this.resetRound();
@@ -106,7 +130,7 @@ export class SnakeDuel {
   private newSnake(p: PlayerIndex): Snake {
     const a = this.players[p].assist;
     return {
-      x: 0, y: 0, dir: 0, alive: true, acc: 0, queue: [], boost: 0, phase: 0, phasing: false, phased: 0, moves: 0,
+      x: 0, y: 0, dir: 0, alive: true, acc: 0, queue: [], boost: 0, phase: 0, phasing: false, phased: 0, wrap: 0, moves: 0,
       speedMul: lerpAssist(a, 1, RULES.assistSpeed),
       turnAssist: a >= RULES.turnAssistAt,
     };
@@ -114,6 +138,8 @@ export class SnakeDuel {
 
   private resetRound(): void {
     this.grid.fill(0);
+    this.soon.fill(0);
+    this.bricks = [];
     const { cols, rows } = RULES;
     // Seeded start lanes, each the same distance from its own back wall. Lanes are
     // picked separately so two careful players don't mirror each other into a draw.
@@ -126,7 +152,7 @@ export class SnakeDuel {
     for (const p of [0, 1] as PlayerIndex[]) {
       const s = this.snakes[p];
       const [x, y, dir] = starts[p];
-      Object.assign(s, { x, y, dir, alive: true, acc: 0, queue: [], boost: 0, phase: 0, phasing: false, phased: 0, moves: 0 });
+      Object.assign(s, { x, y, dir, alive: true, acc: 0, queue: [], boost: 0, phase: 0, phasing: false, phased: 0, wrap: 0, moves: 0 });
       this.grid[this.idx(x, y)] = p + 1;
     }
     this.phase = 'intro';
@@ -155,6 +181,14 @@ export class SnakeDuel {
     return base * s.speedMul * (s.boost > 0 ? RULES.boostMult : 1);
   }
 
+  /** Where a step from (x, y) going `dir` lands: off the board unless Wall Wrap carries it round. */
+  ahead(s: Snake, dir: number, x = s.x, y = s.y): { x: number; y: number; wrapped: boolean } {
+    const nx = x + DX[dir];
+    const ny = y + DY[dir];
+    if (this.inside(nx, ny) || s.wrap <= 0) return { x: nx, y: ny, wrapped: false };
+    return { x: (nx + RULES.cols) % RULES.cols, y: (ny + RULES.rows) % RULES.rows, wrapped: true };
+  }
+
   step(dt: number, intents: [Intent, Intent]): void {
     this.events = [];
     if (this.done) return;
@@ -163,6 +197,7 @@ export class SnakeDuel {
       this.energy[p].tick(dt);
       const s = this.snakes[p];
       s.boost = Math.max(0, s.boost - dt);
+      s.wrap = Math.max(0, s.wrap - dt);
       if (!s.phasing) s.phase = Math.max(0, s.phase - dt);
       const it = intents[p];
       if (it.turn !== 0 && this.phase !== 'over' && s.queue.length < RULES.maxQueue) s.queue.push(it.turn);
@@ -182,6 +217,7 @@ export class SnakeDuel {
       return;
     }
     this.roundT += dt;
+    this.setBricks(dt);
     const movers: PlayerIndex[] = [];
     for (const p of [0, 1] as PlayerIndex[]) {
       const s = this.snakes[p];
@@ -195,7 +231,7 @@ export class SnakeDuel {
   }
 
   private move(movers: PlayerIndex[]): void {
-    const next: Record<number, { x: number; y: number; crash: boolean; wall: boolean; pass: boolean }> = {};
+    const next: Record<number, { x: number; y: number; crash: boolean; wall: boolean; pass: boolean; wrapped: boolean }> = {};
     for (const p of movers) {
       const s = this.snakes[p];
       const q = s.queue.shift();
@@ -204,12 +240,11 @@ export class SnakeDuel {
         this.events.push({ type: 'turn', p, auto: false });
       }
       if (s.turnAssist) this.assistTurn(p);
-      const x = s.x + DX[s.dir];
-      const y = s.y + DY[s.dir];
+      const { x, y, wrapped } = this.ahead(s, s.dir);
       const wall = !this.inside(x, y);
       const filled = !wall && this.grid[this.idx(x, y)] !== 0;
       const pass = filled && canPhase(s);
-      next[p] = { x, y, wall, pass, crash: wall || (filled && !pass) };
+      next[p] = { x, y, wall, pass, wrapped, crash: wall || (filled && !pass) };
     }
     if (movers.length === 2) {
       const a = next[0];
@@ -227,6 +262,7 @@ export class SnakeDuel {
         this.events.push({ type: 'crash', p, x: n.wall ? s.x : n.x, y: n.wall ? s.y : n.y, wall: n.wall });
         continue;
       }
+      if (n.wrapped) this.events.push({ type: 'wrap', p, fx: s.x, fy: s.y, x: n.x, y: n.y });
       s.x = n.x;
       s.y = n.y;
       s.moves++;
@@ -252,6 +288,9 @@ export class SnakeDuel {
   private assistTurn(p: PlayerIndex): void {
     const s = this.snakes[p];
     if (this.inside(s.x + DX[s.dir], s.y + DY[s.dir])) return;
+    // Wall Wrap is on and the far side is open: the wall is a door now, keep going.
+    const through = this.ahead(s, s.dir);
+    if (through.wrapped && !this.blocked(through.x, through.y)) return;
     let best = -1;
     let bestDir = s.dir;
     for (const turn of [3, 1]) {
@@ -280,6 +319,8 @@ export class SnakeDuel {
     const s = this.snakes[p];
     if (!power || !s.alive || !this.energy[p].spend(power.duration ?? 0)) return;
     if (power.id === 'boost') s.boost = power.duration ?? 3;
+    else if (power.id === 'brick') this.dropBricks(p);
+    else if (power.id === 'wrap') s.wrap = power.duration ?? 5;
     else if (power.id === 'phase') {
       s.phase = power.duration ?? 5;
       s.phased = 0;
@@ -299,6 +340,53 @@ export class SnakeDuel {
       this.events.push({ type: 'bomb', p, x: s.x, y: s.y, cleared });
     }
     this.events.push({ type: 'power', p, id: power.id });
+  }
+
+  /** Brick Wall: a row of blinking bricks across the other snake's path, a few cells ahead of it. */
+  private dropBricks(p: PlayerIndex): void {
+    const o = this.snakes[other(p)];
+    const { cols, rows, brickLen } = RULES;
+    const clampX = (x: number) => Math.max(0, Math.min(cols - 1, x));
+    const clampY = (y: number) => Math.max(0, Math.min(rows - 1, y));
+    const ahead = this.brickDistance(other(p));
+    const cx = clampX(o.x + DX[o.dir] * ahead);
+    const cy = clampY(o.y + DY[o.dir] * ahead);
+    const side = (o.dir + 1) % 4;
+    const cells: [number, number][] = [];
+    const half = Math.floor(brickLen / 2);
+    for (let k = -half; k <= half; k++) {
+      const x = cx + DX[side] * k;
+      const y = cy + DY[side] * k;
+      if (!this.inside(x, y) || this.grid[this.idx(x, y)] !== 0 || this.soon[this.idx(x, y)]) continue;
+      if (this.snakes.some((s) => s.x === x && s.y === y)) continue;
+      cells.push([x, y]);
+      this.soon[this.idx(x, y)] = 1;
+    }
+    this.bricks.push({ owner: p, cells, fuse: RULES.brickFuse });
+    this.events.push({ type: 'brick', p, cells });
+  }
+
+  /** How many cells ahead of snake q a Brick Wall lands (see RULES.brickLead). */
+  brickDistance(q: PlayerIndex): number {
+    return Math.max(RULES.brickAhead, Math.ceil(this.speed(q) * RULES.brickFuse) + RULES.brickLead);
+  }
+
+  /** Blinking bricks whose fuse ran out turn solid (except where a snake got there first). */
+  private setBricks(dt: number): void {
+    for (const b of this.bricks) {
+      b.fuse -= dt;
+      if (b.fuse > 0) continue;
+      const set: [number, number][] = [];
+      for (const [x, y] of b.cells) {
+        const i = this.idx(x, y);
+        this.soon[i] = 0;
+        if (this.grid[i] !== 0 || this.snakes.some((s) => s.x === x && s.y === y)) continue;
+        this.grid[i] = BRICK;
+        set.push([x, y]);
+      }
+      this.events.push({ type: 'brickSet', p: b.owner, cells: set });
+    }
+    this.bricks = this.bricks.filter((b) => b.fuse > 0);
   }
 
   private endRound(winner: PlayerIndex | null): void {
@@ -359,23 +447,40 @@ export class SnakeBot {
     const options = ([0, -1, 1] as const).map((turn) => ({ turn, score: this.evaluate(game, turn) }));
     let best = options[0];
     for (const o of options) if (o.score > best.score) best = o;
+    const ready = game.powersOn && game.energy[this.p].ready;
+    // Wall Wrap: with the power ready, look at the moves that would go through a wall. One that
+    // leads to much more room is taken (and the power switched on as it turns); heading straight
+    // into a wall with as much room on the far side, it often goes through rather than turn.
+    let wrapNow = false;
+    if (ready && game.players[this.p].power?.id === 'wrap' && s.wrap <= 0) {
+      for (const turn of [0, -1, 1] as const) {
+        const dir = (s.dir + (turn === 1 ? 1 : turn === -1 ? 3 : 0)) % 4;
+        if (game.inside(s.x + DX[dir], s.y + DY[dir])) continue;
+        const score = this.evaluate(game, turn, true);
+        if (score > best.score + 8 || (turn === 0 && score > best.score - 2 && this.rng.chance(0.35))) {
+          best = { turn, score };
+          wrapNow = true;
+        }
+      }
+    }
     let turn: -1 | 0 | 1 = best.turn;
     // Reaction time: a person can't turn again instantly; a fumble keeps going straight.
     if (turn !== 0 && (this.sinceTurn < cfg.react || this.rng.chance(cfg.slip))) turn = 0;
     if (turn !== 0) this.sinceTurn = 0;
-    const power = game.powersOn && game.energy[this.p].ready && this.wantsPower(game, best.score);
+    const power = ready && (wrapNow || this.wantsPower(game, best.score));
     return { turn, power };
   }
 
-  private evaluate(game: SnakeDuel, turn: -1 | 0 | 1): number {
+  /** How good a turn is: room reachable after it. `wrap`: as if Wall Wrap were on. */
+  private evaluate(game: SnakeDuel, turn: -1 | 0 | 1, wrap = false): number {
     const cfg = BOT[this.level];
     const s = game.snakes[this.p];
     const o = game.snakes[other(this.p)];
     const dir = (s.dir + (turn === 1 ? 1 : turn === -1 ? 3 : 0)) % 4;
-    const x = s.x + DX[dir];
-    const y = s.y + DY[dir];
+    const { x, y } = game.ahead(wrap ? { ...s, wrap: Math.max(s.wrap, 1) } : s, dir);
     if (!game.inside(x, y)) return -1e9;
-    if (game.grid[game.idx(x, y)] !== 0 && !canPhase(s)) return -1e9;
+    // A blinking brick is about to be solid: a careful player steers clear of it.
+    if ((game.grid[game.idx(x, y)] !== 0 || game.soon[game.idx(x, y)]) && !canPhase(s)) return -1e9;
     let score = flood(game, x, y, cfg.depth);
     if (cfg.avoidHead && o.alive && Math.abs(o.x + DX[o.dir] - x) + Math.abs(o.y + DY[o.dir] - y) === 0) score -= 50;
     else if (cfg.avoidHead && o.alive && Math.abs(o.x - x) + Math.abs(o.y - y) === 1) score -= 8;
@@ -390,6 +495,16 @@ export class SnakeBot {
     const trapped = bestScore < Math.min(cfg.depth, 30);
     if (id === 'phase' || id === 'bomb') return trapped;
     if (id === 'boost') return !trapped && this.rng.chance(0.02);
+    if (id === 'brick') {
+      // Drop it while the two race for the same open room and the other snake has a clear run
+      // ahead (a wall across it takes that room away); not once trails have walled you apart.
+      const s = game.snakes[this.p];
+      const o = game.snakes[other(this.p)];
+      if (trapped || !o.alive) return false;
+      const ahead = game.brickDistance(other(this.p));
+      for (let k = 1; k <= ahead; k++) if (game.blocked(o.x + DX[o.dir] * k, o.y + DY[o.dir] * k)) return false;
+      return Math.abs(s.x - o.x) + Math.abs(s.y - o.y) < 16 && reaches(game, s.x, s.y, o.x, o.y);
+    }
     return false;
   }
 }
@@ -401,6 +516,29 @@ export class SnakeBot {
  */
 export function canPhase(s: Snake): boolean {
   return (s.phase > 0 || s.phasing) && s.phased < RULES.phaseCells;
+}
+
+/** True when a snake head at (x, y) can still reach a cell next to (tx, ty) over empty cells. */
+export function reaches(game: SnakeDuel, x: number, y: number, tx: number, ty: number): boolean {
+  const seen = new Uint8Array(RULES.cols * RULES.rows);
+  const stack = [game.idx(x, y)];
+  seen[stack[0]] = 1;
+  while (stack.length) {
+    const i = stack.pop()!;
+    const cx = i % RULES.cols;
+    const cy = (i - cx) / RULES.cols;
+    for (let d = 0; d < 4; d++) {
+      const nx = cx + DX[d];
+      const ny = cy + DY[d];
+      if (!game.inside(nx, ny)) continue;
+      if (Math.abs(nx - tx) + Math.abs(ny - ty) === 1 && game.grid[game.idx(nx, ny)] === 0) return true;
+      const j = game.idx(nx, ny);
+      if (seen[j] || game.grid[j] !== 0) continue;
+      seen[j] = 1;
+      stack.push(j);
+    }
+  }
+  return false;
 }
 
 /** Count empty cells reachable from (x, y), up to cap. (x, y) itself counts. */
@@ -419,7 +557,7 @@ export function flood(game: SnakeDuel, x: number, y: number, cap: number): numbe
       const ny = cy + DY[d];
       if (!game.inside(nx, ny)) continue;
       const j = game.idx(nx, ny);
-      if (seen[j] || game.grid[j] !== 0) continue;
+      if (seen[j] || game.grid[j] !== 0 || game.soon[j]) continue;
       seen[j] = 1;
       stack.push(j);
     }

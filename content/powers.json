@@ -92,6 +92,19 @@
         "name": "Trail Bomb",
         "icon": "💣",
         "desc": "Blow a gap in every trail around your head."
+      },
+      {
+        "id": "brick",
+        "name": "Brick Wall",
+        "icon": "🧱",
+        "desc": "Drop a brick wall in front of the other snake. It blinks first."
+      },
+      {
+        "id": "wrap",
+        "name": "Wall Wrap",
+        "icon": "🌀",
+        "desc": "For 5 seconds, go into a wall and pop out the other side.",
+        "duration": 5
       }
     ],
     "quickdraw": [

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel } from '../src/core/types';
-import { flood, RULES, SnakeBot, SnakeDuel, type Intent } from '../src/games/snake/logic';
+import { BRICK, flood, RULES, SnakeBot, SnakeDuel, type Intent } from '../src/games/snake/logic';
 import { DT, player, power } from './helpers';
 
 const idle: Intent = { turn: 0, power: false };
@@ -166,6 +166,101 @@ describe('snake duel', () => {
     expect(g.events.some((e) => e.type === 'bomb')).toBe(true);
     expect(g.grid[g.idx(s.x, s.y - 1)]).toBe(0);
     expect(flood(g, s.x, s.y - 1, 100)).toBeGreaterThan(20);
+  });
+
+  it('Brick Wall: blinking bricks drop across the other snake\'s path, then set solid', () => {
+    const g = fresh({ powers: ['brick', 'brick'] });
+    g.grid.fill(0);
+    Object.assign(g.snakes[0], { x: 3, y: 34, dir: 1, acc: 0 });
+    Object.assign(g.snakes[1], { x: 14, y: 10, dir: 2, acc: 0 }); // heading down the screen
+    g.grid[g.idx(3, 34)] = 1;
+    g.grid[g.idx(14, 10)] = 2;
+    g.energy[0].value = 1;
+    g.step(DT, [{ turn: 0, power: true }, idle]);
+    const drop = g.events.find((e) => e.type === 'brick');
+    expect(drop?.type === 'brick' && drop.cells.length).toBe(RULES.brickLen);
+    // A row across its path, far enough ahead that it sets before the head gets there, still blinking.
+    const ahead = g.brickDistance(1);
+    expect(ahead).toBe(Math.ceil(g.speed(1) * RULES.brickFuse) + RULES.brickLead);
+    const row = 10 + ahead;
+    for (let x = 12; x <= 16; x++) {
+      expect(g.soon[g.idx(x, row)]).toBe(1);
+      expect(g.grid[g.idx(x, row)]).toBe(0);
+    }
+    for (let i = 0; i < RULES.brickFuse / DT + 2; i++) g.step(DT, [idle, { turn: 0, power: false }]);
+    // Set before the snake got there.
+    expect(g.snakes[1].y).toBeLessThan(row - 1);
+    for (let x = 12; x <= 16; x++) expect(g.grid[g.idx(x, row)]).toBe(BRICK);
+    // Driving on into them is a crash.
+    while (g.phase === 'play') g.step(DT, [{ turn: 0, power: false }, idle]);
+    expect(g.lastRound).toBe(0);
+    expect(g.snakes[1].y).toBe(row - 1);
+  });
+
+  it('Brick Wall: the other bot sees the blinking bricks and steers round them', () => {
+    let crashes = 0;
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
+      const g = fresh({ powers: ['brick', 'brick'] });
+      g.grid.fill(0);
+      Object.assign(g.snakes[0], { x: 3, y: 34, dir: 1, acc: 0 });
+      Object.assign(g.snakes[1], { x: 14, y: 10, dir: 2, acc: 0 });
+      const bot = new SnakeBot(1, 'normal', makeRng(seed));
+      g.energy[0].value = 1;
+      g.step(DT, [{ turn: 0, power: true }, idle]);
+      for (let i = 0; i < 60 && g.phase === 'play'; i++) g.step(DT, [{ turn: i % 20 === 0 ? -1 : 0, power: false }, bot.think(g, DT)]);
+      if (!g.snakes[1].alive) crashes++;
+    }
+    expect(crashes).toBe(0);
+  });
+
+  it('Wall Wrap: for 5 seconds the snake goes into a wall and comes out the other side', () => {
+    const g = fresh({ powers: ['wrap', 'wrap'] });
+    g.grid.fill(0);
+    Object.assign(g.snakes[1], { x: 20, y: 5, dir: 2, acc: 0 });
+    Object.assign(g.snakes[0], { x: 1, y: 20, dir: 3, acc: 0 }); // heading for the left wall
+    g.energy[0].value = 1;
+    g.step(DT, [{ turn: 0, power: true }, idle]);
+    expect(g.snakes[0].wrap).toBeGreaterThan(4.9);
+    let wrapped = false;
+    for (let i = 0; i < 40 && g.phase === 'play'; i++) {
+      g.step(DT, [idle, idle]);
+      if (g.events.some((e) => e.type === 'wrap' && e.p === 0)) wrapped = true;
+    }
+    expect(wrapped).toBe(true);
+    expect(g.snakes[0].alive).toBe(true);
+    expect(g.snakes[0].x).toBeGreaterThan(RULES.cols - 6);
+    expect(g.grid[g.idx(RULES.cols - 1, 20)]).toBe(1);
+    // A trail on the far side still stops it.
+    const h = fresh({ powers: ['wrap', 'wrap'] });
+    h.grid.fill(0);
+    Object.assign(h.snakes[1], { x: 20, y: 5, dir: 2, acc: 0 });
+    Object.assign(h.snakes[0], { x: 10, y: 0, dir: 0, acc: 0 }); // at the top wall, heading up
+    h.grid[h.idx(10, RULES.rows - 1)] = 2;
+    h.energy[0].value = 1;
+    h.step(DT, [{ turn: 0, power: true }, idle]);
+    while (h.phase === 'play') h.step(DT, [idle, idle]);
+    expect(h.lastRound).toBe(1);
+    // Once it wears off, walls are walls again.
+    const k = fresh({ powers: ['wrap', 'wrap'] });
+    k.grid.fill(0);
+    Object.assign(k.snakes[1], { x: 20, y: 5, dir: 2, acc: 0 });
+    Object.assign(k.snakes[0], { x: 10, y: 20, dir: 1, acc: 0 });
+    k.energy[0].value = 1;
+    k.step(DT, [{ turn: 0, power: true }, idle]);
+    k.snakes[0].wrap = 0;
+    Object.assign(k.snakes[0], { x: 0, y: 20, dir: 3, acc: 0 });
+    while (k.phase === 'play') k.step(DT, [idle, idle]);
+    expect(k.lastRound).toBe(1);
+  });
+
+  it('bots use Brick Wall and Wall Wrap and still finish', () => {
+    let fired = 0;
+    for (const [i, pw] of ([['brick', 'wrap'], ['wrap', 'bomb'], ['phase', 'brick']] as [string, string][]).entries()) {
+      const { g, powersFired } = play(['normal', 'hard'], 30 + i, { powers: pw });
+      expect(g.done).toBe(true);
+      fired += powersFired;
+    }
+    expect(fired).toBeGreaterThan(3);
   });
 
   it('bots use powers and still finish', () => {

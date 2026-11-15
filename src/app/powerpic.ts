@@ -197,6 +197,20 @@ const PICS: Record<string, Record<string, string>> = {
       line(36, 15, 36, 29, THEM, 4, anim('opacity', [1, 1, 0, 0, 1], [0, 0.35, 0.4, 0.9, 1])) +
       line(6, 22, 28, 22, YOU, 4) +
       `<circle cx="30" cy="22" r="3" fill="none" stroke="#ffd166" stroke-width="2.5">${anim('r', [3, 3, 14, 14], [0, 0.3, 0.5, 1])}${anim('opacity', [0, 0, 1, 0, 0], [0, 0.3, 0.32, 0.5, 1])}</circle>`,
+    // A brick wall blinks in across the other snake's path, then sets; it has to turn away.
+    brick:
+      board +
+      line(6, 38, 26, 38, YOU, 4) +
+      [10, 16, 22, 28].map((y) => `<rect x="44" y="${y}" width="6" height="6" rx="1" fill="#d0703f" stroke="#f3c9a1" stroke-width="0.8">${anim('opacity', [0, 0, 0.8, 0.2, 0.8, 1, 1, 0], [0, 0.15, 0.2, 0.3, 0.4, 0.45, 0.9, 1])}</rect>`).join('') +
+      line(6, 19, 6, 19, THEM, 4, anim('x2', [6, 6, 36, 36, 36], [0, 0.05, 0.55, 0.6, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.9, 0.95, 1])) +
+      line(36, 19, 36, 19, THEM, 4, anim('y2', [19, 19, 6, 6], [0, 0.55, 0.85, 1]) + anim('opacity', [0, 0, 1, 1, 0], [0, 0.54, 0.56, 0.9, 1])),
+    // Wall Wrap: the walls glow, your snake goes into one side and pops out of the other.
+    wrap:
+      board +
+      `<rect x="2" y="2" width="60" height="40" rx="7" fill="none" style="stroke:${YOU}" stroke-width="1.5" stroke-dasharray="4 3">${anim('opacity', [0, 1, 1, 0], [0, 0.1, 0.9, 1])}</rect>` +
+      line(4, 12, 40, 12, THEM, 4) +
+      line(30, 28, 30, 28, YOU, 4, anim('x1', [30, 30, 50, 60, 60], [0, 0.05, 0.4, 0.5, 1]) + anim('x2', [38, 38, 60, 60, 60], [0, 0.05, 0.32, 0.5, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.45, 0.5, 0.52, 1])) +
+      line(4, 28, 4, 28, YOU, 4, anim('x2', [4, 4, 26, 26], [0, 0.32, 0.8, 1]) + anim('opacity', [0, 0, 1, 1, 0], [0, 0.31, 0.33, 0.9, 1])),
   },
   chopchop: {
     // A falling branch breaks on you instead of bonking you: mash away.
