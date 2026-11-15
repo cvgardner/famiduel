@@ -2395,6 +2395,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       match); turn games (Minigolf, Penalty, Sea Battle) and the extras never auto-pause, since
       people think between shots. Runner.watchIdle()/onIdle, tests/idle-pause.test.ts, e2e
       'two people who both walk away ...'.
+## Ideas found 2026-11-15 (14:17 run, 320 px sweep with long names)
+- [x] 2026-11-15 (F325, PR #351): playing the bot, Tank Duel's bot half read "bot: 1 bonk" and
+      Chop Chop's rival pill "bot: 9" in lower case, while every other card calls it "Bot"; both
+      now use the bot's own name ("Bot: 1 bonk", "Bot: 9"). tests/bot-name.test.ts.
 - [x] 2026-11-15 (F324, PR #350): `npm run sim -- --idle` also plays both seats idle and names
       the games that never end on their own (Air Hockey, Sumo, Ping Pong: the ones F322 pauses).
       The sim's idle Ping Pong player had dragged its paddle to the finger spot (H * 0.75),
@@ -2404,3 +2408,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-15 (F323, PR #352): a pause the match made itself (F322) says why under "Paused":
       "Nobody was playing, so we paused.", so a family coming back knows nobody pressed
       anything; a held pause keeps the plain sheet. `.sheet .why`, e2e checks both.
+- [x] 2026-11-15 (F326, PR #353): between two people Chop Chop's small rival pill read "them: 9" in
+      lower case; it now names the other person when the name fits the pill at 13 ("Ann: 9"),
+      else "Them: 9" ("Grandma Jose" with Bigger text at 320 px). fitFirst(), RIVAL_PILL,
+      tests/bot-name.test.ts.

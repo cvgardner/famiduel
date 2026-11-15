@@ -611,7 +611,7 @@ class TankView implements GameInstance {
     const bonks = `${g.score[p]} bonk${g.score[p] === 1 ? '' : 's'}`;
     if (g.sudden && !g.over) { if (!quiet) text(gx, 'Sudden bonk: next hit wins!', sc.x, sc.y, { size: 13, player: p, color: COLORS.gold }); }
     else if (!g.over && leftT < 20) { if (!quiet) text(gx, `⏱ ${Math.ceil(leftT)} s`, sc.x, sc.y, { size: 13, player: p, color: leftT < 6 ? COLORS.gold : '#ffffff' }); }
-    else text(gx, quiet ? `bot: ${bonks}` : bonks, sc.x, sc.y, { size: 13, player: p, color: COLORS.dim, weight: 700 });
+    else text(gx, quiet ? `${this.ctx.players[p].name}: ${bonks}` : bonks, sc.x, sc.y, { size: 13, player: p, color: COLORS.dim, weight: 700 });
   }
 
   private drawOverlay(gx: G): void {
