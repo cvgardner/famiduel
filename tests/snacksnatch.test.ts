@@ -298,6 +298,23 @@ describe('snack snatch', () => {
     expect(run(-200)).toBeCloseTo(run(200), 0);
   });
 
+  it('honey is a narrow band by your critters and leaves golden snacks alone (F297)', () => {
+    // A wide band and slowed gold (small, worth 3) won easy bots 83% over no power while
+    // the Magnet steered every slowed snack across at normal and hard.
+    expect(RULES.stickyRange).toBe(120);
+    const run = (gold: boolean, y: number) => {
+      const g = game({ powers: [power('snacksnatch', 'sticky'), null] });
+      const sn = only(g, { x: 30, y, vx: 0, vy: 200, gold, r: gold ? RULES.goldR : RULES.snackR });
+      g.energy[0].value = 1;
+      g.step(DT, [{ snap: [false, false], power: true }, idle]);
+      for (let i = 0; i < 10; i++) g.step(DT, [idle, idle]);
+      return Math.hypot(sn.vx, sn.vy);
+    };
+    expect(run(false, 470)).toBeLessThan(150); // a plain snack by your critters slows down
+    expect(run(true, 470)).toBeGreaterThan(150); // a golden one rolls on
+    expect(run(false, 340)).toBeGreaterThan(150); // out by the centre line there is no honey
+  });
+
   it('double grab doubles the reach of the next 3 snaps', () => {
     const g = game({ powers: [power('snacksnatch', 'double'), null] });
     g.energy[0].value = 1;
