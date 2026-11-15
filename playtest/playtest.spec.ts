@@ -4004,3 +4004,61 @@ test('edges: in-game words keep their room from the screen edge, Bigger text on 
   expect(near).toEqual([]);
   expect(errors).toEqual([]);
 });
+
+// F314: with a 12-letter name and Bigger text on a 320 px phone, the pass-the-phone cover's big
+// name ran off both screen edges and "Tap when only <name>" spilled out of its pill.
+test('pass the phone: long names stay on screen and inside the cover\'s pill, with Bigger text', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type Box = { str: string; size: number; l: number; t: number; r: number; b: number };
+  for (const names of [['WWWWWWWWWWWW', 'Grandma Jose'], ['Grandma Jose', 'Mia']]) {
+    for (const id of ['seabattle', 'rps'].filter((x) => built.length === 0 || built.includes(x))) {
+      await page.evaluate((n) => {
+        const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void; store: { data: { profiles: { name: string }[] } } } }).__famiduel;
+        app.store.data.settings.bigText = true;
+        n.forEach((v, i) => { app.store.data.profiles[i].bot = null; app.store.data.profiles[i].name = v; });
+        app.store.save();
+        app.applyBigText();
+        app.showHome();
+      }, names);
+      await page.locator(`.game-card[data-id="${id}"]`).tap();
+      await introAsPeople(page, [0, 1]);
+      await page.waitForTimeout(400);
+      const [boxes, over, near, scale] = await page.evaluate(async () => {
+        const w = window as unknown as { __boxes: { on: boolean; boxes: Box[] }; __edges: { on: boolean; over: Map<string, number>; near: Map<string, number> } };
+        const frame = () => new Promise((res) => requestAnimationFrame(() => res(null)));
+        w.__edges.over.clear();
+        w.__edges.near.clear();
+        w.__boxes.boxes = [];
+        w.__boxes.on = true;
+        w.__edges.on = true;
+        await frame();
+        await frame();
+        w.__boxes.on = false;
+        w.__edges.on = false;
+        const c = document.querySelector('canvas')!;
+        return [w.__boxes.boxes, [...w.__edges.over], [...w.__edges.near], c.width / 360] as const;
+      });
+      const label = `${id} with ${names.join(' / ')}`;
+      expect(over, `${label}: words off the screen`).toEqual([]);
+      expect(near, `${label}: words within 6 units of the screen edge`).toEqual([]);
+      // The pill is 280 units wide at its smallest pulse (0.95); its words keep 18 units each side.
+      const tap = boxes.filter((b) => b.str.startsWith('Tap when only'));
+      expect(tap.length, `${label}: the cover's pill is up`).toBeGreaterThan(0);
+      for (const b of tap) expect((b.r - b.l) / scale, `${label}: "${b.str}" fits its pill`).toBeLessThanOrEqual(280 * 0.95 - 36 + 0.5);
+      await page.screenshot({ path: path.join(OUT, `cover-long-names-${id}-${names[0].slice(0, 4)}.png`) });
+      await leaveMatch(page);
+    }
+  }
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void; store: { data: { profiles: { name: string }[] } } } }).__famiduel;
+    app.store.data.settings.bigText = false;
+    app.store.data.profiles[0].name = '';
+    app.store.data.profiles[1].name = '';
+    app.store.save();
+    app.applyBigText();
+    app.showHome();
+  });
+  expect(errors).toEqual([]);
+});
