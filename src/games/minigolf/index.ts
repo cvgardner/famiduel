@@ -3,7 +3,7 @@
 import { dailyHoleIds } from './daily';
 import { clearLine, turned, type Box } from './bannerline';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, scaledSize, silentSeat, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, fitSize, glow, line, noGlow, rrect, scaledSize, silentSeat, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -28,6 +28,25 @@ export const STATUS_GAP = 8;
 /** The first wording that fits `room` (longest first); the last one if none does. */
 export function fitLine(lines: string[], room: number, width: (str: string) => number): string {
   return lines.find((l) => width(l) <= room) ?? lines[lines.length - 1];
+}
+/** Width of `str` drawn at `size` (800 weight) under the current text scale. */
+export function nameWidth(gx: G, str: string, size: number): number {
+  gx.font = `800 ${scaledSize(size)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  return gx.measureText(str).width;
+}
+/**
+ * F315: a line holding a player's name, fitted to `room`: shrunk (to MIN_TEXT at least), and if
+ * even that is too wide, the name before `tail` cut short with "…" (12 W's are a lot of name).
+ */
+export function fitName(gx: G, str: string, room: number, size: number, tail = ''): { str: string; size: number } {
+  const s = fitSize(gx, str, room, size);
+  if (nameWidth(gx, str, s) <= room) return { str, size: s };
+  const head = str.slice(0, str.length - tail.length);
+  for (let n = head.length - 1; n > 1; n--) {
+    const cut = `${head.slice(0, n).trimEnd()}…${tail}`;
+    if (nameWidth(gx, cut, s) <= room) return { str: cut, size: s };
+  }
+  return { str: `${head.slice(0, 1)}…${tail}`, size: s };
 }
 /** Height of the coloured outer edge of each player's strip (see drawStrip). */
 const EDGE = 3;
@@ -759,8 +778,6 @@ class MinigolfView implements GameInstance {
     // about its own anchor), so it read "Total | Hole"; swap them so both strips read "Hole | Total".
     if (silentSeat(this.ctx.players, p)) [colHole, colTotal] = [colTotal, colHole];
     const name = this.ctx.players[p].name;
-    // Lifted for the dark strip: Purple was 4.3:1 there.
-    text(gx, name, x0, y0 + 19, { size: 17, color: liftOn(c, STRIP_CARD), align: 'left' });
     let status: string;
     // F300: shorter wordings, longest first, for when Bigger text leaves no room for the full
     // line before the Hole / Total columns (it ran under the Hole score at 320 px).
@@ -808,6 +825,10 @@ class MinigolfView implements GameInstance {
     const near = Math.min(colHole, colTotal);
     const colHalf = Math.max(wide('Hole', 13), wide(hs, 24), wide('Total', 13), wide(String(g.total(p)), 24)) / 2;
     status = fitLine([status, ...shorter], near - colHalf - STATUS_GAP - x0, (str) => wide(str, 13, 700));
+    // Lifted for the dark strip: Purple was 4.3:1 there. F315: a long name shrinks to end
+    // before the score columns too (a 12-letter name ran under "Hole" with Bigger text).
+    const nm = fitName(gx, name, near - colHalf - STATUS_GAP - x0, 17);
+    text(gx, nm.str, x0, y0 + 19, { size: nm.size, color: liftOn(c, STRIP_CARD), align: 'left' });
     text(gx, status, x0, y0 + 42, { size: 13, color: sc, align: 'left', weight: 700 });
     // Scores
     text(gx, 'Hole', colHole, y0 + 14, { size: 13, color: COLORS.dim });
@@ -847,7 +868,7 @@ class MinigolfView implements GameInstance {
   }
 
   /** F259: the other seat's "<name>'s shot" line: by their own strip, else the nearest line clear of the balls, cup and the shooter's card. */
-  private watchLine(p: PlayerIndex): number {
+  private watchLine(p: PlayerIndex, cardW = W - 120): number {
     const s = this.game.shooter;
     const boxes = this.keepClear(p);
     if (!silentSeat(this.ctx.players, s)) {
@@ -855,7 +876,7 @@ class MinigolfView implements GameInstance {
       boxes.push(turned({ x0: 30, x1: W - 30, y0: y - 26, y1: y + 26 }, W, H));
     }
     const base = H - STRIP - 22;
-    return clearLine(Array.from({ length: 10 }, (_, k) => base - 40 * k), 15, 60, W - 60, boxes);
+    return clearLine(Array.from({ length: 10 }, (_, k) => base - 40 * k), 15, (W - cardW) / 2, (W + cardW) / 2, boxes);
   }
 
   private drawBanner(gx: G, p: PlayerIndex): void {
@@ -881,10 +902,14 @@ class MinigolfView implements GameInstance {
         gx.globalAlpha = 1;
         return;
       }
-      const y = this.watchLine(p);
-      rrect(gx, 60, y - 15, W - 120, 30, 15, BANNER_CARD, alpha(c, 0.9), 2);
+      // F315: a long name shrinks (and the card widens up to the course's width) to stay inside
+      // the card, 12 units each side.
+      const shot = fitName(gx, `${this.ctx.players[shooter].name}'s shot`, W - 60 - 24, 17, "'s shot");
+      const cardW = Math.max(W - 120, Math.min(W - 60, nameWidth(gx, shot.str, shot.size) + 24));
+      const y = this.watchLine(p, cardW);
+      rrect(gx, (W - cardW) / 2, y - 15, cardW, 30, 15, BANNER_CARD, alpha(c, 0.9), 2);
       // Lifted for the dark card: Purple was ~3.5:1 there.
-      text(gx, `${this.ctx.players[shooter].name}'s shot`, W / 2, y, { size: 17, color: liftOn(c, BANNER_CARD) });
+      text(gx, shot.str, W / 2, y, { size: shot.size, color: liftOn(c, BANNER_CARD) });
     }
     gx.globalAlpha = 1;
   }
