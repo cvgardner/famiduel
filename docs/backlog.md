@@ -2385,3 +2385,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       with the edge probe; fails on the old pill).
 - [ ] F319-F321 on the todo list: RPS pick lines, Minigolf scorecard lines and Sea Battle
       notices with 12-letter names (found reading the code, not yet measured).
+## Ideas found 2026-11-15 (13:17 run, both players walk away)
+- [x] 2026-11-15 (F322, PR #349): with nobody touching, Air Hockey (a resting puck), Sumo (two
+      still wrestlers) and Ping Pong (a straight serve between two centred paddles, a 900 s
+      run ended 1-1 at "Rally 879") never end, so a match left on the table ran forever. Now
+      a real-time game between two people pauses itself after IDLE_PAUSE (30 s of play) with no
+      finger on the screen and no key held: the usual pause sheet, Resume counts 3-2-1. A finger
+      resting on the screen (holding in Sumo) isn't idle; a bot seat plays on (it ends the
+      match); turn games (Minigolf, Penalty, Sea Battle) and the extras never auto-pause, since
+      people think between shots. Runner.watchIdle()/onIdle, tests/idle-pause.test.ts, e2e
+      'two people who both walk away ...'.
