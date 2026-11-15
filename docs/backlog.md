@@ -2252,6 +2252,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       "Pull back, let go" / "Your shot!", "<name> shoots" / "Wait…", badges alone. The usual
       text size keeps the full line. Playtest 'minigolf: the strip's status line stays clear'
       boxes both strips' words; tests/minigolf-strip.test.ts.
+- [x] 2026-11-15 (F301): Sumo: the pause dot (left end of the centre line) sat on a wrestler
+      teetering on the left rope at the round's deciding moment (in bot matches a wrestler is
+      under it in ~4% of rounds, 0.3% of frames). Sumo now gets Snake's see-through pause ring
+      with a small dark core behind the "II" (`"pauseRing": "core"`, `.pause-btn.ring.core`),
+      since the bare glyph wouldn't read 3:1 on the pale sand; the wrestler shows round it.
+      tests/sumo-pause-ring.test.ts; the 'pause button' playtest checks ring + core on Sumo
+      and saves pause-button-sumo.png.
 - [x] 2026-11-15 (F304): Quick Draw's round card said reaction times in milliseconds ("Bot 500 ms",
       "+120 ms handicap"), which means nothing to a young kid. Times now read in seconds
       ("Bot 0.50 s", "+0.12 s handicap"), the same width on the card; secs() / handicapLine(),

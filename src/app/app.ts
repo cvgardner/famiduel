@@ -636,7 +636,12 @@ export class App {
     this.show('play');
     // F236: in Snake the arena runs under the pause dot (left wall, centre line), so a head or
     // trail there vanished under it; that game gets a see-through ring instead of the dot.
-    $('#pauseBtn').classList.toggle('ring', 'pauseRing' in meta && !!meta.pauseRing);
+    // F301: Sumo's ring runs under it too (a wrestler teetering on the left rope at the round
+    // end), but on pale sand the bare "II" wouldn't read, so there the ring keeps a small dark
+    // core behind the glyph ("pauseRing": "core") and the wrestler shows round it.
+    const ring = 'pauseRing' in meta ? (meta.pauseRing as boolean | string) : false;
+    $('#pauseBtn').classList.toggle('ring', !!ring);
+    $('#pauseBtn').classList.toggle('core', ring === 'core');
     this.dailyDay = meta.id === 'minigolf' && this.dailyGolf && !this.tourneyMatch ? dayKey() : null;
     this.runner = new Runner(this.stage, def, seed, players, powersOn, this.sfx, (r) => this.finish(r), false, this.starters.next(meta.id), this.dailyDay ?? undefined);
     // F159: a match that opens on the pass-the-phone cover gets no in-play finger (it tapped
