@@ -2309,7 +2309,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       8px sides and gap and 14px button sides (local 16px spare each side).
 
 ## Ideas found 2026-11-15 (11:17 run, long names and Bigger text at 320 px)
-- [x] 2026-11-15 (F313, PR #TBD): Sea Battle's "Their ships" / "Your ships" label ran into the
+- [x] 2026-11-15 (F313, PR #339): Sea Battle's "Their ships" / "Your ships" label ran into the
       first ship of the tally with Bigger text on a 320 px phone (pills started at a fixed
       GX + 86). The tally now starts 10 units after the label as drawn and shrinks evenly to
       end at the grid's edge; tallyLayout(), tests/seabattle-tally.test.ts.
