@@ -13,6 +13,13 @@ import { countdownSeats, starterLines, starterPill } from './starter';
 
 const COUNT_STEP = 0.6;
 const OUTRO = 1.6;
+/**
+ * F322: seconds of play with no finger on the screen (and no key held) before a match
+ * between two people pauses itself. Air Hockey, Sumo and Ping Pong never end when both
+ * players walk away (a resting puck, two still wrestlers, a straight serve rallying
+ * between two still paddles), so a match left on the table would run forever.
+ */
+export const IDLE_PAUSE = 30;
 
 export class Runner {
   readonly fx = new Fx();
@@ -25,6 +32,10 @@ export class Runner {
   /** True while the 3-2-1 after a Resume runs (no "You go first!" lines then). */
   private resuming = false;
   time = 0;
+  /** Seconds of play since anyone last touched the screen (F322). */
+  idle = 0;
+  /** Set by the app for real-time games: called once when two people have both been idle IDLE_PAUSE s. */
+  onIdle: (() => void) | null = null;
 
   constructor(
     private readonly stage: Stage,
@@ -94,6 +105,7 @@ export class Runner {
       else if (after !== before) this.sfx.play('count');
       return;
     }
+    this.watchIdle(dt);
     this.game.update(dt, this.stage.input);
     if (this.result) {
       this.outro += dt;
@@ -101,6 +113,21 @@ export class Runner {
         this.done = true;
         this.onDone(this.result);
       }
+    }
+  }
+
+  /** Counts play time with nobody touching; a bot seat plays on, so only two people pause. */
+  private watchIdle(dt: number): void {
+    const inp = this.stage.input;
+    if (inp.pointers.size > 0 || inp.keys.size > 0 || this.result) {
+      this.idle = 0;
+      return;
+    }
+    this.idle += dt;
+    const people = !this.players[0].bot && !this.players[1].bot;
+    if (people && this.onIdle && this.idle >= IDLE_PAUSE) {
+      this.idle = 0;
+      this.onIdle();
     }
   }
 

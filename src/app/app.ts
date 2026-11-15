@@ -648,6 +648,8 @@ export class App {
     // over "look away!", in the half of the person who should not be looking).
     // F274: nor one that opens on a setup screen (Sea Battle's fleet: the firing tap looped
     // over the Ready button); the intro's finger has already shown the gesture.
+    // F322: two people who both walk away from a real-time game find it paused, not played out.
+    if (!/turns|Extra/.test(String(meta.kind))) this.runner.onIdle = () => this.pause();
     const g = this.runner.game;
     const gesture = g.opensOnCover?.() || g.opensOnSetup?.() ? null : meta.gesture;
     this.playDemo(meta.id, gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined, this.runner.game.firstMover?.() ?? null);
