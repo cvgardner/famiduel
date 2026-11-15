@@ -2259,3 +2259,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       since the bare glyph wouldn't read 3:1 on the pale sand; the wrestler shows round it.
       tests/sumo-pause-ring.test.ts; the 'pause button' playtest checks ring + core on Sumo
       and saves pause-button-sumo.png.
+- [x] 2026-11-15 (F304): Quick Draw's round card said reaction times in milliseconds ("Bot 500 ms",
+      "+120 ms handicap"), which means nothing to a young kid. Times now read in seconds
+      ("Bot 0.50 s", "+0.12 s handicap"), the same width on the card; secs() / handicapLine(),
+      tests/quickdraw-no-shot.test.ts + tests/bot-name.test.ts.
