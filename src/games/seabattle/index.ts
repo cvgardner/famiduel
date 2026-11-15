@@ -2,7 +2,7 @@
 // full-screen "pass the phone" cover hides everything, and the active player's
 // screen is turned to face them. Against a bot the screen always faces the person.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, glow, line, nameLabel, noGlow, rrect, scaledSize, seatEdges, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, fitSize, glow, line, nameLabel, noGlow, rrect, scaledSize, seatEdges, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -10,6 +10,7 @@ import { clamp, H, W } from '../../engine/world';
 import { cellsOf, isSunk, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIP_NAMES, SHIPS, strikeCells, type Move } from './logic';
 import { inkOn } from '../../core/contrast';
 import { botBeat, botResultTitle, openingLine, shooterBeat, shooterResult, TALLY_AT, turnTally } from './beat';
+import { NAME_ROOM, tapLines } from '../../engine/secret';
 
 // Layout, in the viewer's frame (the viewer sits at the bottom).
 const C = 27;
@@ -698,14 +699,16 @@ class SeaBattleView implements GameInstance {
     }
     const o = other(m.p);
     text(gx, '🙈', W / 2, 150, { size: 64 });
-    text(gx, `${this.ctx.players[o].name}, look away!`, W / 2, 222, { size: 20, color: COLORS.dim, weight: 700 });
+    const away = `${this.ctx.players[o].name}, look away!`;
+    text(gx, away, W / 2, 222, { size: fitSize(gx, away, NAME_ROOM, 20, 700), color: COLORS.dim, weight: 700 });
     const first = m.next === 'fire' ? this.opening(m.p, m.p) : null;
     text(gx, m.next === 'place' ? 'Hide your fleet' : first ?? 'Your turn to fire', W / 2, 300, { size: 22, color: '#fff', weight: 700 });
-    nameLabel(gx, pl.name, W / 2, 344, pl.color, { size: 40 });
+    nameLabel(gx, pl.name, W / 2, 344, pl.color, { size: fitSize(gx, pl.name, NAME_ROOM, 40) });
     const s = 1 + 0.05 * Math.sin(this.t * 5);
     rrect(gx, W / 2 - 140 * s, 410, 280 * s, 70, 35, pl.color, '#fff', 3);
-    text(gx, `Tap when only ${pl.name}`, W / 2, 432, { size: 19, color: inkOn(pl.color) });
-    text(gx, 'is looking 👀', W / 2, 458, { size: 19, color: inkOn(pl.color) });
+    const tap = tapLines(gx, pl.name);
+    text(gx, tap.lines[0], W / 2, 432, { size: tap.size, color: inkOn(pl.color) });
+    text(gx, tap.lines[1], W / 2, 458, { size: tap.size, color: inkOn(pl.color) });
     const n = this.notice[m.p];
     if (m.next === 'fire' && this.game.turnNo[o] > 0) {
       const lg = this.turnLog[o];

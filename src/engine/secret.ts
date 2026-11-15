@@ -12,7 +12,7 @@
 // Against a bot none of this is needed (bots never peek), so games only use it
 // when both seats are people. Pure state, no DOM: tests drive it directly.
 import { other, type PlayerIndex } from '../core/types';
-import { COLORS, facing, rrect, shade, text, type G } from './draw';
+import { COLORS, facing, fitSize, rrect, scaledSize, shade, text, type G } from './draw';
 import { H, W } from './world';
 import { inkOn } from '../core/contrast';
 
@@ -79,6 +79,29 @@ export class SecretTurns {
 export const toWorld = (viewer: PlayerIndex, x: number, y: number) => (viewer === 1 ? { x: W - x, y: H - y } : { x, y });
 
 /**
+ * F314: room for a name across the cover (a 12-letter name ran off a 320 px phone with Bigger
+ * text), kept clear of the pause button at the left end of the centre line.
+ */
+export const NAME_ROOM = W - 2 * 56;
+/** F314: room for words inside the cover's pulsing "Tap when only …" pill (280 wide at its smallest, 0.95). */
+export const TAP_ROOM = 280 * 0.95 - 36;
+
+/**
+ * The two lines in the cover's pill and their size: "Tap when only <name>" / "is looking 👀",
+ * shrunk to fit the pill, or, when a long name won't fit even small (the big name just above
+ * already says who), "Tap when only you" / "are looking 👀".
+ */
+export function tapLines(gx: G, name: string): { lines: [string, string]; size: number } {
+  const first = `Tap when only ${name}`;
+  const size = fitSize(gx, first, TAP_ROOM, 19, 800);
+  gx.font = `800 ${scaledSize(size)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  if (size >= 15 && gx.measureText(first).width <= TAP_ROOM) {
+    return { lines: [first, 'is looking 👀'], size };
+  }
+  return { lines: ['Tap when only you', 'are looking 👀'], size: fitSize(gx, 'Tap when only you', TAP_ROOM, 19, 800) };
+}
+
+/**
  * Draw a look-away cover in the picker's frame (call inside a frame already
  * turned to face them). The banner at the far edge faces the other player.
  */
@@ -98,13 +121,14 @@ export function drawCover(
   lookAwayBanner(gx, watcher, 'look away!');
   text(gx, '🙈', W / 2, 250, { size: 60 });
   text(gx, title, W / 2, 318, { size: 22, color: '#fff', weight: 700 });
-  text(gx, picker.name, W / 2, 360, { size: 38, color: picker.color, stroke: 'rgba(0,0,0,0.4)' });
+  text(gx, picker.name, W / 2, 360, { size: fitSize(gx, picker.name, NAME_ROOM, 38), color: picker.color, stroke: 'rgba(0,0,0,0.4)' });
   const s = 1 + 0.05 * Math.sin(t * 5);
   rrect(gx, W / 2 - 140 * s, 410, 280 * s, 70, 35, picker.color, '#fff', 3);
   // Words on the player's colour: dark ink on the light colours, white on the dark ones.
   const ink = inkOn(picker.color);
-  text(gx, `Tap when only ${picker.name}`, W / 2, 432, { size: 19, color: ink });
-  text(gx, 'is looking 👀', W / 2, 458, { size: 19, color: ink });
+  const tap = tapLines(gx, picker.name);
+  text(gx, tap.lines[0], W / 2, 432, { size: tap.size, color: ink });
+  text(gx, tap.lines[1], W / 2, 458, { size: tap.size, color: ink });
   if (note) text(gx, note, W / 2, 530, { size: 16, color: COLORS.gold, weight: 700 });
 }
 
@@ -112,7 +136,8 @@ export function drawCover(
 export function lookAwayBanner(gx: G, watcher: { name: string; color: string }, msg: string): void {
   facing(gx, 1, W / 2, 70, () => {
     rrect(gx, 24, 34, W - 48, 72, 22, 'rgba(0,0,0,0.35)', watcher.color, 3);
-    text(gx, `🙈 ${watcher.name}, ${msg}`, W / 2, 62, { size: 20, color: '#fff', weight: 800 });
+    const str = `🙈 ${watcher.name}, ${msg}`;
+    text(gx, str, W / 2, 62, { size: fitSize(gx, str, W - 48 - 24, 20), color: '#fff', weight: 800 });
     text(gx, 'No peeking until the reveal', W / 2, 88, { size: 13, color: COLORS.dim, weight: 700 });
   });
 }

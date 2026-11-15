@@ -2308,6 +2308,15 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       edge with CI's wider fonts (Rematch 98.6% on screen); on a 320px phone the row now has
       8px sides and gap and 14px button sides (local 16px spare each side).
 
+## Ideas found 2026-11-15 (11:17 run, long names on the pass-the-phone cover)
+- [x] 2026-11-15 (F314, PR #340): with a 12-letter name and Bigger text on a 320 px phone the
+      pass-the-phone cover (Sea Battle and RPS) ran the big name off both screen edges and
+      "Tap when only <name>" out of its pill ("Grandma Jose" spilled even at usual text). Names
+      now fit NAME_ROOM (clear of the pause button), the pill's words shrink to fit (not under
+      15) or read "Tap when only you / are looking 👀" (the big name above says who), and the
+      "<name>, look away!" lines fit their room; tapLines() in src/engine/secret.ts, playtest
+      'pass the phone: long names ...' checks edges and the pill with two name pairs.
+
 ## Ideas found 2026-11-15 (11:17 run, long names and Bigger text at 320 px)
 - [x] 2026-11-15 (F313, PR #339): Sea Battle's "Their ships" / "Your ships" label ran into the
       first ship of the tally with Bigger text on a 320 px phone (pills started at a fixed
