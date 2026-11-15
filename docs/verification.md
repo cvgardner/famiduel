@@ -38,7 +38,10 @@ any other real-time bot (Sumo, Ping Pong, Tanks) by recording that bot's positio
 `npm run sim` plays the real-time action games bot against bot at every level pairing (plus a
 mashing kid), `npm run sim:powers` compares each game's powers, and `npm run sim -- --idle`
 plays every game with one seat that never touches the screen against each bot level: no
-match there should be unfinished, and few should pass 3 minutes. `npm run sim -- --selfout`
+match there should be unfinished, and few should pass 3 minutes. It then plays both seats idle
+(two people who walked away) and names the games that never end on their own (Air Hockey,
+Sumo, Ping Pong today): the app pauses those after `IDLE_PAUSE` s with nobody touching
+(F322), so a new real-time game that can't end belongs on that list, not in a stuck match. `npm run sim -- --selfout`
 counts, for Snake and Sumo, the share of lost rounds a side lost on its own (Snake into a
 wall or its own trail, Sumo off the ring untouched for a second; scripts/selfout.ts).
 
