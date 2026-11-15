@@ -176,6 +176,19 @@ const PICS: Record<string, Record<string, string>> = {
       `<circle cx="30" cy="30" r="3" fill="none" stroke="#ffd166" stroke-width="2">${anim('r', [3, 3, 14, 14], [0, 0.62, 0.8, 1])}${anim('opacity', [0, 0, 1, 0, 0], [0, 0.62, 0.64, 0.8, 1])}</circle>` +
       tank(30, 30, YOU, anim('x', [25, 25, 7, 7], [0, 0.1, 0.35, 1])) +
       tank(54, 30, THEM, anim('x', [49, 49, 25, 25, 49], [0, 0.35, 0.62, 0.95, 1])),
+    // Turbo Treads: your tank zooms across in a burst of flame, faster than the other tank's shell.
+    turbo:
+      arena +
+      tank(50, 10, THEM) +
+      circle(46, 14, 2, '#fff', anim('cx', [46, 46, 14, 14], [0, 0.15, 0.7, 1]) + anim('cy', [14, 14, 34, 34], [0, 0.15, 0.7, 1]) + anim('opacity', [0, 1, 1, 0, 0], [0, 0.15, 0.7, 0.72, 1])) +
+      [30, 38].map((y) => line(4, y, 4, y, '#ff9f43', 2, anim('x1', [4, 4, 4, 30, 30], [0, 0.1, 0.15, 0.55, 1]) + anim('x2', [4, 4, 18, 44, 44], [0, 0.1, 0.15, 0.55, 1]) + anim('opacity', [0, 0, 0.9, 0.9, 0, 0], [0, 0.1, 0.15, 0.5, 0.65, 1]))).join('') +
+      tank(14, 34, YOU, anim('x', [9, 9, 49, 49, 9], [0, 0.1, 0.55, 0.9, 1])),
+    // Spread Shot: one shot fires a fan of 3 shells; a side one catches the other tank.
+    spread:
+      arena +
+      tank(46, 10, THEM) +
+      [-1, 0, 1].map((d) => circle(32, 31, 2, d ? '#c9a0ff' : '#fff', anim('cx', [32, 32, 32 + d * 14, 32 + d * 14], [0, 0.2, 0.7, 1]) + anim('cy', [31, 31, 10, 10], [0, 0.2, 0.7, 1]) + anim('opacity', [0, 0, 1, 1, 0, 0], [0, 0.19, 0.21, 0.7, 0.72, 1]))).join('') +
+      tank(32, 36, YOU),
   },
   snake: {
     // Your snake zooms faster.

@@ -70,6 +70,20 @@
         "name": "Mine",
         "icon": "💣",
         "desc": "Drop a blinking mine behind you. The other tank or a shell sets it off. It can't hurt you."
+      },
+      {
+        "id": "turbo",
+        "name": "Turbo Treads",
+        "icon": "🏎️",
+        "desc": "Your tank drives and turns much faster for 5 seconds.",
+        "duration": 5
+      },
+      {
+        "id": "spread",
+        "name": "Spread Shot",
+        "icon": "🔱",
+        "desc": "For 6 seconds every shot fires a fan of 3 shells.",
+        "duration": 6
       }
     ],
     "snake": [
