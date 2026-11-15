@@ -39,7 +39,11 @@ export type Move =
   | { kind: 'fire'; cell: number }
   | { kind: 'airstrike'; cell: number }
   | { kind: 'radar'; cell: number }
-  | { kind: 'mine'; cell: number };
+  | { kind: 'mine'; cell: number }
+  /** Runs up the cell's column from the bottom row (as the shooter sees the sea). */
+  | { kind: 'torpedo'; cell: number }
+  /** One more shot this turn; `cell` is not used. */
+  | { kind: 'double'; cell: number };
 
 export type Event =
   | { type: 'shot'; a: PlayerIndex; cell: number; result: 'hit' | 'miss' | 'mine' }
@@ -66,6 +70,15 @@ export function radarCells(cell: number): number[] {
   const out: number[] = [];
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) out.push((cy + dy) * N + cx + dx);
   return out;
+}
+
+/**
+ * A torpedo's run: the cell's column from the bottom row (row N-1, the edge nearest the
+ * shooter as they look at the enemy sea) up to the top row.
+ */
+export function torpedoCells(cell: number): number[] {
+  const x = cell % N;
+  return Array.from({ length: N }, (_, k) => (N - 1 - k) * N + x);
 }
 
 /** The airstrike span: 5 cells of the row, centred on the cell (kept inside the sea). */
@@ -259,7 +272,30 @@ export class SeaBattle {
       this.events.push({ type: 'power', p: a, id: 'mine' }, { type: 'mine', p: a, cell: m.cell });
       return true;
     }
-    if (m.kind === 'airstrike') {
+    if (m.kind === 'double') {
+      if (!this.canUsePower(a, 'double')) return false;
+      this.energy[a].spend();
+      this.usedFree.add('double');
+      this.shotsLeft++;
+      this.events.push({ type: 'power', p: a, id: 'double' });
+      return true;
+    }
+    if (m.kind === 'torpedo') {
+      if (!this.canUsePower(a, 'torpedo')) return false;
+      // It runs over open water (marking it), skips squares already fired at, and stops
+      // on the first ship square or hidden mine in its way. Like an airstrike, it is the
+      // turn's shot: no free shot after a hit, and its hit never refills the power.
+      const run = torpedoCells(m.cell).filter((c) => enemy.marks[c] === MARK.none);
+      if (!run.length) return false;
+      this.energy[a].spend();
+      this.events.push({ type: 'power', p: a, id: 'torpedo' });
+      for (const c of run) {
+        const stop = enemy.occ[c] >= 0 || enemy.mines.has(c);
+        this.shoot(a, c, false);
+        if (this.winner !== null) return true;
+        if (stop) break;
+      }
+    } else if (m.kind === 'airstrike') {
       if (!this.canUsePower(a, 'airstrike')) return false;
       const cells = strikeCells(m.cell).filter((c) => enemy.marks[c] === MARK.none);
       if (!cells.length) return false;
@@ -501,7 +537,34 @@ export class SeaBattleBot {
       for (let i = 0; i < N * N; i++) if (own.occ[i] < 0 && own.marks[i] === MARK.none && !own.mines.has(i)) water.push(i);
       return water.length ? { kind: 'mine', cell: this.rng.pick(water) } : null;
     }
+    // Double Shot: one more shot is worth taking on any turn.
+    if (pw === 'double') return { kind: 'double', cell: 0 };
     const dens = density(kn, targeting);
+    if (pw === 'torpedo') {
+      if (targeting) return null; // a hunting power: a known hit is better finished shot by shot
+      // The column whose open squares, up to the first likely ship, hold the most: it
+      // sums the chance of a ship along the run, weighting nearer squares more (the
+      // torpedo stops at the first ship, so far squares only count if the near ones are empty).
+      let best = 0;
+      let at = -1;
+      for (let x = 0; x < N; x++) {
+        const run = torpedoCells(x).filter((c) => kn.k[c] === 0);
+        if (run.length < 4) continue;
+        let left = 1;
+        let s = 0;
+        const top = Math.max(1, ...run.map((c) => dens[c]));
+        for (const c of run) {
+          const pr = dens[c] / top / 2;
+          s += left * pr;
+          left *= 1 - pr;
+        }
+        if (s > best) {
+          best = s;
+          at = x;
+        }
+      }
+      return at >= 0 ? { kind: 'torpedo', cell: (N - 1) * N + at } : null;
+    }
     if (pw === 'radar') {
       if (targeting) return null; // radar is for hunting
       let best = -1;

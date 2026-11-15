@@ -289,6 +289,20 @@ const PICS: Record<string, Record<string, string>> = {
       circle(17, 21, 2.5, '#ffd166') +
       `<circle cx="17" cy="21" r="3" fill="none" stroke="#ff5c7a" stroke-width="2">${anim('r', [3, 3, 12, 12], [0, 0.3, 0.5, 1])}${anim('opacity', [0, 0, 1, 0, 0], [0, 0.3, 0.32, 0.5, 1])}</circle>` +
       `<rect x="45" y="17" width="8" height="8" rx="1.5" fill="#ff5c7a">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.55, 0.6, 0.9, 1])}</rect>`,
+    // A torpedo runs up a column from the bottom, splashing through water, and hits the first ship.
+    torpedo:
+      seaBg +
+      sea(5, 6, 3) +
+      [[30, 0.3], [21, 0.45]].map(([y, at]) => circle(36, y, 1.8, '#fff', anim('opacity', [0, 0, 1, 1, 0], [0, at, at + 0.02, 0.9, 1]), ' opacity="0"')).join('') +
+      `<rect x="32" y="8" width="8" height="8" rx="1.5" fill="#ff5c7a" opacity="0">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.6, 0.62, 0.9, 1])}</rect>` +
+      rect(34, 40, 4, 8, YOU, anim('y', [44, 44, 9, 9], [0, 0.1, 0.6, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.1, 0.6, 0.62, 1])),
+    // Two shots in one turn: the first misses, the second still gets to fire, and hits.
+    double:
+      seaBg +
+      sea(5, 6, 3) +
+      `<circle cx="18" cy="21" r="5.5" fill="none" style="stroke:${YOU}" stroke-width="1.5">${anim('cx', [18, 18, 45, 45], [0, 0.4, 0.5, 1])}${anim('cy', [21, 21, 12, 12], [0, 0.4, 0.5, 1])}${anim('opacity', [0, 1, 1, 0], [0, 0.1, 0.9, 1])}</circle>` +
+      circle(18, 21, 1.8, '#fff', anim('opacity', [0, 0, 1, 1, 0], [0, 0.3, 0.32, 0.9, 1]), ' opacity="0"') +
+      `<rect x="41" y="8" width="8" height="8" rx="1.5" fill="#ff5c7a" opacity="0">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.65, 0.67, 0.9, 1])}</rect>`,
   },
   sumo: {
     // Stomp: a shockwave shoves the other wrestler away.

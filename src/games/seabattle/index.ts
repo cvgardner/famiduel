@@ -7,7 +7,7 @@ import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../e
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { clamp, H, W } from '../../engine/world';
-import { cellsOf, isSunk, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIP_NAMES, SHIPS, strikeCells, type Move } from './logic';
+import { cellsOf, isSunk, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIP_NAMES, SHIPS, strikeCells, torpedoCells, type Move } from './logic';
 import { inkOn } from '../../core/contrast';
 import { botBeat, botResultTitle, openingLine, shooterBeat, shooterResult, TALLY_AT, turnTally } from './beat';
 
@@ -431,7 +431,7 @@ class SeaBattleView implements GameInstance {
       sfx.play('click');
       return;
     }
-    const kind = this.armed === 'radar' ? 'radar' : this.armed === 'airstrike' ? 'airstrike' : this.armed === 'mine' ? 'mine' : 'fire';
+    const kind = this.armed === 'radar' ? 'radar' : this.armed === 'airstrike' ? 'airstrike' : this.armed === 'mine' ? 'mine' : this.armed === 'torpedo' ? 'torpedo' : 'fire';
     this.doMove({ kind, cell }, true);
   }
 
@@ -440,7 +440,11 @@ class SeaBattleView implements GameInstance {
     const pw = g.powerOf(p);
     if (!pw) return;
     if (this.armed) this.armed = null;
-    else if (g.canUsePower(p, pw)) {
+    else if (pw === 'double' && g.canUsePower(p, pw)) {
+      // Double Shot needs no square: pressing it adds the shot at once.
+      this.doMove({ kind: 'double', cell: 0 }, true);
+      return;
+    } else if (g.canUsePower(p, pw)) {
       this.armed = pw;
       this.ctx.sfx.play('power');
     } else {
@@ -456,7 +460,8 @@ class SeaBattleView implements GameInstance {
   private refused(mv: Move): string {
     const enemy = this.game.seas[other(this.game.turn)];
     if (mv.kind === 'fire') return enemy.marks[mv.cell] !== MARK.none ? 'Already fired there' : "Can't fire now";
-    if (mv.kind === 'airstrike') return 'Nothing left to hit there';
+    if (mv.kind === 'airstrike' || mv.kind === 'torpedo') return 'Nothing left to hit there';
+    if (mv.kind === 'double') return "Can't use it now";
     if (mv.kind === 'mine') return "Can't hide a mine there";
     return "Can't scan now";
   }
@@ -476,7 +481,7 @@ class SeaBattleView implements GameInstance {
     if (!m.aim && m.t > bot.think * 0.6) {
       m.aim = bot.choose(g);
       m.t = 0;
-      if (m.aim.kind === 'airstrike' || m.aim.kind === 'radar' || m.aim.kind === 'mine') this.ctx.sfx.play('power');
+      if (m.aim.kind !== 'fire') this.ctx.sfx.play('power');
     }
     if (m.aim && m.t > 0.45) {
       const mv = m.aim;
@@ -495,7 +500,7 @@ class SeaBattleView implements GameInstance {
       if (person) this.misfit(why, GX + (mv.cell % N) * C + C / 2, GY + Math.floor(mv.cell / N) * C + C / 2);
       return;
     }
-    if (mv.kind === 'fire' || mv.kind === 'airstrike') {
+    if (mv.kind === 'fire' || mv.kind === 'airstrike' || mv.kind === 'torpedo') {
       this.notice[a] = null;
       this.volley = { hits: 0, misses: 0, sunk: 0 };
     }
@@ -508,7 +513,7 @@ class SeaBattleView implements GameInstance {
     for (const e of g.events) {
       if (e.type === 'again') this.again++;
       if (e.type === 'shot') {
-        this.shells.push({ owner: d, cell: e.cell, t: -delay, result: e.result, a, quiet: mv.kind === 'airstrike' });
+        this.shells.push({ owner: d, cell: e.cell, t: -delay, result: e.result, a, quiet: mv.kind === 'airstrike' || mv.kind === 'torpedo' });
         delay += 0.09;
         this.lastShots[d].push(e.cell);
         sfx.play('whoosh');
@@ -520,6 +525,9 @@ class SeaBattleView implements GameInstance {
         sfx.play('power');
         fx.flash(COLORS.gold, 0.12);
         this.pop(`${pw.icon} ${pw.name}!`, W / 2, GY + 150, COLORS.gold, 28);
+        // The other player reads what came at them on their next turn (they were looking away).
+        if (e.id === 'torpedo') this.notice[d] = `${pw.icon} ${this.ctx.players[a].name} fired a torpedo at your sea.`;
+        if (e.id === 'double') this.notice[d] = `${pw.icon} ${this.ctx.players[a].name} took a Double Shot.`;
       } else if (e.type === 'radar') {
         sfx.play(e.found ? 'coin' : 'pop');
         const [x, y] = this.cellXY(e.cell);
@@ -722,7 +730,7 @@ class SeaBattleView implements GameInstance {
       const again = this.again > 0 && this.shells.length === 0;
       const first = this.opening(m.p);
       title = this.armed === 'mine' ? 'Hide a mine' : again ? `${an}, go again!` : first ? `${an}, you go first!` : `${an}, fire!`;
-      sub = again && !this.armed ? 'A hit! Fire again: tap, tap again' : this.armed === 'radar' ? 'Tap a spot to scan 3×3, tap again to scan' : this.armed === 'airstrike' ? 'Pick a row spot, tap again to strike 5 cells' : this.armed === 'mine' ? 'Tap empty water in your sea, tap again to hide it' : g.shotsLeft > 1 ? `Bonus: ${g.shotsLeft} shots this turn! Tap, tap again to fire` : 'Tap a square, tap it again to fire';
+      sub = again && !this.armed ? 'A hit! Fire again: tap, tap again' : this.armed === 'radar' ? 'Tap a spot to scan 3×3, tap again to scan' : this.armed === 'airstrike' ? 'Pick a row spot, tap again to strike 5 cells' : this.armed === 'torpedo' ? 'Pick a column, tap again to fire it up' : this.armed === 'mine' ? 'Tap empty water in your sea, tap again to hide it' : g.shotsLeft > 1 ? `Bonus: ${g.shotsLeft} shots this turn! Tap, tap again to fire` : 'Tap a square, tap it again to fire';
     } else if (m.kind === 'bot') {
       const landed = g.turn !== m.p && this.shells.length === 0;
       const again = !landed && this.again > 0 && this.shells.length === 0;
@@ -747,8 +755,8 @@ class SeaBattleView implements GameInstance {
     this.drawSea(gx, lay.big, GX, GY, C, lay.bigShips, true);
     // Aim / power previews
     if (m.kind === 'fire' && this.aim !== null) this.drawAim(gx, this.aim, this.armed, this.ctx.players[a].color);
-    // A bot's mine goes in its own (hidden) sea, so its aim is never drawn.
-    if (m.kind === 'bot' && m.aim && m.aim.kind !== 'mine') this.drawAim(gx, m.aim.cell, m.aim.kind === 'fire' ? null : m.aim.kind, this.ctx.players[a].color);
+    // A bot's mine goes in its own (hidden) sea, so its aim is never drawn; Double Shot has none.
+    if (m.kind === 'bot' && m.aim && m.aim.kind !== 'mine' && m.aim.kind !== 'double') this.drawAim(gx, m.aim.cell, m.aim.kind === 'fire' ? null : m.aim.kind, this.ctx.players[a].color);
 
     if (m.kind === 'place') {
       this.drawPlaceUi(gx, m.p);
@@ -822,12 +830,22 @@ class SeaBattleView implements GameInstance {
   }
 
   private drawAim(gx: G, cell: number, kind: string | null, color: string): void {
-    const cells = kind === 'radar' ? radarCells(cell) : kind === 'airstrike' ? strikeCells(cell) : [cell];
+    const cells = kind === 'radar' ? radarCells(cell) : kind === 'airstrike' ? strikeCells(cell) : kind === 'torpedo' ? torpedoCells(cell) : [cell];
     const pulse = 0.5 + 0.5 * Math.sin(this.t * 8);
     for (const c of cells) {
       const x = GX + (c % N) * C;
       const y = GY + Math.floor(c / N) * C;
       rrect(gx, x + 2, y + 2, C - 4, C - 4, 6, alpha(kind ? '#ffd54a' : color, 0.25 + 0.2 * pulse), kind ? COLORS.gold : '#fff', 2);
+    }
+    if (kind === 'torpedo') {
+      // Chevrons running up the column from the bottom edge: the way the torpedo goes.
+      const tx = GX + (cell % N) * C + C / 2;
+      const k = (this.t * 1.5) % 1;
+      for (let i = 0; i < 3; i++) {
+        const ty = GY + N * C - ((k + i / 3) % 1) * N * C;
+        line(gx, tx - 7, ty + 5, tx, ty - 2, '#fff', 2.5);
+        line(gx, tx + 7, ty + 5, tx, ty - 2, '#fff', 2.5);
+      }
     }
     const [x, y] = this.cellXY(cell);
     line(gx, x - 12, y, x - 5, y, '#fff', 2);

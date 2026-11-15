@@ -273,6 +273,18 @@
         "name": "Hit-back Mine",
         "icon": "💥",
         "desc": "Hide a mine in your sea. Whoever fires on it gets one of their own ships hit."
+      },
+      {
+        "id": "torpedo",
+        "name": "Torpedo",
+        "icon": "🚀",
+        "desc": "Fire a torpedo up a column. It hits the first ship in its way."
+      },
+      {
+        "id": "double",
+        "name": "Double Shot",
+        "icon": "✌️",
+        "desc": "Get an extra shot this turn, so one miss won't end it."
       }
     ],
     "fourinarow": [

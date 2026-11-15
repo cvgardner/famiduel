@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel, PlayerIndex } from '../src/core/types';
 import { other } from '../src/core/types';
-import { cellsOf, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIPS, strikeCells } from '../src/games/seabattle/logic';
+import { cellsOf, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIPS, strikeCells, torpedoCells } from '../src/games/seabattle/logic';
 import { player, power } from './helpers';
 
 function setup(opts: { powers?: [string, string]; assist?: [number, number]; seed?: number } = {}) {
@@ -285,6 +285,87 @@ describe('sea battle', () => {
     expect(g.seas[0].ships.every((s) => s.hits < s.len)).toBe(true);
     // The mine layer can see the hit on the enemy fleet.
     expect([...g.knowledge(1).k].filter((v) => v === 2)).toHaveLength(1);
+  });
+
+  it('torpedo runs up a column from the bottom, marks the water, and stops on the first ship', () => {
+    const g = setup({ powers: ['torpedo', 'radar'] });
+    lineUp(g, 1); // ships in rows 0..4 from x = 0: column 1 holds the carrier, battleship, cruiser, sub, patrol
+    start(g, 0);
+    g.energy[0].value = 1;
+    expect(torpedoCells(5 * N + 1)).toEqual([91, 81, 71, 61, 51, 41, 31, 21, 11, 1]);
+    // Tap anywhere in column 1: it runs from row 9 up.
+    expect(g.apply({ kind: 'torpedo', cell: 2 * N + 1 })).toBe(true);
+    const sea = g.seas[1];
+    for (const c of [91, 81, 71, 61, 51]) expect(sea.marks[c], `water at ${c}`).toBe(MARK.miss);
+    expect(sea.marks[41]).toBe(MARK.hit); // the patrol boat, row 4: the first ship in its way
+    for (const c of [31, 21, 11, 1]) expect(sea.marks[c], `untouched ${c}`).toBe(MARK.none);
+    expect(sea.ships[4].hits).toBe(1);
+    expect(g.events.filter((e) => e.type === 'shot' && e.result === 'hit')).toHaveLength(1);
+    // Like an airstrike it is the turn's shot: no free shot after its hit, and no energy back.
+    expect(g.turn).toBe(1);
+    expect(g.energy[0].value).toBe(0);
+  });
+
+  it('torpedo skips squares already fired at, and a hidden mine stops it', () => {
+    const g = setup({ powers: ['torpedo', 'mine'] });
+    lineUp(g, 1);
+    start(g, 1);
+    g.energy[1].value = 1;
+    expect(g.apply({ kind: 'mine', cell: 7 * N + 3 })).toBe(true);
+    g.apply({ kind: 'fire', cell: 99 });
+    expect(g.turn).toBe(0);
+    g.seas[1].marks[9 * N + 3] = MARK.miss; // already fired at, earlier
+    g.energy[0].value = 1;
+    expect(g.apply({ kind: 'torpedo', cell: 3 })).toBe(true);
+    const sea = g.seas[1];
+    expect(sea.marks[8 * N + 3]).toBe(MARK.miss);
+    expect(sea.marks[7 * N + 3]).toBe(MARK.mine);
+    expect(sea.marks[6 * N + 3]).toBe(MARK.none);
+    expect(g.events.some((e) => e.type === 'hitBack' && e.victim === 0)).toBe(true);
+    // A column with nothing left to fire at refuses it (and keeps the bar).
+    const h = setup({ powers: ['torpedo', 'radar'] });
+    start(h, 0);
+    for (let y = 0; y < N; y++) h.seas[1].marks[y * N] = MARK.miss;
+    h.energy[0].value = 1;
+    expect(h.apply({ kind: 'torpedo', cell: 0 })).toBe(false);
+    expect(h.energy[0].value).toBe(1);
+  });
+
+  it('double shot: one more shot this turn, so the first miss keeps your turn', () => {
+    const g = setup({ powers: ['double', 'radar'] });
+    lineUp(g, 1);
+    start(g, 0);
+    expect(g.apply({ kind: 'double', cell: 0 })).toBe(false); // not charged
+    g.energy[0].value = 1;
+    expect(g.apply({ kind: 'double', cell: 0 })).toBe(true);
+    expect(g.shotsLeft).toBe(2);
+    expect(g.energy[0].value).toBe(0);
+    expect(g.events).toContainEqual({ type: 'power', p: 0, id: 'double' });
+    g.energy[0].value = 1;
+    expect(g.apply({ kind: 'double', cell: 0 }), 'once a turn').toBe(false);
+    g.apply({ kind: 'fire', cell: 99 }); // miss
+    expect(g.turn).toBe(0);
+    g.apply({ kind: 'fire', cell: 0 }); // hit: fire again, same shots left
+    expect(g.turn).toBe(0);
+    g.apply({ kind: 'fire', cell: 98 }); // second miss ends it
+    expect(g.turn).toBe(1);
+    expect(g.shotsLeft).toBe(1);
+  });
+
+  it('bots fire a torpedo while hunting and take their double shot', () => {
+    const torp = play(['normal', 'normal'], 13, { powers: ['torpedo', 'double'] });
+    expect(torp.g.winner).not.toBeNull();
+    expect(torp.powersUsed[0]).toBeGreaterThan(0);
+    expect(torp.powersUsed[1]).toBeGreaterThan(0);
+    // The bot's torpedo goes up a column with room to run, never while it is finishing a hit ship.
+    const g = setup({ powers: ['torpedo', 'radar'], seed: 4 });
+    start(g, 0);
+    g.energy[0].value = 1;
+    const m = new SeaBattleBot(0, 'normal', makeRng(4)).choose(g);
+    expect(m.kind).toBe('torpedo');
+    g.seas[1].marks[g.seas[1].ships[0].x + g.seas[1].ships[0].y * N] = MARK.hit;
+    g.seas[1].ships[0].hits = 1;
+    expect(new SeaBattleBot(0, 'normal', makeRng(4)).choose(g).kind).toBe('fire');
   });
 
   it('bots use their powers and still finish', () => {
