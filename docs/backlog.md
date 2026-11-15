@@ -1431,7 +1431,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [ ] Tank Duel Mine still rarely hits anyone between bots (tanks fight at range, so few
       drive through a wake); it may play better against people, who chase. If families
       never pick it, a bigger blast or a mine that's dropped in front could be a power call.
-      2026-11-15 (F299, PR #TBD, measured): between bots the Mine mostly bonked its OWN tank:
+      2026-11-15 (F299, PR #324, measured): between bots the Mine mostly bonked its OWN tank:
       per 120 mirror matches with one Mine pick, owner bonks 33 (normal) / 72 (hard) vs the
       other tank 1 / 2. Causes: the owner drove back over it turning round (18 / 38), the
       other side's shells aimed at the owner hit the mine just behind it (10 / 21), its own
