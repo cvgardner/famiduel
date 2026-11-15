@@ -2281,3 +2281,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       "+120 ms handicap"), which means nothing to a young kid. Times now read in seconds
       ("Bot 0.50 s", "+0.12 s handicap"), the same width on the card; secs() / handicapLine(),
       tests/quickdraw-no-shot.test.ts + tests/bot-name.test.ts.
+- [x] 2026-11-15 (F307): Home after a match on an iPhone SE (1st gen) with Bigger text. The
+      taps check (F305) set Bigger text but never applied it to the menus, so it measured usual
+      text; applied, the first game card was 82% below the fold after a match (45% before one).
+      Under max-height 600px: the tagline and the tournament button's second line hide, gaps
+      tighten, and after a match "New night" sits beside the score, whose "Match night ·" words
+      stay for screen readers only. The first card now shows
+      whole (bottom at 559 of 568), tap targets keep 44px. e2e/taps.spec.ts applies Bigger text
+      (checks html[data-bigtext]) and needs every card it taps wholly on screen (was half).
