@@ -83,6 +83,13 @@ export function powerLines(str: string): [string, string?] {
   return cut < 0 ? [str] : [str.slice(0, cut), str.slice(cut + 1)];
 }
 
+/**
+ * F272: how far from the centre line a power's name pops: its first line's 36-unit rise (at
+ * Bigger text's 28 size) ends clear of the seconds-left clock (MID + 14, 17 tall each way).
+ */
+export const POWER_POP_DY = 84;
+/** The farthest out it goes looking for a free line (its second line stays clear of the frogs' bodies). */
+const POWER_POP_MAX = 170;
 /** Room between the frog's head and its "Miss!" pop (F176). */
 const MISS_GAP = 16;
 /** F182: the seconds-left's blanket-coloured outline, so it reads over a snack resting under it. */
@@ -219,7 +226,12 @@ class SnackSnatchView implements GameInstance {
         // same-step pops a line toward the seat's edge) that fit between the two frog lanes,
         // just short of the pot.
         const [first, second] = powerLines(`${pw.icon} ${pw.name}!`);
-        const py = e.p === 0 ? MID + 46 : MID - 46;
+        // F272: from 46 out the first line rose straight through the seat's seconds-left clock
+        // beside the pot (a readable "🧲 Magnet" sat on the "18" for 73-77% of its frames). It
+        // now starts far enough out that its whole rise ends short of the clock.
+        // A catch's "+N" still bright there would push the name a line into the field and back
+        // onto the clock, so it takes the first line out from there where both of its lines fit.
+        const py = this.powerPopY(first, second, e.p);
         fx.pop(first, W / 2, py, COLORS.gold, e.p, 24);
         if (second) fx.pop(second, W / 2, py, COLORS.gold, e.p, 24);
       } else if (e.type === 'win') {
@@ -369,6 +381,19 @@ class SnackSnatchView implements GameInstance {
     const half = ([...str].length * size * 0.55) / 2;
     const side = cx < W / 2 ? 1 : -1;
     return cx + side * (RULES.headR + half + 4);
+  }
+
+  /** F272: the first line, at least POWER_POP_DY from the centre line, where both name lines print as placed. */
+  private powerPopY(first: string, second: string | undefined, p: PlayerIndex): number {
+    const down = p === 0 ? 1 : -1;
+    const line = 24 + 4;
+    for (let d = POWER_POP_DY; d <= POWER_POP_MAX; d += 4) {
+      const y = MID + down * d;
+      if (!this.ctx.fx.popFits(first, W / 2, y, 24, p)) continue;
+      if (second && !this.ctx.fx.popFits(second, W / 2, y + down * line, 24, p)) continue;
+      return y;
+    }
+    return MID + down * POWER_POP_DY;
   }
 
   private clearOfClock(str: string, x: number, y: number, size: number, p: PlayerIndex): number {

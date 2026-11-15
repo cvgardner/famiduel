@@ -2069,6 +2069,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       match needs (things the game shows on its own went: Ping Pong's "Rallies heat up", Sumo's
       rope saves, Snack Snatch's Frenzy, Quick Draw's fake-out example, Penalty's swipe-again).
       The "how to play" playtest now counts the how-to's lines (3 at most at 320 px).
+- [x] 2026-11-14 (F272): Snack Snatch power names ("🧲 Magnet" / "Mouth!") popped 46 units past
+      the centre line and their first line rose through the seconds-left clock beside the pot
+      (73-77% of its readable frames on the clock in 36 bot matches). They now start at least
+      84 out (POWER_POP_DY), on the first line out to 170 where both lines print as placed
+      (powerPopY()), so the rise ends short of the clock: 0.5-1.3% left, from a power used while
+      "+N" pops fill every line (fx.pop then stacks the name back toward the field, and can put
+      "Mouth!" above "Magnet"). tests/snacksnatch-power-clock.test.ts.
 - [x] 2026-11-14 (F273): Sea Battle's shot words ("Splash", "HIT!", "MINE!") popped a fixed line
       above the shot square (below on the top rows), often right on the defender's own ships on
       their big "Your ships" board (26,438 of 49,218 readable frames in 48 bot matches). shotWord()
