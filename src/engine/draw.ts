@@ -286,6 +286,26 @@ export function fitSize(g: G, str: string, maxW: number, size: number, weight = 
   return s;
 }
 
+/** Width of `str` drawn at `size` (800 weight) under the current text scale. */
+export function nameWidth(gx: G, str: string, size: number): number {
+  gx.font = `800 ${scaledSize(size)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  return gx.measureText(str).width;
+}
+/**
+ * F315: a line holding a player's name, fitted to `room`: shrunk (to MIN_TEXT at least), and if
+ * even that is too wide, the name before `tail` cut short with "…" (12 W's are a lot of name). Used by
+ * Minigolf's strip and shot card and Sumo's seat names.
+ */
+export function fitName(gx: G, str: string, room: number, size: number, tail = ''): { str: string; size: number } {
+  const s = fitSize(gx, str, room, size);
+  if (nameWidth(gx, str, s) <= room) return { str, size: s };
+  const head = str.slice(0, str.length - tail.length);
+  for (let n = head.length - 1; n > 1; n--) {
+    const cut = `${head.slice(0, n).trimEnd()}…${tail}`;
+    if (nameWidth(gx, cut, s) <= room) return { str: cut, size: s };
+  }
+  return { str: `${head.slice(0, 1)}…${tail}`, size: s };
+}
 /**
  * A centred label's x moved in just enough that its words (drawn at `size` under the
  * current text scale) stay `pad` units inside the screen's left and right edges.

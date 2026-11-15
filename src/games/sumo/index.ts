@@ -2,7 +2,7 @@
 // bouncy top-down ring with squash/stretch wrestlers, dust and shockwaves.
 import { PLAYERS, type PlayerIndex } from '../../core/types';
 import { inkOn } from '../../core/contrast';
-import { alpha, circle, COLORS, controlsAlpha, facing, glow, noGlow, fitSize, nameLabel, rrect, scaledSize, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, facing, glow, noGlow, fitName, fitSize, nameLabel, EDGE_PAD, rrect, scaledSize, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button, PowerButton, powerSpot } from '../../engine/widgets';
@@ -32,6 +32,17 @@ export const BANNER_PAD = 12;
 export const COUNT_DY_SUMO = 150;
 /** World units the pause button covers from the left edge on the narrowest phone (44 px at 320 px wide). */
 export const PAUSE_CLEAR = 52;
+
+/**
+ * F316: room for a seat's name centred at x over its round pips: clear of the screen edge
+ * (EDGE_PAD) and of the HOLD button's charge ring (r 46 + 9, stroke and 4 spare), both sides
+ * alike since the name is centred. A 12-letter name ran off a 320 px phone and into HOLD.
+ */
+export function nameRoom(x: number): number {
+  const edge = Math.min(x, W - x) - EDGE_PAD;
+  const button = Math.abs(x - W / 2) - (46 + 9 + 4 + 4);
+  return 2 * Math.min(edge, button);
+}
 
 /**
  * F225: the dark box behind a round-end banner drawn at `size`, centred on (W / 2, y). Its
@@ -609,7 +620,8 @@ class SumoView implements GameInstance {
     // F164: a bot's pips turned to face the one person would fill from the other end.
     const quiet = silentSeat(this.ctx.players, p);
     facing(gx, p, x, y, () => {
-      nameLabel(gx, this.ctx.players[p].name, x, y - 22, c, { size: 13 });
+      const nm = fitName(gx, this.ctx.players[p].name, nameRoom(x), 13);
+      nameLabel(gx, nm.str, x, y - 22, c, { size: nm.size });
       for (let i = 0; i < RULES.roundsToWin; i++) {
         const px = x - 14 + (quiet ? RULES.roundsToWin - 1 - i : i) * 28;
         const won = g.score[p] > i;
