@@ -2069,3 +2069,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       match needs (things the game shows on its own went: Ping Pong's "Rallies heat up", Sumo's
       rope saves, Snack Snatch's Frenzy, Quick Draw's fake-out example, Penalty's swipe-again).
       The "how to play" playtest now counts the how-to's lines (3 at most at 320 px).
+- [x] 2026-11-14 (F273): Sea Battle's shot words ("Splash", "HIT!", "MINE!") popped a fixed line
+      above the shot square (below on the top rows), often right on the defender's own ships on
+      their big "Your ships" board (26,438 of 49,218 readable frames in 48 bot matches). shotWord()
+      now takes the spot near the square (a line or two above or below, up to three squares
+      sideways, inside the board) whose words cover the fewest shown ships, then the fewest shot
+      marks: 305 frames left. tests/seabattle-shot-words.test.ts.
