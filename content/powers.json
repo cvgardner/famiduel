@@ -25,6 +25,18 @@
         "name": "Ghost Ball",
         "icon": "👻",
         "desc": "Your next shot floats through one wall or obstacle."
+      },
+      {
+        "id": "redo",
+        "name": "Do-over",
+        "icon": "🔁",
+        "desc": "If your next shot misses, the ball comes back and you try again free."
+      },
+      {
+        "id": "tiny",
+        "name": "Tiny Cup",
+        "icon": "🤏",
+        "desc": "The hole shrinks to a tiny cup for the other player's next shot."
       }
     ],
     "airhockey": [

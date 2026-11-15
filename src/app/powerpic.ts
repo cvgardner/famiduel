@@ -76,6 +76,18 @@ const PICS: Record<string, Record<string, string>> = {
       green +
       `<rect x="14" y="20" width="36" height="5" rx="2" fill="#e8e2d0"/>` +
       circle(32, 38, 3, YOU, anim('cy', [38, 38, 9, 9], [0, 0.1, 0.75, 1]) + anim('opacity', [1, 1, 0.35, 0.35, 1, 1, 0], [0, 0.3, 0.38, 0.52, 0.6, 0.85, 1])),
+    // Your shot misses the cup, zips back to the dashed ring it was hit from, and drops on the second try.
+    redo:
+      green +
+      `<circle cx="32" cy="38" r="5.5" fill="none" style="stroke:${YOU}" stroke-width="1.2" stroke-dasharray="2 2"/>` +
+      circle(32, 38, 3, YOU, anim('cx', [32, 32, 46, 46, 32, 32, 32, 32], [0, 0.08, 0.35, 0.45, 0.55, 0.62, 0.86, 1]) + anim('cy', [38, 38, 12, 12, 38, 38, 9, 9], [0, 0.08, 0.35, 0.45, 0.55, 0.62, 0.86, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.88, 0.92, 1])),
+    // The cup shrinks inside a red ring; the other player's ball rolls just past it.
+    tiny:
+      green +
+      `<circle cx="32" cy="9" r="3.3" fill="none" stroke="#1f7a4a" stroke-width="0">${anim('stroke-width', [0, 0, 2.6, 2.6, 0], [0, 0.1, 0.25, 0.9, 1])}</circle>` +
+      `<circle cx="32" cy="9" r="6" fill="none" stroke="#ff5c7a" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.1, 0.25, 0.9, 1])}</circle>` +
+      circle(12, 36, 3, YOU) +
+      circle(32, 38, 3, THEM, anim('cx', [32, 32, 33, 37, 37], [0, 0.3, 0.6, 0.78, 1]) + anim('cy', [38, 38, 16, 3, 3], [0, 0.3, 0.6, 0.78, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.85, 0.9, 1])),
   },
   airhockey: {
     // The other paddle slides, turns to ice and stops; the puck goes in.

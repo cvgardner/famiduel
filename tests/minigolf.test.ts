@@ -385,6 +385,118 @@ describe('minigolf powers', { timeout: 60_000 }, () => {
     expect(g.magnet[1 - p] || g.ghost[1 - p]).toBe(true);
   });
 
+  /** Steps until the given player is lining up again (or the hole moves on). */
+  const toAim = (g: Minigolf, p: PlayerIndex) => {
+    for (let n = 0; !(g.phase === 'aim' && g.shooter === p) && n < 5000; n++) {
+      if (g.phase === 'aim') shoot(g, Math.PI / 2, 0.06); // the other player putts too
+      else g.step(DT, [NO_INTENT, NO_INTENT]);
+    }
+  };
+
+  it('do-over: a missed shot comes back to where it was hit, costs no stroke, and you shoot again', () => {
+    const g = atAim('zigzag', withPowers('redo', 'redo'), true);
+    const p = g.shooter;
+    g.energy[p].value = 1;
+    const intents: [Intent, Intent] = [NO_INTENT, NO_INTENT];
+    intents[p] = { shot: null, power: true };
+    g.step(DT, intents);
+    expect(g.redo[p]).toBe(true);
+    expect(g.canFire(p)).toBe(false);
+    const b = g.balls[p];
+    const [x0, y0] = [b.x, b.y];
+    g.step(DT, (() => { const i: [Intent, Intent] = [NO_INTENT, NO_INTENT]; i[p] = { shot: { angle: Math.PI / 2, power: 0.3 }, power: false }; return i; })());
+    const events: string[] = [];
+    for (let n = 0; g.phase === 'roll' && n < 2000; n++) {
+      g.step(DT, [NO_INTENT, NO_INTENT]);
+      for (const e of g.events) events.push(e.type);
+    }
+    expect(events).toContain('redo');
+    expect(b.strokes).toBe(0);
+    expect([b.x, b.y]).toEqual([x0, y0]);
+    expect(g.redo[p], 'used up').toBe(false);
+    expect(g.nextShooter()).toBe(p);
+    for (let n = 0; g.phase !== 'aim' && n < 1000; n++) g.step(DT, [NO_INTENT, NO_INTENT]);
+    expect(g.shooter, 'same player again').toBe(p);
+    // The second try is a normal shot: it counts, and the turn passes.
+    shoot(g, Math.PI / 2, 0.3);
+    expect(b.strokes).toBe(1);
+    expect(g.nextShooter()).not.toBe(p);
+  });
+
+  it('do-over: water costs nothing on the first try, and a shot that drops just counts', () => {
+    const g = atAim('pond', withPowers('redo', 'redo'), true);
+    const p = g.shooter;
+    g.redo[p] = true;
+    const b = g.balls[p];
+    const [x0, y0] = [b.x, b.y];
+    shoot(g, -Math.PI / 2, 0.8); // straight into the pond
+    expect(b.strokes).toBe(0);
+    expect([b.x, b.y]).toEqual([x0, y0]);
+    const w = atAim('warmup', withPowers('redo', 'redo'), true);
+    const q = w.shooter;
+    w.redo[q] = true;
+    const wb = w.balls[q];
+    Object.assign(wb, { x: 180, y: 250 }); // a putt straight at the cup
+    shoot(w, -Math.PI / 2, 0.4);
+    expect(wb.sunk).toBe(true);
+    expect(wb.strokes).toBe(1);
+    expect(w.redo[q]).toBe(false);
+  });
+
+  it("do-over keeps the other player's Wind Gust on the new try", () => {
+    const g = atAim('zigzag', withPowers('redo', 'wind'), true);
+    const p = g.shooter;
+    g.redo[p] = true;
+    g.wind[p] = { dir: [55, 0], by: p === 0 ? 1 : 0 };
+    shoot(g, Math.PI / 2, 0.06);
+    expect(g.balls[p].strokes).toBe(0);
+    expect(g.wind[p]?.dir).toEqual([55, 0]);
+  });
+
+  it('tiny cup is armed on the other player, shows on their shot, and a putt that drops normally misses', () => {
+    const g = atAim('warmup', withPowers('tiny', 'tiny'), true);
+    const p = g.shooter;
+    const q = p === 0 ? 1 : 0;
+    g.energy[q].value = 1;
+    const intents: [Intent, Intent] = [NO_INTENT, NO_INTENT];
+    intents[q] = { shot: null, power: true };
+    g.step(DT, intents);
+    expect(g.energy[q].value).toBe(0);
+    expect(g.tiny[p]).toBe(true);
+    expect(g.tiny[q]).toBe(false);
+    expect(g.modsFor(p).tiny).toBe(true);
+    expect(g.canFire(q), 'one at a time').toBe(false);
+    expect(PHYS.tiny.cupR).toBeLessThan(PHYS.cupR * 0.6);
+    // A putt a little off centre drops in the normal cup, not in the tiny one; so does a firm one.
+    const c = compileCourse(HOLES.find((h) => h.id === 'warmup')!);
+    for (const [a, pw] of [[-Math.PI / 2 - 0.08, 0.34], [-Math.PI / 2, 0.46]]) {
+      expect(simulate(c, 180, 210, a, pw, 0, NO_MODS, DT).roll.status).toBe('sunk');
+      expect(simulate(c, 180, 210, a, pw, 0, { ...NO_MODS, tiny: true }, DT).roll.status).not.toBe('sunk');
+    }
+    // Over a spread of putts the tiny cup takes many fewer.
+    let normal = 0;
+    let tiny = 0;
+    for (let da = -0.08; da <= 0.0801; da += 0.01)
+      for (let pw = 0.1; pw <= 0.7; pw += 0.03) {
+        if (simulate(c, 180, 210, -Math.PI / 2 + da, pw, 0, NO_MODS, DT).roll.status === 'sunk') normal++;
+        if (simulate(c, 180, 210, -Math.PI / 2 + da, pw, 0, { ...NO_MODS, tiny: true }, DT).roll.status === 'sunk') tiny++;
+      }
+    expect(tiny).toBeGreaterThan(0);
+    expect(tiny).toBeLessThan(normal * 0.75);
+    // It lasts one shot.
+    shoot(g, -Math.PI / 2, 0.06);
+    expect(g.rollMods.tiny).toBe(true);
+    expect(g.tiny[p]).toBe(false);
+    toAim(g, q);
+    expect(g.modsFor(q).tiny).toBe(false);
+  });
+
+  it('bots fire Do-over on their own putt and Tiny Cup on the other player\'s putt', () => {
+    const fired = [11, 12, 13].flatMap((seed) => play(['normal', 'normal'], seed, { powers: ['redo', 'tiny'] }).fired);
+    expect(fired).toContain('redo');
+    expect(fired).toContain('tiny');
+  });
+
   it('energy charges from shots, faster when behind, and bots fire their powers', () => {
     const g = atAim('zigzag', [player({ bot: null, power: power('minigolf', 'magnet') }), player({ bot: null, power: power('minigolf', 'magnet') })], true);
     const p = g.shooter;

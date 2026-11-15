@@ -61,6 +61,8 @@ export type Event =
   | { type: 'pickup'; p: PlayerIndex }
   | { type: 'stop'; p: PlayerIndex; x: number; y: number }
   | { type: 'power'; p: PlayerIndex; id: string }
+  /** Do-over: the shot missed, so the ball goes back from (x, y) to (toX, toY) and p shoots again. */
+  | { type: 'redo'; p: PlayerIndex; x: number; y: number; toX: number; toY: number }
   | { type: 'holeEnd'; hole: number }
   | { type: 'win'; p: PlayerIndex | null };
 
@@ -82,8 +84,16 @@ export class Minigolf {
   wind: [Wind | null, Wind | null] = [null, null];
   magnet: [boolean, boolean] = [false, false];
   ghost: [boolean, boolean] = [false, false];
+  /** Do-over armed on this player's own next shot: if it misses, the ball comes back for a free try. */
+  redo: [boolean, boolean] = [false, false];
+  /** Tiny Cup armed against this player's next shot (by the other player). */
+  tiny: [boolean, boolean] = [false, false];
   roll: Roll | null = null;
-  rollMods: Mods = { wind: null, magnet: false, ghost: false };
+  rollMods: Mods = { wind: null, magnet: false, ghost: false, tiny: false };
+  /** The shot rolling now is a Do-over shot (it comes back if it misses). */
+  rollRedo = false;
+  /** The last shot was rolled back: the same player shoots again after the settle. */
+  again = false;
   /** Time spent aiming this turn. */
   aimT = 0;
   winner: PlayerIndex | null = null;
@@ -156,7 +166,7 @@ export class Minigolf {
 
   /** The effects that apply to this player's next shot. */
   modsFor(p: PlayerIndex): Mods {
-    return { wind: this.wind[p]?.dir ?? null, magnet: this.magnet[p], ghost: this.ghost[p] };
+    return { wind: this.wind[p]?.dir ?? null, magnet: this.magnet[p], ghost: this.ghost[p], tiny: this.tiny[p] };
   }
 
   /** True when this player could fire their power right now. */
@@ -166,6 +176,8 @@ export class Minigolf {
     if (pw.id === 'wind') return !this.wind[other(p)];
     if (pw.id === 'magnet') return !this.magnet[p];
     if (pw.id === 'ghost') return !this.ghost[p];
+    if (pw.id === 'redo') return !this.redo[p];
+    if (pw.id === 'tiny') return !this.tiny[other(p)];
     return false;
   }
 
@@ -257,6 +269,8 @@ export class Minigolf {
       this.wind[q] = { dir: now ? this.windDir(q) : null, by: p };
     } else if (pw.id === 'magnet') this.magnet[p] = true;
     else if (pw.id === 'ghost') this.ghost[p] = true;
+    else if (pw.id === 'redo') this.redo[p] = true;
+    else if (pw.id === 'tiny') this.tiny[other(p)] = true;
     this.events.push({ type: 'power', p, id: pw.id });
   }
 
@@ -269,9 +283,12 @@ export class Minigolf {
     b.lastX = b.x;
     b.lastY = b.y;
     this.rollMods = this.modsFor(p);
+    this.rollRedo = this.redo[p];
     this.wind[p] = null;
     this.magnet[p] = false;
     this.ghost[p] = false;
+    this.tiny[p] = false;
+    this.redo[p] = false;
     this.roll = startRoll(b.x, b.y, shot.angle, power, this.t, this.rollMods);
     this.phase = 'roll';
     this.events.push({ type: 'shot', p, x: b.x, y: b.y, power });
@@ -291,6 +308,25 @@ export class Minigolf {
     b.x = r.x;
     b.y = r.y;
     if (r.status === 'roll') return;
+    if (this.rollRedo && r.status !== 'sunk') {
+      // Do-over: the miss doesn't count. The ball goes back to where it was hit from, with
+      // no stroke and no water penalty, and the same player shoots again. The other
+      // player's Wind Gust or Tiny Cup on that shot stays for the new try.
+      this.events.push({ type: 'redo', p, x: b.x, y: b.y, toX: b.lastX, toY: b.lastY });
+      b.strokes--;
+      b.x = b.lastX;
+      b.y = b.lastY;
+      const m = this.rollMods;
+      if (m.wind && !this.wind[p]) this.wind[p] = { dir: m.wind, by: other(p) };
+      if (m.tiny) this.tiny[p] = true;
+      this.rollRedo = false;
+      this.again = true;
+      this.roll = null;
+      this.phase = 'settle';
+      this.timer = RULES.settleTime;
+      return;
+    }
+    this.rollRedo = false;
     if (r.status === 'sunk') {
       b.done = true;
       b.sunk = true;
@@ -319,6 +355,7 @@ export class Minigolf {
 
   /** Who shoots after the current ball settles (null: the hole ends). Same order as nextTurn(). */
   nextShooter(): PlayerIndex | null {
+    if (this.again) return this.shooter;
     const q = other(this.shooter);
     if (!this.balls[q].done) return q;
     if (!this.balls[this.shooter].done) return this.shooter;
@@ -326,6 +363,11 @@ export class Minigolf {
   }
 
   private nextTurn(): void {
+    if (this.again) {
+      this.again = false;
+      this.beginTurn(this.shooter);
+      return;
+    }
     const q = other(this.shooter);
     if (!this.balls[q].done) this.beginTurn(q);
     else if (!this.balls[this.shooter].done) this.beginTurn(this.shooter);
@@ -367,6 +409,9 @@ const BOT = {
   hard: { aim: 0.035, pow: 0.055, angles: 48, powers: 6, refine: 16, delay: 1.0, pick: 1 },
 } satisfies Record<BotLevel, { aim: number; pow: number; angles: number; powers: number; refine: number; delay: number; pick: number }>;
 
+/** Path distance to the cup the bot counts as a putt (Do-over and Tiny Cup wait for one). */
+const BOT_PUTT = 170;
+
 /** Shots tried per frame while lining up, so a turn never hitches. */
 const SIMS_PER_FRAME = 24;
 
@@ -389,10 +434,21 @@ export class MinigolfBot {
     if (game.players[me].power?.id === 'wind' && game.canFire(me) && game.phase === 'turn' && game.shooter !== me) {
       return { shot: null, power: true };
     }
+    // Tiny Cup: shrink the cup as the opponent lines up a putt (it barely matters on a long drive).
+    if (game.players[me].power?.id === 'tiny' && game.canFire(me) && game.phase === 'turn' && game.shooter !== me) {
+      const ob = game.balls[game.shooter];
+      if (pathDist(game.course, ob.x, ob.y) < BOT_PUTT) return { shot: null, power: true };
+    }
     if (game.phase !== 'aim' || game.shooter !== me) return NO_INTENT;
     if (this.turn !== game.turnId) {
       const id = game.players[me].power?.id;
       if ((id === 'magnet' || id === 'ghost') && game.canFire(me)) return { shot: null, power: true };
+      // Do-over: save it for a putt that could drop but might not (a tap-in needs no second try).
+      if (id === 'redo' && game.canFire(me)) {
+        const b = game.balls[me];
+        const d = pathDist(game.course, b.x, b.y);
+        if (d < BOT_PUTT && d > 30) return { shot: null, power: true };
+      }
       this.plan(game, dt);
     }
     const mods = game.modsFor(me);

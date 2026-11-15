@@ -48,13 +48,14 @@ describe('handicap', () => {
 });
 
 describe('content', () => {
-  it('every game has a unique id, and powers only reference known games, 3 each', () => {
+  it('every game has a unique id, and powers only reference known games, at least 3 each', () => {
+    // Weekly rotation (Nov 2026): a game's pool can hold more than the 3 a week offers.
     const ids = games.games.map((g) => g.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const [game, list] of Object.entries(powers.games)) {
       expect(ids).toContain(game);
-      expect(list).toHaveLength(3);
-      expect(new Set(list.map((p) => p.id)).size).toBe(3);
+      expect(list.length).toBeGreaterThanOrEqual(3);
+      expect(new Set(list.map((p) => p.id)).size).toBe(list.length);
     }
   });
 
