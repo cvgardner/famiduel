@@ -2259,3 +2259,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       since the bare glyph wouldn't read 3:1 on the pale sand; the wrestler shows round it.
       tests/sumo-pause-ring.test.ts; the 'pause button' playtest checks ring + core on Sumo
       and saves pause-button-sumo.png.
+- [x] 2026-11-15 (F303): Ping Pong's point words rise past the score card of the seat reading
+      them; centred at size 34 the scorer's "Your point!" ended ~2 units from its card, and a
+      longer bot name ("Super Robot's point") ran under the other seat's card. pointSpot() now
+      centres each seat's word in the room beside its card (8 units clear), nudging it off the
+      middle only as far as it needs (~20 units for "Your point!") and shrinking only if even
+      that room is too narrow. tests/pingpong-point-room.test.ts (fails on the old centring).
