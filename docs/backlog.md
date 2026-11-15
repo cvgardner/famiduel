@@ -2259,3 +2259,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       since the bare glyph wouldn't read 3:1 on the pale sand; the wrestler shows round it.
       tests/sumo-pause-ring.test.ts; the 'pause button' playtest checks ring + core on Sumo
       and saves pause-button-sumo.png.
+- [x] 2026-11-15 (F306): Every rising pop lived 0.9 s whatever its length, so "What a rally! 12
+      hits" or "Super Robot's point" flashed by at 270-330 words a minute (Game Accessibility
+      Guidelines: show text at a words-per-minute fit for the age group). popLife(): pops of
+      three or more words get 0.4 s a word (150 wpm); two words or fewer keep 0.9 s. A long pop
+      drifts slower so its whole rise stays 36 units (every lane and lookahead built on that
+      still holds) and stays "bright" (new pops move off it) for its extra time; Minigolf's turn
+      banner waits for the longer centre pop. tests/pop-read-time.test.ts.
