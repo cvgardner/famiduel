@@ -2399,3 +2399,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-15 (F325, PR #351): playing the bot, Tank Duel's bot half read "bot: 1 bonk" and
       Chop Chop's rival pill "bot: 9" in lower case, while every other card calls it "Bot"; both
       now use the bot's own name ("Bot: 1 bonk", "Bot: 9"). tests/bot-name.test.ts.
+- [x] 2026-11-15 (F323, PR #352): a pause the match made itself (F322) says why under "Paused":
+      "Nobody was playing, so we paused.", so a family coming back knows nobody pressed
+      anything; a held pause keeps the plain sheet. `.sheet .why`, e2e checks both.

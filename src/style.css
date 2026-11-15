@@ -212,6 +212,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .modal { position: fixed; inset: 0; background: rgba(5,4,15,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10; padding: 16px; }
 .sheet { width: 100%; max-width: 380px; max-height: 100%; overflow-y: auto; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
 .sheet h2 { margin: 0; text-align: center; }
+.sheet .why { margin: -6px 0 0; text-align: center; color: var(--dim); font-weight: 700; font-size: calc(15px * var(--ts)); }
 .field { display: flex; flex-direction: column; gap: 6px; font-weight: 800; }
 .field small { color: var(--dim); font-weight: 600; }
 .field input { font: inherit; font-weight: 700; padding: 10px 12px; border-radius: 12px; border: 0; background: var(--surface-2); color: var(--text); }
