@@ -2482,6 +2482,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-15 (F350, PR #PRNUM): Snack Snatch's head start (longer reach, quicker recovery
+      from a miss) was all in the third star: easy+0..3 v normal 1/3/17/63% (n=100). The stars
+      now follow a curve, 3·(a/3)^0.3 (assistStep()), so the first stars give more of it:
+      1/16/28/63%, v hard 0/3/7/23%; three stars and kid+3 v easy (18%) unchanged.
+      tests/sim-ladder.test.ts.
 - [x] 2026-11-15 (F346, PR #363): Ping Pong's head start was all in the first star: the easy bot
       with +0/+1/+2/+3 against normal won 3/70/80/100% (F342's ladder), because the easy bot
       misses by a little and a slightly wider paddle covered most misses. The paddle and
