@@ -24,7 +24,13 @@ export const RULES = {
   /** Speed multiplier for the assisted snake at assist 3. */
   assistSpeed: 0.78,
   /** Turn assist (auto-turn away from a wall) switches on at this assist level. */
-  turnAssistAt: 3,
+  turnAssistAt: 1,
+  /**
+   * From this assist level the auto-turn also steers away from trails, not just walls
+   * (F349: the easy snake loses mostly to trails, its own and the other's; with walls alone
+   * at three stars easy+0..3 v normal read 13/5/14/15%, now 13/14/21/65%).
+   */
+  trailAssistAt: 3,
   roundIntro: 1.3,
   roundOutro: 1.8,
   maxQueue: 2,
@@ -58,6 +64,8 @@ export type Snake = {
   moves: number;
   speedMul: number;
   turnAssist: boolean;
+  /** The auto-turn also dodges trails (assist >= RULES.trailAssistAt). */
+  trailAssist: boolean;
 };
 
 export type Event =
@@ -109,6 +117,7 @@ export class SnakeDuel {
       x: 0, y: 0, dir: 0, alive: true, acc: 0, queue: [], boost: 0, phase: 0, phasing: false, phased: 0, moves: 0,
       speedMul: lerpAssist(a, 1, RULES.assistSpeed),
       turnAssist: a >= RULES.turnAssistAt,
+      trailAssist: a >= RULES.trailAssistAt,
     };
   }
 
@@ -253,10 +262,12 @@ export class SnakeDuel {
     if (dead.length) this.endRound(dead.length === 2 ? null : other(dead[0]));
   }
 
-  /** Assist 3: one cell before a wall, turn toward the side with more room. */
+  /** One cell before a wall (and at three stars a trail), turn toward the side with more room. */
   private assistTurn(p: PlayerIndex): void {
     const s = this.snakes[p];
-    if (this.inside(s.x + DX[s.dir], s.y + DY[s.dir])) return;
+    const ax = s.x + DX[s.dir];
+    const ay = s.y + DY[s.dir];
+    if (s.trailAssist ? !this.blocked(ax, ay) || canPhase(s) : this.inside(ax, ay)) return;
     let best = -1;
     let bestDir = s.dir;
     for (const turn of [3, 1]) {
