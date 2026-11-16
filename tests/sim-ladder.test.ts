@@ -16,4 +16,12 @@ describe('sim head-start ladder', () => {
     // 2026-11-15 (n=30): 0 / 3 / 37 / 77%.
     expect(a3).toBeGreaterThan(a0 + 0.3);
   }, 60_000);
+
+  it('the first head-start star counts in Chop Chop (F351)', () => {
+    const spec = SPECS.find((s) => s.id === 'chopchop')!;
+    const [a0, a1, , a3] = ladder(spec, 'normal', 60);
+    // 2026-11-15 (n=100): 7 / 19 / 24 / 55% (was 7 / 10 / 11 / 55% with 4/9/13 chops).
+    expect(a1).toBeGreaterThan(a0 + 0.05);
+    expect(a3).toBeGreaterThan(a1);
+  }, 60_000);
 });

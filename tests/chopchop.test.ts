@@ -101,8 +101,9 @@ describe('chop chop', () => {
   // count ahead and forgives a few branches a round.
   it('head start: a few chops ahead and a branch per star forgiven each round', () => {
     const g = fresh({ assist: [3, 1] });
-    expect(g.choppers[0].chops).toBe(RULES.assistChops);
-    expect(g.choppers[1].chops).toBe(Math.round(RULES.assistChops / 3));
+    expect(g.choppers[0].chops).toBe(RULES.assistChops[3]);
+    expect(g.choppers[1].chops).toBe(RULES.assistChops[1]);
+    expect(RULES.assistChops[1]).toBeGreaterThan(0);
     expect([g.spareFor(0), g.spareFor(1)]).toEqual([RULES.assistSpare, 1]);
     const c = g.choppers[0];
     const saves: boolean[] = [];
