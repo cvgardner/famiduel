@@ -2482,7 +2482,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
-- [x] 2026-11-15 (F351, PR #PRNUM): Chop Chop's head start after F343 was still all in the third
+- [x] 2026-11-15 (F351, PR #368): Chop Chop's head start after F343 was still all in the third
       star (easy+0..3 v normal 7/10/11/55%, n=100). Measured each knob: the forgiven branches and
       the slower timer barely move it; the count's head start decides the race to 50, and the
       race between bots is so tight that one chop near 12-13 is worth ~30 points. Starting
