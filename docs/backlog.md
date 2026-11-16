@@ -2430,7 +2430,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] Easy snakes also meet head-on (51 of 221 easy-mirror rounds drawn this way); easy has no
       head-on worry at all. Fine for a kid's bot, but if families say easy rounds "just draw",
       give easy a small one.
-      2026-11-15 (F330, PR #TBD): easy now has a small head-on worry (HEADON_EASY 10). 60 easy
+      2026-11-15 (F330, PR #356): easy now has a small head-on worry (HEADON_EASY 10). 60 easy
       mirrors: head-ons 19% -> 0% of rounds, drawn rounds 20% -> 0.4%, avg match 85 -> 72 s;
       kid / kid+3 v easy 0% / 2% -> 0% / 1% (n=160, noise), normal v easy 92 -> 90%, easy
       sim:powers all in band. tests/snake-headon.test.ts.
