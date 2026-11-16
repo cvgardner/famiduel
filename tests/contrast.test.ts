@@ -199,9 +199,11 @@ describe('minigolf words in a player colour on its dark cards', () => {
     // popColor is liftOn against the opaque floor, unchanged.
     expect(popColor('#15e5b4')).toBe('#15e5b4');
     const src = (await import('node:fs')).readFileSync('src/games/minigolf/index.ts', 'utf8');
-    expect(src).toMatch(/tees off first`;\n\s*text\(gx, who,[^;]*liftOn\(/);
-    expect(src).toMatch(/'s shot`, W \/ 2, y, \{[^}]*liftOn\(c, BANNER_CARD\)/);
-    expect(src).toMatch(/text\(gx, name, x0, y0 \+ 19, \{[^}]*liftOn\(c, STRIP_CARD\)/);
+    // F320: the line is fitted to its card first (fitName), then drawn lifted on it.
+    expect(src).toMatch(/tees off first`;\n[^\n]*\n\s*const tee = fitName\(gx, who,[^;]*;\n\s*text\(gx, tee\.str,[^;]*liftOn\(/);
+    // F315: the name lines are fitted first (fitName), then drawn lifted on their card.
+    expect(src).toMatch(/'s shot`, W - 60 - 24[^;]*;[\s\S]{0,400}text\(gx, shot\.str, W \/ 2, y, \{[^}]*liftOn\(c, BANNER_CARD\)/);
+    expect(src).toMatch(/text\(gx, nm\.str, x0, y0 \+ 19, \{[^}]*liftOn\(c, STRIP_CARD\)/);
   });
 });
 

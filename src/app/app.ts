@@ -648,6 +648,8 @@ export class App {
     // over "look away!", in the half of the person who should not be looking).
     // F274: nor one that opens on a setup screen (Sea Battle's fleet: the firing tap looped
     // over the Ready button); the intro's finger has already shown the gesture.
+    // F322: two people who both walk away from a real-time game find it paused, not played out.
+    if (!/turns|Extra/.test(String(meta.kind))) this.runner.onIdle = () => this.pause(true);
     const g = this.runner.game;
     const gesture = g.opensOnCover?.() || g.opensOnSetup?.() ? null : meta.gesture;
     this.playDemo(meta.id, gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined, this.runner.game.firstMover?.() ?? null);
@@ -760,13 +762,14 @@ export class App {
   /** Quick taps on the pause button that did not pause (playtest counts them). */
   pauseTaps = 0;
 
-  private pause(): void {
+  /** `idle`: the match paused itself (F322), so the sheet says why (F323). */
+  private pause(idle = false): void {
     if (!this.runner || this.runner.paused) return;
     this.runner.paused = true;
     const modal = $('#modal');
     modal.classList.remove('hidden');
     modal.classList.remove('help');
-    modal.innerHTML = `<div class="sheet"><h2>Paused</h2>
+    modal.innerHTML = `<div class="sheet"><h2>Paused</h2>${idle ? '<p class="why">Nobody was playing, so we paused.</p>' : ''}
       <button id="resumeBtn" class="btn primary" aria-label="Resume"><span class="btn-ico" aria-hidden="true">▶️</span>Resume</button>
       <button id="howBtn" class="btn">❓ How to play</button>
       <button id="restartBtn" class="btn">Restart</button>

@@ -156,6 +156,16 @@ export class Fx {
   }
 
   /**
+   * F329: this seat's pops whose words match `words` fade out within `t` seconds, for a newer
+   * pop that says the same thing again (Sumo: a second rope save 0.4 s after the first
+   * stacked "Saved by the rope!" beside the still-bright first one, like a stutter). A faded
+   * pop is no longer bright, so the new one takes its own spot instead of moving off it.
+   */
+  fadeWords(words: RegExp, player: 0 | 1, t = 0.12): void {
+    for (const f of this.floaters) if (f.player === player && words.test(f.str)) f.life = Math.min(f.life, t);
+  }
+
+  /**
    * F240: pops whose words a round piece of radius r at (x, y) now covers fade out within `t`
    * seconds (Air Hockey: a paddle racing to the served puck ran into its player's GOAL!). A pop
    * younger than `minAge` is left alone, so every pop is read for a moment.

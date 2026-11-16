@@ -25,8 +25,12 @@ export const RULES = {
   shrinkTime: 14,
   bodyR: 25,
   mass: 1,
-  /** Mass at assist 3. */
-  massMax: 1.3,
+  /**
+   * Mass at assist 3. Weight is the head start that counts: an easy bot is nearly always
+   * pushed out, rarely dashes out on its own, so rope saves alone barely help (F345: 1.3 gave
+   * easy+0..3 v normal 7/14/18/33%; 1.6 gives 7/20/35/54%).
+   */
+  massMax: 1.6,
   /** Extra room past the rope before you are out, at assist 3. */
   marginMax: 8,
   turnSpeed: 2.1, // rad/s

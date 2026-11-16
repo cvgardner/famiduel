@@ -21,6 +21,17 @@ export const RULES = {
   drainGrow: 1 / 60,
   /** Drain multiplier at assist 3. */
   assistDrain: 0.6,
+  /**
+   * F343: branches a round forgives at assist 3 (they break like a shield instead of
+   * bonking). Rounds end on a bonk, so a slower timer alone never helped a kid.
+   */
+  assistSpare: 3,
+  /**
+   * Chops a round starts with at 0-3 stars (a head start in the race to 50; F343, F351).
+   * The race between bots is tight, so a chop or two decides it: a straight 4/9/13 read
+   * easy+0..3 v normal 7/10/11/55%; 12/12/13 reads 7/19/24/55% (14 at three stars: 93%).
+   */
+  assistChops: [0, 12, 12, 13],
   refill: 0.1,
   /** Double Chop covers this many chops (a count, not seconds, so a slow tapper gets as much from it). */
   doubleChop: 8,
@@ -50,6 +61,8 @@ export type Chopper = {
   /** Chops left that count twice. */
   double: number;
   drainMul: number;
+  /** Bonks this round still forgives (the head start, F343). */
+  spare: number;
   /** Pattern indices whose branch this chopper broke off with a shield. */
   broken: Set<number>;
 };
@@ -58,7 +71,7 @@ export type Event =
   | { type: 'chop'; p: PlayerIndex; side: Side; count: number }
   | { type: 'bonk'; p: PlayerIndex; side: Side }
   | { type: 'timeUp'; p: PlayerIndex }
-  | { type: 'shieldBreak'; p: PlayerIndex; side: Side }
+  | { type: 'shieldBreak'; p: PlayerIndex; side: Side; /** A head-start spare (F343), not the Shield power. */ spare?: boolean }
   | { type: 'frozenTap'; p: PlayerIndex }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'roundStart'; round: number }
@@ -93,7 +106,7 @@ export class ChopChop {
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     const mk = (p: PlayerIndex): Chopper => ({
       side: -1, idx: 0, chops: 0, timer: RULES.timerStart, out: false, outReason: null, shield: 0, frozen: 0, double: 0,
-      drainMul: lerpAssist(players[p].assist, 1, RULES.assistDrain), broken: new Set(),
+      drainMul: lerpAssist(players[p].assist, 1, RULES.assistDrain), spare: this.spareFor(p), broken: new Set(),
     });
     this.choppers = [mk(0), mk(1)];
     this.resetRound();
@@ -111,8 +124,9 @@ export class ChopChop {
       }
     }
     this.pattern = pat;
-    for (const c of this.choppers) {
-      Object.assign(c, { side: -1, idx: 0, chops: 0, timer: RULES.timerStart, out: false, outReason: null, shield: 0, frozen: 0, double: 0 });
+    for (const p of [0, 1] as PlayerIndex[]) {
+      const c = this.choppers[p];
+      Object.assign(c, { side: -1, idx: 0, chops: this.startChops(p), timer: RULES.timerStart, out: false, outReason: null, shield: 0, frozen: 0, double: 0, spare: this.spareFor(p) });
       c.broken = new Set();
     }
     this.phase = 'intro';
@@ -125,6 +139,16 @@ export class ChopChop {
   branch(p: PlayerIndex, i: number): Branch {
     if (this.choppers[p].broken.has(i)) return 0;
     return this.pattern[i] ?? 0;
+  }
+
+  /** Chops this player's count starts each round on (the head start, F343). */
+  startChops(p: PlayerIndex): number {
+    return RULES.assistChops[Math.max(0, Math.min(3, Math.round(this.players[p].assist)))];
+  }
+
+  /** Branches a round forgives this player: 0 without a head start, up to RULES.assistSpare. */
+  spareFor(p: PlayerIndex): number {
+    return Math.round(lerpAssist(this.players[p].assist, 0, RULES.assistSpare));
   }
 
   drain(p: PlayerIndex): number {
@@ -183,9 +207,11 @@ export class ChopChop {
   private hit(p: PlayerIndex, i: number, side: Side): boolean {
     const c = this.choppers[p];
     if (this.branch(p, i) !== side) return true;
-    if (c.shield > 0) {
+    if (c.shield > 0 || c.spare > 0) {
+      const spare = c.shield === 0;
+      if (spare) c.spare--;
       c.broken.add(i);
-      this.events.push({ type: 'shieldBreak', p, side });
+      this.events.push({ type: 'shieldBreak', p, side, spare });
       return true;
     }
     c.out = true;

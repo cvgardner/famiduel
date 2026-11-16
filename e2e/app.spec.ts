@@ -68,8 +68,32 @@ test('two people pick powers, play air hockey, and see the result', async ({ pag
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.7, { steps: 5 });
   await page.mouse.up();
   await holdPause(page);
+  await expect(page.locator('.sheet .why')).toHaveCount(0); // F323: only a pause nobody pressed says why
   await page.click('#quitBtn');
   await expect(page.locator('#home')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+// F322: Ping Pong between two still paddles rallied forever (a 900 s run ended 1-1, "Rally 879").
+test('two people who both walk away from a real-time game find it paused', async ({ page }) => {
+  const errors = await boot(page);
+  type R = { __famiduel: { runner: { fastForward(s: number): void; result: unknown; paused: boolean } } };
+  for (const id of ['pingpong', 'airhockey']) {
+    await page.evaluate(() => (window as unknown as { __famiduel: { showHome(): void } }).__famiduel.showHome());
+    await page.locator(`.game-card[data-id="${id}"]`).click();
+    await page.locator('.power-card[data-p="0"]').first().click();
+    await page.locator('.power-card[data-p="1"]').first().click();
+    await page.click('#ready0');
+    await page.click('#ready1');
+    await expect(page.locator('#play')).toBeVisible();
+    await page.evaluate(() => (window as unknown as R).__famiduel.runner.fastForward(900));
+    await expect(page.locator('#resumeBtn')).toBeVisible();
+    expect(await page.evaluate(() => (window as unknown as R).__famiduel.runner.result)).toBeNull();
+    // F323: the sheet says why it paused, so nobody wonders who pressed pause.
+    await expect(page.locator('.sheet .why')).toHaveText('Nobody was playing, so we paused.');
+    await page.click('#quitBtn');
+    await expect(page.locator('#home')).toBeVisible();
+  }
   expect(errors).toEqual([]);
 });
 
