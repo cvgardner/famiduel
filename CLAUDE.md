@@ -78,5 +78,26 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
   docs/accessibility-labels.md (Larger Text needs a setting that reaches 2x: Chris's call).
 - Settled (don't reopen without new evidence): Sea Battle's seat bias was noise (2000
   mirrored games, 49-50%); Minigolf's easy bot was made weaker for small kids (+0.8 over par).
-- Not built yet: ads / remove-ads unlock, highlight clips, rivalry cards, daily course sharing,
-  Family Wrapped, store wrapper (Capacitor), mini pool.
+- Not built yet: highlight clips, rivalry cards, daily course sharing,
+  Family Wrapped, mini pool.
+
+## iOS store build (15 Nov 2026, Chris: "get the app in front of users, not iterate more")
+
+- Capacitor 8 wraps the same web build: `capacitor.config.ts`, `ios/` (Swift Package Manager,
+  no CocoaPods). v1 is free with fair ads and a Remove Ads purchase, iPhone-only (TARGETED_DEVICE_FAMILY = 1;
+  iPads run the iPhone app), portrait only.
+- Native bits live in `src/engine/native.ts` (no-ops in a browser): Taptic haptics from the
+  same patterns as `engine/haptics.ts`, and the app's pause event pausing a match.
+  `GameViewController` in `ios/App/App/SceneDelegate.swift`: no status bar, edge swipes
+  deferred (both short edges are play areas), home indicator auto-hides.
+- Bundle ID placeholder `com.gardenogames.famiduel`: set the real one with
+  `scripts/ios-set-ids.sh`. Release steps: docs/release-checklist.md; store text and form
+  answers: docs/app-store/; support and privacy pages: site/.
+- `npm run store:art` redraws the icon and splash; `npm run store:shots` takes App Store
+  screenshots (needs a browser, so not in cloud sessions); `npm run ios:release` (Mac only)
+  archives and uploads to TestFlight.
+- **Ads (Chris, 16 Nov 2026: v1 ships with them):** Google AdMob interstitials, child-directed,
+  non-personalized, G-rated, no ATT prompt; only when a result screen is left, never in the
+  first session, at most one per 2 matches and 3 min (`src/core/adpolicy.ts`). Remove Ads is a
+  $4.99 non-consumable `famiduel.removeads` behind the parental gate. Browsers get no ads
+  (`?fakeads` for tests). Details: docs/ads.md. Privacy answers and policy already reflect it.
