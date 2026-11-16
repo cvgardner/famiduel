@@ -2488,6 +2488,25 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       race between bots is so tight that one chop near 12-13 is worth ~30 points. Starting
       counts 4/9/13 -> 12/12/13 (RULES.assistChops per star): 7/19/24/55%; kid+3 v easy 45%
       unchanged. tests/chopchop.test.ts, tests/sim-ladder.test.ts.
+- [x] 2026-11-15 (F350, PR #367): Snack Snatch's head start (longer reach, quicker recovery
+      from a miss) was all in the third star: easy+0..3 v normal 1/3/17/63% (n=100). The stars
+      now follow a curve, 3·(a/3)^0.3 (assistStep()), so the first stars give more of it:
+      1/16/28/63%, v hard 0/3/7/23%; three stars and kid+3 v easy (18%) unchanged.
+      tests/sim-ladder.test.ts.
+- [x] 2026-11-15 (F349, PR #366): Snake's head start (slower snake, wall auto-turn at three
+      stars) barely helped the easy bot: easy+0..3 v normal 13/5/14/15%. Its crashes were mostly
+      trails (60 matches at +3: own trail 105, the other's 65, walls 0), and the slower snake
+      just gave the other more room. The wall auto-turn now starts at one star and at three
+      stars it also steers away from a trail one cell ahead (toward the side with more room;
+      the "assist!" pop shows it). Ladder (n=200): v normal 9/15/22/61%, v hard 4/9/23/61%;
+      mashing kid+3 v easy 0% -> 40% (n=80). Handicap line "Slower snake, auto-turn at walls
+      (and trails)". tests/snake.test.ts, tests/sim-ladder.test.ts.
+- [x] 2026-11-15 (F345, PR #365): Sumo's head start was mostly rope saves (3 at no stars,
+      16 at three), but the easy bot is pushed out in ~all the rounds it loses (158/158 at +3 over
+      100 matches v normal) and almost never uses its saves up, so they did nothing; weight was
+      the knob that counts. Mass at three stars 1.3 -> 1.6: ladder easy+0..3 v normal 7/14/18/33%
+      -> 7/20/35/54%, v hard 3/5/13/15% -> 3/13/16/54% (n=160/80); kid+3 v easy 41% -> 43%, rows
+      without a head start unchanged. tests/sim-ladder.test.ts.
 - [x] 2026-11-15 (F346, PR #363): Ping Pong's head start was all in the first star: the easy bot
       with +0/+1/+2/+3 against normal won 3/70/80/100% (F342's ladder), because the easy bot
       misses by a little and a slightly wider paddle covered most misses. The paddle and
@@ -2511,3 +2530,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and Snake (37%) get anywhere at +3. Follow-ups on the todo list: Chop Chop (the head
       start only slows the timer, rounds end on a bonk), Tank Duel, Snake/Sumo, Ping Pong's
       steep +1.
+- [x] 2026-11-15 (F344, PR #364): Tank Duel's head start barely helped (easy bot with +3 v
+      normal 7%, n=30): extra armor alone can't close a ~5:1 bonk gap, because an easy aim lands
+      ~1 shot in 12 (normal 1 in 5). The helped player's shells now also reach further toward
+      the other tank (hit radius +0 / 4.7 / 9.3 / 14 at +0..3, never toward their own tank),
+      drawn as a soft ring in their colour the size the shell really bonks at; the bots see
+      and dodge it like a person would. Easy+0..3 v normal (n=80, powers off): 0 / 10 / 19 /
+      51%; vs hard still 10% at +3 (hard dodges well). Bot-vs-bot rows have no assist, so are
+      unchanged. tests/tanks-reach.test.ts.

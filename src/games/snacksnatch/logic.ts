@@ -103,6 +103,16 @@ export type Intent = { snap: [boolean, boolean]; power: boolean };
 /** Direction toward the field from player p's edge: player 0 snaps up (-y). */
 export const fwd = (p: PlayerIndex) => (p === 0 ? -1 : 1);
 
+/**
+ * The head start's stars on a curve (F350): with a straight line the reach and miss help only
+ * paid off near the top (easy+0..3 v normal 1/3/17/63%), so the first stars give more of it:
+ * 3·(a/3)^0.3 reads 1/16/28/63% (`npm run sim -- --ladder --game snacksnatch`).
+ */
+export function assistStep(assist: number): number {
+  const a = Math.max(0, Math.min(3, assist));
+  return 3 * Math.pow(a / 3, 0.3);
+}
+
 export class SnackSnatch {
   score: [number, number] = [0, 0];
   snacks: Snack[] = [];
@@ -149,10 +159,10 @@ export class SnackSnatch {
       [mk(1, 0), mk(1, 1)],
     ];
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
-    this.reach = [lerpAssist(players[0].assist, RULES.reach, RULES.reachMax), lerpAssist(players[1].assist, RULES.reach, RULES.reachMax)];
+    this.reach = [lerpAssist(assistStep(players[0].assist), RULES.reach, RULES.reachMax), lerpAssist(assistStep(players[1].assist), RULES.reach, RULES.reachMax)];
     this.missCooldown = [
-      lerpAssist(players[0].assist, RULES.missCooldown, RULES.missCooldownMin),
-      lerpAssist(players[1].assist, RULES.missCooldown, RULES.missCooldownMin),
+      lerpAssist(assistStep(players[0].assist), RULES.missCooldown, RULES.missCooldownMin),
+      lerpAssist(assistStep(players[1].assist), RULES.missCooldown, RULES.missCooldownMin),
     ];
   }
 
