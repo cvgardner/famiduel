@@ -2482,7 +2482,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
-- [x] 2026-11-15 (F345, PR #PRNUM): Sumo's head start was mostly rope saves (3 at no stars,
+- [x] 2026-11-15 (F345, PR #365): Sumo's head start was mostly rope saves (3 at no stars,
       16 at three), but the easy bot is pushed out in ~all the rounds it loses (158/158 at +3 over
       100 matches v normal) and almost never uses its saves up, so they did nothing; weight was
       the knob that counts. Mass at three stars 1.3 -> 1.6: ladder easy+0..3 v normal 7/14/18/33%
