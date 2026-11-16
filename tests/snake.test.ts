@@ -112,17 +112,30 @@ describe('snake duel', () => {
     expect(g.score).toEqual([0, 0]);
   });
 
-  it('assist slows the snake and turns it away from walls at assist 3', () => {
-    const g = fresh({ assist: [3, 0] });
-    expect(g.speed(0)).toBeCloseTo(g.speed(1) * RULES.assistSpeed);
+  it('assist slows the snake and turns it away from walls from one star', () => {
+    const three = fresh({ assist: [3, 0] });
+    expect(three.speed(0)).toBeCloseTo(three.speed(1) * RULES.assistSpeed);
+    const g = fresh({ assist: [1, 0] });
+    expect(g.speed(0)).toBeLessThan(g.speed(1));
     g.snakes[0].y = 1; // two cells from the top wall, heading up
     for (let i = 0; i < 120 && g.phase === 'play'; i++) g.step(DT, [idle, idle]);
     expect(g.snakes[0].alive).toBe(true);
     expect([1, 3]).toContain(g.snakes[0].dir);
-    const n = fresh({ assist: [1, 0] });
+    const n = fresh({ assist: [0, 0] });
     n.snakes[0].y = 1;
     while (n.phase === 'play') n.step(DT, [idle, idle]);
     expect(n.snakes[0].alive).toBe(false);
+  });
+
+  it('at three stars the auto-turn also dodges a trail (F349)', () => {
+    for (const [assist, lives] of [[2, false], [3, true]] as const) {
+      const g = fresh({ assist: [assist, 0] });
+      const s = g.snakes[0];
+      // A trail row three cells ahead of the snake, heading up, with open room either side.
+      for (let x = 0; x < RULES.cols; x++) g.grid[g.idx(x, s.y - 3)] = 2;
+      for (let i = 0; i < 120 && g.phase === 'play'; i++) g.step(DT, [idle, idle]);
+      expect(s.alive).toBe(lives);
+    }
   });
 
   it('speed boost makes the snake faster', () => {
