@@ -39,3 +39,15 @@ describe('snake: hard bots settle rounds', () => {
     expect(r.draws, 'drawn share of rounds').toBeLessThan(0.15);
   }, 60_000);
 });
+
+// F330: easy had no head-on worry at all, so two easy snakes met head-on in ~19% of
+// rounds (20% of rounds drawn). A small worry settles them without making easy stronger
+// against a kid (`npm run sim` kid rows unchanged at n=160).
+describe('snake: easy bots settle rounds', () => {
+  it('two easy bots rarely meet head-on', () => {
+    const r = mirror('easy');
+    // 2026-11-15 (60 matches): head-ons 0%, drawn rounds 0.4%; was 19% / 20%.
+    expect(r.headons, 'head-on share of rounds').toBeLessThan(0.05);
+    expect(r.draws, 'drawn share of rounds').toBeLessThan(0.08);
+  }, 60_000);
+});

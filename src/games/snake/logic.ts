@@ -338,9 +338,15 @@ export class SnakeDuel {
  */
 const HEADON_HARD = 1000;
 const NEARHEAD_HARD = 1000;
+/**
+ * F330: easy had no head-on worry, so two easy snakes met head-on in ~19% of rounds (a
+ * drawn round each time). A small one (still below its 0.5 noise times a few cells of
+ * room) only breaks a tie between two equally open turns; kid rows didn't move.
+ */
+const HEADON_EASY = 10;
 
 const BOT = {
-  easy: { depth: 14, react: 0.3, slip: 0.07, noise: 0.5, headOn: 0, nearHead: 0, lockAhead: false, territory: false },
+  easy: { depth: 14, react: 0.3, slip: 0.07, noise: 0.5, headOn: HEADON_EASY, nearHead: 0, lockAhead: false, territory: false },
   normal: { depth: 80, react: 0.15, slip: 0.015, noise: 0.5, headOn: 50, nearHead: 8, lockAhead: false, territory: false },
   hard: { depth: 600, react: HUMAN.tapGap, slip: 0, noise: 0.5, headOn: HEADON_HARD, nearHead: NEARHEAD_HARD, lockAhead: true, territory: true },
 } satisfies Record<BotLevel, { depth: number; react: number; slip: number; noise: number; headOn: number; nearHead: number; lockAhead: boolean; territory: boolean }>;
