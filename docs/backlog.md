@@ -2482,6 +2482,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-15 (F349, PR #366): Snake's head start (slower snake, wall auto-turn at three
+      stars) barely helped the easy bot: easy+0..3 v normal 13/5/14/15%. Its crashes were mostly
+      trails (60 matches at +3: own trail 105, the other's 65, walls 0), and the slower snake
+      just gave the other more room. The wall auto-turn now starts at one star and at three
+      stars it also steers away from a trail one cell ahead (toward the side with more room;
+      the "assist!" pop shows it). Ladder (n=200): v normal 9/15/22/61%, v hard 4/9/23/61%;
+      mashing kid+3 v easy 0% -> 40% (n=80). Handicap line "Slower snake, auto-turn at walls
+      (and trails)". tests/snake.test.ts, tests/sim-ladder.test.ts.
 - [x] 2026-11-15 (F345, PR #365): Sumo's head start was mostly rope saves (3 at no stars,
       16 at three), but the easy bot is pushed out in ~all the rounds it loses (158/158 at +3 over
       100 matches v normal) and almost never uses its saves up, so they did nothing; weight was
