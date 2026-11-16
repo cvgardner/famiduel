@@ -329,11 +329,21 @@ export class SnakeDuel {
 // Skill changes how far it looks (flood-fill depth), whether it thinks about
 // where the other head can go, its reaction time between two turns, and how
 // often it fumbles a turn.
+/**
+ * F327: how much the hard bot shies away from a head-on (a drawn round). Its territory
+ * pull (0.5 a cell, hundreds of cells) outweighed the old 50 / 8, so two hard snakes
+ * charged the middle and met head-on in ~40% of rounds (half of all rounds drawn, matches
+ * ran to the 9-round cap; a rival app's review: its hard snake "mimics my actions, making
+ * it impossible to win or lose"). Still far above -1e9, so a head-on (a draw) beats a sure crash.
+ */
+const HEADON_HARD = 1000;
+const NEARHEAD_HARD = 1000;
+
 const BOT = {
-  easy: { depth: 14, react: 0.3, slip: 0.07, noise: 0.5, avoidHead: false, territory: false },
-  normal: { depth: 80, react: 0.15, slip: 0.015, noise: 0.5, avoidHead: true, territory: false },
-  hard: { depth: 600, react: HUMAN.tapGap, slip: 0, noise: 0.5, avoidHead: true, territory: true },
-} satisfies Record<BotLevel, { depth: number; react: number; slip: number; noise: number; avoidHead: boolean; territory: boolean }>;
+  easy: { depth: 14, react: 0.3, slip: 0.07, noise: 0.5, headOn: 0, nearHead: 0, lockAhead: false, territory: false },
+  normal: { depth: 80, react: 0.15, slip: 0.015, noise: 0.5, headOn: 50, nearHead: 8, lockAhead: false, territory: false },
+  hard: { depth: 600, react: HUMAN.tapGap, slip: 0, noise: 0.5, headOn: HEADON_HARD, nearHead: NEARHEAD_HARD, lockAhead: true, territory: true },
+} satisfies Record<BotLevel, { depth: number; react: number; slip: number; noise: number; headOn: number; nearHead: number; lockAhead: boolean; territory: boolean }>;
 
 export class SnakeBot {
   private plannedFor = -1;
@@ -377,8 +387,14 @@ export class SnakeBot {
     if (!game.inside(x, y)) return -1e9;
     if (game.grid[game.idx(x, y)] !== 0 && !canPhase(s)) return -1e9;
     let score = flood(game, x, y, cfg.depth);
-    if (cfg.avoidHead && o.alive && Math.abs(o.x + DX[o.dir] - x) + Math.abs(o.y + DY[o.dir] - y) === 0) score -= 50;
-    else if (cfg.avoidHead && o.alive && Math.abs(o.x - x) + Math.abs(o.y - y) === 1) score -= 8;
+    if (o.alive && Math.abs(o.x + DX[o.dir] - x) + Math.abs(o.y + DY[o.dir] - y) === 0) score -= cfg.headOn;
+    else if (o.alive && Math.abs(o.x - x) + Math.abs(o.y - y) === 1) score -= cfg.nearHead;
+    // A turn locks the next cell straight (no second tap that soon), so the hard bot also
+    // checks that cell: one the other head reaches in two steps is a likely head-on.
+    else if (cfg.lockAhead && turn !== 0 && o.alive) {
+      const d2 = Math.abs(o.x - x - DX[dir]) + Math.abs(o.y - y - DY[dir]);
+      if (d2 === 2) score -= o.x + 2 * DX[o.dir] === x + DX[dir] && o.y + 2 * DY[o.dir] === y + DY[dir] ? cfg.headOn : cfg.nearHead;
+    }
     if (cfg.territory && o.alive) score += 0.5 * territory(game, x, y, o.x, o.y);
     if (turn === 0) score += 0.6; // mild preference for going straight; noise only breaks left/right ties
     return score + this.rng.range(0, cfg.noise);

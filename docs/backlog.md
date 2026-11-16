@@ -2412,3 +2412,20 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       lower case; it now names the other person when the name fits the pill at 13 ("Ann: 9"),
       else "Them: 9" ("Grandma Jose" with Bigger text at 320 px). fitFirst(), RIVAL_PILL,
       tests/bot-name.test.ts.
+- [x] 2026-11-15 (F327, PR #354): Snake: two hard snakes met head-on in ~40% of rounds (half of
+      all rounds drawn, matches ran to the 9-round cap; a rival app's review: its hard snake
+      "mimics my actions, making it impossible to win or lose"). The hard bot's territory pull
+      outweighed its head-on worry, and a turn locks the next cell straight (no second tap that
+      soon), so it turned into a head-on it then couldn't leave. Hard now weighs a head-on 1000
+      (cell the other head enters next, or one it can reach) and checks the locked cell after a
+      turn; easy/normal unchanged. 40 hard mirrors: head-ons 0, drawn rounds 52% -> 8%, match
+      draws 15% -> 0%; hard v normal 93%, sim:powers hard all in band. A packed arena (both
+      trapped together) has no clear line for "CRASH!", so the pop is skipped there (the
+      round-end banner says it). tests/snake-headon.test.ts.
+- [ ] Easy snakes also meet head-on (51 of 221 easy-mirror rounds drawn this way); easy has no
+      head-on worry at all. Fine for a kid's bot, but if families say easy rounds "just draw",
+      give easy a small one.
+- [x] 2026-11-15 (F328, no change): a rival app's review says "the person who goes first wins if
+      they get all their shots". Measured who started vs who won in bot mirrors (no powers):
+      Penalty 50/52/47% (easy/normal/hard, n=200), Minigolf 51/53/48% (n=600, ties left out),
+      Sea Battle 48/48/52% (n=600). No starter edge in our turn games; nothing to fix.
