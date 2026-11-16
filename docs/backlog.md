@@ -2422,9 +2422,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       draws 15% -> 0%; hard v normal 93%, sim:powers hard all in band. A packed arena (both
       trapped together) has no clear line for "CRASH!", so the pop is skipped there (the
       round-end banner says it). tests/snake-headon.test.ts.
-- [ ] Easy snakes also meet head-on (51 of 221 easy-mirror rounds drawn this way); easy has no
+- [x] Easy snakes also meet head-on (51 of 221 easy-mirror rounds drawn this way); easy has no
       head-on worry at all. Fine for a kid's bot, but if families say easy rounds "just draw",
       give easy a small one.
+      2026-11-15 (F330, PR #TBD): easy now has a small head-on worry (HEADON_EASY 10). 60 easy
+      mirrors: head-ons 19% -> 0% of rounds, drawn rounds 20% -> 0.4%, avg match 85 -> 72 s;
+      kid / kid+3 v easy 0% / 2% -> 0% / 1% (n=160, noise), normal v easy 92 -> 90%, easy
+      sim:powers all in band. tests/snake-headon.test.ts.
 - [x] 2026-11-15 (F328, no change): a rival app's review says "the person who goes first wins if
       they get all their shots". Measured who started vs who won in bot mirrors (no powers):
       Penalty 50/52/47% (easy/normal/hard, n=200), Minigolf 51/53/48% (n=600, ties left out),
