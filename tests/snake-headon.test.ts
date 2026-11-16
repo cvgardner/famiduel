@@ -5,11 +5,11 @@ import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
 import { DT, player } from './helpers';
 
 /** Rounds, drawn rounds and head-ons over 20 mirror matches at `level`, powers off. */
-function mirror(level: BotLevel) {
+function mirror(level: BotLevel, seeds = 20) {
   let rounds = 0;
   let draws = 0;
   let headons = 0;
-  for (let seed = 1; seed <= 20; seed++) {
+  for (let seed = 1; seed <= seeds; seed++) {
     const rng = makeRng(seed);
     const g = new SnakeDuel([player({ bot: level }), player({ bot: level })], false, rng);
     const bots = [new SnakeBot(0, level, rng), new SnakeBot(1, level, rng)];
@@ -33,10 +33,12 @@ function mirror(level: BotLevel) {
 // shies away from a head-on, including the cell a turn locks it into.
 describe('snake: hard bots settle rounds', () => {
   it('two hard bots rarely draw a round and never meet head-on', () => {
-    const r = mirror('hard');
-    // 2026-11-15 (40 matches): head-ons 0, drawn rounds 7.7% (both trapped the same tick); was 40% / 52%.
-    expect(r.headons, 'head-on share of rounds').toBeLessThan(0.03);
-    expect(r.draws, 'drawn share of rounds').toBeLessThan(0.15);
+    const r = mirror('hard', 40);
+    // 2026-11-15 (F327, 20 matches): head-ons 0, drawn rounds 7.7%; was 40% / 52%.
+    // F337: seeds 21-40 drew ~25%: heads turning into each other side by side, then
+    // swapping (now also a head-on). The hard bot avoids it: 40 matches 17% -> 3% drawn.
+    expect(r.headons, 'head-on share of rounds (swaps included)').toBeLessThan(0.03);
+    expect(r.draws, 'drawn share of rounds').toBeLessThan(0.08);
   }, 60_000);
 });
 

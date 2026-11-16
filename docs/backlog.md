@@ -2434,6 +2434,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       mirrors: head-ons 19% -> 0% of rounds, drawn rounds 20% -> 0.4%, avg match 85 -> 72 s;
       kid / kid+3 v easy 0% / 2% -> 0% / 1% (n=160, noise), normal v easy 92 -> 90%, easy
       sim:powers all in band. tests/snake-headon.test.ts.
+- [x] 2026-11-15 (F337, PR #TBD): Snake: two hard bots still drew 17% of rounds over 40 mirror
+      matches (F327's test read 7.7% on seeds 1-20; seeds 21-40 ran ~25%). Every draw was a
+      same-tick double crash, and ~19 of 33 were a head-on the game didn't call one: both snakes
+      turn toward each other side by side (mirror images, 2 cells apart), a turn locks the next
+      cell straight, so the heads end adjacent and facing and each runs into the other's head
+      cell. The game now calls that swap a head-on too (same buzz and flash), and the hard bot
+      treats a turn whose cell has the other head two cells straight on as a head-on. 40 hard
+      mirrors: drawn rounds 17% -> 3%, head-ons (swaps counted) 10% -> 0%; easy and normal
+      mirrors unchanged (0.6% / 3.6% drawn); hard v normal 90%, hard v easy 96%, kid rows 0%
+      (n=100). tests/snake.test.ts (swap), tests/snake-headon.test.ts (40 seeds, < 8% drawn).
 - [x] 2026-11-15 (F328, no change): a rival app's review says "the person who goes first wins if
       they get all their shots". Measured who started vs who won in bot mirrors (no powers):
       Penalty 50/52/47% (easy/normal/hard, n=200), Minigolf 51/53/48% (n=600, ties left out),

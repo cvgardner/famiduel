@@ -214,7 +214,12 @@ export class SnakeDuel {
     if (movers.length === 2) {
       const a = next[0];
       const b = next[1];
-      if (a.x === b.x && a.y === b.y) {
+      const s0 = this.snakes[0];
+      const s1 = this.snakes[1];
+      // Heads side by side and facing: each runs into the other's head cell (a swap).
+      // That is a head-on too (F337: ~19 of 33 drawn hard-mirror rounds were swaps).
+      const swap = a.x === s1.x && a.y === s1.y && b.x === s0.x && b.y === s0.y;
+      if ((a.x === b.x && a.y === b.y) || swap) {
         a.crash = b.crash = true;
         this.events.push({ type: 'headon', x: a.x, y: a.y });
       }
@@ -400,6 +405,9 @@ export class SnakeBot {
     else if (cfg.lockAhead && turn !== 0 && o.alive) {
       const d2 = Math.abs(o.x - x - DX[dir]) + Math.abs(o.y - y - DY[dir]);
       if (d2 === 2) score -= o.x + 2 * DX[o.dir] === x + DX[dir] && o.y + 2 * DY[o.dir] === y + DY[dir] ? cfg.headOn : cfg.nearHead;
+      // ...or the other head is two cells past it, straight on: if it turns into the cell
+      // between (as a mirror-image bot does), both heads are locked facing, a swap head-on.
+      else if (o.x === x + 2 * DX[dir] && o.y === y + 2 * DY[dir]) score -= cfg.headOn;
     }
     if (cfg.territory && o.alive) score += 0.5 * territory(game, x, y, o.x, o.y);
     if (turn === 0) score += 0.6; // mild preference for going straight; noise only breaks left/right ties
