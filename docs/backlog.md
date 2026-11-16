@@ -2482,7 +2482,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
-- [x] 2026-11-15 (F342, PR #TBD): `npm run sim -- --ladder`: the easy bot with head start
+- [x] 2026-11-15 (F342, PR #361): `npm run sim -- --ladder`: the easy bot with head start
       +0/+1/+2/+3 against normal and hard, per action game (botSeat() reads `easy+2`;
       tests/sim-ladder.test.ts). First read (n=30, vs normal): Air Hockey 7/23/47/63%, Ping
       Pong 3/70/80/100%, Sumo 3/7/27/23%, Snack Snatch 3/0/13/60%, Snake 10/3/10/17%, Quick
