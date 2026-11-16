@@ -164,7 +164,8 @@ class ChopView implements GameInstance {
         // F207: the shield breaks the branch on the chopper's side, so the word printed on the
         // chopper. It starts low on the trunk's other side, under that side's next branch.
         const w = toScreen(e.p, W / 2 - e.side * SHIELD_DX, L.baseY + 20);
-        fx.pop('Shield!', w.x, w.y, '#8fd3ff', e.p, 22);
+        // F343: a head start forgives a few branches a round; that one says "Saved!".
+        fx.pop(e.spare ? 'Saved!' : 'Shield!', w.x, w.y, '#8fd3ff', e.p, 22);
       } else if (e.type === 'frozenTap') {
         sfx.play('click');
       } else if (e.type === 'power') {

@@ -96,6 +96,37 @@ describe('chop chop', () => {
     expect(g.lastRound).toBe(1);
   });
 
+  // F343: the head start only slowed the timer, but rounds end on a bonk or the race to 50,
+  // so easy+3 v normal stayed 3% and a mashing kid+3 never beat easy. It now also starts the
+  // count ahead and forgives a few branches a round.
+  it('head start: a few chops ahead and a branch per star forgiven each round', () => {
+    const g = fresh({ assist: [3, 1] });
+    expect(g.choppers[0].chops).toBe(RULES.assistChops);
+    expect(g.choppers[1].chops).toBe(Math.round(RULES.assistChops / 3));
+    expect([g.spareFor(0), g.spareFor(1)]).toEqual([RULES.assistSpare, 1]);
+    const c = g.choppers[0];
+    const saves: boolean[] = [];
+    for (let k = 0; k < RULES.assistSpare; k++) {
+      let n = 0;
+      while (g.branch(0, c.idx + 1) === 0 && n++ < 100) g.step(DT, [{ chop: safe(g, 0), power: false }, idle]);
+      g.step(DT, [{ chop: g.branch(0, c.idx + 1) as -1 | 1, power: false }, idle]);
+      saves.push(g.events.some((e) => e.type === 'shieldBreak' && e.spare));
+      expect(c.out).toBe(false);
+    }
+    expect(saves).toEqual([true, true, true]);
+    expect(c.spare).toBe(0);
+    let n = 0;
+    while (g.branch(0, c.idx + 1) === 0 && n++ < 100) g.step(DT, [{ chop: safe(g, 0), power: false }, idle]);
+    g.step(DT, [{ chop: g.branch(0, c.idx + 1) as -1 | 1, power: false }, idle]);
+    expect(c.outReason).toBe('bonk');
+  });
+
+  it('no head start: no spare branches, count starts at 0', () => {
+    const g = fresh();
+    expect(g.choppers[0].chops).toBe(0);
+    expect(g.choppers[0].spare).toBe(0);
+  });
+
   it('timer runs out without chopping; assist slows the drain', () => {
     const g = fresh({ assist: [3, 0] });
     expect(g.drain(0)).toBeCloseTo(g.drain(1) * RULES.assistDrain);
