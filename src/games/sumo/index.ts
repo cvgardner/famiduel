@@ -58,6 +58,8 @@ export function bannerBox(gx: G, str: string, size: number, y: number): { x: num
   return { x, y: y - h / 2, w, h };
 }
 const ROPE = '#b8893e';
+/** F329: a rope save's words ("Saved by the rope!" / "Last rope save!"). */
+const ROPE_WORDS = /^(Saved by the rope|Last rope save)!$/;
 const SKIN = '#f6d3ad';
 const DUST = '#d8bb84';
 
@@ -212,6 +214,9 @@ class SumoView implements GameInstance {
         const msg = e.left > 0 ? 'Saved by the rope!' : 'Last rope save!';
         const ty = e.y + (e.p === 0 ? -44 : 44);
         const tx = Math.max(90, Math.min(W - 90, e.x));
+        // F329: saved again while the last save's words are still up (fast taps re-dash at the
+        // rope): the new words replace them rather than stacking a second copy beside them.
+        fx.fadeWords(ROPE_WORDS, e.p);
         // F181: the rope bounces the wrestler back in, often into the words above them.
         fx.pop(msg, tx, this.clearPopY(e.p, msg, 18, tx, ty, 12), e.left > 0 ? '#fff' : '#ff8a5c', e.p, 18);
       } else if (e.type === 'shrink') {
