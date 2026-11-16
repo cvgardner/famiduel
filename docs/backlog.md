@@ -2465,3 +2465,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       board in Minigolf, Sumo, Tank Duel, Sea Battle and RPS; none overlap. The countdown's
       solid "<name> goes first" pill is skipped: in Penalty it covers the still-empty kick
       tracker during "3 2 1" (harmless; move the pill only if the tracker ever starts filled).
+- [x] 2026-11-15 (F334, no change): Ping Pong's hard mirror runs longest (`npm run sim -- --game
+      pingpong --n 400`: avg 142 s, 13% over 3 min; normal 108 s, 2%). Measured over 60 mirror
+      matches per level: points per match ~11.5 at every level and 6-6 reached in 8/60 hard
+      (14/60 normal), so it isn't win-by-2 (hardCap 10 already ends deuce); it's rallies: hard
+      rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
+      hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
+      hard plays ~75 s (hard v normal). Left as is.
