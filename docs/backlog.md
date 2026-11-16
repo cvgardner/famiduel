@@ -2430,7 +2430,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Penalty 50/52/47% (easy/normal/hard, n=200), Minigolf 51/53/48% (n=600, ties left out),
       Sea Battle 48/48/52% (n=600). No starter edge in our turn games; nothing to fix.
 ## Ideas found 2026-11-15 (16:17 run, two people tapping fast)
-- [x] 2026-11-15 (F329, PR #PRNUM): Sumo: tapping HOLD fast re-dashes a wrestler at the rope just
+- [x] 2026-11-15 (F329, PR #355): Sumo: tapping HOLD fast re-dashes a wrestler at the rope just
       after it bounced them in, so rope saves can come 0.3-0.5 s apart (a two-person 320x568
       playtest logged 0.45 s and 0.33 s). The second "Saved by the rope!" stacked a line beside
       the still-bright first one, in both halves, like a stutter. The newest save's words now
