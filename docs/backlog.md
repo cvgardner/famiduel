@@ -2490,6 +2490,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the "assist!" pop shows it). Ladder (n=200): v normal 9/15/22/61%, v hard 4/9/23/61%;
       mashing kid+3 v easy 0% -> 40% (n=80). Handicap line "Slower snake, auto-turn at walls
       (and trails)". tests/snake.test.ts, tests/sim-ladder.test.ts.
+- [x] 2026-11-15 (F345, PR #365): Sumo's head start was mostly rope saves (3 at no stars,
+      16 at three), but the easy bot is pushed out in ~all the rounds it loses (158/158 at +3 over
+      100 matches v normal) and almost never uses its saves up, so they did nothing; weight was
+      the knob that counts. Mass at three stars 1.3 -> 1.6: ladder easy+0..3 v normal 7/14/18/33%
+      -> 7/20/35/54%, v hard 3/5/13/15% -> 3/13/16/54% (n=160/80); kid+3 v easy 41% -> 43%, rows
+      without a head start unchanged. tests/sim-ladder.test.ts.
 - [x] 2026-11-15 (F346, PR #363): Ping Pong's head start was all in the first star: the easy bot
       with +0/+1/+2/+3 against normal won 3/70/80/100% (F342's ladder), because the easy bot
       misses by a little and a slightly wider paddle covered most misses. The paddle and
@@ -2513,3 +2519,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and Snake (37%) get anywhere at +3. Follow-ups on the todo list: Chop Chop (the head
       start only slows the timer, rounds end on a bonk), Tank Duel, Snake/Sumo, Ping Pong's
       steep +1.
+- [x] 2026-11-15 (F344, PR #364): Tank Duel's head start barely helped (easy bot with +3 v
+      normal 7%, n=30): extra armor alone can't close a ~5:1 bonk gap, because an easy aim lands
+      ~1 shot in 12 (normal 1 in 5). The helped player's shells now also reach further toward
+      the other tank (hit radius +0 / 4.7 / 9.3 / 14 at +0..3, never toward their own tank),
+      drawn as a soft ring in their colour the size the shell really bonks at; the bots see
+      and dodge it like a person would. Easy+0..3 v normal (n=80, powers off): 0 / 10 / 19 /
+      51%; vs hard still 10% at +3 (hard dodges well). Bot-vs-bot rows have no assist, so are
+      unchanged. tests/tanks-reach.test.ts.

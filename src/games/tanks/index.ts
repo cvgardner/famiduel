@@ -511,6 +511,9 @@ class TankView implements GameInstance {
     }
     for (const s of this.game.shells) {
       const c = players[s.owner].color;
+      // F344: a head start's longer reach shows as a soft ring the size the shell really bonks at.
+      const reach = this.game.reach(s.owner);
+      if (reach > 0) circle(gx, s.x, s.y, RULES.shellR + reach, alpha(c, 0.16), alpha(c, 0.5), 1.5);
       if (s.bouncy) glow(gx, COLORS.gold, 12);
       circle(gx, s.x, s.y, RULES.shellR + 1.5, s.bouncy ? COLORS.gold : c);
       noGlow(gx);
