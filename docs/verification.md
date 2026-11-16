@@ -44,6 +44,9 @@ Sumo, Ping Pong today): the app pauses those after `IDLE_PAUSE` s with nobody to
 (F322), so a new real-time game that can't end belongs on that list, not in a stuck match. `npm run sim -- --selfout`
 counts, for Snake and Sumo, the share of lost rounds a side lost on its own (Snake into a
 wall or its own trail, Sumo off the ring untouched for a second; scripts/selfout.ts).
+`npm run sim -- --ladder` (F342) plays the easy bot with head start +0 to +3 against normal and
+against hard in each action game: the share it wins at each step shows whether the handicap
+knob gives a parent and a young kid close matches.
 
 ## Minigolf strokes table
 
