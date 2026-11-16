@@ -2482,6 +2482,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-15 (F342, PR #361): `npm run sim -- --ladder`: the easy bot with head start
+      +0/+1/+2/+3 against normal and hard, per action game (botSeat() reads `easy+2`;
+      tests/sim-ladder.test.ts). First read (n=30, vs normal): Air Hockey 7/23/47/63%, Ping
+      Pong 3/70/80/100%, Sumo 3/7/27/23%, Snack Snatch 3/0/13/60%, Snake 10/3/10/17%, Quick
+      Draw 0/3/37/77%, Tank Duel 0/3/3/7%, Chop Chop 3/3/3/3%; vs hard only Air Hockey (30%)
+      and Snake (37%) get anywhere at +3. Follow-ups on the todo list: Chop Chop (the head
+      start only slows the timer, rounds end on a bonk), Tank Duel, Snake/Sumo, Ping Pong's
+      steep +1.
 - [x] 2026-11-15 (F344, PR #364): Tank Duel's head start barely helped (easy bot with +3 v
       normal 7%, n=30): extra armor alone can't close a ~5:1 bonk gap, because an easy aim lands
       ~1 shot in 12 (normal 1 in 5). The helped player's shells now also reach further toward
