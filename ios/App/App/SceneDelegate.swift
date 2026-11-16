@@ -32,7 +32,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 class GameViewController: CAPBridgeViewController {
     override var prefersStatusBarHidden: Bool { true }
 
-    override var prefersHomeIndicatorAutoHidden: Bool { true }
+    // The home indicator auto-hides through Capacitor 8's SystemBars plugin
+    // (capacitor.config.ts `SystemBars.hidden`); Capacitor owns that property, so it
+    // can't be overridden here (the Mac build failed on it).
 
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge { [.top, .bottom] }
 
@@ -50,6 +52,5 @@ class GameViewController: CAPBridgeViewController {
         webView?.scrollView.bounces = false
         webView?.scrollView.contentInsetAdjustmentBehavior = .never
         setNeedsUpdateOfScreenEdgesDeferringSystemGestures()
-        setNeedsUpdateOfHomeIndicatorAutoHidden()
     }
 }

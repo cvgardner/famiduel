@@ -22,6 +22,11 @@ const config: CapacitorConfig = {
     allowsLinkPreview: false,
     scrollEnabled: false,
   },
+  plugins: {
+    // Hides the status bar and lets the home indicator fade out while nobody touches it
+    // (Capacitor 8 owns prefersHomeIndicatorAutoHidden, so GameViewController can't).
+    SystemBars: { hidden: true },
+  },
 };
 
 export default config;
