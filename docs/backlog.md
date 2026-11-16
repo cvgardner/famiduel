@@ -2482,7 +2482,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
-- [x] 2026-11-15 (F349, PR #PRNUM): Snake's head start (slower snake, wall auto-turn at three
+- [x] 2026-11-15 (F349, PR #366): Snake's head start (slower snake, wall auto-turn at three
       stars) barely helped the easy bot: easy+0..3 v normal 13/5/14/15%. Its crashes were mostly
       trails (60 matches at +3: own trail 105, the other's 65, walls 0), and the slower snake
       just gave the other more room. The wall auto-turn now starts at one star and at three
