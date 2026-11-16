@@ -2383,7 +2383,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       grows up to the screen less 8 each side; short names keep the usual pill. starterPill(),
       tests/starter-pill.test.ts, e2e/long-names.spec.ts (every shown game's countdown words
       with the edge probe; fails on the old pill).
-- [ ] F319-F321 on the todo list: RPS pick lines, Minigolf scorecard lines and Sea Battle
+- [x] F319-F321 (done 2026-11-15, PRs #346-#348): RPS pick lines, Minigolf scorecard lines and Sea Battle
       notices with 12-letter names (found reading the code, not yet measured).
 ## Ideas found 2026-11-15 (13:17 run, both players walk away)
 - [x] 2026-11-15 (F322, PR #349): with nobody touching, Air Hockey (a resting puck), Sumo (two
@@ -2429,3 +2429,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       they get all their shots". Measured who started vs who won in bot mirrors (no powers):
       Penalty 50/52/47% (easy/normal/hard, n=200), Minigolf 51/53/48% (n=600, ties left out),
       Sea Battle 48/48/52% (n=600). No starter edge in our turn games; nothing to fix.
+## Ideas found 2026-11-15 (16:17 run, two people tapping fast)
+- [x] 2026-11-15 (F329, PR #PRNUM): Sumo: tapping HOLD fast re-dashes a wrestler at the rope just
+      after it bounced them in, so rope saves can come 0.3-0.5 s apart (a two-person 320x568
+      playtest logged 0.45 s and 0.33 s). The second "Saved by the rope!" stacked a line beside
+      the still-bright first one, in both halves, like a stutter. The newest save's words now
+      replace the old (fx.fadeWords()), so each seat shows one rope-save pop at a time and the
+      last save still says "Last rope save!". Bots rarely do it (0-5 per 40 matches).
+      tests/sumo-rope-repeat.test.ts.
