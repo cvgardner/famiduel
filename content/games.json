@@ -29,7 +29,7 @@
       "handicap": "Opponent's tap counts a little later" },
     { "id": "chopchop", "gesture": "sides", "name": "Chop Chop", "icon": "🪓", "kind": "Timing", "free": false, "color": "#a1887f",
       "blurb": "Last one chopping, or first to 50. Best of 5.", "howTo": "Tap left or right to chop from that side. Dodge the falling branches!",
-      "handicap": "Slower timer" },
+      "handicap": "A head start of chops, a few branches forgiven, slower timer" },
     { "id": "seabattle", "gesture": "tap2", "name": "Sea Battle", "icon": "🚢", "kind": "Strategy · turns", "free": false, "color": "#1e88e5",
       "blurb": "Sink every ship.", "howTo": "Shuffle or move your 5 ships, pass the phone, then take turns: tap a square, tap again to fire. A hit fires again.",
       "howToSolo": "Shuffle or move your 5 ships, then take turns with the bot: tap a square, tap again to fire. A hit fires again.",

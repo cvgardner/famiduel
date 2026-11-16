@@ -4,8 +4,9 @@
 // unfinished matches and the average match length, so difficulty tuning across games
 // starts from numbers. The kid rows show whether a mashing small kid, with no head start
 // and with the full one, ever beats the easy bot. Options: `npm run sim -- --n 40 --game sumo --powers`.
+// `--ladder`: the easy bot with head start 0-3 against normal and against hard (F342).
 // `--idle`: one seat never touches the screen, then a both-idle row per game (F324). `--selfout`: lost points that were self-outs (scripts/selfout.ts).
-import { LONG_T, pairing, playMatch, type SimLevel, SPECS } from './simlib';
+import { ladder, LONG_T, pairing, playMatch, type SimLevel, SPECS } from './simlib';
 import { selfOutCounter } from './selfout';
 import { IDLE_PAUSE } from '../src/app/runner';
 
@@ -60,6 +61,18 @@ function main() {
       console.log([spec.id.padEnd(12), pct(ends), pct(r.draws), pct(r.long), r.avgT.toFixed(0).padStart(6), ` ${then}`].join(' '));
     }
     console.log(never.length ? `${never.length} game(s) don't end with nobody playing (${never.join(', ')}); the app pauses them after ${IDLE_PAUSE} s.` : 'Every game ends with nobody playing.');
+    return;
+  }
+  if (args.includes('--ladder')) {
+    console.log(`Head-start ladder: ${n} matches per cell, seats swapped every other match, powers ${powers ? 'on' : 'off'}.`);
+    console.log('Share the EASY bot wins with head start +0 / +1 / +2 / +3 against a bot with none.');
+    console.log(['game'.padEnd(12), 'against'.padEnd(8), '   +0', '   +1', '   +2', '   +3'].join(' '));
+    for (const spec of SPECS) {
+      if (only && spec.id !== only) continue;
+      for (const against of ['normal', 'hard'] as const) {
+        console.log([spec.id.padEnd(12), against.padEnd(8), ...ladder(spec, against, n, powers).map(pct)].join(' '));
+      }
+    }
     return;
   }
   if (args.includes('--selfout')) {
