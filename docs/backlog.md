@@ -2451,3 +2451,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       every run (any Chop Chop power beats none ~90%) although every head-to-head pair was
       33-63% (n=60 normal). The outlier line now uses the average against the other powers and
       lists a power that loses to no power separately (`judge()`, tests/powers-sim-judge.test.ts).
+- [x] 2026-11-15 (F333, PR #358): Sumo: in ~31-37% of ring-outs (40 bot mirrors per level) the loser
+      leaves the ring beside the centre line, where the two round-end banners' dark boxes sit
+      (MID ± ~49), so its spin-out played behind them. The wrestler who went out is now drawn
+      over the boxes; the winner stays under them so the words (in the winner's colour) never
+      sit on the winner's body; the words are still drawn last. renderBanner(gx, 'box' | 'words'),
+      tests/sumo-banner-under.test.ts.
