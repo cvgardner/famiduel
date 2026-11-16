@@ -26,8 +26,12 @@ export const RULES = {
    * bonking). Rounds end on a bonk, so a slower timer alone never helped a kid.
    */
   assistSpare: 3,
-  /** F343: chops a round starts with at assist 3 (a head start in the race to 50). */
-  assistChops: 13,
+  /**
+   * Chops a round starts with at 0-3 stars (a head start in the race to 50; F343, F351).
+   * The race between bots is tight, so a chop or two decides it: a straight 4/9/13 read
+   * easy+0..3 v normal 7/10/11/55%; 12/12/13 reads 7/19/24/55% (14 at three stars: 93%).
+   */
+  assistChops: [0, 12, 12, 13],
   refill: 0.1,
   /** Double Chop covers this many chops (a count, not seconds, so a slow tapper gets as much from it). */
   doubleChop: 8,
@@ -139,7 +143,7 @@ export class ChopChop {
 
   /** Chops this player's count starts each round on (the head start, F343). */
   startChops(p: PlayerIndex): number {
-    return Math.round(lerpAssist(this.players[p].assist, 0, RULES.assistChops));
+    return RULES.assistChops[Math.max(0, Math.min(3, Math.round(this.players[p].assist)))];
   }
 
   /** Branches a round forgives this player: 0 without a head start, up to RULES.assistSpare. */
