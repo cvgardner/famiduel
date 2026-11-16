@@ -1078,8 +1078,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and dodging or driving: it turns 90° to sidestep a shell and back to shoot. A person
       does that too; only worth softening if a kid calls the hard tank twitchy. Picking the
       dodge side that needs less turning was tried and made no measurable difference.
-- [ ] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
+- [x] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
       fine for a kid's opponent, but watch it in playtests.
+      2026-11-15 (F331, measured, no change): over 60 matches per pairing, goals where the
+      conceding side touched the puck last and it travelled 0.6 s+ before going in (a shot or
+      clear coming back) run 0.78 a match easy v kid, 0.93 easy mirror, 0.67 normal mirror,
+      0.78 hard mirror: easy is no clumsier than hard. Most "last touched by the conceder"
+      goals are blocks that still go in (hard mirror 6.1 a match), which is normal air hockey.
 
 ## Ideas found 2026-11-01 (ping pong landing spot run)
 - [x] Hard Snake turns about 3× as often as Easy/Normal (it re-plans territory every cell);
