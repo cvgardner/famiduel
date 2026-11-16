@@ -34,4 +34,13 @@ describe('sim head-start ladder', () => {
     expect(a3).toBeGreaterThan(a0 + 0.25);
     expect(a3).toBeGreaterThan(0.4);
   }, 60_000);
+
+  it('the first head-start stars count in Snack Snatch (F350)', () => {
+    const spec = SPECS.find((s) => s.id === 'snacksnatch')!;
+    const [a0, a1, a2, a3] = ladder(spec, 'normal', 60);
+    // 2026-11-15 (n=100): 1 / 16 / 28 / 63% (was 1 / 3 / 17 / 63% with a straight line).
+    expect(a1).toBeGreaterThan(a0 + 0.05);
+    expect(a2).toBeGreaterThan(a1);
+    expect(a3).toBeGreaterThan(a2);
+  }, 60_000);
 });
