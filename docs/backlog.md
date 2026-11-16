@@ -2482,7 +2482,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
-- [x] 2026-11-15 (F343, PR #TBD): Chop Chop's head start only slowed the timer, but rounds end
+- [x] 2026-11-15 (F343, PR #362): Chop Chop's head start only slowed the timer, but rounds end
       on a bonk or the race to 50, so it did nothing measurable: easy+N v normal 3/3/3/3%,
       a mashing kid+3 v easy 0%. Measured why easy loses (40 matches): bonks 71 rounds, normal
       reaching 50 first 47; forgiving branches alone just turned bonks into lost races. Now
