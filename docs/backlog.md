@@ -2457,3 +2457,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       over the boxes; the winner stays under them so the words (in the winner's colour) never
       sit on the winner's body; the words are still drawn last. renderBanner(gx, 'box' | 'words'),
       tests/sumo-banner-under.test.ts.
+- [x] 2026-11-15 (F317): one long-names pass over every shown game on a 320 px phone with
+      Bigger text: two people (a 12-letter name and "Grandma Jose", both ways round) and
+      playing the bot (both named 12 letters), ~3 s from Ready, the box probe lists every
+      word drawn in a frame and a word holding a name must not sit on a different word
+      (e2e/long-names.spec.ts "names in play never sit on other words"). Names show on the
+      board in Minigolf, Sumo, Tank Duel, Sea Battle and RPS; none overlap. The countdown's
+      solid "<name> goes first" pill is skipped: in Penalty it covers the still-empty kick
+      tracker during "3 2 1" (harmless; move the pill only if the tracker ever starts filled).
+- [x] 2026-11-15 (F334, no change): Ping Pong's hard mirror runs longest (`npm run sim -- --game
+      pingpong --n 400`: avg 142 s, 13% over 3 min; normal 108 s, 2%). Measured over 60 mirror
+      matches per level: points per match ~11.5 at every level and 6-6 reached in 8/60 hard
+      (14/60 normal), so it isn't win-by-2 (hardCap 10 already ends deuce); it's rallies: hard
+      rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
+      hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
+      hard plays ~75 s (hard v normal). Left as is.
