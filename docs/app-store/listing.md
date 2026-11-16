@@ -20,13 +20,13 @@ don't repeat them.
 
 ## Pricing and availability
 
-Free. All countries (see the EU trader note in docs/release-checklist.md).
+Free, with one in-app purchase: **Remove Ads** (non-consumable, product ID `famiduel.removeads`, $4.99 tier). All countries (see the EU trader note in docs/release-checklist.md).
 
 ## Version 1.0
 
 ### Promotional text (170, can change any time without a review)
 
-Two players, one phone. Lay it flat between you and play Air Hockey, Minigolf, Sumo and 9 more, with super powers to pick. Free, no ads, nothing to sign up for.
+Two players, one phone. Lay it flat between you and play Air Hockey, Minigolf, Sumo and 9 more, with super powers to pick. Every game free, nothing to sign up for.
 
 ### Description (4000)
 
@@ -52,8 +52,8 @@ Keep a family scoreboard, or play a best-of-7 tournament across different games.
 MADE FOR SMALL HANDS
 Big buttons, a bigger text setting, light and dark menus, and a pause button that needs a press and hold, so a stray tap never stops the game.
 
-FREE, NO ADS, NOTHING COLLECTED
-No ads, no purchases, no accounts and no chat. Names and scores stay on your phone and are never sent anywhere.
+FREE, AND FAIR ABOUT IT
+Every game is free. A short ad can show between matches now and then, never during a game and never in your first session. Ads are family-safe and never personalized, and the app never tracks you. One purchase removes them for good, behind a grown-ups question so kids can't buy it by accident. No accounts and no chat; names and scores stay on your phone.
 
 ### Keywords (100, comma separated, no spaces after commas)
 

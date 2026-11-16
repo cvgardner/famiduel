@@ -1,19 +1,40 @@
 # App Store Connect form answers (v1.0)
 
-Answers for the forms App Store Connect asks before review. They hold for v1 as built:
-free, no ads, no purchases, no accounts, no network requests (the web build makes none;
-`grep -rn "fetch(\|XMLHttpRequest\|sendBeacon" src` finds nothing). **Redo the App
-Privacy and age rating answers when ads or the remove-ads purchase ship** (CLAUDE.md
-plans both): an ad SDK collects data and changes several answers below.
+Answers for the forms App Store Connect asks before review, for v1 as built: free, with
+fair interstitial ads from Google AdMob between matches (docs/ads.md) and one non-consumable
+purchase, **Remove Ads** (`famiduel.removeads`). No accounts, no chat, no tracking. The
+app's own code still makes no network requests (`grep -rn "fetch(\|XMLHttpRequest\|sendBeacon" src`
+finds nothing); the only data that leaves the phone is what the Google Mobile Ads SDK sends.
 
 ## App Privacy (App Store Connect > App Privacy)
 
-- **Do you or your third-party partners collect data from this app?** No.
-- Result on the store page: **Data Not Collected**.
-- Why that's accurate: player names, settings, scores, match-night and tournament progress
-  and the daily course best are saved only in the app's on-device storage
-  (`src/app/store.ts`, `localStorage`) and never leave the phone. Apple counts data as
-  "collected" only when it's sent off the device.
+- **Do you or your third-party partners collect data from this app?** **Yes** (the Google
+  Mobile Ads SDK counts, even though we never see the data).
+- Tick these data types. For each: **not linked** to the user's identity, **not used for
+  tracking**. Purposes as listed.
+
+| Category | Data type | Purposes |
+|---|---|---|
+| Location | Coarse Location (from the IP address) | Third-Party Advertising, Analytics |
+| Identifiers | Device ID (IDFV; the IDFA is unavailable without the tracking prompt) | Third-Party Advertising, Analytics |
+| Usage Data | Product Interaction | Third-Party Advertising, Analytics |
+| Usage Data | Advertising Data | Third-Party Advertising, Analytics |
+| Diagnostics | Crash Data | Third-Party Advertising, Analytics |
+| Diagnostics | Performance Data | Third-Party Advertising, Analytics |
+| Diagnostics | Other Diagnostic Data | Third-Party Advertising, Analytics |
+
+- Do **not** tick Contact Info, Health, Financial Info (Apple handles the payment), User
+  Content, Browsing/Search History, Contacts, Purchases (StoreKit is Apple's, not ours)
+  or Sensitive Info.
+- Result on the store page: "Data Not Linked to You" with the types above, and no
+  "Data Used to Track You" section.
+- This follows Google's own "data disclosure" page for the Mobile Ads SDK
+  (developers.google.com/admob/ios/privacy/data-disclosure). Glance at that page while
+  filling the form in case Google has changed its list since 16 Nov 2026.
+- Why "not tracking": every request is child-directed, under the age of consent and
+  non-personalized (`src/engine/ads.ts`), and the app has no `NSUserTrackingUsageDescription`,
+  so it never shows the App Tracking Transparency prompt and never reads the IDFA.
+- The SDK ships its own privacy manifest (PrivacyInfo.xcprivacy), so nothing to add in Xcode.
 - Privacy Policy URL: the hosted `site/privacy.html` (see docs/release-checklist.md).
 
 ## Age rating (App Information > Age Rating > Edit)
@@ -29,7 +50,7 @@ Step 1, in-app controls and capabilities:
 | Unrestricted web access | No |
 | User-generated content | No (player names stay on the device and nobody else sees them) |
 | Messaging and chat | No |
-| Advertising | No |
+| Advertising | **Yes** (interstitials between matches, family-safe, non-personalized) |
 | Social media / social feed | No |
 
 Step 2, content (frequency):
@@ -56,8 +77,8 @@ would bind future ads and purchases to the Kids rules (no third-party ads or ana
 CLAUDE.md chose Games 9+ instead. Leave "Override to higher age rating" off.
 
 If App Store Connect shows a question not listed here, the honest answer for v1 is almost
-always "No"/"None": the app has no network, accounts, chat, web views of outside pages,
-purchases or ads.
+always "No"/"None": the app has no accounts, chat, user content or web views of outside
+pages. Its only network use is the ads, and its only purchase is Remove Ads.
 
 ## Export compliance
 
@@ -73,11 +94,28 @@ so App Store Connect won't ask on each upload.
 
   FamiDuel is a two-player game for one phone: lay the phone flat between two people and
   each player uses the half of the screen nearest them. To try it alone, tap "Play the bot"
-  at the top of the home screen, pick a game and press Ready. There
-  are no accounts, purchases, ads or network features; all data stays on the device.
+  at the top of the home screen, pick a game and press Ready. There are no accounts or
+  chat; names and scores stay on the device. Ads (Google AdMob, child-directed,
+  non-personalized, G-rated) show only between matches: never in the first session, at
+  most one every 2 matches and 3 minutes, so to see one, reopen the app and finish two
+  matches. The Remove Ads purchase is in Settings > For grown-ups, behind a parental gate
+  (a multiplication question written in words); Restore Purchase is next to it.
   The pause button needs a press and hold (so a child's stray tap doesn't pause), and a
   swipe from the top or bottom edge needs a second swipe because both edges are players'
   play areas.
+
+## In-App Purchase (Monetization > In-App Purchases > +)
+
+- Type **Non-Consumable**. Reference name "Remove Ads". Product ID **`famiduel.removeads`**
+  (must match `REMOVE_ADS_ID` in src/engine/ads.ts exactly).
+- Price: $4.99 tier (CLAUDE.md range $4.99–6.99). Availability: all countries.
+- Display name "Remove Ads"; description "No more ads between matches. Every game stays free."
+- Review screenshot: Settings > For grown-ups showing the Remove ads row (take it from a
+  TestFlight build or `npm run store:shots`'s settings shot).
+- Review notes: "Settings > For grown-ups > Remove ads, after the grown-ups question."
+- Family Sharing: on is friendly for a family app (optional).
+- The first purchase must be submitted **with** the app version: on the version page,
+  under In-App Purchases, add Remove Ads before Submit.
 
 ## Content rights
 

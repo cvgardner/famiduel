@@ -16,6 +16,30 @@ Form answers and listing text: `docs/app-store/` (listing.md, app-review-answers
   As a trader your address, phone and email are shown on the store page there. If you'd rather
   not yet, untick the EU countries in Pricing and Availability for now.
 
+## Your accounts: ads and the purchase (once)
+
+These need your logins, so they're yours. Everything else in this file can be run by a
+Claude session on your Mac.
+
+1. **Paid Apps agreement.** App Store Connect > Business: accept the Paid Apps agreement and
+   add bank and tax details. Without it the Remove Ads purchase can't even be tested.
+2. **The Remove Ads product.** After step 3 below creates the app: Monetization >
+   In-App Purchases > + > Non-Consumable, product ID `famiduel.removeads`, $4.99
+   (docs/app-store/app-review-answers.md has the text).
+3. **A sandbox tester.** Users and Access > Sandbox > + (any email you don't use for a real
+   Apple ID). On the iPhone: Settings > Developer > Sandbox Apple Account. TestFlight builds
+   buy for free with your normal Apple ID, so this is only for Xcode runs.
+4. **AdMob.** admob.google.com: sign up (payments profile and tax form), Apps > Add app >
+   iOS, "not yet listed" for now (link it to the store listing after release). Then
+   Ad units > Add > **Interstitial**. In App settings set **"Child-directed: tag all ad
+   requests as child-directed"** if offered, and in Blocking controls > Content leave max
+   rating at **G**. Send the app ID (`ca-app-pub-…~…`) and the interstitial unit ID
+   (`ca-app-pub-…/…`), or run `bash scripts/ios-set-ads.sh <app id> <unit id>` yourself.
+   Until then builds show Google's "Test Ad", which is fine for TestFlight.
+5. **app-ads.txt** (after the app is live): AdMob shows one line for it; it must sit at the
+   root of your developer website (the Marketing URL's domain). It's optional at launch but
+   lifts ad fill.
+
 ## 1. Set up the project (once)
 
 ```sh
@@ -50,6 +74,13 @@ Plug in your iPhone, pick it at the top of the window and press Run (▶). Check
 - [ ] Swiping up from the bottom edge or down from the top edge during a match plays the
       game; a second swipe is needed to leave the app.
 - [ ] Names and a match-night score are still there after force-quitting and reopening.
+- [ ] Ads: the first launch shows none. Force-quit, reopen, play two matches (3+ minutes),
+      tap Rematch: a Google "Test Ad" interstitial shows, closes with its ✕, and the intro
+      follows. No ad ever shows mid-match.
+- [ ] Settings > For grown-ups shows "Remove ads · $4.99" (the price appears only once the
+      product exists in App Store Connect) and "Restore purchase"; both ask the grown-ups
+      question first. Buy with the sandbox tester: "Ads removed" shows and no ad follows.
+      Delete and reinstall, tap Restore purchase: "Ads removed" again.
 
 ## 3. Create the app in App Store Connect (once)
 

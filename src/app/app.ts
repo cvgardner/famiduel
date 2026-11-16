@@ -28,6 +28,8 @@ import { applyTheme, watchSystemTheme } from './theme';
 import { DARK_INK, inkOn } from '../core/contrast';
 import { cardInk } from './cardink';
 import { READY_WORDS, readyLabel, type ReadyState } from './readylabel';
+import { AD_RULES, adDue, type AdRules, type AdState } from '../core/adpolicy';
+import { makeMoney, type Money } from '../engine/ads';
 
 export type GameMeta = (typeof gamesJson.games)[number];
 export const META: GameMeta[] = gamesJson.games;
@@ -51,6 +53,11 @@ export const RESULT_SETTLE_MS = 800;
 export class App {
   readonly store = new Store();
   readonly sfx = new Sfx();
+  /** Store build: AdMob + StoreKit (or `?fakeads` stand-ins); null in a browser = no ads, no purchase row. */
+  readonly money: Money | null = makeMoney();
+  /** When the next ad may show (core/adpolicy.ts). */
+  readonly adState: AdState = { removed: false, launches: 0, matchesSinceAd: 0, lastAdAt: Date.now() };
+  adRules: AdRules = AD_RULES;
   readonly stage: Stage;
   runner: Runner | null = null;
   private current: GameMeta | null = null;
@@ -97,7 +104,80 @@ export class App {
     this.applyBigText();
     watchPowerPics(root);
     watchSystemTheme(() => this.store.data.settings.theme);
+    this.startMoney();
     this.showHome();
+  }
+
+  // ---------- Fair ads and "Remove ads" (store build only) ----------
+
+  private startMoney(): void {
+    const money = this.money;
+    if (!money) return;
+    this.adState.launches = this.store.countLaunch();
+    this.adState.removed = !!this.store.data.ads?.removed;
+    // `?fakeads=now` (tests): no free first launch and no wait, so an ad comes after one match.
+    if (money.fake && new URLSearchParams(location.search).get('fakeads') === 'now') this.adRules = { minMatches: 1, minGapMs: 0, freeLaunches: 0 };
+    if (!this.adState.removed) money.ads.preload();
+    // StoreKit is the truth (a refund brings ads back); offline, the saved answer stands.
+    money.purchases.owned().then((o) => {
+      if (o !== null) this.setAdsRemoved(o);
+    });
+  }
+
+  private setAdsRemoved(removed: boolean): void {
+    this.adState.removed = removed;
+    this.store.setAdsRemoved(removed);
+    if (!removed) this.money?.ads.preload();
+  }
+
+  /**
+   * Leaving a result screen: show an ad first when one is due and already loaded (nobody
+   * ever waits for an ad to load), then go on. The only place an ad can appear.
+   */
+  private betweenMatches(next: () => void): void {
+    const ads = this.money?.ads;
+    if (!ads || !adDue(this.adState, Date.now(), this.adRules) || !ads.ready()) return next();
+    for (const b of document.querySelectorAll<HTMLButtonElement>('#result button')) b.disabled = true;
+    const wasMuted = this.sfx.muted;
+    this.sfx.muted = true;
+    ads.show().then(() => {
+      this.sfx.muted = wasMuted;
+      this.adState.matchesSinceAd = 0;
+      this.adState.lastAdAt = Date.now();
+      next();
+    });
+  }
+
+  /** Settings rows: buy or restore "Remove ads", both behind the grown-ups gate. */
+  private adsRows(): string {
+    if (!this.money) return '';
+    if (this.adState.removed) return `<div class="set-row" id="adsGone"><span class="set-ico" aria-hidden="true">💛</span><span class="set-txt"><b>Ads removed</b><small>Thank you for supporting FamiDuel!</small></span></div>`;
+    return `<button class="set-row set-link" id="removeAds"><span class="set-ico" aria-hidden="true">🚫</span><span class="set-txt"><b>Remove ads <span id="adsPrice"></span></b><small>One purchase, every game stays free</small></span><span class="set-go" aria-hidden="true">›</span></button>
+      <button class="set-row set-link" id="restoreAds"><span class="set-ico" aria-hidden="true">🔄</span><span class="set-txt"><b>Restore purchase</b><small>Bought it before? Get it back here</small></span><span class="set-go" aria-hidden="true">›</span></button>`;
+  }
+
+  private wireAdsRows(): void {
+    const money = this.money;
+    if (!money) return;
+    const price = document.getElementById('adsPrice');
+    if (price) money.purchases.price().then((p) => p && price.isConnected && (price.textContent = `· ${p}`));
+    const act = (id: string, run: () => Promise<boolean>) =>
+      document.getElementById(id)?.addEventListener('click', () => {
+        this.sfx.play('tap');
+        this.showGate(() =>
+          run().then((owned) => {
+            if (owned) this.setAdsRemoved(true);
+            if ($('#settings').classList.contains('hidden')) return;
+            this.showSettings();
+            if (!owned) {
+              const note = document.getElementById(id === 'restoreAds' ? 'restoreAds' : 'removeAds');
+              note?.querySelector('small')?.replaceChildren(id === 'restoreAds' ? 'Nothing to restore on this Apple ID' : 'Not bought. Nothing was charged.');
+            }
+          }),
+        );
+      });
+    act('removeAds', () => money.purchases.buy());
+    act('restoreAds', () => money.purchases.restore());
   }
 
   private show(id: string): void {
@@ -217,8 +297,9 @@ export class App {
               .join('')}</div>
           </div>` + this.toggle('bigText', '🔠', 'Bigger text', 'Larger words in games and menus', !!settings.bigText) +
           this.toggle('bigButtons', '🖐️', 'Little hands', 'Bigger Ready and power buttons, in games too', !!settings.bigButtons), 'Auto follows your phone\'s light or dark mode.')}
-      ${group('For grown-ups', `<button class="set-row set-link" id="grownUps"><span class="set-ico" aria-hidden="true">👪</span><span class="set-txt"><b>Grown-ups corner</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
-      <footer class="foot">FamiDuel · no ads, no accounts · everything stays on this device</footer>`;
+      ${group('For grown-ups', this.adsRows() + `<button class="set-row set-link" id="grownUps"><span class="set-ico" aria-hidden="true">👪</span><span class="set-txt"><b>Grown-ups corner</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
+      <footer class="foot">${this.money ? 'FamiDuel · no accounts, no chat · ads only between matches' : 'FamiDuel · no ads, no accounts · everything stays on this device'}</footer>`;
+    this.wireAdsRows();
     $('#grownUps').addEventListener('click', () => {
       this.sfx.play('tap');
       this.showGate(() => this.showGrownUps());
@@ -838,6 +919,7 @@ export class App {
     this.starters.record(meta.id, this.runner?.game.firstMover?.());
     for (const h of this.helpShown) this.help.played(meta.id, h.p, h.who);
     this.helpShown = [];
+    this.adState.matchesSinceAd++;
     this.store.record(
       meta.id,
       r,
@@ -911,12 +993,14 @@ export class App {
       for (const b of settle) if (!b.classList.contains('on')) b.disabled = false;
       res.classList.remove('settling');
     }, RESULT_SETTLE_MS);
-    $('#homeBtn', res).addEventListener('click', () => {
-      this.tourneyMatch = false;
-      this.showHome();
-    });
-    res.querySelector('#rematchBtn')?.addEventListener('click', () => this.openGame(meta.id));
-    res.querySelector('#tourneyNextBtn')?.addEventListener('click', () => this.showTournament());
+    $('#homeBtn', res).addEventListener('click', () =>
+      this.betweenMatches(() => {
+        this.tourneyMatch = false;
+        this.showHome();
+      }),
+    );
+    res.querySelector('#rematchBtn')?.addEventListener('click', () => this.betweenMatches(() => this.openGame(meta.id)));
+    res.querySelector('#tourneyNextBtn')?.addEventListener('click', () => this.betweenMatches(() => this.showTournament()));
     const easier = res.querySelector<HTMLButtonElement>('#easierBtn');
     if (offer && easier) {
       easier.addEventListener('click', () => {
