@@ -2434,7 +2434,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       mirrors: head-ons 19% -> 0% of rounds, drawn rounds 20% -> 0.4%, avg match 85 -> 72 s;
       kid / kid+3 v easy 0% / 2% -> 0% / 1% (n=160, noise), normal v easy 92 -> 90%, easy
       sim:powers all in band. tests/snake-headon.test.ts.
-- [x] 2026-11-15 (F337, PR #TBD): Snake: two hard bots still drew 17% of rounds over 40 mirror
+- [x] 2026-11-15 (F337, PR #360): Snake: two hard bots still drew 17% of rounds over 40 mirror
       matches (F327's test read 7.7% on seeds 1-20; seeds 21-40 ran ~25%). Every draw was a
       same-tick double crash, and ~19 of 33 were a head-on the game didn't call one: both snakes
       turn toward each other side by side (mirror images, 2 cells apart), a turn locks the next
