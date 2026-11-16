@@ -2482,3 +2482,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-15 (F344, PR #TBD): Tank Duel's head start barely helped (easy bot with +3 v
+      normal 7%, n=30): extra armor alone can't close a ~5:1 bonk gap, because an easy aim lands
+      ~1 shot in 12 (normal 1 in 5). The helped player's shells now also reach further toward
+      the other tank (hit radius +0 / 4.7 / 9.3 / 14 at +0..3, never toward their own tank),
+      drawn as a soft ring in their colour the size the shell really bonks at; the bots see
+      and dodge it like a person would. Easy+0..3 v normal (n=80, powers off): 0 / 10 / 19 /
+      51%; vs hard still 10% at +3 (hard dodges well). Bot-vs-bot rows have no assist, so are
+      unchanged. tests/tanks-reach.test.ts.

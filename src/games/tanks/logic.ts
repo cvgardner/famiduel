@@ -19,6 +19,12 @@ export const RULES = {
   armor: 5,
   /** Armor at assist 3: the helped player can take this many bonks. */
   armorMax: 8,
+  /**
+   * F344: at assist 3 the helped player's shells bonk the other tank from this much
+   * further away (a bigger shell, drawn that size), so a kid's wobbly aim still lands.
+   * Never against their own tank.
+   */
+  reachMax: 14,
   tankR: 12,
   speed: 92,
   turnRate: 6.5,
@@ -232,6 +238,11 @@ export function armorFor(assist: number): number {
   return Math.round(lerpAssist(assist, RULES.armor, RULES.armorMax));
 }
 
+/** F344: extra hit radius of a shell fired by a player with this assist, against the other tank. */
+export function reachFor(assist: number): number {
+  return lerpAssist(assist, 0, RULES.reachMax);
+}
+
 export class TankDuel {
   score: [number, number] = [0, 0];
   tanks: [Tank, Tank];
@@ -405,6 +416,11 @@ export class TankDuel {
     this.events.push({ type: 'fire', p, x: m.x, y: m.y, bouncy });
   }
 
+  /** F344: extra hit radius of p's shells against the other tank (head start). */
+  reach(p: PlayerIndex): number {
+    return reachFor(this.players[p].assist);
+  }
+
   private firePower(p: PlayerIndex): void {
     const power = this.players[p].power;
     if (!power || !this.energy[p].spend(power.duration ?? 0)) return;
@@ -439,12 +455,13 @@ export class TankDuel {
         const tk = this.tanks[p];
         if (!TankDuel.armedFor(s, p)) continue;
         const d = Math.hypot(s.x - tk.x, s.y - tk.y);
-        if (tk.shield > 0 && d < RULES.tankR + 10 + RULES.shellR) {
+        const reach = s.owner === p ? 0 : this.reach(s.owner);
+        if (tk.shield > 0 && d < RULES.tankR + 10 + RULES.shellR + reach) {
           s.alive = false;
           this.events.push({ type: 'block', p, x: s.x, y: s.y });
           break;
         }
-        if (d < hitR) {
+        if (d < hitR + reach) {
           s.alive = false;
           if (!victims.has(p)) victims.set(p, { by: s.owner, x: s.x, y: s.y, mine: false });
           break;
@@ -603,7 +620,7 @@ export function traceShot(game: TankDuel, p: PlayerIndex, a: number, maxT = 2.4)
     for (const q of PLAYERS) {
       if (!TankDuel.armedFor(s, q)) continue;
       const tk = game.tanks[q];
-      if (Math.hypot(s.x - tk.x, s.y - tk.y) < hitR - (q === p ? -4 : 3)) return { hit: q, bounces: s.bounces, t };
+      if (Math.hypot(s.x - tk.x, s.y - tk.y) < hitR - (q === p ? -4 : 3 - game.reach(p))) return { hit: q, bounces: s.bounces, t };
     }
   }
   return { hit: null, bounces: s.bounces, t: maxT };
@@ -777,9 +794,10 @@ export class TankBot {
     const danger = RULES.tankR + RULES.shellR + 6;
     for (const s0 of game.shells) {
       const s = { ...s0 };
+      const reach = s0.owner === this.p ? 0 : game.reach(s0.owner);
       for (let t = 0; t < 0.9 && s.alive; t += 1 / 60) {
         game.arena.moveShell(s, 1 / 60);
-        if (TankDuel.armedFor(s, this.p) && Math.hypot(s.x - me.x, s.y - me.y) < danger) return { x: s.x, y: s.y, vx: s.vx, vy: s.vy };
+        if (TankDuel.armedFor(s, this.p) && Math.hypot(s.x - me.x, s.y - me.y) < danger + reach) return { x: s.x, y: s.y, vx: s.vx, vy: s.vy };
       }
     }
     return null;
