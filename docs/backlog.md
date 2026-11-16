@@ -2491,3 +2491,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       where "Shield!" shows). Ladder (n=60, vs normal): 8/10/13/55%; kid+3 v easy 0% -> 45%
       (n=80); bot-vs-bot rows unchanged (no head start). Handicap line on the intro says so.
       tests/chopchop.test.ts.
+- [x] 2026-11-15 (F342, PR #361): `npm run sim -- --ladder`: the easy bot with head start
+      +0/+1/+2/+3 against normal and hard, per action game (botSeat() reads `easy+2`;
+      tests/sim-ladder.test.ts). First read (n=30, vs normal): Air Hockey 7/23/47/63%, Ping
+      Pong 3/70/80/100%, Sumo 3/7/27/23%, Snack Snatch 3/0/13/60%, Snake 10/3/10/17%, Quick
+      Draw 0/3/37/77%, Tank Duel 0/3/3/7%, Chop Chop 3/3/3/3%; vs hard only Air Hockey (30%)
+      and Snake (37%) get anywhere at +3. Follow-ups on the todo list: Chop Chop (the head
+      start only slows the timer, rounds end on a bonk), Tank Duel, Snake/Sumo, Ping Pong's
+      steep +1.
