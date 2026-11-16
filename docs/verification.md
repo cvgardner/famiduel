@@ -36,7 +36,7 @@ any other real-time bot (Sumo, Ping Pong, Tanks) by recording that bot's positio
 ## Bot tables
 
 `npm run sim` plays the real-time action games bot against bot at every level pairing (plus a
-mashing kid), `npm run sim:powers` compares each game's powers, and `npm run sim -- --idle`
+mashing kid), `npm run sim:powers` compares each game's powers (its outlier line judges a power on its average against the other powers, and names any power that loses to no power on its own line: F332), and `npm run sim -- --idle`
 plays every game with one seat that never touches the screen against each bot level: no
 match there should be unfinished, and few should pass 3 minutes. It then plays both seats idle
 (two people who walked away) and names the games that never end on their own (Air Hockey,

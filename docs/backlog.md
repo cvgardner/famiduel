@@ -2446,3 +2446,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       replace the old (fx.fadeWords()), so each seat shows one rope-save pop at a time and the
       last save still says "Last rope save!". Bots rarely do it (0-5 per 40 matches).
       tests/sumo-rope-repeat.test.ts.
+- [x] 2026-11-15 (F332): `npm run sim:powers` judged outliers on the "avg" column, which counts
+      the match against no power, so Chop Chop's Shield and Double read 66-67% and were flagged
+      every run (any Chop Chop power beats none ~90%) although every head-to-head pair was
+      33-63% (n=60 normal). The outlier line now uses the average against the other powers and
+      lists a power that loses to no power separately (`judge()`, tests/powers-sim-judge.test.ts).
