@@ -164,6 +164,17 @@ export class FingerPaddle {
   }
 }
 
+/**
+ * F346: the head start's paddle and ball help grow with the square of the stars (1, 2, 3 ->
+ * 1/9, 4/9, all of it). Linear, one star already took the easy bot from 3% to 70% against
+ * normal (the easy bot misses by a little, so a slightly wider paddle covered most misses);
+ * now the steps read ~2 / 13 / 57 / 100% (`npm run sim -- --ladder --game pingpong`).
+ */
+export function assistStep(assist: number): number {
+  const a = Math.max(0, Math.min(3, assist));
+  return (a * a) / 3;
+}
+
 export class PingPong {
   score: [number, number] = [0, 0];
   paddles: [Paddle, Paddle];
@@ -191,11 +202,11 @@ export class PingPong {
     readonly powersOn: boolean,
     private readonly rng: Rng,
   ) {
-    const w = (p: PlayerIndex) => lerpAssist(players[p].assist, RULES.paddleW, RULES.paddleWMax);
+    const w = (p: PlayerIndex) => lerpAssist(assistStep(players[p].assist), RULES.paddleW, RULES.paddleWMax);
     const mk = (p: PlayerIndex): Paddle => ({ x: W / 2, y: RULES.paddleY[p], vx: 0, vy: 0, swingX: 0, swingY: 0, w: w(p), smash: false, curve: false, slowmo: 0 });
     this.paddles = [mk(0), mk(1)];
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
-    this.towardFactor = [lerpAssist(players[0].assist, 1, RULES.assistSlow), lerpAssist(players[1].assist, 1, RULES.assistSlow)];
+    this.towardFactor = [lerpAssist(assistStep(players[0].assist), 1, RULES.assistSlow), lerpAssist(assistStep(players[1].assist), 1, RULES.assistSlow)];
     this.firstServer = rng.chance(0.5) ? 0 : 1;
     this.server = this.firstServer;
     this.ball = this.serveBall();

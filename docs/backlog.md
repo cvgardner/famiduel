@@ -2482,3 +2482,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-15 (F346, PR #TBD): Ping Pong's head start was all in the first star: the easy bot
+      with +0/+1/+2/+3 against normal won 3/70/80/100% (F342's ladder), because the easy bot
+      misses by a little and a slightly wider paddle covered most misses. The paddle and
+      slow-ball help now grow with the square of the stars (1/9, 4/9, all: assistStep()), so
+      each star counts: 2/13/57/100% (n=60); kid / kid+3 v easy 0% / 0% unchanged (the masher
+      never returns a ball, a separate F21 question). tests/pingpong.test.ts.
