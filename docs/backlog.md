@@ -1078,8 +1078,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and dodging or driving: it turns 90° to sidestep a shell and back to shoot. A person
       does that too; only worth softening if a kid calls the hard tank twitchy. Picking the
       dodge side that needs less turning was tried and made no measurable difference.
-- [ ] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
+- [x] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
       fine for a kid's opponent, but watch it in playtests.
+      2026-11-15 (F331, measured, no change): over 60 matches per pairing, goals where the
+      conceding side touched the puck last and it travelled 0.6 s+ before going in (a shot or
+      clear coming back) run 0.78 a match easy v kid, 0.93 easy mirror, 0.67 normal mirror,
+      0.78 hard mirror: easy is no clumsier than hard. Most "last touched by the conceder"
+      goals are blocks that still go in (hard mirror 6.1 a match), which is normal air hockey.
 
 ## Ideas found 2026-11-01 (ping pong landing spot run)
 - [x] Hard Snake turns about 3× as often as Easy/Normal (it re-plans territory every cell);
@@ -2422,9 +2427,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       draws 15% -> 0%; hard v normal 93%, sim:powers hard all in band. A packed arena (both
       trapped together) has no clear line for "CRASH!", so the pop is skipped there (the
       round-end banner says it). tests/snake-headon.test.ts.
-- [ ] Easy snakes also meet head-on (51 of 221 easy-mirror rounds drawn this way); easy has no
+- [x] Easy snakes also meet head-on (51 of 221 easy-mirror rounds drawn this way); easy has no
       head-on worry at all. Fine for a kid's bot, but if families say easy rounds "just draw",
       give easy a small one.
+      2026-11-15 (F330, PR #356): easy now has a small head-on worry (HEADON_EASY 10). 60 easy
+      mirrors: head-ons 19% -> 0% of rounds, drawn rounds 20% -> 0.4%, avg match 85 -> 72 s;
+      kid / kid+3 v easy 0% / 2% -> 0% / 1% (n=160, noise), normal v easy 92 -> 90%, easy
+      sim:powers all in band. tests/snake-headon.test.ts.
 - [x] 2026-11-15 (F328, no change): a rival app's review says "the person who goes first wins if
       they get all their shots". Measured who started vs who won in bot mirrors (no powers):
       Penalty 50/52/47% (easy/normal/hard, n=200), Minigolf 51/53/48% (n=600, ties left out),
