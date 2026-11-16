@@ -95,6 +95,23 @@ describe('snake duel', () => {
     expect(h.score).toEqual([0, 0]);
   });
 
+  it('F337: heads side by side and facing swap into each other: a head-on, a draw round', () => {
+    const g = fresh();
+    g.grid.fill(0);
+    Object.assign(g.snakes[0], { x: 10, y: 20, dir: 1, acc: 0 });
+    Object.assign(g.snakes[1], { x: 11, y: 20, dir: 3, acc: 0 });
+    g.grid[g.idx(10, 20)] = 1;
+    g.grid[g.idx(11, 20)] = 2;
+    let headons = 0;
+    while (g.phase === 'play') {
+      g.step(DT, [idle, idle]);
+      headons += g.events.filter((e) => e.type === 'headon').length;
+    }
+    expect(headons).toBe(1);
+    expect(g.lastRound).toBeNull();
+    expect(g.score).toEqual([0, 0]);
+  });
+
   it('assist slows the snake and turns it away from walls at assist 3', () => {
     const g = fresh({ assist: [3, 0] });
     expect(g.speed(0)).toBeCloseTo(g.speed(1) * RULES.assistSpeed);
