@@ -2446,7 +2446,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       replace the old (fx.fadeWords()), so each seat shows one rope-save pop at a time and the
       last save still says "Last rope save!". Bots rarely do it (0-5 per 40 matches).
       tests/sumo-rope-repeat.test.ts.
-- [x] 2026-11-15 (F333): Sumo: in ~31-37% of ring-outs (40 bot mirrors per level) the loser
+- [x] 2026-11-15 (F333, PR #358): Sumo: in ~31-37% of ring-outs (40 bot mirrors per level) the loser
       leaves the ring beside the centre line, where the two round-end banners' dark boxes sit
       (MID ± ~49), so its spin-out played behind them. The wrestler who went out is now drawn
       over the boxes; the winner stays under them so the words (in the winner's colour) never
