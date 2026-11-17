@@ -4,6 +4,7 @@ import { boxProbe, contrastProbe, edgeProbe, readerProbe, smallText } from './en
 import { keepPortrait } from './engine/portrait';
 import { popProbe } from './engine/fx';
 import { onAppPause } from './engine/native';
+import { runAdSelfTest } from './app/adselftest';
 
 const root = document.getElementById('app')!;
 const app = new App(root);
@@ -18,3 +19,5 @@ onAppPause(() => app.interrupt());
 (window as unknown as { __reader: typeof readerProbe }).__reader = readerProbe;
 (window as unknown as { __pops: typeof popProbe }).__pops = popProbe;
 (window as unknown as { __boxes: typeof boxProbe }).__boxes = boxProbe;
+// Simulator ad self-test (scripts/ios-ad-selftest.sh); off in every normal build.
+if ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_AD_SELFTEST === '1') setTimeout(() => void runAdSelfTest(app), 3000);
