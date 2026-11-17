@@ -45,6 +45,19 @@ No ads and no purchase rows; the web playable is unchanged (footer still says "n
 `?fakeads` swaps in a grey stand-in ad and a purchase that always works; `?fakeads=now`
 also drops the waits so an ad comes after one match. e2e/ads.spec.ts walks both.
 
+## Testing on a Mac
+
+- `bash scripts/ios-ad-selftest.sh` (booted simulator, no taps): plays one bot match in a
+  throwaway build and taps Rematch, so the real AdMob test interstitial shows; logs
+  `[ad-selftest]` lines and saves screenshots to build/ios/. Passed 17 Nov 2026 on an
+  iPhone 17 simulator (Xcode 26.1.1).
+- Remove Ads without App Store Connect: open ios/App/App.xcodeproj and press Run. The App
+  scheme uses ios/App/Products.storekit (a local test store with `famiduel.removeads`), so
+  Settings > For grown-ups > Remove ads buys for free in the simulator. Debug > StoreKit >
+  Manage Transactions deletes the purchase to try Restore.
+- The app's own PrivacyInfo.xcprivacy sits beside those of Capacitor and the Google SDKs;
+  an unsigned Release archive contains all six.
+
 ## Not built (later)
 
 Android (AdMob works the same; needs a Play Billing product), a "Remove ads" nudge on the
