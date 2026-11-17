@@ -1,0 +1,36 @@
+{
+  "identifier" : "6E1F3A2B",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : true,
+      "internalID" : "6755000001",
+      "localizations" : [
+        {
+          "description" : "No more ads between matches. Every game stays free.",
+          "displayName" : "Remove Ads",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "famiduel.removeads",
+      "referenceName" : "Remove Ads",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
