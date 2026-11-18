@@ -108,7 +108,7 @@ so App Store Connect won't ask on each upload.
 
 - Type **Non-Consumable**. Reference name "Remove Ads". Product ID **`famiduel.removeads`**
   (must match `REMOVE_ADS_ID` in src/engine/ads.ts exactly).
-- Price: $4.99 tier (CLAUDE.md range $4.99–6.99). Availability: all countries.
+- Price: $4.99 tier (CLAUDE.md range $4.99–6.99). Availability: same countries as the app (no EU at launch).
 - Display name "Remove Ads"; description "No more ads between matches. Every game stays free."
 - Review screenshot: Settings > For grown-ups showing the Remove ads row (take it from a
   TestFlight build or `npm run store:shots`'s settings shot).

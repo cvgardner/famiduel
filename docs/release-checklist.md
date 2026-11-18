@@ -13,12 +13,12 @@ Form answers and listing text: `docs/app-store/` (listing.md, app-review-answers
   Store; App Store Connect tells you in step 3.
 - **Support email:** durianirl@gardeno-games.com, shown publicly on the support and privacy
   pages (already written into `site/`).
-
-Still yours to decide:
-
-- **EU.** To sell in the EU, Apple needs you to declare "trader" status (Digital Services Act).
-  As a trader your address, phone and email are shown on the store page there. If you'd rather
-  not yet, untick the EU countries in Pricing and Availability for now.
+- **EU: skipped at launch.** v1 goes out everywhere except the 27 EU countries, because
+  Apple's trader check (Digital Services Act) can take weeks. The EU is added later without a
+  new build: see "Later: add the EU" at the end. FamiDuel earns from ads and Remove Ads, so
+  it is a "trader"; if App Store Connect asks for trader status before you can submit, that's
+  the honest answer. The contact details show only on EU store pages, so with the EU off
+  they're shown nowhere.
 
 ## Your accounts: ads and the purchase (once)
 
@@ -92,7 +92,11 @@ from step 1, in the list after step 2), SKU `famiduel-ios`, Full Access.
 
 Then fill in, from `docs/app-store/`:
 - **App Information:** subtitle, category (Games: Family, Sports), content rights, age rating.
-- **Pricing and Availability:** Free; countries (see EU above).
+- **Pricing and Availability:** Free. Countries: all, then untick the 27 EU countries
+  (Austria, Belgium, Bulgaria, Croatia, Cyprus, Czechia, Denmark, Estonia, Finland, France,
+  Germany, Greece, Hungary, Ireland, Italy, Latvia, Lithuania, Luxembourg, Malta, Netherlands,
+  Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden). The UK, Norway, Iceland and
+  Switzerland aren't in the EU and stay on.
 - **App Privacy:** the data types in app-review-answers.md (from the Google ads SDK), and
   the privacy policy URL from step 4.
 
@@ -143,6 +147,21 @@ choose manual or automatic release, then **Add for Review** > **Submit**.
 
 New builds later: bump `MARKETING_VERSION` (Xcode > target App > General > Version) for
 a new store version, then `npm run ios:release` again.
+
+## Later: add the EU
+
+When you're ready to sell in the EU (no new build or version needed):
+
+1. Get an address you're happy to show (a PO box or virtual mailbox works, with a bill or
+   receipt that links it to you), a phone number that can receive Apple's code (a virtual
+   number is fine) and an email.
+2. App Store Connect > Apps > FamiDuel > General > App Compliance > Digital Services Act >
+   Edit: choose Trader, enter and verify the details, and upload the document Apple asks
+   for. If your developer account is an organization, Apple shows its D-U-N-S address
+   instead and you can't swap it.
+3. Wait for verification (some developers waited weeks in autumn 2026; Apple Developer
+   Support by phone has sped it up).
+4. Pricing and Availability: tick the 27 EU countries. It takes effect within a day.
 
 ## What was and wasn't tested
 

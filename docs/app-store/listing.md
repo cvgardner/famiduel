@@ -20,7 +20,7 @@ don't repeat them.
 
 ## Pricing and availability
 
-Free, with one in-app purchase: **Remove Ads** (non-consumable, product ID `famiduel.removeads`, $4.99 tier). All countries (see the EU trader note in docs/release-checklist.md).
+Free, with one in-app purchase: **Remove Ads** (non-consumable, product ID `famiduel.removeads`, $4.99 tier). All countries except the 27 EU ones at launch; the EU comes later (docs/release-checklist.md, "Later: add the EU").
 
 ## Version 1.0
 
