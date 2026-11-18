@@ -5,13 +5,17 @@ is `npm run ios:release` (step 8). You already have an Apple Developer account.
 
 Form answers and listing text: `docs/app-store/` (listing.md, app-review-answers.md).
 
-## Decide first
+## Decided (18 Nov 2026)
 
-- **Bundle ID.** Placeholder `com.gardenogames.famiduel`. It can never change after the
-  first upload, so pick the one you want to keep.
-- **App Store name.** Draft: "FamiDuel: 2 Player Games" (docs/app-store/listing.md has options).
-  The name must not already be taken on the App Store; App Store Connect tells you in step 4.
-- **Support email** for the support and privacy pages (it's shown publicly).
+- **Bundle ID:** `com.gardenogames.famiduel`, already set in the project. It can never change
+  after the first upload.
+- **App Store name:** "FamiDuel: 2 Player Games". It must not already be taken on the App
+  Store; App Store Connect tells you in step 3.
+- **Support email:** durianirl@gardeno-games.com, shown publicly on the support and privacy
+  pages (already written into `site/`).
+
+Still yours to decide:
+
 - **EU.** To sell in the EU, Apple needs you to declare "trader" status (Digital Services Act).
   As a trader your address, phone and email are shown on the store page there. If you'd rather
   not yet, untick the EU countries in Pricing and Availability for now.
@@ -44,13 +48,11 @@ Claude session on your Mac.
 
 ```sh
 git clone https://github.com/cvgardner/famiduel && cd famiduel   # or git pull
-git checkout claude/ios-publishing    # until the PR is merged
 npm ci
-bash scripts/ios-set-ids.sh com.gardenogames.famiduel YOURTEAMID
 ```
 
-Team ID: developer.apple.com > Account > Membership details (10 letters and digits).
-You need the current Xcode from the Mac App Store, with your Apple ID added in
+The bundle ID and your Team ID (`ios/release.env`) are already set. To change either:
+`bash scripts/ios-set-ids.sh <bundle id> <team id>`. You need the current Xcode from the Mac App Store, with your Apple ID added in
 Xcode > Settings > Accounts.
 
 ## 2. Sign once in Xcode and run it on your iPhone
@@ -91,21 +93,21 @@ from step 1, in the list after step 2), SKU `famiduel-ios`, Full Access.
 Then fill in, from `docs/app-store/`:
 - **App Information:** subtitle, category (Games: Family, Sports), content rights, age rating.
 - **Pricing and Availability:** Free; countries (see EU above).
-- **App Privacy:** "Data Not Collected", and the privacy policy URL from step 4.
+- **App Privacy:** the data types in app-review-answers.md (from the Google ads SDK), and
+  the privacy policy URL from step 4.
 
 ## 4. Host the support and privacy pages (once)
 
 The store needs a working support URL and privacy policy URL. They're in `site/`.
 
 ```sh
-SUPPORT_EMAIL=you@example.com npm run site:publish
+npm run site:publish
 ```
 
 Then GitHub > famiduel > Settings > Pages > "Deploy from a branch", branch `gh-pages`, `/ (root)`.
 After a minute: https://cvgardner.github.io/famiduel/privacy.html and …/support.html.
 GitHub Pages builds with GitHub Actions; if the Actions billing block stops it, drag the
-`site` folder onto app.netlify.com/drop (replace SUPPORT_EMAIL in the two pages first)
-and use those URLs instead.
+`site` folder onto app.netlify.com/drop and use those URLs instead.
 
 ## 5. Screenshots
 
