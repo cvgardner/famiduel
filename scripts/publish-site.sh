@@ -2,20 +2,18 @@
 # Publish site/ (privacy policy and support page the App Store needs) to the repo's
 # gh-pages branch, which GitHub Pages serves at https://cvgardner.github.io/famiduel/.
 #
-#   SUPPORT_EMAIL=you@example.com npm run site:publish
+#   npm run site:publish
 #
 # One-time: GitHub > repo Settings > Pages > Source "Deploy from a branch", branch
-# gh-pages, folder / (root). The email is filled in only in the published copy.
+# gh-pages, folder / (root). The support email is written in the pages themselves.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-[[ -n "${SUPPORT_EMAIL:-}" && "$SUPPORT_EMAIL" == *@* ]] || { echo "Set SUPPORT_EMAIL=you@example.com" >&2; exit 2; }
 REMOTE="$(git remote get-url origin)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 cp -R site/. "$TMP/"
-for f in "$TMP"/*.html; do sed "s/SUPPORT_EMAIL/$SUPPORT_EMAIL/g" "$f" >"$f.tmp" && mv "$f.tmp" "$f"; done
 touch "$TMP/.nojekyll"
 
 cd "$TMP"

@@ -3,10 +3,9 @@ import type { CapacitorConfig } from '@capacitor/cli';
 // iOS store wrapper (Capacitor). The web build in dist/ is copied into ios/ by
 // `npx cap sync ios`; see docs/release-checklist.md.
 //
-// CHRIS TO CONFIRM: appId is the App Store bundle ID. It is a placeholder until it
-// matches the one you register in App Store Connect, and it can't change after the
-// first upload. Change it here and in ios/App/App.xcodeproj (PRODUCT_BUNDLE_IDENTIFIER),
-// or run scripts/ios-set-ids.sh.
+// appId is the App Store bundle ID (Chris confirmed com.gardenogames.famiduel, 18 Nov 2026).
+// It can't change after the first upload. It also lives in ios/App/App.xcodeproj
+// (PRODUCT_BUNDLE_IDENTIFIER); scripts/ios-set-ids.sh changes both.
 const config: CapacitorConfig = {
   appId: 'com.gardenogames.famiduel',
   appName: 'FamiDuel',

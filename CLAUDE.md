@@ -90,8 +90,9 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
   same patterns as `engine/haptics.ts`, and the app's pause event pausing a match.
   `GameViewController` in `ios/App/App/SceneDelegate.swift`: no status bar, edge swipes
   deferred (both short edges are play areas), home indicator auto-hides.
-- Bundle ID placeholder `com.gardenogames.famiduel`: set the real one with
-  `scripts/ios-set-ids.sh`. Release steps: docs/release-checklist.md; store text and form
+- Confirmed by Chris (18 Nov 2026): bundle ID `com.gardenogames.famiduel` (permanent after the
+  first upload; `scripts/ios-set-ids.sh` changes it), App Store name "FamiDuel: 2 Player Games",
+  support email durianirl@gardeno-games.com (in `site/`). Release steps: docs/release-checklist.md; store text and form
   answers: docs/app-store/; support and privacy pages: site/.
 - `npm run store:art` redraws the icon and splash; `npm run store:shots` takes App Store
   screenshots (needs a browser, so not in cloud sessions); `npm run ios:release` (Mac only)
