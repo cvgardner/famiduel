@@ -92,7 +92,8 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
   deferred (both short edges are play areas), home indicator auto-hides.
 - Confirmed by Chris (18 Nov 2026): bundle ID `com.gardenogames.famiduel` (permanent after the
   first upload; `scripts/ios-set-ids.sh` changes it), App Store name "FamiDuel: 2 Player Games",
-  support email durianirl@gardeno-games.com (in `site/`). Release steps: docs/release-checklist.md; store text and form
+  support email durianirl@gardeno-games.com (in `site/`). EU skipped at launch (Chris, 18 Nov
+  2026): added later once DSA trader status is verified, no new build needed. Release steps: docs/release-checklist.md; store text and form
   answers: docs/app-store/; support and privacy pages: site/.
 - `npm run store:art` redraws the icon and splash; `npm run store:shots` takes App Store
   screenshots (needs a browser, so not in cloud sessions); `npm run ios:release` (Mac only)
