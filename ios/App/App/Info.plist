@@ -67,9 +67,9 @@
 	<false/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<!-- AdMob app ID. Google's public TEST app ID until scripts/ios-set-ads.sh writes the real one. -->
+	<!-- AdMob app ID (FamiDuel iOS, set 18 Nov 2026 by scripts/ios-set-ads.sh). -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-1187356848246839~1860847664</string>
 	<!-- Google's own SKAdNetwork ID (docs/ads.md). No NSUserTrackingUsageDescription: we never ask to track. -->
 	<key>SKAdNetworkItems</key>
 	<array>
