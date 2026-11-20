@@ -6,6 +6,7 @@ import checkers from './checkers';
 import chopchop from './chopchop';
 import fourinarow from './fourinarow';
 import minigolf from './minigolf';
+import minipool from './minipool';
 import penalty from './penalty';
 import pingpong from './pingpong';
 import quickdraw from './quickdraw';
@@ -23,6 +24,7 @@ export const GAMES: Record<string, GameDef> = {
   [sumo.id]: sumo,
   [pingpong.id]: pingpong,
   [penalty.id]: penalty,
+  [minipool.id]: minipool,
   [snacksnatch.id]: snacksnatch,
   [snake.id]: snake,
   [quickdraw.id]: quickdraw,

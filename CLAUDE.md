@@ -78,8 +78,11 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
   docs/accessibility-labels.md (Larger Text needs a setting that reaches 2x: Chris's call).
 - Settled (don't reopen without new evidence): Sea Battle's seat bias was noise (2000
   mirrored games, 49-50%); Minigolf's easy bot was made weaker for small kids (+0.8 over par).
+- Mini Pool (Chris, 20 Nov 2026: "build the mini pool"): one rack, 3 balls each in the seat
+  colour plus the 8. Sink yours then the 8; potting yours shoots again, a scratch passes the
+  turn, the 8 early or with the cue loses. Ball physics in `src/games/minipool/physics.ts`.
 - Not built yet: highlight clips, rivalry cards, daily course sharing,
-  Family Wrapped, mini pool.
+  Family Wrapped.
 
 ## iOS store build (15 Nov 2026, Chris: "get the app in front of users, not iterate more")
 
