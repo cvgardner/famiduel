@@ -31,7 +31,7 @@ describe('the shared mashing kid', () => {
 
   // Win rates of a masher vs the easy bot, with no head start and a full one (★★★). Numbers
   // go in docs/backlog.md (F134); F21 decides whether a mashing kid should ever win these.
-  for (const id of ['chopchop', 'quickdraw']) {
+  for (const id of ['chopchop', 'quickdraw', 'tugofwar']) {
     it(`${id}: a masher's matches finish, and it never beats the hard bot`, () => {
       const spec = SPECS.find((s) => s.id === id)!;
       const rate = (levels: Parameters<typeof pairing>[1]) => {
