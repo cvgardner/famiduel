@@ -201,6 +201,7 @@ export class App {
         <button id="settingsBtn" class="icon-btn" aria-label="Settings"><span aria-hidden="true">⚙️</span></button>
         <h1 class="logo"><span class="l0">Fami</span><span class="l1">Duel</span></h1>
         <p class="tag">Two players · One phone · Super powers</p>
+        <p class="offline">No Wi-Fi needed</p>
       </header>
       <div class="seg mode" id="modeSeg" role="group" aria-label="Who is playing">
         <button data-v="together" class="${solo ? '' : 'on'}" aria-pressed="${!solo}">👫 Play together</button>
