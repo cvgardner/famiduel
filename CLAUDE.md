@@ -103,3 +103,16 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
   first session, at most one per 2 matches and 3 min (`src/core/adpolicy.ts`). Remove Ads is a
   $4.99 non-consumable `famiduel.removeads` behind the parental gate. Browsers get no ads
   (`?fakeads` for tests). Details: docs/ads.md. Privacy answers and policy already reflect it.
+
+## Release flow (Mac)
+
+When Chris asks to ship a build, take store screenshots or publish the support site,
+follow **docs/RELEASE.md**. The short version:
+
+- Always `git checkout main && git pull --ff-only` before any build or publish.
+- `npm run verify` must pass, then `npm run ios:release` uploads (Mac only).
+- `npm run store:shots` for screenshots; `npm run site:publish` for the support site, then
+  check the live page matches `site/`.
+- Ask Chris before pushing to main, publishing, uploading or changing the version. Never
+  handle Apple passwords, 2FA codes or signing keys. App Store Connect steps (picking the
+  build, Submit for Review, release) are his: stop and tell him.
