@@ -22,34 +22,34 @@ const circle = (cx: number, cy: number, r: number, fill: string, kids = '', extr
   `<circle cx="${cx}" cy="${cy}" r="${r}" ${fill.startsWith('var(') ? `style="fill:${fill}"` : `fill="${fill}"`}${extra}>${kids}</circle>`;
 
 // Minigolf: a green with the cup near the top.
-const green = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1f7a4a"/>${circle(32, 9, 4, '#0b2a18')}`;
+export const green = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1f7a4a"/>${circle(32, 9, 4, '#0b2a18')}`;
 // Air hockey: a table with a goal slot at each end.
-const table = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1d3a5c"/><line x1="4" y1="22" x2="60" y2="22" stroke="${LINE}" stroke-width="1"/><rect x="22" y="1" width="20" height="3" rx="1.5" fill="#0a1626"/><rect x="22" y="40" width="20" height="3" rx="1.5" fill="#0a1626"/>`;
+export const table = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1d3a5c"/><line x1="4" y1="22" x2="60" y2="22" stroke="${LINE}" stroke-width="1"/><rect x="22" y="1" width="20" height="3" rx="1.5" fill="#0a1626"/><rect x="22" y="40" width="20" height="3" rx="1.5" fill="#0a1626"/>`;
 // Sumo: the ring from above.
-const ring = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#5a3a22"/><circle cx="32" cy="22" r="19" fill="#c9a66b" stroke="#fff" stroke-opacity="0.7" stroke-width="1.5"/>`;
+export const ring = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#5a3a22"/><circle cx="32" cy="22" r="19" fill="#c9a66b" stroke="#fff" stroke-opacity="0.7" stroke-width="1.5"/>`;
 
 const rect = (x: number, y: number, w: number, h: number, fill: string, kids = '') =>
   `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(w, h) / 2}" ${fill.startsWith('var(') ? `style="fill:${fill}"` : `fill="${fill}"`}>${kids}</rect>`;
 
 // Ping Pong: a table with the net across the middle.
-const pong = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1b6b5a"/><rect x="8" y="4" width="48" height="36" fill="none" stroke="#fff" stroke-opacity="0.6" stroke-width="1"/><line x1="4" y1="22" x2="60" y2="22" stroke="#fff" stroke-width="2"/>`;
+export const pong = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1b6b5a"/><rect x="8" y="4" width="48" height="36" fill="none" stroke="#fff" stroke-opacity="0.6" stroke-width="1"/><line x1="4" y1="22" x2="60" y2="22" stroke="#fff" stroke-width="2"/>`;
 // Penalty: grass with a goal at the top.
-const pitch = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2f8f46"/><rect x="14" y="2" width="36" height="9" fill="none" stroke="#fff" stroke-width="1.5"/>`;
+export const pitch = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2f8f46"/><rect x="14" y="2" width="36" height="9" fill="none" stroke="#fff" stroke-width="1.5"/>`;
 // Snack Snatch: a mat with your critter's mouth at the bottom.
-const mat = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#3a2c5c"/>`;
+export const mat = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#3a2c5c"/>`;
 
 // Tanks: a dark arena.
-const arena = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2c3b2e" stroke="#7f8f7a" stroke-width="2"/>`;
+export const arena = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2c3b2e" stroke="#7f8f7a" stroke-width="2"/>`;
 // Snake: a dark board.
-const board = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#14202c"/>`;
+export const board = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#14202c"/>`;
 // Chop Chop: sky with two trees, theirs on the left, yours on the right.
-const woods = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#9fd3f0"/><rect x="1" y="36" width="62" height="7" rx="3" fill="#5aa04a"/>`;
+export const woods = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#9fd3f0"/><rect x="1" y="36" width="62" height="7" rx="3" fill="#5aa04a"/>`;
 // Quick Draw: sand with the signal in the middle.
-const sand = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#e8b878"/><line x1="4" y1="22" x2="60" y2="22" stroke="#b07a40" stroke-width="1" stroke-dasharray="4 3"/>`;
+export const sand = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#e8b878"/><line x1="4" y1="22" x2="60" y2="22" stroke="#b07a40" stroke-width="1" stroke-dasharray="4 3"/>`;
 // Sea Battle: a strip of sea cells.
-const sea = (x0: number, n: number, rows: number) =>
+export const sea = (x0: number, n: number, rows: number) =>
   Array.from({ length: n * rows }, (_, i) => `<rect x="${x0 + (i % n) * 9}" y="${8 + Math.floor(i / n) * 9}" width="8" height="8" rx="1.5" fill="#1d4f7a"/>`).join('');
-const seaBg = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#0f2c48"/>`;
+export const seaBg = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#0f2c48"/>`;
 const line = (x1: number, y1: number, x2: number, y2: number, stroke: string, w: number, kids = '', extra = '') =>
   `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${stroke.startsWith('var(') ? `style="stroke:${stroke}"` : `stroke="${stroke}"`} stroke-width="${w}" stroke-linecap="round"${extra}>${kids}</line>`;
 const tank = (x: number, y: number, fill: string, kids = '') => rect(x - 5, y - 4, 10, 8, fill, kids);
