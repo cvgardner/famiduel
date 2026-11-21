@@ -2625,3 +2625,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       ends at 20 s (was 30). Even bots' p90 round 27-28 s -> 18-20 s, median ~21 -> ~13 s; mirror
       seat shares 54/56/44% (were 53/53/44, n=160), kid+3 v easy 63%, sim:powers all 55-59%.
       tests/tugofwar.test.ts checks every level's p90 round <= 20 s.
+- [x] 2026-11-21 (F370+F371): Mini Pool joins the per-game checks every other shown game is in:
+      pops never print over the other seat's (tests/pops-cross-seat.test.ts), play the bot shows
+      one copy of each paired line (tests/solo-pairs.test.ts), the bot's power button is drawn
+      faint (tests/controls-dim.test.ts), its pop words read on its own cloth and floor
+      (tests/contrast.test.ts) and pops born together never overlap (e2e/app.spec.ts). All passed;
+      the contrast check only needed Mini Pool's pop()/both() helpers written with fx.pop in a braced
+      body so the source check can read their callers' colours (no visible change).

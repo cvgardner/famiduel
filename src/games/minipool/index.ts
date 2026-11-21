@@ -142,10 +142,12 @@ class MiniPoolView implements GameInstance {
     const g = this.game;
     const { sfx, fx, players } = this.ctx;
     // A pop for each seat, near their own edge, rising toward the middle.
-    const pop = (p: PlayerIndex, str: string, color: string, size = 24, dy = 150) =>
+    // Braced, with fx.pop in each, so tests/contrast.test.ts reads their callers' colours.
+    const pop = (p: PlayerIndex, str: string, color: string, size = 24, dy = 150) => {
       fx.pop(str, W / 2, p === 0 ? MID + dy : MID - dy, color, p, size);
+    };
     const both = (str: string, color: string, size = 24, dy = 150) => {
-      for (const p of PLAYERS) pop(p, str, color, size, dy);
+      for (const p of PLAYERS) fx.pop(str, W / 2, p === 0 ? MID + dy : MID - dy, color, p, size);
     };
     for (const e of g.events) {
       if (e.type === 'rack') sfx.play('whoosh');

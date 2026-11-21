@@ -228,7 +228,7 @@ describe('pop-up words in every action game', () => {
   // Same source check as Sumo's, for every action game against the colours its
   // own play area is painted in (each view exports SURFACES). The playtest only
   // judges the pops a match happens to trigger, so rare ones are covered here.
-  const GAMES = ['airhockey', 'chopchop', 'minigolf', 'penalty', 'pingpong', 'quickdraw', 'seabattle', 'snacksnatch', 'snake', 'sumo', 'tanks', 'tugofwar'];
+  const GAMES = ['airhockey', 'chopchop', 'minigolf', 'penalty', 'pingpong', 'quickdraw', 'seabattle', 'snacksnatch', 'snake', 'sumo', 'tanks', 'tugofwar', 'minipool'];
   it.each(GAMES)('%s pops read on its own surfaces', async (id) => {
     const fs = await import('node:fs');
     const { POP_OUTLINE, popColor } = await import('../src/engine/fx');
