@@ -2670,3 +2670,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-21 (F374): Tug of War's how-to said its goal twice (blurb "Pull the ribbon past
       your line", then "Get the red ribbon past your line!"); it now reads "Tap fast anywhere on
       your side to pull the red ribbon your way."
+- [x] 2026-11-21 (F384): Air Hockey's clearOfPucks(), Penalty's clearOfBall() and Mini Pool's
+      clearOfBalls() kept a pop's words off the puck / ball by their unscaled size, so with
+      Bigger text (words up to 1.2x) some pops were born on a puck or ball. They now use
+      scaledSize(); each game's pops test runs again at BIG_TEXT (Air Hockey and Mini Pool
+      failed there before).
