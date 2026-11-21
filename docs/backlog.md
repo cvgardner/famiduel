@@ -2718,6 +2718,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       has no such room helper (F208 covers its names). Not yet at BIG_TEXT: tanks-pops-arena
       (after #404's wider fx stacking, Bigger-text Bonked! crosses the arena edge in 5.2% of
       readable frames vs the 5% bound; keeping it inside put it on a tank instead): F387.
+- [x] 2026-11-21 (F391): rival 2-player apps' reviews complain of ads after restoring a
+      purchase ("I still get ads!!!"). Only buying was tested. `?fakeads&fakeowned` (bought on
+      this Apple ID before) and `&fakestore` (the store answers at launch) let e2e/ads.spec.ts
+      also check: Restore on a fresh install shows "Ads removed", no ad after a match, and it
+      survives a reload; the store saying owned at launch removes ads with no tap; Restore with
+      nothing bought says so and ads go on; a refund brings ads back. All passed first time.
 - [x] 2026-11-21 (F388): Sea Battle: a shell dropped from 160 units above its cell, so a shot
       at the top rows started over the header pill (crossing "… is aiming…") and a shot on the
       small sea started over the big board. It now falls from at most its own sea's top edge
