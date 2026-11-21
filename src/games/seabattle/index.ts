@@ -579,9 +579,11 @@ class SeaBattleView implements GameInstance {
   private shotWord(str: string, owner: PlayerIndex, x: number, y: number, color: string, size: number): void {
     const lay = this.layout();
     const sea = this.game.seas[owner];
-    const half = ([...str].length * size * 0.55) / 2;
-    const h = size * 0.45;
-    const near = size / 2 + C / 2 + 2;
+    // F382: room for the words as text() draws them (Bigger text draws an 18 at 21.6).
+    const shown = scaledSize(size);
+    const half = ([...str].length * shown * 0.55) / 2;
+    const h = shown * 0.45;
+    const near = shown / 2 + C / 2 + 2;
     const first = y < GY + 70 ? 1 : -1;
     const cost = (px: number, py: number): number => {
       let n = 0;
@@ -596,11 +598,12 @@ class SeaBattleView implements GameInstance {
       }
       return n;
     };
-    let best: [number, number] = [x, y + first * near];
+    let best: [number, number] = [clamp(x, GX + half + 2, GX + N * C - half - 2), y + first * near];
     let bestCost = Infinity;
     for (const dy of [first * near, -first * near, first * (near + C), -first * (near + C), first * (near + 2 * C), -first * (near + 2 * C)]) {
       const py = y + dy;
-      if (py - h - 18 < GY - 30 || py + h > GY + N * C + 10) continue;
+      // F382: the words and their bright rise stay inside the board's frame (drawn 4 units out).
+      if (py - h - 18 < GY - 2 || py + h > GY + N * C + 2) continue;
       for (const dx of [0, -C, C, -2 * C, 2 * C, -3 * C, 3 * C]) {
         const px = clamp(x + dx, GX + half + 2, GX + N * C - half - 2);
         const k = cost(px, py) * 10 + Math.abs(dx) / C + (dy === first * near ? 0 : 1);
