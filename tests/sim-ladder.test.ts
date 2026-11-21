@@ -51,4 +51,17 @@ describe('sim head-start ladder', () => {
     expect(a1).toBeGreaterThan(a0 + 0.05);
     expect(a3).toBeGreaterThan(a1);
   }, 60_000);
+
+  it('each head-start star helps the easy bot in Tug of War (F353)', () => {
+    const spec = SPECS.find((s) => s.id === 'tugofwar')!;
+    const [a0, a1, a2, a3] = ladder(spec, 'normal', 40);
+    // 2026-11-21 (n=80): v normal 0 / 21 / 99 / 100%, v hard 0 / 0 / 0 / 60% (was 0 / 0 / 45 / 100%
+    // and never v hard with a straight line to 1.5). A tap-rate race is a cliff, so each star
+    // crosses the next gap: one star starts to catch normal, two beat it, three catch hard.
+    expect(a1).toBeGreaterThan(a0 + 0.05);
+    expect(a2).toBeGreaterThan(a1);
+    expect(a3).toBeGreaterThanOrEqual(a2);
+    const [, , , h3] = ladder(spec, 'hard', 40);
+    expect(h3).toBeGreaterThan(0.3);
+  }, 60_000);
 });
