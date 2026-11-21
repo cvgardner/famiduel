@@ -11,6 +11,7 @@ import { SnackSnatch, SnackSnatchBot } from '../src/games/snacksnatch/logic';
 import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
 import { Sumo, SumoBot } from '../src/games/sumo/logic';
 import { TankBot, TankDuel } from '../src/games/tanks/logic';
+import { TugOfWar, TugOfWarBot } from '../src/games/tugofwar/logic';
 
 export const DT = 1 / 60;
 const MAX_T = 300;
@@ -85,23 +86,34 @@ export class Idle extends Masher {
   override tick(): void {}
 }
 
-/** Seat levels the sims play: the three bot levels, the masher kid with no head start / a full one, or an idle seat. */
-export type SimLevel = BotLevel | 'kid' | 'kid+3' | 'idle';
+/**
+ * Seat levels the sims play: the three bot levels, a bot level with a head start
+ * (`easy+2` = the easy bot with assist 2, for the --ladder table), the masher kid with no
+ * head start / a full one, or an idle seat.
+ */
+export type SimLevel = BotLevel | `${BotLevel}+${1 | 2 | 3}` | 'kid' | 'kid+3' | 'idle';
+
+/** A bot seat's level and head start: `easy+2` -> ['easy', 2]. */
+export function botSeat(l: Exclude<SimLevel, 'kid' | 'kid+3' | 'idle'>): [BotLevel, number] {
+  const [lvl, a] = l.split('+');
+  return [lvl as BotLevel, a ? Number(a) : 0];
+}
 
 export const SPECS: Spec[] = [
   { id: 'airhockey', make: (pl, pw, r) => new AirHockey(pl, pw, r) as unknown as Game, bot: (p, l, r) => new AirHockeyBot(p, l, r) as unknown as Bot, endsOnWinner: true, kid: (m) => ({ tx: m.x, ty: m.y, power: false }) },
-  { id: 'pingpong', make: (pl, pw, r) => new PingPong(pl, pw, r) as unknown as Game, bot: (p, l, r) => new PingPongBot(p, l, r) as unknown as Bot, endsOnWinner: true, kid: (m) => ({ tx: m.x, ty: m.y, power: false }) },
+  { id: 'pingpong', make: (pl, pw, r) => new PingPong(pl, pw, r) as unknown as Game, bot: (p, l, r) => new PingPongBot(p, l, r) as unknown as Bot, endsOnWinner: true, kid: (m) => ({ tx: m.x, ty: m instanceof Idle ? undefined : m.y, power: false }) },
   { id: 'sumo', make: (pl, pw, r) => new Sumo(pl, pw, r) as unknown as Game, bot: (p, l, r) => new SumoBot(p, l, r) as unknown as Bot, kid: (m) => ({ hold: m.press, power: false }) },
   { id: 'snacksnatch', make: (pl, pw, r) => new SnackSnatch(pl, pw, r) as unknown as Game, bot: (p, l, r) => new SnackSnatchBot(p, l, r) as unknown as Bot, kid: (m) => { const t = m.tap(); return { snap: [t && m.side < 0, t && m.side > 0], power: false }; } },
   { id: 'snake', make: (pl, pw, r) => new SnakeDuel(pl, pw, r) as unknown as Game, bot: (p, l, r) => new SnakeBot(p, l, r) as unknown as Bot, kid: (m) => ({ turn: m.tap() ? m.side : 0, power: false }) },
   { id: 'quickdraw', make: (pl, pw, r) => new QuickDraw(pl, pw, r) as unknown as Game, bot: (p, l, r) => new QuickDrawBot(p, l, r) as unknown as Bot, kid: (m) => ({ tap: m.tap(), power: false }) },
   { id: 'tanks', make: (pl, pw, r) => new TankDuel(pl, pw, r) as unknown as Game, bot: (p, l, r) => new TankBot(p, l, r) as unknown as Bot, kid: (m, p) => ({ mx: (m.x - W / 2) / (W / 2), my: (m.y - (p === 0 ? H * 0.75 : H * 0.25)) / (H / 4), fire: m.tap(), power: false }) },
   { id: 'chopchop', make: (pl, pw, r) => new ChopChop(pl, pw, r) as unknown as Game, bot: (p, l, r) => new ChopBot(p, l, r) as unknown as Bot, kid: (m) => ({ chop: m.tap() ? m.side : 0, power: false }) },
+  { id: 'tugofwar', make: (pl, pw, r) => new TugOfWar(pl, pw, r) as unknown as Game, bot: (p, l, r) => new TugOfWarBot(p, l, r) as unknown as Bot, kid: (m) => ({ tap: m.tap(), power: false }) },
 ];
 
 const isKid = (l: SimLevel): l is 'kid' | 'kid+3' | 'idle' => l === 'kid' || l === 'kid+3' || l === 'idle';
 const seat = (l: SimLevel, pw: PowerDef | null = null): PlayerInfo =>
-  isKid(l) ? { name: l, color: '#3fa9ff', assist: l === 'kid+3' ? 3 : 0, power: pw, bot: null } : { name: l, color: '#3fa9ff', assist: 0, power: pw, bot: l };
+  isKid(l) ? { name: l, color: '#3fa9ff', assist: l === 'kid+3' ? 3 : 0, power: pw, bot: null } : { name: l, color: '#3fa9ff', assist: botSeat(l)[1], power: pw, bot: botSeat(l)[0] };
 
 /** A game's powers from content/powers.json. */
 export function powersOf(game: string): PowerDef[] {
@@ -119,7 +131,7 @@ export function playMatch(spec: Spec, levels: [SimLevel, SimLevel], seed: number
   const kidRng = makeRng(seed + 7919);
   const player = (p: PlayerIndex): Bot => {
     const l = levels[p];
-    if (!isKid(l)) return spec.bot(p, l, rng);
+    if (!isKid(l)) return spec.bot(p, botSeat(l)[0], rng);
     const m = l === 'idle' ? new Idle(p, kidRng) : new Masher(p, kidRng);
     return { think: (_g: never, dt: number) => (m.tick(dt), spec.kid(m, p)) };
   };
@@ -156,3 +168,11 @@ export function pairing(spec: Spec, levels: [SimLevel, SimLevel], n: number, pow
   return { wins: wins / n, seat0: seat0Wins / n, draws: draws / n, unfinished: unfinished / n, avgT: time / n, long: long / n, maxT };
 }
 
+/**
+ * F342: the head-start ladder. The easy bot with head start 0, 1, 2 and 3 against an
+ * `against` bot with none: the share easy wins at each step (seats swapped, n matches a step).
+ * A head start is for a parent and a young kid; each step should help a bit more.
+ */
+export function ladder(spec: Spec, against: BotLevel, n: number, powersOn = false): number[] {
+  return ([0, 1, 2, 3] as const).map((a) => pairing(spec, [a ? (`easy+${a}` as SimLevel) : 'easy', against], n, powersOn).wins);
+}

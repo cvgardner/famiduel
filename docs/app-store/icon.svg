@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8aa0"/><stop offset="1" stop-color="#ff5c7a"/>
+    </linearGradient>
+    <linearGradient id="bot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3fa9ff"/><stop offset="1" stop-color="#1f7fe0"/>
+    </linearGradient>
+    <radialGradient id="puck" cx="0.4" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dcd8f5"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="1024" height="512" fill="url(#top)"/>
+  <rect x="0" y="512" width="1024" height="512" fill="url(#bot)"/>
+  <!-- centre line and circle of the table -->
+  <rect x="0" y="502" width="1024" height="20" fill="#110e26" opacity="0.9"/>
+  <circle cx="512" cy="512" r="250" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="14"/>
+  <!-- paddles -->
+  <rect x="352" y="118" width="320" height="76" rx="38" fill="#fff0f3"/>
+  <rect x="352" y="830" width="320" height="76" rx="38" fill="#eaf7ff"/>
+  <!-- puck with a power bolt -->
+  <circle cx="512" cy="512" r="190" fill="#ffd54a" opacity="0.55" filter="url(#glow)"/>
+  <circle cx="512" cy="512" r="168" fill="#110e26"/>
+  <circle cx="512" cy="512" r="150" fill="url(#puck)"/>
+  <path d="M548 372 L430 534 L506 534 L476 652 L596 486 L518 486 Z" fill="#ffd54a" stroke="#c98a00" stroke-width="10" stroke-linejoin="round"/></svg>

@@ -96,7 +96,13 @@ export function easierOffer(history: readonly MatchRecord[], game: string, profi
 
 /** 'auto' follows the phone's light/dark setting. Missing in older saves (= auto). */
 export type ThemePref = 'auto' | 'light' | 'dark';
-export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean; haptics: boolean; theme?: ThemePref; /** Draws game words ~1.2x larger (missing in older saves = off). */ bigText?: boolean; /** Little hands: taller Ready and power buttons on the intro (missing = off). */ bigButtons?: boolean };
+export type Settings = { powers: boolean; autoHandicap: boolean; sound: boolean; haptics: boolean; theme?: ThemePref; /** Draws game words ~1.2x larger (missing in older saves = off). */ bigText?: boolean; /** Text size "Largest": menu words 2x (Apple's Larger Text label); needs bigText, which game screens keep using (missing = off). */ largestText?: boolean; /** Little hands: taller Ready and power buttons on the intro (missing = off). */ bigButtons?: boolean };
+
+/** Settings > Look > Text size. Usual 1x; Bigger 1.2x everywhere; Largest 2x on home and settings (Bigger elsewhere). */
+export type TextSize = 'usual' | 'bigger' | 'largest';
+export function textSizeOf(s: Pick<Settings, 'bigText' | 'largestText'>): TextSize {
+  return !s.bigText ? 'usual' : s.largestText ? 'largest' : 'bigger';
+}
 export type MatchRecord = {
   game: string;
   at: number;
@@ -136,6 +142,11 @@ type Saved = {
   settingsVersion?: number;
   /** Minigolf's today's course: the best total by a person on that day (bots don't count). */
   dailyGolf?: DailyBest | null;
+  /**
+   * Store build only (engine/ads.ts): "Remove ads" owned (a cache of StoreKit's answer, so an
+   * offline phone stays ad-free) and how many times the app has been opened (the first is ad-free).
+   */
+  ads?: { removed: boolean; launches: number };
 };
 
 /** The best total on one day's course, and who played it. */
@@ -188,6 +199,22 @@ export class Store {
     } catch {
       // A broken save falls back to defaults.
     }
+  }
+
+  /** The app opened once more (core/adpolicy.ts: the first launch has no ads). Returns the count. */
+  countLaunch(): number {
+    const a = (this.data.ads ??= { removed: false, launches: 0 });
+    a.launches++;
+    this.save();
+    return a.launches;
+  }
+
+  /** Remember whether "Remove ads" is owned (from a purchase, a restore or StoreKit at start). */
+  setAdsRemoved(removed: boolean): void {
+    const a = (this.data.ads ??= { removed: false, launches: 0 });
+    if (a.removed === removed) return;
+    a.removed = removed;
+    this.save();
   }
 
   save(): void {

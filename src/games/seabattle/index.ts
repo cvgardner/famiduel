@@ -2,7 +2,7 @@
 // full-screen "pass the phone" cover hides everything, and the active player's
 // screen is turned to face them. Against a bot the screen always faces the person.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, glow, line, nameLabel, noGlow, rrect, seatEdges, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, fitFirst, fitName, fitSize, glow, line, nameLabel, noGlow, rrect, scaledSize, seatEdges, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
@@ -10,10 +10,32 @@ import { clamp, H, W } from '../../engine/world';
 import { cellsOf, isSunk, MARK, N, radarCells, SeaBattle, SeaBattleBot, SHIP_NAMES, SHIPS, strikeCells, torpedoCells, type Move } from './logic';
 import { inkOn } from '../../core/contrast';
 import { botBeat, botResultTitle, openingLine, shooterBeat, shooterResult, TALLY_AT, turnTally } from './beat';
+import { NAME_ROOM, tapLines } from '../../engine/secret';
 
 // Layout, in the viewer's frame (the viewer sits at the bottom).
 const C = 27;
 const GX = (W - N * C) / 2; // big grid, centred so the pause button stays clear in both orientations
+/** F313: the least room between the fleet label and the first ship of its tally. */
+export const TALLY_GAP = 10;
+/**
+ * Where each ship of the big sea's tally sits: after the label (`labelW` units wide, as drawn,
+ * plus TALLY_GAP), at 9 units a cell with 8 between ships, shrunk evenly when the label is wide
+ * (Bigger text, wider fonts) so the tally still ends at the grid's right edge.
+ */
+export function tallyLayout(labelW: number, lens: readonly number[]): { x: number; w: number }[] {
+  const x0 = Math.max(GX + 86, GX + labelW + TALLY_GAP);
+  const x1 = GX + N * C;
+  const cells = lens.reduce((a, b) => a + b, 0);
+  const full = cells * 9 + Math.max(0, lens.length - 1) * 8;
+  const k = Math.min(1, (x1 - x0) / full);
+  let x = x0;
+  return lens.map((len) => {
+    const w = len * 9 * k;
+    const at = { x, w };
+    x += w + 8 * k;
+    return at;
+  });
+}
 const GY = 82;
 const SX = 24; // small grid
 const SY = 456;
@@ -74,7 +96,8 @@ class SeaBattleView implements GameInstance {
    */
   picked: number | null = null;
   private powerBtn: (PowerButton | null)[];
-  private notice: (string | null)[] = [null, null];
+  /** A note for each seat, as wordings longest first (F321: a 12-letter name needs the short one). */
+  private notice: (string[] | null)[] = [null, null];
   /** Cells the opponent fired at on their last turn, highlighted on your fleet. */
   private lastShots: number[][] = [[], []];
   private turnLog: { hits: number; misses: number; sunk: number }[] = [
@@ -519,24 +542,24 @@ class SeaBattleView implements GameInstance {
         sfx.play('whoosh');
       } else if (e.type === 'hitBack') {
         this.shells.push({ owner: e.victim, cell: e.cell, t: -delay - 0.35, result: 'hitBack', a: other(e.victim) });
-        this.notice[e.victim] = '💥 You hit a mine! It hit one of your ships back.';
+        this.notice[e.victim] = ['💥 You hit a mine! It hit one of your ships back.', '💥 You hit a mine! It hit a ship back.'];
       } else if (e.type === 'power') {
         const pw = this.ctx.players[e.p].power!;
         sfx.play('power');
         fx.flash(COLORS.gold, 0.12);
         this.pop(`${pw.icon} ${pw.name}!`, W / 2, GY + 150, COLORS.gold, 28);
         // The other player reads what came at them on their next turn (they were looking away).
-        if (e.id === 'torpedo') this.notice[d] = `${pw.icon} ${this.ctx.players[a].name} fired a torpedo at your sea.`;
-        if (e.id === 'double') this.notice[d] = `${pw.icon} ${this.ctx.players[a].name} took a Double Shot.`;
+        if (e.id === 'torpedo') this.notice[d] = [`${pw.icon} ${this.ctx.players[a].name} fired a torpedo at your sea.`, `${pw.icon} They fired a torpedo at your sea.`];
+        if (e.id === 'double') this.notice[d] = [`${pw.icon} ${this.ctx.players[a].name} took a Double Shot.`, `${pw.icon} They took a Double Shot.`];
       } else if (e.type === 'radar') {
         sfx.play(e.found ? 'coin' : 'pop');
         const [x, y] = this.cellXY(e.cell);
         this.pop(e.found ? 'Ship nearby!' : 'All clear', x, y - 30, e.found ? COLORS.gold : '#bfe9ff', 22);
         this.burst(x, y, e.found ? COLORS.gold : '#7fd3ff', 20, 160, 3);
-        this.notice[d] = `📡 ${this.ctx.players[a].name} scanned your sea.`;
+        this.notice[d] = noticeLines('scan', this.ctx.players[a].name);
       } else if (e.type === 'mine') {
         sfx.play('thud');
-        this.notice[d] = `💥 ${this.ctx.players[a].name} hid a mine somewhere in their sea!`;
+        this.notice[d] = noticeLines('mine', this.ctx.players[a].name);
       }
     }
     if (g.turn !== a || g.phase === 'over') {
@@ -685,21 +708,26 @@ class SeaBattleView implements GameInstance {
     }
     const o = other(m.p);
     text(gx, '🙈', W / 2, 150, { size: 64 });
-    text(gx, `${this.ctx.players[o].name}, look away!`, W / 2, 222, { size: 20, color: COLORS.dim, weight: 700 });
+    const away = `${this.ctx.players[o].name}, look away!`;
+    text(gx, away, W / 2, 222, { size: fitSize(gx, away, NAME_ROOM, 20, 700), color: COLORS.dim, weight: 700 });
     const first = m.next === 'fire' ? this.opening(m.p, m.p) : null;
     text(gx, m.next === 'place' ? 'Hide your fleet' : first ?? 'Your turn to fire', W / 2, 300, { size: 22, color: '#fff', weight: 700 });
-    nameLabel(gx, pl.name, W / 2, 344, pl.color, { size: 40 });
+    nameLabel(gx, pl.name, W / 2, 344, pl.color, { size: fitSize(gx, pl.name, NAME_ROOM, 40) });
     const s = 1 + 0.05 * Math.sin(this.t * 5);
     rrect(gx, W / 2 - 140 * s, 410, 280 * s, 70, 35, pl.color, '#fff', 3);
-    text(gx, `Tap when only ${pl.name}`, W / 2, 432, { size: 19, color: inkOn(pl.color) });
-    text(gx, 'is looking 👀', W / 2, 458, { size: 19, color: inkOn(pl.color) });
+    const tap = tapLines(gx, pl.name);
+    text(gx, tap.lines[0], W / 2, 432, { size: tap.size, color: inkOn(pl.color) });
+    text(gx, tap.lines[1], W / 2, 458, { size: tap.size, color: inkOn(pl.color) });
     const n = this.notice[m.p];
     if (m.next === 'fire' && this.game.turnNo[o] > 0) {
       const lg = this.turnLog[o];
       const res = lg.sunk ? `They sank a ship of yours!` : lg.hits ? `They hit you ${lg.hits === 1 ? 'once' : lg.hits + ' times'}.` : 'They missed!';
       text(gx, res, W / 2, 530, { size: 18, color: lg.hits ? '#ffb08a' : '#bfe9ff', weight: 700 });
     }
-    if (n) text(gx, n, W / 2, 566, { size: 14, color: COLORS.gold, weight: 700 });
+    if (n) {
+      const fit = fitFirst(gx, n, W - 24, 14, 700);
+      text(gx, fit.str, W / 2, 566, { size: fit.size, color: COLORS.gold, weight: 700 });
+    }
   }
 
   private drawPlay(gx: G): void {
@@ -747,9 +775,10 @@ class SeaBattleView implements GameInstance {
     this.header = title;
     const tc = m.kind === 'over' ? this.ctx.players[g.winner ?? 0].color : this.ctx.players[a].color;
     rrect(gx, 12, 8, W - 24, 62, 18, alpha(tc, 0.28), alpha(tc, 0.9), 2);
-    text(gx, title, W / 2, 30, { size: 22, color: '#fff', stroke: 'rgba(0,0,0,0.35)' });
+    // F321: a 12-letter name in the title ("WWWWWWWWWWWW, you go first!") shrinks to fit the header.
+    text(gx, title, W / 2, 30, { size: fitSize(gx, title, W - 24 - 16, 22), color: '#fff', stroke: 'rgba(0,0,0,0.35)' });
     // Full white: the dim grey fell to ~4.2:1 on a light seat's (Mint, Orange) header tint.
-    text(gx, sub, W / 2, 55, { size: 13, color: '#ffffff', weight: 700 });
+    text(gx, sub, W / 2, 55, { size: fitSize(gx, sub, W - 24 - 16, 13, 700), color: '#ffffff', weight: 700 });
 
     // Big grid
     this.drawSea(gx, lay.big, GX, GY, C, lay.bigShips, true);
@@ -774,16 +803,20 @@ class SeaBattleView implements GameInstance {
     }
     // Fleet status of the big sea
     const bigSea = g.seas[lay.big];
-    text(gx, lay.big === v ? 'Your ships' : 'Their ships', GX, GY + N * C + 20, { size: 13, color: COLORS.dim, align: 'left', weight: 700 });
-    let x = GX + 86;
-    bigSea.ships.forEach((s) => {
-      const w = s.len * 9;
+    const label = lay.big === v ? 'Your ships' : 'Their ships';
+    text(gx, label, GX, GY + N * C + 20, { size: 13, color: COLORS.dim, align: 'left', weight: 700 });
+    // F313: the tally starts after the label as drawn (Bigger text made it run into the first ship).
+    gx.font = `700 ${scaledSize(13)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+    const tally = tallyLayout(gx.measureText(label).width, bigSea.ships.map((s) => s.len));
+    bigSea.ships.forEach((s, i) => {
+      const { x, w } = tally[i];
       rrect(gx, x, GY + N * C + 14, w, 12, 6, isSunk(s) ? 'rgba(255,255,255,0.15)' : alpha(this.ctx.players[lay.big].color, 0.85));
       if (isSunk(s)) line(gx, x, GY + N * C + 20, x + w, GY + N * C + 20, COLORS.bad, 2);
-      x += w + 8;
     });
     // Small grid
-    text(gx, lay.small === v ? 'Your fleet' : `${this.ctx.players[lay.small].name}'s fleet`, SX, SY - 12, { size: 13, color: COLORS.dim, align: 'left', weight: 700 });
+    // F321: "<12-letter name>'s fleet" is cut to the small sea's width (it ran under the score).
+    const fleet = fitName(gx, lay.small === v ? 'Your fleet' : `${this.ctx.players[lay.small].name}'s fleet`, N * SC + 10, 13, "'s fleet");
+    text(gx, fleet.str, SX, SY - 12, { size: fleet.size, color: COLORS.dim, align: 'left', weight: 700 });
     this.drawSea(gx, lay.small, SX, SY, SC, lay.smallShips, false);
     for (const c of this.lastShots[lay.small]) {
       if (lay.small !== v || m.kind === 'over') break;
@@ -815,7 +848,8 @@ class SeaBattleView implements GameInstance {
     const n = this.notice[v];
     if (n && m.kind !== 'over') {
       rrect(gx, 12, 606, W - 24, 28, 10, 'rgba(0,0,0,0.4)');
-      text(gx, n, W / 2, 620, { size: 13, color: COLORS.gold, weight: 700 });
+      const fit = fitFirst(gx, n, W - 24 - 16, 13, 700);
+      text(gx, fit.str, W / 2, 620, { size: fit.size, color: COLORS.gold, weight: 700 });
     }
     // Shells in flight
     for (const s of this.shells) {
@@ -962,8 +996,11 @@ class SeaBattleView implements GameInstance {
     rrect(gx, READY.x, READY.y + 4, READY.w, READY.h, 18, 'rgba(0,0,0,0.35)');
     rrect(gx, READY.x - (s - 1) * 70, READY.y, READY.w * s, READY.h, 18, col, '#fff', 3);
     text(gx, 'Ready ✓', READY.x + READY.w / 2, READY.y + READY.h / 2, { size: 22, color: '#fff', stroke: 'rgba(0,0,0,0.3)' });
-    text(gx, 'Shuffle until you like it, then Ready.', W / 2, 500, { size: 14, color: COLORS.dim, weight: 700 });
-    text(gx, this.twoHumans ? 'No peeking: the phone hides your sea' : 'The bot never sees your ships.', W / 2, 524, { size: 14, color: COLORS.dim, weight: 700 });
+    const shuffle = 'Shuffle until you like it, then Ready.';
+    text(gx, shuffle, W / 2, 500, { size: fitSize(gx, shuffle, W - 24, 14, 700), color: COLORS.dim, weight: 700 });
+    // F321: with Bigger text this line reached the screen's edge on CI's wider fonts.
+    const peek = this.twoHumans ? 'No peeking: the phone hides your sea' : 'The bot never sees your ships.';
+    text(gx, peek, W / 2, 524, { size: fitSize(gx, peek, W - 24, 14, 700), color: COLORS.dim, weight: 700 });
     text(gx, 'before it is passed on.', W / 2, 544, { size: 14, color: this.twoHumans ? COLORS.dim : 'transparent', weight: 700 });
     // Fleet legend
     let x = 46;
@@ -976,3 +1013,13 @@ class SeaBattleView implements GameInstance {
 
 const def: GameDef = { id: 'seabattle', create: (ctx) => new SeaBattleView(ctx) };
 export default def;
+
+/**
+ * What the other seat reads after a Radar scan or a hidden Mine, longest wording first
+ * (F321: "💥 <12-letter name> hid a mine somewhere in their sea!" ran off the screen).
+ */
+export function noticeLines(kind: 'scan' | 'mine', name: string): string[] {
+  return kind === 'scan'
+    ? [`📡 ${name} scanned your sea.`, '📡 They scanned your sea.']
+    : [`💥 ${name} hid a mine somewhere in their sea!`, `💥 ${name} hid a mine in their sea!`, '💥 They hid a mine in their sea!'];
+}

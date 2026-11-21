@@ -11,10 +11,12 @@ const table = (powers as { games: Record<string, { id: string; name: string; ico
 describe('power pictures', () => {
   it('every power of every shown game has a looping picture', () => {
     const FREE = Object.keys(table).filter((g) => shown.has(g));
-    expect(FREE.length).toBe(11);
+    expect(FREE.length).toBe(13);
     for (const g of FREE) {
-      // Weekly rotation: every shown game keeps a pool of 5 (3 offered a week).
-      expect(table[g]?.length, g).toBe(5);
+      // Weekly rotation: every shown game keeps a pool of 5 (3 offered a week). Mini Pool and
+      // Tug of War were built alongside the rotation with 3, so they offer the same 3 every
+      // week until each gets two more powers.
+      expect(table[g]?.length, g).toBe(['minipool', 'tugofwar'].includes(g) ? 3 : 5);
       for (const p of table[g]) {
         expect(hasPowerPic(g, p.id), `${g}/${p.id}`).toBe(true);
         const svg = powerPicHtml(g, p.id);

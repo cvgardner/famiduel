@@ -39,6 +39,26 @@
         "desc": "The hole shrinks to a tiny cup for the other player's next shot."
       }
     ],
+    "minipool": [
+      {
+        "id": "longaim",
+        "name": "Long Aim",
+        "icon": "🔭",
+        "desc": "Your next shot shows its whole path, bounces and all."
+      },
+      {
+        "id": "bigpocket",
+        "name": "Big Pockets",
+        "icon": "🕳️",
+        "desc": "Your next shot: every pocket is much bigger."
+      },
+      {
+        "id": "freeze",
+        "name": "Freeze Ball",
+        "icon": "🧊",
+        "desc": "On the other player's next shot, the ball of theirs nearest a pocket is frozen still."
+      }
+    ],
     "airhockey": [
       {
         "id": "freeze",
@@ -394,6 +414,28 @@
         "name": "Double Shot",
         "icon": "✌️",
         "desc": "Get an extra shot this turn, so one miss won't end it."
+      }
+    ],
+    "tugofwar": [
+      {
+        "id": "heave",
+        "name": "Mighty Heave",
+        "icon": "💪",
+        "desc": "For 3 seconds every pull of yours counts extra.",
+        "duration": 3
+      },
+      {
+        "id": "butter",
+        "name": "Butter Rope",
+        "icon": "🧈",
+        "desc": "The other player's end goes slippery: their pulls count half for 3 seconds.",
+        "duration": 3
+      },
+      {
+        "id": "yank",
+        "name": "Big Yank",
+        "icon": "🪢",
+        "desc": "Wind up, then YANK the rope toward you. Their taps during the wind-up shrink it."
       }
     ],
     "fourinarow": [

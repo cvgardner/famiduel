@@ -70,7 +70,7 @@ const PER_CARD: Record<string, RegExp> = { minigolf: /^(Total|Hole \d+ of \d+ ·
 // with the same words read twice: Sumo's long round banner, Ping Pong's "Rally 4" and its paired
 // "Curve!"/"Rally x5!" pops, Snack Snatch's "Faster snacks!".
 describe('Play the bot: one copy of each paired line', () => {
-  for (const id of ['tanks', 'sumo', 'snacksnatch', 'airhockey', 'pingpong', 'snake', 'chopchop', 'penalty', 'quickdraw', 'minigolf', 'seabattle', 'rps']) {
+  for (const id of ['tanks', 'sumo', 'snacksnatch', 'airhockey', 'pingpong', 'snake', 'chopchop', 'penalty', 'quickdraw', 'minigolf', 'seabattle', 'rps', 'tugofwar']) {
     it(id, () => {
       for (const seat of [0, 1] as const) {
         const d = doubled(id, seat);

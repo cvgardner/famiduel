@@ -11,6 +11,7 @@ import { MIN_REACTION as QD_MIN, QuickDraw, QuickDrawBot } from '../src/games/qu
 import { SnackSnatch, SnackSnatchBot } from '../src/games/snacksnatch/logic';
 import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
 import { Sumo, SumoBot } from '../src/games/sumo/logic';
+import { TugOfWar, TugOfWarBot } from '../src/games/tugofwar/logic';
 import { BOT as TANK_BOT, RULES as TANK, TankBot, TankDuel, type Intent as TankIntent } from '../src/games/tanks/logic';
 import { DT, player, power } from './helpers';
 
@@ -73,6 +74,13 @@ const SPECS: Spec[] = [
     bot: (p, l, rng) => new SumoBot(p, l, rng) as unknown as Bot,
     buttons: (it: { hold: boolean; power: boolean }) => ({ hold: it.hold, power: it.power }),
     powers: ['pound', 'slip'],
+  },
+  {
+    id: 'tugofwar',
+    make: (pl, rng) => new TugOfWar(pl, true, rng) as unknown as Game,
+    bot: (p, l, rng) => new TugOfWarBot(p, l, rng) as unknown as Bot,
+    buttons: (it: { tap: boolean; power: boolean }) => ({ tap: it.tap, power: it.power }),
+    powers: ['heave', 'yank'],
   },
 ];
 

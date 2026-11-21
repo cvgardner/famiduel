@@ -24,7 +24,13 @@ export const RULES = {
   /** Speed multiplier for the assisted snake at assist 3. */
   assistSpeed: 0.78,
   /** Turn assist (auto-turn away from a wall) switches on at this assist level. */
-  turnAssistAt: 3,
+  turnAssistAt: 1,
+  /**
+   * From this assist level the auto-turn also steers away from trails, not just walls
+   * (F349: the easy snake loses mostly to trails, its own and the other's; with walls alone
+   * at three stars easy+0..3 v normal read 13/5/14/15%, now 13/14/21/65%).
+   */
+  trailAssistAt: 3,
   roundIntro: 1.3,
   roundOutro: 1.8,
   maxQueue: 2,
@@ -72,6 +78,8 @@ export type Snake = {
   moves: number;
   speedMul: number;
   turnAssist: boolean;
+  /** The auto-turn also dodges trails (assist >= RULES.trailAssistAt). */
+  trailAssist: boolean;
 };
 
 export type Event =
@@ -133,6 +141,7 @@ export class SnakeDuel {
       x: 0, y: 0, dir: 0, alive: true, acc: 0, queue: [], boost: 0, phase: 0, phasing: false, phased: 0, wrap: 0, moves: 0,
       speedMul: lerpAssist(a, 1, RULES.assistSpeed),
       turnAssist: a >= RULES.turnAssistAt,
+      trailAssist: a >= RULES.trailAssistAt,
     };
   }
 
@@ -249,7 +258,12 @@ export class SnakeDuel {
     if (movers.length === 2) {
       const a = next[0];
       const b = next[1];
-      if (a.x === b.x && a.y === b.y) {
+      const s0 = this.snakes[0];
+      const s1 = this.snakes[1];
+      // Heads side by side and facing: each runs into the other's head cell (a swap).
+      // That is a head-on too (F337: ~19 of 33 drawn hard-mirror rounds were swaps).
+      const swap = a.x === s1.x && a.y === s1.y && b.x === s0.x && b.y === s0.y;
+      if ((a.x === b.x && a.y === b.y) || swap) {
         a.crash = b.crash = true;
         this.events.push({ type: 'headon', x: a.x, y: a.y });
       }
@@ -284,13 +298,17 @@ export class SnakeDuel {
     if (dead.length) this.endRound(dead.length === 2 ? null : other(dead[0]));
   }
 
-  /** Assist 3: one cell before a wall, turn toward the side with more room. */
+  /** One cell before a wall (and at three stars a trail), turn toward the side with more room. */
   private assistTurn(p: PlayerIndex): void {
     const s = this.snakes[p];
-    if (this.inside(s.x + DX[s.dir], s.y + DY[s.dir])) return;
+    const ax = s.x + DX[s.dir];
+    const ay = s.y + DY[s.dir];
+    if (s.trailAssist ? !this.blocked(ax, ay) || canPhase(s) : this.inside(ax, ay)) return;
     // Wall Wrap is on and the far side is open: the wall is a door now, keep going.
-    const through = this.ahead(s, s.dir);
-    if (through.wrapped && !this.blocked(through.x, through.y)) return;
+    if (!this.inside(ax, ay)) {
+      const through = this.ahead(s, s.dir);
+      if (through.wrapped && !this.blocked(through.x, through.y)) return;
+    }
     let best = -1;
     let bestDir = s.dir;
     for (const turn of [3, 1]) {
@@ -417,11 +435,27 @@ export class SnakeDuel {
 // Skill changes how far it looks (flood-fill depth), whether it thinks about
 // where the other head can go, its reaction time between two turns, and how
 // often it fumbles a turn.
+/**
+ * F327: how much the hard bot shies away from a head-on (a drawn round). Its territory
+ * pull (0.5 a cell, hundreds of cells) outweighed the old 50 / 8, so two hard snakes
+ * charged the middle and met head-on in ~40% of rounds (half of all rounds drawn, matches
+ * ran to the 9-round cap; a rival app's review: its hard snake "mimics my actions, making
+ * it impossible to win or lose"). Still far above -1e9, so a head-on (a draw) beats a sure crash.
+ */
+const HEADON_HARD = 1000;
+const NEARHEAD_HARD = 1000;
+/**
+ * F330: easy had no head-on worry, so two easy snakes met head-on in ~19% of rounds (a
+ * drawn round each time). A small one (still below its 0.5 noise times a few cells of
+ * room) only breaks a tie between two equally open turns; kid rows didn't move.
+ */
+const HEADON_EASY = 10;
+
 const BOT = {
-  easy: { depth: 14, react: 0.3, slip: 0.07, noise: 0.5, avoidHead: false, territory: false },
-  normal: { depth: 80, react: 0.15, slip: 0.015, noise: 0.5, avoidHead: true, territory: false },
-  hard: { depth: 600, react: HUMAN.tapGap, slip: 0, noise: 0.5, avoidHead: true, territory: true },
-} satisfies Record<BotLevel, { depth: number; react: number; slip: number; noise: number; avoidHead: boolean; territory: boolean }>;
+  easy: { depth: 14, react: 0.3, slip: 0.07, noise: 0.5, headOn: HEADON_EASY, nearHead: 0, lockAhead: false, territory: false },
+  normal: { depth: 80, react: 0.15, slip: 0.015, noise: 0.5, headOn: 50, nearHead: 8, lockAhead: false, territory: false },
+  hard: { depth: 600, react: HUMAN.tapGap, slip: 0, noise: 0.5, headOn: HEADON_HARD, nearHead: NEARHEAD_HARD, lockAhead: true, territory: true },
+} satisfies Record<BotLevel, { depth: number; react: number; slip: number; noise: number; headOn: number; nearHead: number; lockAhead: boolean; territory: boolean }>;
 
 export class SnakeBot {
   private plannedFor = -1;
@@ -482,8 +516,17 @@ export class SnakeBot {
     // A blinking brick is about to be solid: a careful player steers clear of it.
     if ((game.grid[game.idx(x, y)] !== 0 || game.soon[game.idx(x, y)]) && !canPhase(s)) return -1e9;
     let score = flood(game, x, y, cfg.depth);
-    if (cfg.avoidHead && o.alive && Math.abs(o.x + DX[o.dir] - x) + Math.abs(o.y + DY[o.dir] - y) === 0) score -= 50;
-    else if (cfg.avoidHead && o.alive && Math.abs(o.x - x) + Math.abs(o.y - y) === 1) score -= 8;
+    if (o.alive && Math.abs(o.x + DX[o.dir] - x) + Math.abs(o.y + DY[o.dir] - y) === 0) score -= cfg.headOn;
+    else if (o.alive && Math.abs(o.x - x) + Math.abs(o.y - y) === 1) score -= cfg.nearHead;
+    // A turn locks the next cell straight (no second tap that soon), so the hard bot also
+    // checks that cell: one the other head reaches in two steps is a likely head-on.
+    else if (cfg.lockAhead && turn !== 0 && o.alive) {
+      const d2 = Math.abs(o.x - x - DX[dir]) + Math.abs(o.y - y - DY[dir]);
+      if (d2 === 2) score -= o.x + 2 * DX[o.dir] === x + DX[dir] && o.y + 2 * DY[o.dir] === y + DY[dir] ? cfg.headOn : cfg.nearHead;
+      // ...or the other head is two cells past it, straight on: if it turns into the cell
+      // between (as a mirror-image bot does), both heads are locked facing, a swap head-on.
+      else if (o.x === x + 2 * DX[dir] && o.y === y + 2 * DY[dir]) score -= cfg.headOn;
+    }
     if (cfg.territory && o.alive) score += 0.5 * territory(game, x, y, o.x, o.y);
     if (turn === 0) score += 0.6; // mild preference for going straight; noise only breaks left/right ties
     return score + this.rng.range(0, cfg.noise);

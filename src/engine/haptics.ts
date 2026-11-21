@@ -2,9 +2,10 @@
 // wrong move, the win. Driven by the same sound names the games already play,
 // so every game gets haptics with no per-game code. Works where the browser
 // has navigator.vibrate (Android Chrome); iPhone Safari has none, so there it
-// does nothing. A store wrapper can swap in a native haptics call later via
-// the `vibrate` constructor argument.
+// does nothing. Inside the iOS app (engine/native.ts) the same patterns play as
+// Taptic feels instead.
 import type { SoundName } from './sfx';
+import { nativeVibrate } from './native';
 
 /** Vibration pattern (ms on, ms off, ms on...) per sound; unlisted sounds don't buzz. */
 export const HAPTICS: Partial<Record<SoundName, number | number[]>> = {
@@ -27,6 +28,8 @@ export const MIN_GAP_MS = 70;
 export type Vibrate = (pattern: number | number[]) => boolean;
 
 export function browserVibrate(): Vibrate | null {
+  const native = nativeVibrate();
+  if (native) return native;
   if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return null;
   return (p) => navigator.vibrate(p);
 }

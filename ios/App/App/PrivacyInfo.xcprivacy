@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  FamiDuel's own privacy manifest. The app's code collects nothing and never tracks
+  (names and scores stay in the web view's storage on the phone). The Google Mobile Ads SDK
+  and Capacitor ship their own manifests for what they collect and the APIs they use;
+  Xcode merges them into the app's privacy report. docs/app-store/app-review-answers.md
+  has the App Privacy answers that match.
+-->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array/>
+</dict>
+</plist>

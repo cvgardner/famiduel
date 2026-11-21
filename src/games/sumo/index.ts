@@ -3,7 +3,7 @@
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { blink } from '../../engine/calm';
 import { inkOn } from '../../core/contrast';
-import { alpha, circle, COLORS, controlsAlpha, facing, glow, noGlow, fitSize, nameLabel, rrect, scaledSize, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, facing, glow, noGlow, fitName, fitSize, nameLabel, EDGE_PAD, rrect, scaledSize, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { Button, PowerButton, powerSpot } from '../../engine/widgets';
@@ -35,6 +35,17 @@ export const COUNT_DY_SUMO = 150;
 export const PAUSE_CLEAR = 52;
 
 /**
+ * F316: room for a seat's name centred at x over its round pips: clear of the screen edge
+ * (EDGE_PAD) and of the HOLD button's charge ring (r 46 + 9, stroke and 4 spare), both sides
+ * alike since the name is centred. A 12-letter name ran off a 320 px phone and into HOLD.
+ */
+export function nameRoom(x: number): number {
+  const edge = Math.min(x, W - x) - EDGE_PAD;
+  const button = Math.abs(x - W / 2) - (46 + 9 + 4 + 4);
+  return 2 * Math.min(edge, button);
+}
+
+/**
  * F225: the dark box behind a round-end banner drawn at `size`, centred on (W / 2, y). Its
  * height stays under the gap between the two mirrored copies (2 * BANNER_OFF) so they never touch.
  */
@@ -48,6 +59,8 @@ export function bannerBox(gx: G, str: string, size: number, y: number): { x: num
   return { x, y: y - h / 2, w, h };
 }
 const ROPE = '#b8893e';
+/** F329: a rope save's words ("Saved by the rope!" / "Last rope save!"). */
+const ROPE_WORDS = /^(Saved by the rope|Last rope save)!$/;
 const SKIN = '#f6d3ad';
 const DUST = '#d8bb84';
 /** Iron Feet: a steel ring and studs round the wrestler's feet. */
@@ -204,6 +217,9 @@ class SumoView implements GameInstance {
         const msg = e.left > 0 ? 'Saved by the rope!' : 'Last rope save!';
         const ty = e.y + (e.p === 0 ? -44 : 44);
         const tx = Math.max(90, Math.min(W - 90, e.x));
+        // F329: saved again while the last save's words are still up (fast taps re-dash at the
+        // rope): the new words replace them rather than stacking a second copy beside them.
+        fx.fadeWords(ROPE_WORDS, e.p);
         // F181: the rope bounces the wrestler back in, often into the words above them.
         fx.pop(msg, tx, this.clearPopY(e.p, msg, 18, tx, ty, 12), e.left > 0 ? '#fff' : '#ff8a5c', e.p, 18);
       } else if (e.type === 'shrink') {
@@ -379,12 +395,26 @@ class SumoView implements GameInstance {
     this.renderRing(gx);
     // Aim guides and wrestlers
     for (const p of PLAYERS) this.renderAim(gx, p);
-    for (const p of PLAYERS) this.renderWrestler(gx, p);
+    // F333: a wrestler who went out is drawn over a round-end banner's dark box (its words stay
+    // on top, last): a third of ring-outs happen beside the centre line, where the box hid the
+    // spin-out. The one still in stays under the box, so the words (in the winner's colour)
+    // never sit on the winner's body.
+    for (const p of PLAYERS) if (!g.wrestlers[p].out) this.renderWrestler(gx, p);
+    this.renderBanner(gx, 'box');
+    for (const p of PLAYERS) if (g.wrestlers[p].out) this.renderWrestler(gx, p);
     for (const r of this.rings) circle(gx, r.x, r.y, r.r, undefined, r.color.startsWith('#') ? alpha(r.color, r.life / r.max) : r.color, r.width * (r.life / r.max));
     // Controls and scores
     for (const p of PLAYERS) this.renderButton(gx, p);
     for (const p of PLAYERS) this.powerBtns[p]?.render(gx, g.energy[p], this.t);
     for (const p of PLAYERS) this.renderScore(gx, p);
+    this.renderBanner(gx, 'words');
+  }
+
+  /**
+   * The centre banner ("Round 2", "GO!", "<name> wins the round!"), in two passes: 'box' draws a
+   * round-end banner's dark box (before the wrestlers), 'words' draws every banner's words (last).
+   */
+  private renderBanner(gx: G, pass: 'box' | 'words'): void {
     if (this.banner > 0 && this.bannerText) {
       const a = Math.min(1, this.banner * 4);
       const pop = 1 + Math.max(0, this.banner - (this.bannerText === 'GO!' ? 0.4 : 0.9)) * 1.5;
@@ -397,17 +427,20 @@ class SumoView implements GameInstance {
         // Capped so the two mirrored copies never overlap across the middle.
         const want = Math.round(Math.min(fit * pop, BANNER_MAX));
         if (!this.bannerBoxed) {
-          text(gx, this.bannerText, W / 2, y, { size: fitSize(gx, this.bannerText, W - 20, want), color: this.bannerColor, stroke: 'rgba(40,20,0,0.75)', player: p, alpha: a });
+          if (pass === 'words') text(gx, this.bannerText, W / 2, y, { size: fitSize(gx, this.bannerText, W - 20, want), color: this.bannerColor, stroke: 'rgba(40,20,0,0.75)', player: p, alpha: a });
           continue;
         }
         // F225: a round-end banner ran edge to edge over the ring and both wrestlers as bare
         // outlined text; on a dark box (like Snake's and Chop Chop's) it reads cleanly.
         const size = fitSize(gx, this.bannerText, W - PAUSE_CLEAR - 8 - BANNER_PAD * 2, want);
         const box = bannerBox(gx, this.bannerText, size, y);
-        const was = gx.globalAlpha;
-        gx.globalAlpha = was * a;
-        rrect(gx, box.x, box.y, box.w, box.h, 14, 'rgba(10,8,25,0.78)', alpha(this.bannerColor, 0.8), 2);
-        gx.globalAlpha = was;
+        if (pass === 'box') {
+          const was = gx.globalAlpha;
+          gx.globalAlpha = was * a;
+          rrect(gx, box.x, box.y, box.w, box.h, 14, 'rgba(10,8,25,0.78)', alpha(this.bannerColor, 0.8), 2);
+          gx.globalAlpha = was;
+          continue;
+        }
         text(gx, this.bannerText, box.x + box.w / 2, y, { size, color: this.bannerColor, player: p, alpha: a });
       }
     }
@@ -663,7 +696,8 @@ class SumoView implements GameInstance {
     // F164: a bot's pips turned to face the one person would fill from the other end.
     const quiet = silentSeat(this.ctx.players, p);
     facing(gx, p, x, y, () => {
-      nameLabel(gx, this.ctx.players[p].name, x, y - 22, c, { size: 13 });
+      const nm = fitName(gx, this.ctx.players[p].name, nameRoom(x), 13);
+      nameLabel(gx, nm.str, x, y - 22, c, { size: nm.size });
       for (let i = 0; i < RULES.roundsToWin; i++) {
         const px = x - 14 + (quiet ? RULES.roundsToWin - 1 - i : i) * 28;
         const won = g.score[p] > i;

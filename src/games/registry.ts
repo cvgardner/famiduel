@@ -6,6 +6,7 @@ import checkers from './checkers';
 import chopchop from './chopchop';
 import fourinarow from './fourinarow';
 import minigolf from './minigolf';
+import minipool from './minipool';
 import penalty from './penalty';
 import pingpong from './pingpong';
 import quickdraw from './quickdraw';
@@ -16,6 +17,7 @@ import snake from './snake';
 import sumo from './sumo';
 import tanks from './tanks';
 import tictactoe from './tictactoe';
+import tugofwar from './tugofwar';
 
 export const GAMES: Record<string, GameDef> = {
   [minigolf.id]: minigolf,
@@ -23,6 +25,7 @@ export const GAMES: Record<string, GameDef> = {
   [sumo.id]: sumo,
   [pingpong.id]: pingpong,
   [penalty.id]: penalty,
+  [minipool.id]: minipool,
   [snacksnatch.id]: snacksnatch,
   [snake.id]: snake,
   [quickdraw.id]: quickdraw,
@@ -31,6 +34,7 @@ export const GAMES: Record<string, GameDef> = {
   [fourinarow.id]: fourinarow,
   [checkers.id]: checkers,
   [chopchop.id]: chopchop,
+  [tugofwar.id]: tugofwar,
   [tictactoe.id]: tictactoe,
   [rps.id]: rps,
 };

@@ -46,6 +46,12 @@
 :root { --ts: 1; }
 /* Settings > Bigger text: menu words up to 20 px grow 1.2x (headlines are big already). */
 :root[data-bigtext] { --ts: 1.2; }
+/* Settings > Text size > Largest (Apple's Larger Text label asks for 200%): home and settings
+   words grow 2x (they hold there, F245). The split game screens, the tournament and the sheets
+   keep Bigger text's 1.2x: each player has under half the phone there, and later rules (short
+   phones) still take the intro down to 1. */
+:root[data-largesttext] { --ts: 2; }
+:root[data-largesttext] :is(#intro, #play, #result, #tourney), :root[data-largesttext] .modal { --ts: 1.2; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
 body { overscroll-behavior: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
@@ -90,6 +96,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 }
 @media (prefers-reduced-motion: reduce) { .logo .l1 { animation: none; } }
 .tag { margin: 8px 0 0; color: var(--dim); font-weight: 700; font-size: calc(14px * var(--ts)); letter-spacing: 0.01em; }
+/* Every game plays without a network; a quiet second line says so (the listing leads with it). */
+.offline { margin: 2px 0 0; color: var(--dim); font-weight: 600; font-size: calc(12px * var(--ts)); letter-spacing: 0.02em; }
 
 /* Segmented controls: a sunken track with a raised pick. */
 .seg { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -148,6 +156,11 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .game-card.soon { filter: grayscale(0.85) brightness(0.7); cursor: default; }
 .gicon { position: relative; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-size: 32px; line-height: 1;
   background: rgba(255,255,255,0.24); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.35), inset 0 -4px 0 rgba(0,0,0,0.10); }
+/* A picture of the game in place of its emoji (cardpic.ts): a rounded tile across the card. */
+.gicon.gpic { width: min(100%, 112px); height: auto; aspect-ratio: 62 / 42; border-radius: 14px; font-size: 0; background: none;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.55), 0 3px 0 rgba(0,0,0,0.18); }
+.gpic .card-pic { display: block; width: 100%; height: 100%; border-radius: inherit; }
+.gpic .gbot, .gpic .gday { top: -7px; }
 /* The name takes the card colour's own ink (dark on light cards like Quick Draw's yellow, white
    on dark ones), so it passes WCAG on every card in both themes. */
 .gname { position: relative; font-weight: 900; font-size: calc(14px * var(--ts)); text-align: center; line-height: 1.1; color: var(--ink, #fff); text-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 0 6px rgba(0,0,0,0.25); min-height: 2.2em; display: flex; align-items: center; }
@@ -195,6 +208,11 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .theme-row .theme-seg { margin-left: auto; }
 .theme-seg button { min-width: 44px; min-height: 44px; padding: 4px 8px; font-size: calc(14px * var(--ts)); background: transparent; color: var(--dim); border-radius: 10px; }
 .theme-seg button.on { box-shadow: 0 2px 0 #c99a12; }
+/* Text size: each "A" is drawn at its own step's size, whatever the text size is now. */
+.text-seg button { font-weight: 900; line-height: 1; padding-inline: 6px; }
+.text-seg button[data-v="usual"] { font-size: 14px; }
+.text-seg button[data-v="bigger"] { font-size: 18px; }
+.text-seg button[data-v="largest"] { font-size: 26px; }
 .foot { text-align: center; color: var(--dim); font-size: calc(12px * var(--ts)); font-weight: 600; padding: 0 12px; }
 @media (max-width: 360px) {
   .logo { font-size: 32px; padding: 8px 16px 10px; border-radius: 18px; margin-top: 2px; }
@@ -202,7 +220,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   .vs { top: 27px; }
   .player-chip .dot { width: 34px; height: 34px; font-size: calc(16px * var(--ts)); }
   .player-chip .pname { font-size: calc(14px * var(--ts)); }
-  .gicon { width: 50px; height: 50px; font-size: 28px; }
+  .gicon:not(.gpic) { width: 50px; height: 50px; font-size: 28px; }
   .gname { font-size: calc(13px * var(--ts)); }
   .gkind { white-space: normal; text-align: center; }
   .set-txt small { display: none; }
@@ -212,6 +230,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .modal { position: fixed; inset: 0; background: rgba(5,4,15,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10; padding: 16px; }
 .sheet { width: 100%; max-width: 380px; max-height: 100%; overflow-y: auto; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
 .sheet h2 { margin: 0; text-align: center; }
+.sheet .why { margin: -6px 0 0; text-align: center; color: var(--dim); font-weight: 700; font-size: calc(15px * var(--ts)); }
 .field { display: flex; flex-direction: column; gap: 6px; font-weight: 800; }
 .field small { color: var(--dim); font-weight: 600; }
 .field input { font: inherit; font-weight: 700; padding: 10px 12px; border-radius: 12px; border: 0; background: var(--surface-2); color: var(--text); }
@@ -381,7 +400,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   /* CI's Linux fonts sit taller than a phone's: keep ~20px spare so the card stays whole. */
   #home { gap: 8px; }
   .brand { padding-top: 0; }
-  .brand .tag { display: none; }
+  .brand .tag, .brand .offline { display: none; }
   .versus { padding: 8px 10px; gap: 6px; }
   .group { gap: 6px; }
   /* After a match the "New night" link sits beside the score instead of under it; the
@@ -583,19 +602,14 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* Settings rows that open something (Grown-ups corner). */
+/* Settings rows that open something (Lock to FamiDuel). */
 .set-link { width: 100%; text-align: left; color: inherit; }
 .set-go { margin-left: auto; color: var(--dim); font-size: 24px; font-weight: 700; }
-/* Parental gate and the grown-ups tips. */
-.gate-q { margin: 0; text-align: center; font-weight: 800; font-size: calc(18px * var(--ts)); }
-.gate-in { font: inherit; font-size: 24px; font-weight: 800; text-align: center; padding: 10px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface-2); color: var(--text); min-height: 48px; }
-.gate-msg { margin: 0; text-align: center; color: var(--dim); font-size: calc(13px * var(--ts)); font-weight: 600; }
-.gate-btns { display: flex; gap: 10px; }
-.gate-btns .btn { flex: 1; }
-.grownups h3 { margin: 4px 0 0; font-size: calc(16px * var(--ts)); }
-.grownups ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: calc(14px * var(--ts)); line-height: 1.35; }
-.grownups .gu-lead, .grownups .gu-note { margin: 0; font-size: calc(14px * var(--ts)); line-height: 1.35; }
-.grownups .gu-note { color: var(--dim); font-size: calc(13px * var(--ts)); }
+/* The Lock to FamiDuel tips. */
+.stayin h3 { margin: 4px 0 0; font-size: calc(16px * var(--ts)); }
+.stayin ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: calc(14px * var(--ts)); line-height: 1.35; }
+.stayin .gu-lead, .stayin .gu-note { margin: 0; font-size: calc(14px * var(--ts)); line-height: 1.35; }
+.stayin .gu-note { color: var(--dim); font-size: calc(13px * var(--ts)); }
 
 /* Little hands (Settings > Look): ages 4-6 guidance asks for 56-64 px primary buttons, so
    the intro's Ready button, power cards and bot level buttons are at least 60 px tall. */

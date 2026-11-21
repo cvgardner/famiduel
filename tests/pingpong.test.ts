@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel } from '../src/core/types';
-import { forecast, PingPong, PingPongBot, predictX, RULES, type Intent } from '../src/games/pingpong/logic';
+import { assistStep, forecast, PingPong, PingPongBot, predictX, RULES, type Intent } from '../src/games/pingpong/logic';
 import { DT, player, power } from './helpers';
 import { H } from '../src/engine/world';
 
@@ -110,6 +110,19 @@ describe('ping pong', () => {
     g.step(DT, [still(), still()]);
     const up = y1 - g.ball.y;
     expect(down / up).toBeCloseTo(RULES.assistSlow, 5);
+  });
+
+  // F346: linear, one star took the easy bot from 3% to 70% against normal; the help now
+  // grows with the square of the stars, so each star counts (~2 / 13 / 57 / 100%).
+  it('the head start grows a little at one star and fully at three', () => {
+    const width = (a: number) => new PingPong([player({ assist: a }), player()], false, makeRng(1)).paddles[0].w;
+    const ws = [0, 1, 2, 3].map(width);
+    const span = RULES.paddleWMax - RULES.paddleW;
+    expect(ws[0]).toBe(RULES.paddleW);
+    expect(ws[1] - ws[0]).toBeCloseTo(span / 9, 5);
+    expect(ws[2] - ws[0]).toBeCloseTo((span * 4) / 9, 5);
+    expect(ws[3]).toBe(RULES.paddleWMax);
+    expect(assistStep(1.5)).toBeCloseTo(0.75, 5);
   });
 
   it('where the ball hits the paddle sets the angle, and the rally speeds up to a cap', () => {

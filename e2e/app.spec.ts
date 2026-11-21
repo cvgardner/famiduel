@@ -68,8 +68,32 @@ test('two people pick powers, play air hockey, and see the result', async ({ pag
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.7, { steps: 5 });
   await page.mouse.up();
   await holdPause(page);
+  await expect(page.locator('.sheet .why')).toHaveCount(0); // F323: only a pause nobody pressed says why
   await page.click('#quitBtn');
   await expect(page.locator('#home')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+// F322: Ping Pong between two still paddles rallied forever (a 900 s run ended 1-1, "Rally 879").
+test('two people who both walk away from a real-time game find it paused', async ({ page }) => {
+  const errors = await boot(page);
+  type R = { __famiduel: { runner: { fastForward(s: number): void; result: unknown; paused: boolean } } };
+  for (const id of ['pingpong', 'airhockey']) {
+    await page.evaluate(() => (window as unknown as { __famiduel: { showHome(): void } }).__famiduel.showHome());
+    await page.locator(`.game-card[data-id="${id}"]`).click();
+    await page.locator('.power-card[data-p="0"]').first().click();
+    await page.locator('.power-card[data-p="1"]').first().click();
+    await page.click('#ready0');
+    await page.click('#ready1');
+    await expect(page.locator('#play')).toBeVisible();
+    await page.evaluate(() => (window as unknown as R).__famiduel.runner.fastForward(900));
+    await expect(page.locator('#resumeBtn')).toBeVisible();
+    expect(await page.evaluate(() => (window as unknown as R).__famiduel.runner.result)).toBeNull();
+    // F323: the sheet says why it paused, so nobody wonders who pressed pause.
+    await expect(page.locator('.sheet .why')).toHaveText('Nobody was playing, so we paused.');
+    await page.click('#quitBtn');
+    await expect(page.locator('#home')).toBeVisible();
+  }
   expect(errors).toEqual([]);
 });
 
@@ -167,7 +191,7 @@ for (const g of games.games) {
 // "Match point!"; Air Hockey's power name sat inside GOAL! (F148). The probe in fx.ts lists
 // any two pops born in the same step whose words overlap in the same seat. F150: pops born
 // together now stack like lines of text in every game, so every action game is checked.
-for (const id of ['pingpong', 'airhockey', 'sumo', 'penalty', 'snacksnatch', 'snake', 'quickdraw', 'tanks', 'chopchop', 'minigolf', 'seabattle']) {
+for (const id of ['pingpong', 'airhockey', 'sumo', 'penalty', 'snacksnatch', 'snake', 'quickdraw', 'tanks', 'chopchop', 'minigolf', 'seabattle', 'tugofwar']) {
   test(`pops born together never overlap: ${id}`, async ({ page }) => {
     test.setTimeout(120_000);
     const errors = await boot(page, `POPS-${id}`);
@@ -307,10 +331,12 @@ test('settings and player cards are remembered after a reload', async ({ page })
   const errors = await boot(page, 'E2E', false);
   await page.click('#settingsBtn');
   const keys = await page.locator('.settings input[data-k]').evaluateAll((els) => els.map((e) => [(e as HTMLInputElement).dataset.k!, (e as HTMLInputElement).checked] as const));
-  expect(keys.length, 'every toggle row is covered').toBeGreaterThanOrEqual(5);
-  // Flip every toggle away from where a fresh install has it, and pick the dark look.
+  // Text size moved from a switch to Usual / Bigger / Largest (F311), so one fewer switch.
+  expect(keys.length, 'every toggle row is covered').toBeGreaterThanOrEqual(4);
+  // Flip every toggle away from where a fresh install has it, and pick the dark look and Largest text.
   for (const [k] of keys) await page.locator('label.toggle', { has: page.locator(`input[data-k="${k}"]`) }).click();
   await page.locator('#themeSeg button[data-v="dark"]').click();
+  await page.locator('#textSeg button[data-v="largest"]').click();
   await page.click('#settingsBack');
   // A player card: name, colour, head start, left hand.
   await page.locator('.player-chip').first().click();
@@ -330,6 +356,8 @@ test('settings and player cards are remembered after a reload', async ({ page })
     else await expect(input, `${k} stays on`).toBeChecked();
   }
   await expect(page.locator('#themeSeg button.on')).toHaveAttribute('data-v', 'dark');
+  await expect(page.locator('#textSeg button.on')).toHaveAttribute('data-v', 'largest');
+  await expect(page.locator('html')).toHaveAttribute('data-largesttext', '1');
   await page.click('#settingsBack');
   await expect(page.locator('.player-chip').first()).toContainText('Maya');
   await expect(page.locator('.player-chip').first()).toContainText('★★★');
