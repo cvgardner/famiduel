@@ -98,8 +98,9 @@ so App Store Connect won't ask on each upload.
   chat; names and scores stay on the device. Ads (Google AdMob, child-directed,
   non-personalized, G-rated) show only between matches: never in the first session, at
   most one every 2 matches and 3 minutes, so to see one, reopen the app and finish two
-  matches. The Remove Ads purchase is in Settings > For grown-ups, behind a parental gate
-  (a multiplication question written in words); Restore Purchase is next to it.
+  matches. The Remove Ads purchase is in Settings > More; Restore Purchase is next to it.
+  The app is in Games at 9+, not the Kids category, so there is no in-app parental gate;
+  Apple's purchase sheet asks for Face ID or the Apple ID password before any charge.
   The pause button needs a press and hold (so a child's stray tap doesn't pause), and a
   swipe from the top or bottom edge needs a second swipe because both edges are players'
   play areas.
@@ -110,9 +111,9 @@ so App Store Connect won't ask on each upload.
   (must match `REMOVE_ADS_ID` in src/engine/ads.ts exactly).
 - Price: $4.99 tier (CLAUDE.md range $4.99–6.99). Availability: same countries as the app (no EU at launch).
 - Display name "Remove Ads"; description "No more ads between matches. Every game stays free."
-- Review screenshot: Settings > For grown-ups showing the Remove ads row (take it from a
+- Review screenshot: Settings > More showing the Remove ads row (take it from a
   TestFlight build or `npm run store:shots`'s settings shot).
-- Review notes: "Settings > For grown-ups > Remove ads, after the grown-ups question."
+- Review notes: "Settings > More > Remove ads."
 - Family Sharing: on is friendly for a family app (optional).
 - The first purchase must be submitted **with** the app version: on the version page,
   under In-App Purchases, add Remove Ads before Submit.

@@ -34,8 +34,9 @@ family-safe setup below was picked on a decision card in the project thread.
 
 ## Remove Ads (StoreKit via @capgo/native-purchases)
 
-- Non-consumable `famiduel.removeads` ($4.99). Settings > For grown-ups shows
-  "Remove ads · <price>" and "Restore purchase", both behind the parental gate.
+- Non-consumable `famiduel.removeads` ($4.99). Settings > More shows
+  "Remove ads · <price>" and "Restore purchase". No in-app parental gate since 20 Nov 2026
+  (Games 9+, not the Kids category); Apple's purchase sheet asks for Face ID or a password.
 - Owned is cached in the save (`ads.removed`) so an offline phone stays ad-free; at each
   start StoreKit's current entitlements win (a refund brings ads back).
 
@@ -53,7 +54,7 @@ also drops the waits so an ad comes after one match. e2e/ads.spec.ts walks both.
   iPhone 17 simulator (Xcode 26.1.1).
 - Remove Ads without App Store Connect: open ios/App/App.xcodeproj and press Run. The App
   scheme uses ios/App/Products.storekit (a local test store with `famiduel.removeads`), so
-  Settings > For grown-ups > Remove ads buys for free in the simulator. Debug > StoreKit >
+  Settings > More > Remove ads buys for free in the simulator. Debug > StoreKit >
   Manage Transactions deletes the purchase to try Restore.
 - The app's own PrivacyInfo.xcprivacy sits beside those of Capacitor and the Google SDKs;
   an unsigned Release archive contains all six.

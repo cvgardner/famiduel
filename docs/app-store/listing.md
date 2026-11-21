@@ -57,7 +57,7 @@ EASY TO PICK UP
 Big buttons, a bigger text setting, light and dark menus, and a pause button that needs a press and hold, so a stray tap never stops the game. Anyone can play in seconds, from little kids to grandparents.
 
 FREE, AND FAIR ABOUT IT
-Every game is free. A short ad can show between matches now and then, never during a game and never in your first session. Ads are family-safe and never personalized, and the app never tracks you. One purchase removes them for good, behind a grown-ups question so kids can't buy it by accident. No accounts and no chat; names and scores stay on your phone.
+Every game is free. A short ad can show between matches now and then, never during a game and never in your first session. Ads are family-safe and never personalized, and the app never tracks you. One purchase removes them for good. No accounts and no chat; names and scores stay on your phone.
 
 ### Keywords (100, comma separated, no spaces after commas)
 

@@ -1,7 +1,5 @@
 // The app shell: home screen with the game grid and family scoreboard, player
 // cards, the split-screen "pick your power" intro, the match and the results.
-import { gateOpens, gateQuestion } from './gate';
-import { makeRng } from '../core/rng';
 import { BIG_TEXT, setTextScale } from '../engine/draw';
 import { setBigHands } from '../engine/widgets';
 import gamesJson from '../../content/games.json';
@@ -149,7 +147,7 @@ export class App {
     });
   }
 
-  /** Settings rows: buy or restore "Remove ads", both behind the grown-ups gate. */
+  /** Settings rows: buy or restore "Remove ads". Apple's own purchase sheet confirms with Face ID or a password. */
   private adsRows(): string {
     if (!this.money) return '';
     if (this.adState.removed) return `<div class="set-row" id="adsGone"><span class="set-ico" aria-hidden="true">💛</span><span class="set-txt"><b>Ads removed</b><small>Thank you for supporting FamiDuel!</small></span></div>`;
@@ -165,17 +163,15 @@ export class App {
     const act = (id: string, run: () => Promise<boolean>) =>
       document.getElementById(id)?.addEventListener('click', () => {
         this.sfx.play('tap');
-        this.showGate(() =>
-          run().then((owned) => {
-            if (owned) this.setAdsRemoved(true);
-            if ($('#settings').classList.contains('hidden')) return;
-            this.showSettings();
-            if (!owned) {
-              const note = document.getElementById(id === 'restoreAds' ? 'restoreAds' : 'removeAds');
-              note?.querySelector('small')?.replaceChildren(id === 'restoreAds' ? 'Nothing to restore on this Apple ID' : 'Not bought. Nothing was charged.');
-            }
-          }),
-        );
+        run().then((owned) => {
+          if (owned) this.setAdsRemoved(true);
+          if ($('#settings').classList.contains('hidden')) return;
+          this.showSettings();
+          if (!owned) {
+            const note = document.getElementById(id === 'restoreAds' ? 'restoreAds' : 'removeAds');
+            note?.querySelector('small')?.replaceChildren(id === 'restoreAds' ? 'Nothing to restore on this Apple ID' : 'Not bought. Nothing was charged.');
+          }
+        });
       });
     act('removeAds', () => money.purchases.buy());
     act('restoreAds', () => money.purchases.restore());
@@ -299,12 +295,12 @@ export class App {
               .join('')}</div>
           </div>` + this.toggle('bigText', '🔠', 'Bigger text', 'Larger words in games and menus', !!settings.bigText) +
           this.toggle('bigButtons', '🖐️', 'Little hands', 'Bigger Ready and power buttons, in games too', !!settings.bigButtons), 'Auto follows your phone\'s light or dark mode.')}
-      ${group('For grown-ups', this.adsRows() + `<button class="set-row set-link" id="grownUps"><span class="set-ico" aria-hidden="true">👪</span><span class="set-txt"><b>Grown-ups corner</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
+      ${group('More', this.adsRows() + `<button class="set-row set-link" id="stayIn"><span class="set-ico" aria-hidden="true">📌</span><span class="set-txt"><b>Lock to FamiDuel</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
       <footer class="foot">${this.money ? 'FamiDuel · no accounts, no chat · ads only between matches' : 'FamiDuel · no ads, no accounts · everything stays on this device'}</footer>`;
     this.wireAdsRows();
-    $('#grownUps').addEventListener('click', () => {
+    $('#stayIn').addEventListener('click', () => {
       this.sfx.play('tap');
-      this.showGate(() => this.showGrownUps());
+      this.showStayIn();
     });
     $('#settingsBack').addEventListener('click', () => {
       this.sfx.play('tap');
@@ -331,51 +327,11 @@ export class App {
     }
   }
 
-  /**
-   * Parental gate (gate.ts): a times-table question written in words. The right answer runs
-   * `open`; a wrong one asks a new question. Cancel closes it.
-   */
-  private showGate(open: () => void): void {
-    const modal = $('#modal');
-    const rng = makeRng(Date.now());
-    let q = gateQuestion(rng);
-    modal.classList.remove('hidden', 'help');
-    modal.innerHTML = `<div class="sheet gate">
-      <h2>For grown-ups</h2>
-      <p class="gate-q" id="gateQ">${q.text}</p>
-      <input id="gateIn" class="gate-in" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-labelledby="gateQ"/>
-      <p class="gate-msg" id="gateMsg" aria-live="polite">Type the answer to go on.</p>
-      <div class="gate-btns"><button id="gateCancel" class="btn">Cancel</button><button id="gateOk" class="btn primary">Go on</button></div>
-    </div>`;
-    const input = $<HTMLInputElement>('#gateIn', modal);
-    const close = () => {
-      modal.classList.add('hidden');
-      modal.innerHTML = '';
-    };
-    const tryOpen = () => {
-      if (gateOpens(q, input.value)) {
-        close();
-        open();
-        return;
-      }
-      q = gateQuestion(rng, q);
-      $('#gateQ', modal).textContent = q.text;
-      $('#gateMsg', modal).textContent = 'Not quite. Here is another one.';
-      input.value = '';
-      this.sfx.play('tap');
-    };
-    $('#gateOk', modal).addEventListener('click', tryOpen);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') tryOpen();
-    });
-    $('#gateCancel', modal).addEventListener('click', close);
-  }
-
-  /** Tips for parents, behind the gate: OS-level ways to keep a small kid in the app. */
-  private showGrownUps(): void {
+  /** OS-level ways to keep a small kid in the app (Guided Access, app pinning). */
+  private showStayIn(): void {
     const modal = $('#modal');
     modal.classList.remove('hidden', 'help');
-    modal.innerHTML = `<div class="sheet grownups">
+    modal.innerHTML = `<div class="sheet stayin">
       <h2>Keep a little one in the game</h2>
       <p class="gu-lead">Your phone can lock itself to FamiDuel, so a small kid can't swipe out to other apps while you play.</p>
       <h3>iPhone and iPad: Guided Access</h3>
