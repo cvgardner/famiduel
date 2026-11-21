@@ -197,7 +197,7 @@ class TankView implements GameInstance {
    * F192: the nearest start line for a seat's pop whose whole rise (fx floats it 40/s for
    * 0.9 s, up for seat 0, down for seat 1) misses both tanks and their rings.
    */
-  clearOfTanks(str: string, size: number, x: number, y: number, p: PlayerIndex, allowed: (cy: number) => boolean = () => true): number {
+  clearOfTanks(str: string, size: number, x: number, y: number, p: PlayerIndex, allowed: (cy: number) => boolean = () => true, keepInside = false): number {
     const half = ([...str].length * size * 0.55) / 2;
     const rise = p === 0 ? -36 : 36;
     const hits = (cy: number) => {
@@ -214,22 +214,29 @@ class TankView implements GameInstance {
         }),
       );
     };
+    // F381: with keepInside, the whole rise stays inside the arena: a hit's words past its edge
+    // printed over that seat's hearts and ammo dots. (BONK! and POOF! are born on a tank, often at
+    // the edge, where staying inside would put them on a tank instead.)
+    const lo = ARENA.y + 2 + size * 0.45 - Math.min(0, rise);
+    const hi = ARENA.y + ARENA.h - 2 - size * 0.45 - Math.max(0, rise);
+    const inside = (cy: number) => !keepInside || (cy >= lo && cy <= hi);
+    if (keepInside) y = Math.max(lo, Math.min(hi, y));
     // F205: a line another of this seat's pops holds would be moved off by fx.pop, back onto a tank.
-    const ok = (cy: number) => allowed(cy) && !hits(cy) && this.ctx.fx.popFits(str, x, cy, size, p);
+    const ok = (cy: number) => inside(cy) && allowed(cy) && !hits(cy) && this.ctx.fx.popFits(str, x, cy, size, p);
     if (ok(y)) return y;
     for (let d = 2; d <= 160; d += 2) {
-      for (const cy of [y - d, y + d]) if (cy > size && cy < H - size && ok(cy)) return cy;
+      for (const cy of [y - d, y + d]) if (ok(cy)) return cy;
     }
     if (allowed(y) && !hits(y)) return y;
     for (let d = 2; d <= 160; d += 2) {
-      for (const cy of [y - d, y + d]) if (cy > size && cy < H - size && allowed(cy) && !hits(cy)) return cy;
+      for (const cy of [y - d, y + d]) if (inside(cy) && allowed(cy) && !hits(cy)) return cy;
     }
     return y;
   }
 
   /** F205: a seat's pop, started on the nearest line whose rise misses both tanks. */
   private popClear(str: string, x: number, y: number, color: string, p: PlayerIndex, size: number): void {
-    this.ctx.fx.pop(str, x, this.clearOfTanks(str, size, x, y, p), color, p, size);
+    this.ctx.fx.pop(str, x, this.clearOfTanks(str, size, x, y, p, undefined, true), color, p, size);
   }
 
   /**

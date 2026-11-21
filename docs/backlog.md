@@ -2658,3 +2658,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-21 (F374): Tug of War's how-to said its goal twice (blurb "Pull the ribbon past
       your line", then "Get the red ribbon past your line!"); it now reads "Tap fast anywhere on
       your side to pull the red ribbon your way."
+- [x] 2026-11-21 (F381): Tank Duel: a hit's "Oops! Own shot", "Bonked!" and "+1" could land past
+      the arena's edge, printed over that seat's hearts and ammo dots (readable frames outside
+      between bots: Bonked! 36%, Oops! 44%, +1 15%). Their lines (popClear) now keep the whole
+      rise inside the arena: 4% / 2% / 1% left, where no clear line inside exists and fx.pop
+      stacks the word off it (tests/tanks-pops-arena.test.ts). BONK!, POOF! and clink! are born
+      on a tank, often at the edge, so keeping those inside would put them on a tank; left as is.
