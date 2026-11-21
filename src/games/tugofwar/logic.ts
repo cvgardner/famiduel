@@ -348,12 +348,11 @@ export class TugOfWarBot {
     const id = game.players[this.p].power?.id;
     if (id === 'yank') {
       if (game.yank[this.p]) return false;
-      // Finish a round it is winning, or save one it is losing.
-      const prog = game.progress(this.p);
+      // Once the round has got going, like Heave and Butter (waiting for either line came too late).
       return game.phaseT > 1 && this.rng.chance(0.03);
     }
     if (id === 'anchor') {
-      // Dig in when the ribbon is sliding toward its own losing line.
+      // Tie off while the ribbon is sliding the wrong way.
       return game.phaseT > 1 && game.vel * toward(this.p) < 0 && this.rng.chance(0.05);
     }
     // Heave, Butter and Steady Grip: once the round has got going.
