@@ -14,7 +14,7 @@ Written 2026-11-14 (F244). Re-check before the first store submission.
 | Sufficient Contrast | **Yes** | Every drawn word is checked at 4.5:1 (3:1 for large bold) on every game surface (`tests/contrast.test.ts`, `__contrast` probe in the playtest); DOM menus by `domcontrast.ts`; the pause dot is measured at 3:1 (#267). |
 | Differentiate Without Color Alone | **Yes** | Whose piece is whose comes from position first (each player owns the half nearest them) and player colours are kept apart for protan / deutan / tritan vision (`src/core/colors.ts` `safePair`, `tests/colors.test.ts`). Good/bad marks use a colour-blind safe pair (F5, #68) plus words or icons; middle buttons carry icons (#268, #270). |
 | Reduced Motion | **Yes** | With the phone's Reduce Motion on, screen shake is off and full-screen flashes are calmed (`src/engine/fx.ts`), power pictures hold still (`powerpic.ts`), the logo stops; with it off, nothing blinks faster than 2 a second (`calm.ts`, `tests/flicker.test.ts`) and flashes merge (#265). |
-| Larger Text | **Not yet (menus nearly)** | Apple asks for text that grows to at least 200% for common tasks. Settings > Look > Text size has Usual / Bigger (1.2x) / Largest. Largest puts home and settings at 2x (F311, playtest "menus at 200% text"); in-game canvas words, the intro, result, pause and the player sheet stay at Bigger (1.2x). See gap 1 for what is left before claiming it. |
+| Larger Text | **Menus ready (Chris to claim)** | Apple asks for text that grows to at least 200% for common tasks. Settings > Look > Text size has Usual / Bigger (1.2x) / Largest. Largest puts home and settings at 2x (F311, playtest "menus at 200% text"); the player sheet, Lock to FamiDuel sheet and the tournament screen are at 2x too (F359, F360); in-game canvas words, the intro, result and pause stay at Bigger (1.2x). See gap 1 for what is left before claiming it. |
 | VoiceOver | **No** | Menus have labels (buttons carry aria-labels), but matches are canvas games with no spoken state. A real-time two-player game played by touch is hard to make screen-reader playable; don't claim. Gap 2 covers the menus. |
 | Voice Control | **No** | Matches need live touch (swipes, holds). Menus are plain buttons, but common tasks include playing. |
 | Captions | **n/a** | No speech or video in the app; sounds are short effects. |
@@ -28,11 +28,10 @@ Written 2026-11-14 (F244). Re-check before the first store submission.
    number dot, game cards go two across on small phones, the tournament card and the theme
    row grow instead of squeezing (playtest "menus at 200% text"). Chris said yes to a 2x
    step (15 Nov): F311 adds Text size > Largest, which sets home and settings to 2x through
-   the real setting. Still open before claiming the label: picking players happens on the
-   player sheet, which stays at Bigger (1.2x) until it is checked at 2x; the split screens
+   the real setting. F359 and F360 (21 Nov) put the one-person sheets (player sheet, Lock to FamiDuel) and the tournament screen at 2x too,
+   checked a screenful at a time in the same playtest; the split screens
    (intro, result, pause how-to) give each player under half the phone, where 2x how-tos
-   don't fit, so they stay at Bigger. Claim "Larger Text" for menus once the player sheet
-   holds at 2x; following the phone's own text size can come with the store wrapper.
+   don't fit, so they stay at Bigger. Menus are ready to claim "Larger Text" (Chris's call); following the phone's own text size can come with the store wrapper.
 2. **VoiceOver on menus.** Walk home -> intro -> Ready -> result with VoiceOver on a real
    phone (store wrapper): every control named, the pause button activates on a double tap
    (backlog: "press and hold" vs detail 0). Menus only; matches stay unclaimed.
