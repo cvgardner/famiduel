@@ -2660,3 +2660,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       that seat's own round stars, so the player who just lost couldn't see the tally. The loser's
       card is now narrower and centred, ending left of the stars (cardBox()); test in
       tests/tugofwar-stars.test.ts.
+- [x] 2026-11-21 (F373): Tug of War and Mini Pool joined the playtest "how to play" PICTURED
+      list, so each half's picked-power picture and its movement are checked there like every
+      other shown game (both already passed).
+- [x] 2026-11-21 (F374): Tug of War's how-to said its goal twice (blurb "Pull the ribbon past
+      your line", then "Get the red ribbon past your line!"); it now reads "Tap fast anywhere on
+      your side to pull the red ribbon your way."
