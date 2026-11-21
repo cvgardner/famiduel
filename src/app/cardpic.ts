@@ -125,17 +125,19 @@ const PICS: Record<string, string> = {
     ball(16, 12, T) +
     ball(44, 30, T) +
     ball(25, 16, '#14112b') +
-    `<text x="25" y="17.3" text-anchor="middle" font-size="3.1" font-weight="900" font-family="system-ui, sans-serif" fill="#fff">8</text>` +
+    // The 8's white spot, drawn (no text in the pictures: page probes read SVG text as menu text).
+    `<circle cx="25" cy="16" r="1.4" fill="#fff"/>` +
     ball(12, 29, Y) +
     path('M30 32L48.5 13.5', '#fff', 1, DASH) +
     ball(51, 11, Y) +
     path('M27.6 34.4L19 43', '#c98f62', 2.2) +
     ball(30, 32, '#fff'),
-  // DRAW! in the middle and both buttons ready; you tap first.
+  // The DRAW! sign in the middle and both buttons ready; you tap first.
   quickdraw:
     sand +
-    `<rect x="12" y="15.5" width="40" height="13" rx="6.5" fill="#5eead4" stroke="#fff" stroke-width="1.2"/>` +
-    `<text x="32" y="25.6" text-anchor="middle" font-size="9.5" font-weight="900" font-family="system-ui, sans-serif" fill="#0b3b36">DRAW!</text>` +
+    `<rect x="21" y="15.5" width="22" height="13" rx="6.5" fill="#5eead4" stroke="#fff" stroke-width="1.2"/>` +
+    // The DRAW! signal as a bold "!" on the sign.
+    `<rect x="30.6" y="17.6" width="2.8" height="6" rx="1.4" fill="#0b3b36"/><circle cx="32" cy="26" r="1.5" fill="#0b3b36"/>` +
     dot(32, 7, 5, T, OUTLINE) +
     `<circle cx="32" cy="37" r="8.5" fill="none" stroke="#fff" stroke-width="1" opacity="0.7"/>` +
     dot(32, 37, 5, Y, OUTLINE),
