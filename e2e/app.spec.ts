@@ -134,6 +134,37 @@ test('pause needs a press and hold: a quick tap only shows a hint', async ({ pag
   expect(errors).toEqual([]);
 });
 
+test('a screen reader or switch press (a click with no pointer) pauses at once', async ({ page }) => {
+  // F393: VoiceOver and TalkBack activate a focused button with a click that has no pointer
+  // press before it (detail 0), as Enter and Space do. The hold-to-pause ring only guards
+  // fingers, so those presses must pause straight away; a finger's quick tap still doesn't.
+  const errors = await boot(page);
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: { store: { data: { profiles: { bot: string | null }[] }; save(): void }; openGame(id: string): void } }).__famiduel;
+    app.store.data.profiles[0].bot = 'normal';
+    app.store.data.profiles[1].bot = 'normal';
+    app.store.save();
+    app.openGame('airhockey');
+  });
+  await expect(page.locator('#play')).toBeVisible();
+  await expect(page.locator('#pauseBtn')).toHaveAttribute('aria-label', /Pause/);
+  await page.evaluate(() => (document.querySelector('#pauseBtn') as HTMLButtonElement).click());
+  await expect(page.locator('#resumeBtn'), 'an assistive click (detail 0) pauses').toBeVisible();
+  await page.click('#resumeBtn');
+  await expect(page.locator('#modal')).toBeHidden();
+  await page.focus('#pauseBtn');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#resumeBtn'), 'Enter on the focused button pauses').toBeVisible();
+  await page.click('#resumeBtn');
+  await expect(page.locator('#modal')).toBeHidden();
+  await page.focus('#pauseBtn');
+  await page.keyboard.press(' ');
+  await expect(page.locator('#resumeBtn'), 'Space on the focused button pauses').toBeVisible();
+  await page.click('#quitBtn');
+  await expect(page.locator('#home')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('Resume counts 3-2-1 before play goes on; hiding the page pauses the match', async ({ page }) => {
   const errors = await boot(page);
   await page.evaluate(() => {
