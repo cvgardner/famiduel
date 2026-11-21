@@ -436,6 +436,20 @@
         "name": "Big Yank",
         "icon": "🪢",
         "desc": "Wind up, then YANK the rope toward you. Their taps during the wind-up shrink it."
+      },
+      {
+        "id": "anchor",
+        "name": "Anchor",
+        "icon": "⚓",
+        "desc": "Tie your end to a post for a moment: their pulls can't move the ribbon. A Big Yank still does.",
+        "duration": 1.2
+      },
+      {
+        "id": "grip",
+        "name": "Steady Grip",
+        "icon": "🧤",
+        "desc": "For 2 seconds your grip doesn't tire: every pull stays on, so a few taps pull hard.",
+        "duration": 2
       }
     ],
     "fourinarow": [

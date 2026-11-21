@@ -213,6 +213,67 @@ describe('tug of war', () => {
     expect(g.pos).toBeLessThan(-0.05);
   });
 
+  it("Anchor: while it runs the other player's pulls hold nothing; it can still come your way", () => {
+    // Player 1 out-pulls player 0 (taps twice as fast); player 0 anchors.
+    const g = fresh({ powers: ['anchor', null] });
+    const h = fresh({ powers: ['anchor', null] });
+    g.energy[0].value = 1;
+    pullFor(g, 1, [1 / 4, 1 / 8], [true, false]);
+    pullFor(h, 1, [1 / 4, 1 / 8]);
+    expect(power('tugofwar', 'anchor').duration).toBe(1.2);
+    expect(g.pullGain(1)).toBe(0);
+    expect(g.active(0, 'anchor')).toBe(true);
+    expect(g.pos).toBeGreaterThanOrEqual(-1e-9);
+    expect(h.pos).toBeLessThan(-0.05);
+    // It wears off: then the faster tapper drags the ribbon their way again.
+    const held = g.pos;
+    pullFor(g, 3, [1 / 4, 1 / 8]);
+    expect(g.active(0, 'anchor')).toBe(false);
+    expect(g.pos).toBeLessThan(held - 0.05);
+    // While anchored, pulling still moves it toward you.
+    const k = fresh({ powers: ['anchor', null] });
+    k.energy[0].value = 1;
+    pullFor(k, 1.5, [1 / 8, 0], [true, false]);
+    expect(k.pos).toBeGreaterThan(0.05);
+  });
+
+  it('Anchor is countered by a Big Yank: the jolt still moves the ribbon', () => {
+    const g = fresh({ powers: ['anchor', 'yank'] });
+    g.energy[0].value = 1;
+    g.step(DT, [{ tap: false, power: true }, idle]);
+    g.energy[1].value = 1;
+    g.step(DT, [idle, { tap: false, power: true }]);
+    let jumped = false;
+    for (let t = 0; t < RULES.yankWindup + 0.1; t += DT) {
+      g.step(DT, [idle, idle]);
+      if (g.events.some((e) => e.type === 'yank')) jumped = true;
+    }
+    expect(jumped).toBe(true);
+    expect(g.active(0, 'anchor')).toBe(true);
+    expect(g.pos).toBeLessThan(-RULES.yankJump * 0.5);
+  });
+
+  it('Steady Grip: your grip does not fade while it runs, so slow taps pull like fast ones', () => {
+    const g = fresh({ powers: ['grip', null] });
+    const h = fresh({ powers: ['grip', null] });
+    g.energy[0].value = 1;
+    pullFor(g, 1.8, [1 / 3, 1 / 3], [true, false]);
+    pullFor(h, 1.8, [1 / 3, 1 / 3]);
+    expect(power('tugofwar', 'grip').duration).toBe(2);
+    expect(g.pos).toBeGreaterThan(h.pos + 0.1);
+    expect(g.force[0]).toBeLessThanOrEqual(RULES.maxForce);
+    expect(g.force[0]).toBeGreaterThan(g.force[1] * 1.5);
+    // One tap's grip holds while it runs, then fades as usual.
+    const k = fresh({ powers: ['grip', null] });
+    k.energy[0].value = 1;
+    k.step(DT, [{ tap: true, power: true }, idle]);
+    for (let t = 0; t < 1.5; t += DT) k.step(DT, [idle, idle]);
+    expect(k.force[0]).toBeCloseTo(RULES.tapPull, 5);
+    for (let t = 0; t < 2.5; t += DT) k.step(DT, [idle, idle]);
+    expect(k.phase).toBe('pull');
+    expect(k.force[0]).toBeLessThan(0.2);
+  });
+
   it('Big Yank: winds up where both can see it, then jumps the ribbon; bracing taps shrink it', () => {
     const run = (braceGap: number) => {
       const g = fresh({ powers: ['yank', null] });

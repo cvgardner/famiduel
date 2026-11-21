@@ -2552,3 +2552,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and dodge it like a person would. Easy+0..3 v normal (n=80, powers off): 0 / 10 / 19 /
       51%; vs hard still 10% at +3 (hard dodges well). Bot-vs-bot rows have no assist, so are
       unchanged. tests/tanks-reach.test.ts.
+- [x] 2026-11-21 (F354a): Tug of War's power pool is 5 like every other shown game, so the
+      weekly rotation changes its offer: ⚓ Anchor (1.2 s: the rope is tied off, the other
+      player's pulls hold nothing; a Big Yank still jolts it; an anchor ring on the ribbon in
+      the anchoring seat's colour, "Anchored! Hold on!" for the other seat) and 🧤 Steady Grip
+      (2 s: your grip doesn't fade, so slow taps pull hard; a glove on your puller). Both have
+      power pictures. sim:powers n=40: anchor 59% avg, grip 68% avg (62% vs the other powers),
+      none 9%; first tries (a 2.5-5 s no-slide anchor) read 18-38%, a 2.5 s tie-off 84%.

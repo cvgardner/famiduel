@@ -132,7 +132,7 @@ export class TugOfWar {
     this.gain = [lerpAssist(players[0].assist, 1, RULES.gainAt3), lerpAssist(players[1].assist, 1, RULES.gainAt3)];
   }
 
-  /** Power p's effect is running (Heave, or the Butter it put on the other player). */
+  /** Power p's effect is running (Heave, Anchor, Steady Grip, or the Butter it put on the other player). */
   active(p: PlayerIndex, id: string): boolean {
     return this.players[p].power?.id === id && this.energy[p].active > 0;
   }
@@ -142,6 +142,8 @@ export class TugOfWar {
     let g = this.gain[p];
     if (this.active(p, 'heave')) g *= RULES.heaveGain;
     if (this.active(other(p), 'butter')) g *= RULES.butterGain;
+    // Anchor: the rope is tied off at the other end, so p's pulls hold nothing for a moment.
+    if (this.active(other(p), 'anchor')) g = 0;
     return g;
   }
 
@@ -196,7 +198,8 @@ export class TugOfWar {
     for (const p of [0, 1] as PlayerIndex[]) if (this.powersOn && intents[p].power) this.firePower(p);
     const decay = Math.exp(-dt / RULES.tau);
     for (const p of [0, 1] as PlayerIndex[]) {
-      this.force[p] *= decay;
+      // Steady Grip: p's grip doesn't fade while it runs.
+      if (!this.active(p, 'grip')) this.force[p] *= decay;
       if (!intents[p].tap || this.since[p] < RULES.minTapGap) continue;
       this.since[p] = 0;
       this.taps[p]++;
@@ -210,6 +213,8 @@ export class TugOfWar {
     }
     const net = this.force[0] * this.pullGain(0) - this.force[1] * this.pullGain(1);
     this.vel += (net * RULES.accel - this.vel * RULES.drag) * dt;
+    // Anchor: the ribbon can't slide toward the other player's line (a Big Yank still jolts it).
+    for (const p of [0, 1] as PlayerIndex[]) if (this.active(p, 'anchor') && this.vel * toward(p) < 0) this.vel = 0;
     this.pos += this.vel * dt;
     for (const p of [0, 1] as PlayerIndex[]) {
       const y = this.yank[p];
@@ -246,7 +251,7 @@ export class TugOfWar {
   private firePower(p: PlayerIndex): void {
     const power = this.players[p].power;
     if (!power || !this.energy[p].ready) return;
-    if (power.id === 'heave' || power.id === 'butter') {
+    if (power.id === 'heave' || power.id === 'butter' || power.id === 'anchor' || power.id === 'grip') {
       this.energy[p].spend(power.duration ?? 3);
     } else if (power.id === 'yank') {
       if (this.yank[p]) return;
@@ -347,7 +352,11 @@ export class TugOfWarBot {
       const prog = game.progress(this.p);
       return prog > 0.55 || prog < -0.6 || this.rng.chance(0.004);
     }
-    // Heave and Butter: once the round has got going.
+    if (id === 'anchor') {
+      // Dig in when the ribbon is sliding toward its own losing line.
+      return game.phaseT > 1 && game.vel * toward(this.p) < 0 && this.rng.chance(0.05);
+    }
+    // Heave, Butter and Steady Grip: once the round has got going.
     return game.phaseT > 1 && this.rng.chance(0.03);
   }
 }
