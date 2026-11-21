@@ -276,7 +276,7 @@ class SnackSnatchView implements GameInstance {
       if (silentSeat(this.ctx.players, p)) continue;
       const [big, small] = frenzyLines(p);
       fx.pop('FRENZY!', W / 2, big, FRENZY_INK, p, 30, FRENZY_HALO);
-      fx.pop('Faster snacks!', W / 2, small, '#fff', p, 14, 'rgba(0,0,0,0.5)');
+      fx.pop('Faster snacks!', W / 2, small, '#fff', p, 14);
     }
   }
 
