@@ -46,7 +46,10 @@ export class Stage {
       if (!this.raf) return;
       if (!this.input.keys.has(e.code)) this.input.keysPressed.add(e.code);
       this.input.keys.add(e.code);
-      if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+      // Space on a focused button (pause, from a keyboard or switch control) must still
+      // press it (F393); elsewhere it would scroll the page.
+      const onButton = e.target instanceof HTMLElement && e.target.closest('button') !== null;
+      if ((e.code === 'Space' && !onButton) || e.code.startsWith('Arrow')) e.preventDefault();
     });
     window.addEventListener('keyup', (e) => this.input.keys.delete(e.code));
     window.addEventListener('blur', () => this.input.keys.clear());

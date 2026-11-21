@@ -86,3 +86,65 @@ test('Remove ads: buys straight from Settings, then no more ads, and it survives
   await page.click('#settingsBtn');
   await expect(page.locator('#adsGone')).toBeVisible();
 });
+
+// F391: rival apps' reviews complain of ads after restoring a purchase. A reinstall or a new
+// phone gets Remove ads back with Restore, or with no tap when the store answers at launch.
+async function noAdAfterMatch(page: Page) {
+  await botMatch(page);
+  await page.click('#rematchBtn');
+  await expect(page.locator('#intro')).toBeVisible();
+  await expect(page.locator('#fakeAd'), 'no ad once Remove ads is back').toHaveCount(0);
+}
+
+test('Restore purchase on a fresh install removes ads, and it survives a reload', async ({ page }) => {
+  await open(page, '&fakeads=now&fakeowned');
+  await page.click('#settingsBtn');
+  await expect(page.locator('#removeAds')).toBeVisible();
+  await page.click('#restoreAds');
+  await expect(page.locator('#adsGone')).toContainText('Ads removed');
+  await page.click('#settingsBack');
+  await noAdAfterMatch(page);
+  await page.reload();
+  await page.click('#settingsBtn');
+  await expect(page.locator('#adsGone')).toBeVisible();
+  await page.click('#settingsBack');
+  await noAdAfterMatch(page);
+});
+
+test('the store saying it is owned at launch removes ads with no tap', async ({ page }) => {
+  await open(page, '&fakeads=now&fakeowned&fakestore');
+  await page.click('#settingsBtn');
+  await expect(page.locator('#adsGone')).toBeVisible();
+  await page.click('#settingsBack');
+  await noAdAfterMatch(page);
+});
+
+test('Restore with nothing bought says so, and ads go on', async ({ page }) => {
+  await open(page, '&fakeads=now');
+  await page.click('#settingsBtn');
+  await page.click('#restoreAds');
+  await expect(page.locator('#restoreAds')).toContainText('Nothing to restore');
+  await expect(page.locator('#adsGone')).toHaveCount(0);
+  await page.click('#settingsBack');
+  await botMatch(page);
+  await page.click('#rematchBtn');
+  await expect(page.locator('#fakeAd')).toBeVisible();
+});
+
+test('a refund (the store says not owned at launch) brings ads back', async ({ page }) => {
+  await open(page, '&fakeads=now&fakestore');
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: Hook }).__famiduel;
+    app.store.data.ads = { removed: true, launches: 5 };
+    app.store.save();
+  });
+  await page.reload();
+  await expect(page.locator('.logo')).toContainText('Fami');
+  await page.click('#settingsBtn');
+  await expect(page.locator('#removeAds')).toBeVisible();
+  await expect(page.locator('#adsGone')).toHaveCount(0);
+  await page.click('#settingsBack');
+  await botMatch(page);
+  await page.click('#rematchBtn');
+  await expect(page.locator('#fakeAd')).toBeVisible();
+});

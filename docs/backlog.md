@@ -406,6 +406,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Games / Rematch now sit can't skip it. Playtest "result: a tap meant for the game...".
 - [ ] VoiceOver/TalkBack: the pause button says "press and hold"; a screen reader double
       tap is a click with detail 0, which pauses at once. Check that on a real phone.
+      2026-11-21 (F393): now guarded in the browser (e2e "a screen reader or switch press"):
+      a click with no pointer and Enter pause at once. Space on the focused pause button did
+      nothing in play (the stage's keydown swallowed Space for every element); it now presses
+      a focused button. Still open: a check with VoiceOver on a real iPhone (Mac session).
 - [x] Guided Access / screen pinning tip on the home screen for parents of toddlers (the
       OS-level way to stop a kid leaving the app), behind the parental gate.
       2026-11-07 (F68): Settings > For grown-ups > Grown-ups corner, behind the first parental
@@ -2714,6 +2718,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       has no such room helper (F208 covers its names). Not yet at BIG_TEXT: tanks-pops-arena
       (after #404's wider fx stacking, Bigger-text Bonked! crosses the arena edge in 5.2% of
       readable frames vs the 5% bound; keeping it inside put it on a tank instead): F387.
+- [x] 2026-11-21 (F391): rival 2-player apps' reviews complain of ads after restoring a
+      purchase ("I still get ads!!!"). Only buying was tested. `?fakeads&fakeowned` (bought on
+      this Apple ID before) and `&fakestore` (the store answers at launch) let e2e/ads.spec.ts
+      also check: Restore on a fresh install shows "Ads removed", no ad after a match, and it
+      survives a reload; the store saying owned at launch removes ads with no tap; Restore with
+      nothing bought says so and ads go on; a refund brings ads back. All passed first time.
 - [x] 2026-11-21 (F388): Sea Battle: a shell dropped from 160 units above its cell, so a shot
       at the top rows started over the header pill (crossing "… is aiming…") and a shot on the
       small sea started over the big board. It now falls from at most its own sea's top edge
@@ -2724,6 +2734,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       past the edge, over the hearts (Bonked! 5.2% of readable frames). Now the still-bright pops
       in its way fade (fx.fadeInWay()) and it keeps its line: 0 of those words cross the edge at
       1x or Bigger text (tests/tanks-pops-arena.test.ts runs at both).
+- [x] 2026-11-21 (F394): Quick Draw with Bigger text: "⚡ they used Head Start" ran into the
+      round stars beside the cowboy (seen at 320 px), because quickdraw-pops.test.ts sized words
+      unscaled, ran at 1x only and played 3 of the 5 powers. Power, "they used" and "Forgiven"
+      pops now slide left just enough to end 4 units short of the stars (popX(), sized with
+      scaledSize()); the test plays all 5 powers at 1x and Bigger text (0 on the stars, button,
+      signal, score or badges).
 - [x] 2026-11-21 (F395+F396+F397): the pops tests that still ran at 1x only now also run at
       Bigger text, sizing words as text() draws them (scaledSize()): Sumo (power names, HOLD and
       power buttons, BONK!/KA-BOOM!, round-end banner), Chop Chop (bonk, milestone, banner, tree),
