@@ -3,7 +3,7 @@
 // runs out; the ball is struck on zero, so the keeper always knows when it
 // comes. The keeper taps a dive button.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, controlsAlpha, facing, glow, line, noGlow, fitSize, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, facing, fitSize, glow, line, noGlow, rrect, scaledSize, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { bigHandsOn, Button, PowerButton, powerSpot } from '../../engine/widgets';
@@ -175,8 +175,10 @@ class PenaltyView implements GameInstance {
    */
   clearOfBall(str: string, size: number, y: number, p: PlayerIndex): number {
     const b = this.game.ball;
-    const half = ([...str].length * size * 0.55) / 2 + RULES.ballR + 4;
-    const tall = size * 0.45 + RULES.ballR + 4;
+    // F384: room for the words as text() draws them (Bigger text draws them up to 1.2x).
+    const shown = scaledSize(size);
+    const half = ([...str].length * shown * 0.55) / 2 + RULES.ballR + 4;
+    const tall = shown * 0.45 + RULES.ballR + 4;
     const rise = p === 0 ? -40 : 40;
     const slow = Math.log(20); // the ball's speed keeps 5% per second
     const hits = (cy: number) => {

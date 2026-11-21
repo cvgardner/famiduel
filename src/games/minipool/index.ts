@@ -4,7 +4,7 @@
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { waitingLine } from '../../core/turnline';
 import { POP_RISE } from '../../engine/fx';
-import { alpha, circle, COLORS, facing, fitFirst, line, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, fitFirst, line, rrect, scaledSize, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -146,13 +146,15 @@ class MiniPoolView implements GameInstance {
    * and on a line fx.pop wouldn't move. Falls back to `home` when no line is clear.
    */
   clearOfBalls(str: string, size: number, home: number, p: PlayerIndex): number {
-    const half = Math.min(W - 16, [...str].length * size * 0.55) / 2;
+    // F384: room for the words as text() draws them (Bigger text draws them up to 1.2x).
+    const shown = scaledSize(size);
+    const half = Math.min(W - 16, [...str].length * shown * 0.55) / 2;
     const rise = p === 0 ? -POP_RISE : POP_RISE;
     const r = PHYS.r + POP_BALL_GAP;
     const balls = this.game.balls.filter((b) => b.on);
     const free = (y: number) => {
-      const top = Math.min(y, y + rise) - size * 0.45;
-      const bot = Math.max(y, y + rise) + size * 0.45;
+      const top = Math.min(y, y + rise) - shown * 0.45;
+      const bot = Math.max(y, y + rise) + shown * 0.45;
       if (top < TABLE.top || bot > TABLE.bottom) return false;
       if (!this.ctx.fx.popFits(str, W / 2, y, size, p)) return false;
       return !balls.some((b) => {

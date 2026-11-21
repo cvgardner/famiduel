@@ -1,7 +1,7 @@
 // Air Hockey view: fingers and bots become intents, state becomes pixels.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { blink } from '../../engine/calm';
-import { alpha, circle, COLORS, glow, line, noGlow, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, glow, line, noGlow, rrect, scaledSize, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -55,7 +55,9 @@ class AirHockeyView implements GameInstance {
    * whole serve wait: 44% of readable GOAL! frames, right where that player has to look.
    */
   clearOfPucks(str: string, size: number, home: number, p: PlayerIndex): number {
-    const half = ([...str].length * size * 0.55) / 2;
+    // F384: room for the words as text() draws them (Bigger text draws them up to 1.2x).
+    const shown = scaledSize(size);
+    const half = ([...str].length * shown * 0.55) / 2;
     const rise = p === 0 ? -36 : 36;
     const r = RULES.puckR + 6;
     const gap = (top: number, bot: number, x: number, y: number) => {
@@ -63,7 +65,7 @@ class AirHockeyView implements GameInstance {
       const ny = Math.max(top, Math.min(bot, y));
       return Math.hypot(x - nx, y - ny);
     };
-    const band = (y: number): [number, number] => [Math.min(y, y + rise) - size * 0.45, Math.max(y, y + rise) + size * 0.45];
+    const band = (y: number): [number, number] => [Math.min(y, y + rise) - shown * 0.45, Math.max(y, y + rise) + shown * 0.45];
     // A line pop() would move (a still-bright pop of this seat there) counts as taken too.
     const free = (y: number) => {
       if (!this.ctx.fx.popFits(str, W / 2, y, size, p)) return false;
