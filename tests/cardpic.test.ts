@@ -4,7 +4,7 @@ import { cardPicHtml, hasCardPic } from '../src/app/cardpic';
 
 describe('home card pictures', () => {
   it('every game, hidden board games included, has a still picture of itself', () => {
-    expect(games.games.length).toBe(16);
+    expect(games.games.length).toBe(17);
     for (const g of games.games) {
       expect(hasCardPic(g.id), g.id).toBe(true);
       const svg = cardPicHtml(g.id);

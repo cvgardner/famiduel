@@ -122,4 +122,4 @@ the real rules (or the house rule most kids play), and the how-to text says so:
 - Penalty Shootout: 5 kicks each, ends early when one side can't catch up, then sudden death.
 - Air Hockey: the player scored on gets the puck. Minigolf: lowest score on a hole tees
   off first, penalty stroke for water, 6-stroke cap.
-The rest (Sumo, Snack Snatch, Snake, Quick Draw, Tanks, Chop Chop) are our own games.
+The rest (Sumo, Snack Snatch, Snake, Quick Draw, Tanks, Chop Chop, Tug of War) are our own games.

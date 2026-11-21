@@ -6,7 +6,7 @@
 // The bottom player is drawn in seat 1's colour (`--y`), the top one in seat 2's (`--t`),
 // the same way round as at the table. A new game needs one too (tests/cardpic.test.ts).
 
-import { arena, board, green, mat, pitch, pong, pool, ring, sand, sea, seaBg, table, woods } from './powerpic';
+import { arena, board, green, mat, pitch, pong, pool, ring, sand, sea, seaBg, table, tug, woods } from './powerpic';
 
 /** Bottom player (seat 1) and top player (seat 2). */
 const Y = 'var(--y, #ffd166)';
@@ -148,6 +148,14 @@ const PICS: Record<string, string> = {
     `<rect x="36" y="27" width="3" height="3" fill="#ffd166"/><rect x="33" y="23" width="2.4" height="2.4" fill="#ffd166"/>` +
     kid(9, 32, T) +
     kid(53, 32, Y),
+  // The rope across the mud, the red ribbon pulled most of the way to your line: you're winning.
+  // The scene draws your line in the intro's colour (--c), which on a home card is the card's own
+  // colour, so it is drawn here in seat 1's colour like everything else of yours.
+  tugofwar:
+    tug.replace('stroke:var(--c, #ffd166)', `stroke:${Y}`) +
+    box(26, 25.5, 12, 4, '#e8312b', 2) +
+    kid(32, 6, T) +
+    kid(32, 38, Y),
   // The sea grid with one of their ships found: two hits, a miss, and your sight on the next square.
   seabattle:
     seaBg +

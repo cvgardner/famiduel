@@ -17,6 +17,7 @@ import snake from './snake';
 import sumo from './sumo';
 import tanks from './tanks';
 import tictactoe from './tictactoe';
+import tugofwar from './tugofwar';
 
 export const GAMES: Record<string, GameDef> = {
   [minigolf.id]: minigolf,
@@ -33,6 +34,7 @@ export const GAMES: Record<string, GameDef> = {
   [fourinarow.id]: fourinarow,
   [checkers.id]: checkers,
   [chopchop.id]: chopchop,
+  [tugofwar.id]: tugofwar,
   [tictactoe.id]: tictactoe,
   [rps.id]: rps,
 };

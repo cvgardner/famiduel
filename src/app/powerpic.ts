@@ -48,6 +48,10 @@ export const board = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#142
 export const woods = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#9fd3f0"/><rect x="1" y="36" width="62" height="7" rx="3" fill="#5aa04a"/>`;
 // Quick Draw: sand with the signal in the middle.
 export const sand = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#e8b878"/><line x1="4" y1="22" x2="60" y2="22" stroke="#b07a40" stroke-width="1" stroke-dasharray="4 3"/>`;
+// Tug of War: grass with a mud strip, the rope from them (top) to you (bottom), their line and yours.
+export const tug = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#3a8a37"/><rect x="4" y="19" width="56" height="6" rx="3" fill="#7a5230"/><line x1="6" y1="11" x2="58" y2="11" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="6" y1="33" x2="58" y2="33" style="stroke:${YOU}" stroke-width="2"/><line x1="32" y1="2" x2="32" y2="42" stroke="#c8a16a" stroke-width="3"/>`;
+/** The red ribbon on the rope, moving through `ys` at `times`. */
+const ribbon = (ys: number[], times: number[]) => `<rect x="26" y="20" width="12" height="4" rx="2" fill="#e8312b">${anim('y', ys.map((y) => y - 2), times)}</rect>`;
 // Sea Battle: a strip of sea cells.
 export const sea = (x0: number, n: number, rows: number) =>
   Array.from({ length: n * rows }, (_, i) => `<rect x="${x0 + (i % n) * 9}" y="${8 + Math.floor(i / n) * 9}" width="8" height="8" rx="1.5" fill="#1d4f7a"/>`).join('');
@@ -264,6 +268,29 @@ const PICS: Record<string, Record<string, string>> = {
       `<circle cx="32" cy="22" r="7" fill="#5eead4" stroke="#fff" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.55, 0.57, 0.9, 1])}</circle>` +
       circle(32, 7, 5, THEM) +
       circle(32, 37, 5, YOU, anim('r', [5, 5, 4, 5, 5, 4, 5, 5], [0, 0.2, 0.23, 0.27, 0.6, 0.63, 0.67, 1])),
+  },
+  tugofwar: {
+    // You glow strong for a moment: the ribbon races to your line.
+    heave:
+      tug +
+      `<circle cx="32" cy="39" r="7" fill="none" stroke="#ffd166" stroke-width="2">${anim('opacity', [0, 0, 1, 1, 0, 0], [0, 0.2, 0.25, 0.7, 0.75, 1])}</circle>` +
+      circle(32, 6, 4, THEM) +
+      circle(32, 39, 4, YOU, anim('r', [4, 4, 5.5, 5.5, 4, 4], [0, 0.2, 0.25, 0.7, 0.75, 1])) +
+      ribbon([22, 22, 24, 34, 34, 22], [0, 0.2, 0.3, 0.7, 0.9, 1]),
+    // Their end of the rope goes buttery: they slip, and the ribbon slides your way.
+    butter:
+      tug +
+      `<line x1="32" y1="2" x2="32" y2="19" stroke="#ffe27a" stroke-width="4">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.15, 0.2, 0.85, 1])}</line>` +
+      circle(32, 6, 4, THEM, anim('cx', [32, 32, 29, 35, 29, 35, 32, 32], [0, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 1])) +
+      circle(32, 39, 4, YOU) +
+      ribbon([22, 22, 34, 34, 22], [0, 0.25, 0.75, 0.9, 1]),
+    // A ring winds up on the ribbon in your colour, then YANK: it jumps to your line.
+    yank:
+      tug +
+      `<circle cx="32" cy="22" r="6" fill="none" style="stroke:${YOU}" stroke-width="2">${anim('r', [4, 4, 9, 4, 4], [0, 0.1, 0.45, 0.5, 1])}${anim('opacity', [0, 1, 1, 0, 0], [0, 0.1, 0.48, 0.5, 1])}</circle>` +
+      circle(32, 6, 4, THEM) +
+      circle(32, 39, 4, YOU, anim('cy', [39, 39, 37, 41, 39, 39], [0, 0.4, 0.48, 0.55, 0.65, 1])) +
+      ribbon([22, 22, 34, 34, 22], [0, 0.48, 0.56, 0.9, 1]),
   },
   seabattle: {
     // Scan a 3x3 patch: a hidden ship shows up.

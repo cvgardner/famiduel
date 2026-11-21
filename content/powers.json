@@ -266,6 +266,28 @@
         "desc": "Hide a mine in your sea. Whoever fires on it gets one of their own ships hit."
       }
     ],
+    "tugofwar": [
+      {
+        "id": "heave",
+        "name": "Mighty Heave",
+        "icon": "💪",
+        "desc": "For 3 seconds every pull of yours counts extra.",
+        "duration": 3
+      },
+      {
+        "id": "butter",
+        "name": "Butter Rope",
+        "icon": "🧈",
+        "desc": "The other player's end goes slippery: their pulls count half for 3 seconds.",
+        "duration": 3
+      },
+      {
+        "id": "yank",
+        "name": "Big Yank",
+        "icon": "🪢",
+        "desc": "Wind up, then YANK the rope toward you. Their taps during the wind-up shrink it."
+      }
+    ],
     "fourinarow": [
       {
         "id": "bomb",

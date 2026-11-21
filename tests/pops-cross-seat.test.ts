@@ -19,7 +19,7 @@ const box = (f: Floater) => {
 // other: Tank Duel's "Bonked!" / "Oops! Own shot" on the shooter's BONK! (644 of 7,280 readable
 // BONK! frames), POOF! on BONK!, Sumo's "💥 Ground Pound!" on KA-BOOM!.
 describe('pops never print over a pop of the other seat', () => {
-  for (const id of ['tanks', 'sumo', 'snacksnatch', 'airhockey', 'pingpong', 'snake', 'chopchop', 'penalty', 'quickdraw', 'minigolf']) {
+  for (const id of ['tanks', 'sumo', 'snacksnatch', 'airhockey', 'pingpong', 'snake', 'chopchop', 'penalty', 'quickdraw', 'minigolf', 'tugofwar']) {
     it(id, () => {
       const list = (powers.games as Record<string, PowerDef[]>)[id];
       let readable = 0;

@@ -11,6 +11,7 @@ import { SnackSnatch, SnackSnatchBot } from '../src/games/snacksnatch/logic';
 import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
 import { Sumo, SumoBot } from '../src/games/sumo/logic';
 import { TankBot, TankDuel } from '../src/games/tanks/logic';
+import { TugOfWar, TugOfWarBot } from '../src/games/tugofwar/logic';
 
 export const DT = 1 / 60;
 const MAX_T = 300;
@@ -107,6 +108,7 @@ export const SPECS: Spec[] = [
   { id: 'quickdraw', make: (pl, pw, r) => new QuickDraw(pl, pw, r) as unknown as Game, bot: (p, l, r) => new QuickDrawBot(p, l, r) as unknown as Bot, kid: (m) => ({ tap: m.tap(), power: false }) },
   { id: 'tanks', make: (pl, pw, r) => new TankDuel(pl, pw, r) as unknown as Game, bot: (p, l, r) => new TankBot(p, l, r) as unknown as Bot, kid: (m, p) => ({ mx: (m.x - W / 2) / (W / 2), my: (m.y - (p === 0 ? H * 0.75 : H * 0.25)) / (H / 4), fire: m.tap(), power: false }) },
   { id: 'chopchop', make: (pl, pw, r) => new ChopChop(pl, pw, r) as unknown as Game, bot: (p, l, r) => new ChopBot(p, l, r) as unknown as Bot, kid: (m) => ({ chop: m.tap() ? m.side : 0, power: false }) },
+  { id: 'tugofwar', make: (pl, pw, r) => new TugOfWar(pl, pw, r) as unknown as Game, bot: (p, l, r) => new TugOfWarBot(p, l, r) as unknown as Bot, kid: (m) => ({ tap: m.tap(), power: false }) },
 ];
 
 const isKid = (l: SimLevel): l is 'kid' | 'kid+3' | 'idle' => l === 'kid' || l === 'kid+3' || l === 'idle';
