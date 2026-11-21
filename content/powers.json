@@ -448,8 +448,8 @@
         "id": "grip",
         "name": "Steady Grip",
         "icon": "🧤",
-        "desc": "For 2 seconds your grip doesn't tire: every pull stays on, so a few taps pull hard.",
-        "duration": 2
+        "desc": "For 1.5 seconds your grip doesn't tire: every pull stays on, so a few taps pull hard.",
+        "duration": 1.5
       }
     ],
     "fourinarow": [

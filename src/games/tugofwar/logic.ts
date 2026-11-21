@@ -350,7 +350,7 @@ export class TugOfWarBot {
       if (game.yank[this.p]) return false;
       // Finish a round it is winning, or save one it is losing.
       const prog = game.progress(this.p);
-      return prog > 0.55 || prog < -0.6 || this.rng.chance(0.004);
+      return game.phaseT > 1 && this.rng.chance(0.03);
     }
     if (id === 'anchor') {
       // Dig in when the ribbon is sliding toward its own losing line.

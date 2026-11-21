@@ -257,9 +257,9 @@ describe('tug of war', () => {
     const g = fresh({ powers: ['grip', null] });
     const h = fresh({ powers: ['grip', null] });
     g.energy[0].value = 1;
-    pullFor(g, 1.8, [1 / 3, 1 / 3], [true, false]);
-    pullFor(h, 1.8, [1 / 3, 1 / 3]);
-    expect(power('tugofwar', 'grip').duration).toBe(2);
+    pullFor(g, 1.4, [1 / 3, 1 / 3], [true, false]);
+    pullFor(h, 1.4, [1 / 3, 1 / 3]);
+    expect(power('tugofwar', 'grip').duration).toBe(1.5);
     expect(g.pos).toBeGreaterThan(h.pos + 0.1);
     expect(g.force[0]).toBeLessThanOrEqual(RULES.maxForce);
     expect(g.force[0]).toBeGreaterThan(g.force[1] * 1.5);
@@ -267,7 +267,7 @@ describe('tug of war', () => {
     const k = fresh({ powers: ['grip', null] });
     k.energy[0].value = 1;
     k.step(DT, [{ tap: true, power: true }, idle]);
-    for (let t = 0; t < 1.5; t += DT) k.step(DT, [idle, idle]);
+    for (let t = 0; t < 1.2; t += DT) k.step(DT, [idle, idle]);
     expect(k.force[0]).toBeCloseTo(RULES.tapPull, 5);
     for (let t = 0; t < 2.5; t += DT) k.step(DT, [idle, idle]);
     expect(k.phase).toBe('pull');
