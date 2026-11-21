@@ -2704,3 +2704,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       seat's half whose words and bright rise stay 30 units off the ribbon (clearOfRibbon()):
       0.5-0.6% left, where the ribbon slides into a pop already up.
       tests/tugofwar-pops-ribbon.test.ts (usual and Bigger text).
+- [x] 2026-11-21 (F385): with Bigger text, Snake (clearOfHeads, crashPopX), Tank Duel
+      (clearOfTanks) and Snack Snatch (besideNeck, clearOfClock, power names) kept pops off
+      the pieces by their unscaled size. They now use scaledSize(); Snack Snatch power names
+      pop a size smaller under Bigger text when a line would be wider than the lane between
+      the frogs (still drawn at 24 or more). Each game's pops test runs again at BIG_TEXT;
+      before: Snake CRASH! on a trail 8, "🧲 Magnet" on a frog 10%, a pop on the seconds
+      clock 87%, Tank "🫧 Shield!" on a tank 6%; after: all within the 1x bounds. Chop Chop
+      has no such room helper (F208 covers its names). Not yet at BIG_TEXT: tanks-pops-arena
+      (after #404's wider fx stacking, Bigger-text Bonked! crosses the arena edge in 5.2% of
+      readable frames vs the 5% bound; keeping it inside put it on a tank instead): F387.
