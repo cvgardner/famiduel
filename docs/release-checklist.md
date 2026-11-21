@@ -79,9 +79,9 @@ Plug in your iPhone, pick it at the top of the window and press Run (▶). Check
 - [ ] Ads: the first launch shows none. Force-quit, reopen, play two matches (3+ minutes),
       tap Rematch: a Google "Test Ad" interstitial shows, closes with its ✕, and the intro
       follows. No ad ever shows mid-match.
-- [ ] Settings > For grown-ups shows "Remove ads · $4.99" (the price appears only once the
-      product exists in App Store Connect) and "Restore purchase"; both ask the grown-ups
-      question first. Buy with the sandbox tester: "Ads removed" shows and no ad follows.
+- [ ] Settings > More shows "Remove ads · $4.99" (the price appears only once the
+      product exists in App Store Connect) and "Restore purchase"; tapping one goes straight
+      to Apple's purchase sheet, with no grown-ups question. Buy with the sandbox tester: "Ads removed" shows and no ad follows.
       Delete and reinstall, tap Restore purchase: "Ads removed" again.
 
 ## 3. Create the app in App Store Connect (once)
