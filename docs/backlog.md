@@ -406,6 +406,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Games / Rematch now sit can't skip it. Playtest "result: a tap meant for the game...".
 - [ ] VoiceOver/TalkBack: the pause button says "press and hold"; a screen reader double
       tap is a click with detail 0, which pauses at once. Check that on a real phone.
+      2026-11-21 (F393): now guarded in the browser (e2e "a screen reader or switch press"):
+      a click with no pointer and Enter pause at once. Space on the focused pause button did
+      nothing in play (the stage's keydown swallowed Space for every element); it now presses
+      a focused button. Still open: a check with VoiceOver on a real iPhone (Mac session).
 - [x] Guided Access / screen pinning tip on the home screen for parents of toddlers (the
       OS-level way to stop a kid leaving the app), behind the parental gate.
       2026-11-07 (F68): Settings > For grown-ups > Grown-ups corner, behind the first parental
