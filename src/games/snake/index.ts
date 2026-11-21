@@ -1,7 +1,7 @@
 // Snake Duel view: two turn buttons per player, a neon grid arena, juice on every crash.
 import { popColor } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, controlsAlpha, facing, fitSize, glow, noGlow, seatRing, rrect, silentSeat, seatEdges, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, facing, fitSize, glow, noGlow, rrect, scaledSize, seatEdges, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
 import { blink as flashOn, pulse } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
@@ -85,8 +85,9 @@ class SnakeView implements GameInstance {
    * head in 6% of readable frames, right where that player is steering.
    */
   clearOfHeads(str: string, size: number, home: number, p: PlayerIndex): number {
+    const shown = scaledSize(size); // F385: the words as text() draws them (Bigger text: up to 1.2x)
     const g = this.game;
-    const half = ([...str].length * size * 0.55) / 2 + C;
+    const half = ([...str].length * shown * 0.55) / 2 + C;
     const rise = p === 0 ? -POP_RISE : POP_RISE;
     const spots: { x: number; y: number }[] = [];
     for (const q of PLAYERS) {
@@ -96,8 +97,8 @@ class SnakeView implements GameInstance {
       for (let k = 0; k <= ahead; k++) spots.push({ x: cx(s.x + DX[s.dir] * k), y: cy(s.y + DY[s.dir] * k) });
     }
     const hits = (y: number) => {
-      const top = Math.min(y, y + rise) - size * 0.45 - C;
-      const bot = Math.max(y, y + rise) + size * 0.45 + C;
+      const top = Math.min(y, y + rise) - shown * 0.45 - C;
+      const bot = Math.max(y, y + rise) + shown * 0.45 + C;
       return spots.some((h) => h.x > W / 2 - half && h.x < W / 2 + half && h.y > top && h.y < bot);
     };
     const lo = OY + size / 2 + (p === 0 ? POP_RISE : 0);
@@ -115,11 +116,12 @@ class SnakeView implements GameInstance {
    * Null when every x on that line meets a trail.
    */
   crashPopX(str: string, size: number, x0: number, y: number, p: PlayerIndex): number | null {
+    const shown = scaledSize(size); // F385: the words as text() draws them (Bigger text: up to 1.2x)
     const g = this.game;
-    const half = ([...str].length * size * 0.55) / 2;
+    const half = ([...str].length * shown * 0.55) / 2;
     const rise = p === 0 ? -POP_RISE : POP_RISE;
-    const top = Math.min(y, y + rise) - size * 0.45 - C / 2;
-    const bot = Math.max(y, y + rise) + size * 0.45 + C / 2;
+    const top = Math.min(y, y + rise) - shown * 0.45 - C / 2;
+    const bot = Math.max(y, y + rise) + shown * 0.45 + C / 2;
     const cells: number[] = [];
     for (let gy = 0; gy < ROWS; gy++) {
       const yy = cy(gy);
