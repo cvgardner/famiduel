@@ -12,6 +12,7 @@ tests/<id>.test.ts        vitest: bot-vs-bot finishes, determinism, handicap, ea
 content/games.json        already has an entry for every planned game (name, how-to, handicap text).
 content/powers.json       add "<id>": [3 powers] if the game has powers.
 src/games/registry.ts     import the def and add it to GAMES.
+src/app/cardpic.ts        a still picture of the game for its home card (tests/cardpic.test.ts).
 ```
 
 The `<id>` must match `content/games.json`. Once registered the home screen enables
@@ -121,4 +122,4 @@ the real rules (or the house rule most kids play), and the how-to text says so:
 - Penalty Shootout: 5 kicks each, ends early when one side can't catch up, then sudden death.
 - Air Hockey: the player scored on gets the puck. Minigolf: lowest score on a hole tees
   off first, penalty stroke for water, 6-stroke cap.
-The rest (Sumo, Snack Snatch, Snake, Quick Draw, Tanks, Chop Chop) are our own games.
+The rest (Sumo, Snack Snatch, Snake, Quick Draw, Tanks, Chop Chop, Tug of War) are our own games.

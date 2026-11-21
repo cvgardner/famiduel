@@ -3,7 +3,7 @@
 import { dailyHoleIds } from './daily';
 import { clearLine, turned, type Box } from './bannerline';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, scaledSize, silentSeat, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, fitName, glow, line, noGlow, rrect, nameWidth, scaledSize, silentSeat, shade, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton, powerSpot } from '../../engine/widgets';
@@ -759,8 +759,6 @@ class MinigolfView implements GameInstance {
     // about its own anchor), so it read "Total | Hole"; swap them so both strips read "Hole | Total".
     if (silentSeat(this.ctx.players, p)) [colHole, colTotal] = [colTotal, colHole];
     const name = this.ctx.players[p].name;
-    // Lifted for the dark strip: Purple was 4.3:1 there.
-    text(gx, name, x0, y0 + 19, { size: 17, color: liftOn(c, STRIP_CARD), align: 'left' });
     let status: string;
     // F300: shorter wordings, longest first, for when Bigger text leaves no room for the full
     // line before the Hole / Total columns (it ran under the Hole score at 320 px).
@@ -808,6 +806,10 @@ class MinigolfView implements GameInstance {
     const near = Math.min(colHole, colTotal);
     const colHalf = Math.max(wide('Hole', 13), wide(hs, 24), wide('Total', 13), wide(String(g.total(p)), 24)) / 2;
     status = fitLine([status, ...shorter], near - colHalf - STATUS_GAP - x0, (str) => wide(str, 13, 700));
+    // Lifted for the dark strip: Purple was 4.3:1 there. F315: a long name shrinks to end
+    // before the score columns too (a 12-letter name ran under "Hole" with Bigger text).
+    const nm = fitName(gx, name, near - colHalf - STATUS_GAP - x0, 17);
+    text(gx, nm.str, x0, y0 + 19, { size: nm.size, color: liftOn(c, STRIP_CARD), align: 'left' });
     text(gx, status, x0, y0 + 42, { size: 13, color: sc, align: 'left', weight: 700 });
     // Scores
     text(gx, 'Hole', colHole, y0 + 14, { size: 13, color: COLORS.dim });
@@ -847,7 +849,7 @@ class MinigolfView implements GameInstance {
   }
 
   /** F259: the other seat's "<name>'s shot" line: by their own strip, else the nearest line clear of the balls, cup and the shooter's card. */
-  private watchLine(p: PlayerIndex): number {
+  private watchLine(p: PlayerIndex, cardW = W - 120): number {
     const s = this.game.shooter;
     const boxes = this.keepClear(p);
     if (!silentSeat(this.ctx.players, s)) {
@@ -855,7 +857,7 @@ class MinigolfView implements GameInstance {
       boxes.push(turned({ x0: 30, x1: W - 30, y0: y - 26, y1: y + 26 }, W, H));
     }
     const base = H - STRIP - 22;
-    return clearLine(Array.from({ length: 10 }, (_, k) => base - 40 * k), 15, 60, W - 60, boxes);
+    return clearLine(Array.from({ length: 10 }, (_, k) => base - 40 * k), 15, (W - cardW) / 2, (W + cardW) / 2, boxes);
   }
 
   private drawBanner(gx: G, p: PlayerIndex): void {
@@ -881,10 +883,14 @@ class MinigolfView implements GameInstance {
         gx.globalAlpha = 1;
         return;
       }
-      const y = this.watchLine(p);
-      rrect(gx, 60, y - 15, W - 120, 30, 15, BANNER_CARD, alpha(c, 0.9), 2);
+      // F315: a long name shrinks (and the card widens up to the course's width) to stay inside
+      // the card, 12 units each side.
+      const shot = fitName(gx, `${this.ctx.players[shooter].name}'s shot`, W - 60 - 24, 17, "'s shot");
+      const cardW = Math.max(W - 120, Math.min(W - 60, nameWidth(gx, shot.str, shot.size) + 24));
+      const y = this.watchLine(p, cardW);
+      rrect(gx, (W - cardW) / 2, y - 15, cardW, 30, 15, BANNER_CARD, alpha(c, 0.9), 2);
       // Lifted for the dark card: Purple was ~3.5:1 there.
-      text(gx, `${this.ctx.players[shooter].name}'s shot`, W / 2, y, { size: 17, color: liftOn(c, BANNER_CARD) });
+      text(gx, shot.str, W / 2, y, { size: shot.size, color: liftOn(c, BANNER_CARD) });
     }
     gx.globalAlpha = 1;
   }
@@ -906,7 +912,9 @@ class MinigolfView implements GameInstance {
     const lead = g.leadOff;
     if (!silentSeat(this.ctx.players, p)) {
       const who = lead === p ? 'You tee off first' : `${this.ctx.players[lead].name} tees off first`;
-      text(gx, who, W / 2, y + 42, { size: 14, color: liftOn(this.ctx.players[lead].color, INTRO_CARD), weight: 700 });
+      // F320: fitted to the card (a 12-letter name ran to its edges with Bigger text).
+      const tee = fitName(gx, who, W - 80 - 24, 14, ' tees off first');
+      text(gx, tee.str, W / 2, y + 42, { size: tee.size, color: liftOn(this.ctx.players[lead].color, INTRO_CARD), weight: 700 });
     }
     gx.globalAlpha = 1;
   }
@@ -929,7 +937,10 @@ class MinigolfView implements GameInstance {
     const hy = y0 + 46;
     text(gx, 'Hole', colHole, hy, { size: 13, color: '#7a6f99', align: 'left' });
     text(gx, 'You', colA, hy, { size: 13, color: shade(this.ctx.players[p].color, -0.25) });
-    text(gx, short(this.ctx.players[q].name), colB, hy, { size: 13, color: shade(this.ctx.players[q].color, -0.25) });
+    // F320: the other seat's column header, cut to the room between "You" and the card's edge
+    // (short()'s 8 letters + "…" of W's ran over "You" and off the card with Bigger text).
+    const head = fitName(gx, short(this.ctx.players[q].name), 2 * Math.min(x0 + w - 8 - colB, colB - colA - nameWidth(gx, 'You', 13) / 2 - 6), 13);
+    text(gx, head.str, colB, hy, { size: head.size, color: shade(this.ctx.players[q].color, -0.25) });
     line(gx, x0 + 10, hy + 13, x0 + w - 10, hy + 13, 'rgba(43,36,89,0.2)', 1.5);
     for (let i = 0; i < rows; i++) {
       const y = hy + 30 + i * 30;
@@ -957,10 +968,13 @@ class MinigolfView implements GameInstance {
     text(gx, String(tp), colA, ty, { size: 22, color: shade(this.ctx.players[p].color, -0.2) });
     text(gx, String(tq), colB, ty, { size: 22, color: shade(this.ctx.players[q].color, -0.2) });
     // Who is ahead, from this seat
+    const tail = final ? ' wins!' : ` leads by ${tp - tq}`;
     const msg = final
-      ? tp < tq ? 'You win! 🏆' : tq < tp ? `${this.ctx.players[q].name} wins!` : 'All square: a draw!'
-      : tp < tq ? `You lead by ${tq - tp}` : tq < tp ? `${this.ctx.players[q].name} leads by ${tp - tq}` : 'All square!';
-    if (!silentSeat(this.ctx.players, p)) text(gx, msg, W / 2, y0 + hgt + 20, { size: 18, color: '#ffffff', stroke: 'rgba(0,0,0,0.5)' });
+      ? tp < tq ? 'You win! 🏆' : tq < tp ? `${this.ctx.players[q].name}${tail}` : 'All square: a draw!'
+      : tp < tq ? `You lead by ${tq - tp}` : tq < tp ? `${this.ctx.players[q].name}${tail}` : 'All square!';
+    // F320: "<12-letter name> leads by 2" ran off a 320 px screen with Bigger text.
+    const lead = fitName(gx, msg, W - 24, 18, tail);
+    if (!silentSeat(this.ctx.players, p)) text(gx, lead.str, W / 2, y0 + hgt + 20, { size: lead.size, color: '#ffffff', stroke: 'rgba(0,0,0,0.5)' });
     text(gx, 'Lowest total wins', W / 2, y0 + hgt + 40, { size: 13, color: COLORS.dim, weight: 600 });
   }
 }

@@ -1395,7 +1395,9 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     await expect(page.locator('#result .half.p0 .res-night'), id).toHaveText(`You vs the bot: 0 – ${n}`);
     // F229: the score and record show once, in the person's half (the bot's half repeated them back to front).
     await expect(page.locator('#result .half.p1 .res-score, #result .half.p1 .res-unit, #result .half.p1 .res-night'), `${id}: no score lines in the bot's half`).toHaveCount(0);
-    await expect(page.locator('#result .half.p0 .res-score'), id).toHaveText('0 – 1');
+    await expect(page.locator('#result .half.p0 .res-score .rs-n'), id).toHaveText(['0', '1']);
+    // F311: each number says whose it is, inside the half on a small phone.
+    await expect(page.locator('#result .half.p0 .res-score .rs-who'), id).toHaveText(['You', 'Bot']);
     if (id === 'airhockey') await page.screenshot({ path: path.join(OUT, 'solo-result.png') });
     await page.locator('#homeBtn').tap();
   }
@@ -3686,43 +3688,25 @@ test.afterAll(() => {
   );
 });
 
-// Grown-ups corner (Settings): behind a parental gate (a times-table question in words), a
-// tip on Guided Access / App pinning. A wrong answer keeps it shut and asks a new question.
-test('grown-ups corner: a parental gate in words, then the keep-them-in-the-app tip', async ({ page }) => {
+// Lock to FamiDuel (Settings > More): opens straight away, no question first, and shows the
+// Guided Access / App pinning tip. No gate: FamiDuel is in Games 9+, not the Kids category.
+test('lock to FamiDuel: opens with no gate and shows the keep-them-in-the-app tip', async ({ page }) => {
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
   await boot(page, errors);
   await page.click('#settingsBtn');
-  await page.locator('#grownUps').scrollIntoViewIfNeeded();
-  await page.locator('#grownUps').tap();
-  const q = page.locator('#gateQ');
-  await expect(q).toBeVisible();
-  const first = (await q.textContent())!;
-  expect(first, 'the question has no digits to copy').not.toMatch(/\d/);
-  await page.screenshot({ path: path.join(OUT, 'grownups-gate-320.png') });
-  const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
-  const answer = (t: string) => {
-    const m = /What is (\w+) times (\w+)\?/.exec(t)!;
-    return WORDS.indexOf(m[1]) * WORDS.indexOf(m[2]);
-  };
-  await page.fill('#gateIn', String(answer(first) + 1));
-  await page.locator('#gateOk').tap();
-  await expect(page.locator('#gateMsg')).toHaveText(/Not quite/);
-  await expect(q).not.toHaveText(first);
-  await expect(page.locator('.grownups')).toHaveCount(0);
-  await page.fill('#gateIn', String(answer((await q.textContent())!)));
-  await page.locator('#gateOk').tap();
-  await expect(page.locator('.grownups')).toBeVisible();
-  await expect(page.locator('.grownups')).toContainText('Guided Access');
-  await expect(page.locator('.grownups')).toContainText('App pinning');
+  await expect(page.locator('#settings')).not.toContainText('grown-ups');
+  await page.locator('#stayIn').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: path.join(OUT, 'settings-more-320.png') });
+  await page.locator('#stayIn').tap();
+  await expect(page.locator('#gateQ')).toHaveCount(0);
+  await expect(page.locator('.stayin')).toBeVisible();
+  await expect(page.locator('.stayin')).toContainText('Guided Access');
+  await expect(page.locator('.stayin')).toContainText('App pinning');
   expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), 'tips fit a small phone').toBe(false);
-  await page.screenshot({ path: path.join(OUT, 'grownups-tips-320.png') });
+  await page.screenshot({ path: path.join(OUT, 'stayin-tips-320.png') });
   await page.locator('#guDone').scrollIntoViewIfNeeded();
   await page.locator('#guDone').tap();
-  await expect(page.locator('#modal')).toBeHidden();
-  // Cancel closes the gate without opening anything.
-  await page.locator('#grownUps').tap();
-  await page.locator('#gateCancel').tap();
   await expect(page.locator('#modal')).toBeHidden();
   await page.click('#settingsBack');
   expect(errors).toEqual([]);
@@ -4012,5 +3996,63 @@ test('edges: in-game words keep their room from the screen edge, Bigger text on 
     }
   }
   expect(near).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+// F314: with a 12-letter name and Bigger text on a 320 px phone, the pass-the-phone cover's big
+// name ran off both screen edges and "Tap when only <name>" spilled out of its pill.
+test('pass the phone: long names stay on screen and inside the cover\'s pill, with Bigger text', async ({ page }) => {
+  const errors: string[] = [];
+  await page.setViewportSize({ width: 320, height: 568 });
+  await boot(page, errors);
+  type Box = { str: string; size: number; l: number; t: number; r: number; b: number };
+  for (const names of [['WWWWWWWWWWWW', 'Grandma Jose'], ['Grandma Jose', 'Mia']]) {
+    for (const id of ['seabattle', 'rps'].filter((x) => built.length === 0 || built.includes(x))) {
+      await page.evaluate((n) => {
+        const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void; store: { data: { profiles: { name: string }[] } } } }).__famiduel;
+        app.store.data.settings.bigText = true;
+        n.forEach((v, i) => { app.store.data.profiles[i].bot = null; app.store.data.profiles[i].name = v; });
+        app.store.save();
+        app.applyBigText();
+        app.showHome();
+      }, names);
+      await page.locator(`.game-card[data-id="${id}"]`).tap();
+      await introAsPeople(page, [0, 1]);
+      await page.waitForTimeout(400);
+      const [boxes, over, near, scale] = await page.evaluate(async () => {
+        const w = window as unknown as { __boxes: { on: boolean; boxes: Box[] }; __edges: { on: boolean; over: Map<string, number>; near: Map<string, number> } };
+        const frame = () => new Promise((res) => requestAnimationFrame(() => res(null)));
+        w.__edges.over.clear();
+        w.__edges.near.clear();
+        w.__boxes.boxes = [];
+        w.__boxes.on = true;
+        w.__edges.on = true;
+        await frame();
+        await frame();
+        w.__boxes.on = false;
+        w.__edges.on = false;
+        const c = document.querySelector('canvas')!;
+        return [w.__boxes.boxes, [...w.__edges.over], [...w.__edges.near], c.width / 360] as const;
+      });
+      const label = `${id} with ${names.join(' / ')}`;
+      expect(over, `${label}: words off the screen`).toEqual([]);
+      expect(near, `${label}: words within 6 units of the screen edge`).toEqual([]);
+      // The pill is 280 units wide at its smallest pulse (0.95); its words keep 18 units each side.
+      const tap = boxes.filter((b) => b.str.startsWith('Tap when only'));
+      expect(tap.length, `${label}: the cover's pill is up`).toBeGreaterThan(0);
+      for (const b of tap) expect((b.r - b.l) / scale, `${label}: "${b.str}" fits its pill`).toBeLessThanOrEqual(280 * 0.95 - 36 + 0.5);
+      await page.screenshot({ path: path.join(OUT, `cover-long-names-${id}-${names[0].slice(0, 4)}.png`) });
+      await leaveMatch(page);
+    }
+  }
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: Hook & { applyBigText(): void; store: { data: { profiles: { name: string }[] } } } }).__famiduel;
+    app.store.data.settings.bigText = false;
+    app.store.data.profiles[0].name = '';
+    app.store.data.profiles[1].name = '';
+    app.store.save();
+    app.applyBigText();
+    app.showHome();
+  });
   expect(errors).toEqual([]);
 });

@@ -199,9 +199,11 @@ describe('minigolf words in a player colour on its dark cards', () => {
     // popColor is liftOn against the opaque floor, unchanged.
     expect(popColor('#15e5b4')).toBe('#15e5b4');
     const src = (await import('node:fs')).readFileSync('src/games/minigolf/index.ts', 'utf8');
-    expect(src).toMatch(/tees off first`;\n\s*text\(gx, who,[^;]*liftOn\(/);
-    expect(src).toMatch(/'s shot`, W \/ 2, y, \{[^}]*liftOn\(c, BANNER_CARD\)/);
-    expect(src).toMatch(/text\(gx, name, x0, y0 \+ 19, \{[^}]*liftOn\(c, STRIP_CARD\)/);
+    // F320: the line is fitted to its card first (fitName), then drawn lifted on it.
+    expect(src).toMatch(/tees off first`;\n[^\n]*\n\s*const tee = fitName\(gx, who,[^;]*;\n\s*text\(gx, tee\.str,[^;]*liftOn\(/);
+    // F315: the name lines are fitted first (fitName), then drawn lifted on their card.
+    expect(src).toMatch(/'s shot`, W - 60 - 24[^;]*;[\s\S]{0,400}text\(gx, shot\.str, W \/ 2, y, \{[^}]*liftOn\(c, BANNER_CARD\)/);
+    expect(src).toMatch(/text\(gx, nm\.str, x0, y0 \+ 19, \{[^}]*liftOn\(c, STRIP_CARD\)/);
   });
 });
 
@@ -226,7 +228,7 @@ describe('pop-up words in every action game', () => {
   // Same source check as Sumo's, for every action game against the colours its
   // own play area is painted in (each view exports SURFACES). The playtest only
   // judges the pops a match happens to trigger, so rare ones are covered here.
-  const GAMES = ['airhockey', 'chopchop', 'minigolf', 'penalty', 'pingpong', 'quickdraw', 'seabattle', 'snacksnatch', 'snake', 'sumo', 'tanks'];
+  const GAMES = ['airhockey', 'chopchop', 'minigolf', 'penalty', 'pingpong', 'quickdraw', 'seabattle', 'snacksnatch', 'snake', 'sumo', 'tanks', 'tugofwar'];
   it.each(GAMES)('%s pops read on its own surfaces', async (id) => {
     const fs = await import('node:fs');
     const { POP_OUTLINE, popColor } = await import('../src/engine/fx');

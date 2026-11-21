@@ -1,7 +1,5 @@
 // The app shell: home screen with the game grid and family scoreboard, player
 // cards, the split-screen "pick your power" intro, the match and the results.
-import { gateOpens, gateQuestion } from './gate';
-import { makeRng } from '../core/rng';
 import { BIG_TEXT, setTextScale } from '../engine/draw';
 import { setBigHands } from '../engine/widgets';
 import gamesJson from '../../content/games.json';
@@ -16,8 +14,9 @@ import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
 import { dayKey } from '../games/minigolf/daily';
+import { cardPicHtml } from './cardpic';
 import { powerPicHtml, watchPowerPics } from './powerpic';
-import { loserTitle } from './resulttitle';
+import { loserTitle, scoreLabels } from './resulttitle';
 import { demoHelpHtml, demoHtml, firstMatchOf, goalHtml, HelpMemory, howToHalfHtml, howToText, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
 import { Runner } from './runner';
@@ -28,6 +27,8 @@ import { applyTheme, watchSystemTheme } from './theme';
 import { DARK_INK, inkOn } from '../core/contrast';
 import { cardInk } from './cardink';
 import { READY_WORDS, readyLabel, type ReadyState } from './readylabel';
+import { AD_RULES, adDue, type AdRules, type AdState } from '../core/adpolicy';
+import { makeMoney, type Money } from '../engine/ads';
 
 export type GameMeta = (typeof gamesJson.games)[number];
 export const META: GameMeta[] = gamesJson.games;
@@ -51,6 +52,11 @@ export const RESULT_SETTLE_MS = 800;
 export class App {
   readonly store = new Store();
   readonly sfx = new Sfx();
+  /** Store build: AdMob + StoreKit (or `?fakeads` stand-ins); null in a browser = no ads, no purchase row. */
+  readonly money: Money | null = makeMoney();
+  /** When the next ad may show (core/adpolicy.ts). */
+  readonly adState: AdState = { removed: false, launches: 0, matchesSinceAd: 0, lastAdAt: Date.now() };
+  adRules: AdRules = AD_RULES;
   readonly stage: Stage;
   runner: Runner | null = null;
   private current: GameMeta | null = null;
@@ -97,7 +103,78 @@ export class App {
     this.applyBigText();
     watchPowerPics(root);
     watchSystemTheme(() => this.store.data.settings.theme);
+    this.startMoney();
     this.showHome();
+  }
+
+  // ---------- Fair ads and "Remove ads" (store build only) ----------
+
+  private startMoney(): void {
+    const money = this.money;
+    if (!money) return;
+    this.adState.launches = this.store.countLaunch();
+    this.adState.removed = !!this.store.data.ads?.removed;
+    // `?fakeads=now` (tests): no free first launch and no wait, so an ad comes after one match.
+    if (money.fake && new URLSearchParams(location.search).get('fakeads') === 'now') this.adRules = { minMatches: 1, minGapMs: 0, freeLaunches: 0 };
+    if (!this.adState.removed) money.ads.preload();
+    // StoreKit is the truth (a refund brings ads back); offline, the saved answer stands.
+    money.purchases.owned().then((o) => {
+      if (o !== null) this.setAdsRemoved(o);
+    });
+  }
+
+  private setAdsRemoved(removed: boolean): void {
+    this.adState.removed = removed;
+    this.store.setAdsRemoved(removed);
+    if (!removed) this.money?.ads.preload();
+  }
+
+  /**
+   * Leaving a result screen: show an ad first when one is due and already loaded (nobody
+   * ever waits for an ad to load), then go on. The only place an ad can appear.
+   */
+  private betweenMatches(next: () => void): void {
+    const ads = this.money?.ads;
+    if (!ads || !adDue(this.adState, Date.now(), this.adRules) || !ads.ready()) return next();
+    for (const b of document.querySelectorAll<HTMLButtonElement>('#result button')) b.disabled = true;
+    const wasMuted = this.sfx.muted;
+    this.sfx.muted = true;
+    ads.show().then(() => {
+      this.sfx.muted = wasMuted;
+      this.adState.matchesSinceAd = 0;
+      this.adState.lastAdAt = Date.now();
+      next();
+    });
+  }
+
+  /** Settings rows: buy or restore "Remove ads". Apple's own purchase sheet confirms with Face ID or a password. */
+  private adsRows(): string {
+    if (!this.money) return '';
+    if (this.adState.removed) return `<div class="set-row" id="adsGone"><span class="set-ico" aria-hidden="true">💛</span><span class="set-txt"><b>Ads removed</b><small>Thank you for supporting FamiDuel!</small></span></div>`;
+    return `<button class="set-row set-link" id="removeAds"><span class="set-ico" aria-hidden="true">🚫</span><span class="set-txt"><b>Remove ads <span id="adsPrice"></span></b><small>One purchase, every game stays free</small></span><span class="set-go" aria-hidden="true">›</span></button>
+      <button class="set-row set-link" id="restoreAds"><span class="set-ico" aria-hidden="true">🔄</span><span class="set-txt"><b>Restore purchase</b><small>Bought it before? Get it back here</small></span><span class="set-go" aria-hidden="true">›</span></button>`;
+  }
+
+  private wireAdsRows(): void {
+    const money = this.money;
+    if (!money) return;
+    const price = document.getElementById('adsPrice');
+    if (price) money.purchases.price().then((p) => p && price.isConnected && (price.textContent = `· ${p}`));
+    const act = (id: string, run: () => Promise<boolean>) =>
+      document.getElementById(id)?.addEventListener('click', () => {
+        this.sfx.play('tap');
+        run().then((owned) => {
+          if (owned) this.setAdsRemoved(true);
+          if ($('#settings').classList.contains('hidden')) return;
+          this.showSettings();
+          if (!owned) {
+            const note = document.getElementById(id === 'restoreAds' ? 'restoreAds' : 'removeAds');
+            note?.querySelector('small')?.replaceChildren(id === 'restoreAds' ? 'Nothing to restore on this Apple ID' : 'Not bought. Nothing was charged.');
+          }
+        });
+      });
+    act('removeAds', () => money.purchases.buy());
+    act('restoreAds', () => money.purchases.restore());
   }
 
   private show(id: string): void {
@@ -121,6 +198,7 @@ export class App {
         <button id="settingsBtn" class="icon-btn" aria-label="Settings"><span aria-hidden="true">⚙️</span></button>
         <h1 class="logo"><span class="l0">Fami</span><span class="l1">Duel</span></h1>
         <p class="tag">Two players · One phone · Super powers</p>
+        <p class="offline">No Wi-Fi needed</p>
       </header>
       <div class="seg mode" id="modeSeg" role="group" aria-label="Who is playing">
         <button data-v="together" class="${solo ? '' : 'on'}" aria-pressed="${!solo}">👫 Play together</button>
@@ -223,11 +301,12 @@ export class App {
               .join('')}</div>
           </div>` + this.textSizeRow(textSize) +
           this.toggle('bigButtons', '🖐️', 'Little hands', 'Bigger Ready and power buttons, in games too', !!settings.bigButtons), 'Auto follows your phone\'s light or dark mode. Largest text doubles menu words; game screens use Bigger.')}
-      ${group('For grown-ups', `<button class="set-row set-link" id="grownUps"><span class="set-ico" aria-hidden="true">👪</span><span class="set-txt"><b>Grown-ups corner</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
-      <footer class="foot">FamiDuel prototype · no ads, no accounts · everything stays on this device</footer>`;
-    $('#grownUps').addEventListener('click', () => {
+      ${group('More', this.adsRows() + `<button class="set-row set-link" id="stayIn"><span class="set-ico" aria-hidden="true">📌</span><span class="set-txt"><b>Lock to FamiDuel</b><small>Keep a little one in the game</small></span><span class="set-go" aria-hidden="true">›</span></button>`)}
+      <footer class="foot">${this.money ? 'FamiDuel · no accounts, no chat · ads only between matches' : 'FamiDuel · no ads, no accounts · everything stays on this device'}</footer>`;
+    this.wireAdsRows();
+    $('#stayIn').addEventListener('click', () => {
       this.sfx.play('tap');
-      this.showGate(() => this.showGrownUps());
+      this.showStayIn();
     });
     $('#settingsBack').addEventListener('click', () => {
       this.sfx.play('tap');
@@ -279,51 +358,11 @@ export class App {
           </div>`;
   }
 
-  /**
-   * Parental gate (gate.ts): a times-table question written in words. The right answer runs
-   * `open`; a wrong one asks a new question. Cancel closes it.
-   */
-  private showGate(open: () => void): void {
-    const modal = $('#modal');
-    const rng = makeRng(Date.now());
-    let q = gateQuestion(rng);
-    modal.classList.remove('hidden', 'help');
-    modal.innerHTML = `<div class="sheet gate">
-      <h2>For grown-ups</h2>
-      <p class="gate-q" id="gateQ">${q.text}</p>
-      <input id="gateIn" class="gate-in" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-labelledby="gateQ"/>
-      <p class="gate-msg" id="gateMsg" aria-live="polite">Type the answer to go on.</p>
-      <div class="gate-btns"><button id="gateCancel" class="btn">Cancel</button><button id="gateOk" class="btn primary">Go on</button></div>
-    </div>`;
-    const input = $<HTMLInputElement>('#gateIn', modal);
-    const close = () => {
-      modal.classList.add('hidden');
-      modal.innerHTML = '';
-    };
-    const tryOpen = () => {
-      if (gateOpens(q, input.value)) {
-        close();
-        open();
-        return;
-      }
-      q = gateQuestion(rng, q);
-      $('#gateQ', modal).textContent = q.text;
-      $('#gateMsg', modal).textContent = 'Not quite. Here is another one.';
-      input.value = '';
-      this.sfx.play('tap');
-    };
-    $('#gateOk', modal).addEventListener('click', tryOpen);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') tryOpen();
-    });
-    $('#gateCancel', modal).addEventListener('click', close);
-  }
-
-  /** Tips for parents, behind the gate: OS-level ways to keep a small kid in the app. */
-  private showGrownUps(): void {
+  /** OS-level ways to keep a small kid in the app (Guided Access, app pinning). */
+  private showStayIn(): void {
     const modal = $('#modal');
     modal.classList.remove('hidden', 'help');
-    modal.innerHTML = `<div class="sheet grownups">
+    modal.innerHTML = `<div class="sheet stayin">
       <h2>Keep a little one in the game</h2>
       <p class="gu-lead">Your phone can lock itself to FamiDuel, so a small kid can't swipe out to other apps while you play.</p>
       <h3>iPhone and iPad: Guided Access</h3>
@@ -438,8 +477,11 @@ export class App {
     const own = ready ? ownBotLevel(this.store.data.profiles, m.id) : null;
     // Minigolf wears a 📅 until someone on this phone has played today's course.
     const daily = ready && m.id === 'minigolf' && !this.store.dailyBest(dayKey());
-    return `<button class="game-card${ready ? '' : ' soon'}${cardInk(m.color) === DARK_INK ? ' light-card' : ''}" data-id="${m.id}" data-ready="${ready ? 1 : 0}" style="--c:${m.color};--ink:${cardInk(m.color)}" ${ready ? '' : 'aria-disabled="true"'}>
-      <span class="gicon" aria-hidden="true">${m.icon}${own ? `<span class="gbot" data-v="${own}">🤖</span>` : ''}${daily ? '<span class="gday">📅</span>' : ''}</span>
+    // The game's own picture in place of its emoji, the players drawn in their seat colours.
+    const pic = cardPicHtml(m.id);
+    const [y, t] = this.store.data.profiles.map((pr) => pr.color);
+    return `<button class="game-card${ready ? '' : ' soon'}${cardInk(m.color) === DARK_INK ? ' light-card' : ''}" data-id="${m.id}" data-ready="${ready ? 1 : 0}" style="--c:${m.color};--ink:${cardInk(m.color)};--y:${y};--t:${t}" ${ready ? '' : 'aria-disabled="true"'}>
+      <span class="gicon${pic ? ' gpic' : ''}" aria-hidden="true">${pic || m.icon}${own ? `<span class="gbot" data-v="${own}">🤖</span>` : ''}${daily ? '<span class="gday">📅</span>' : ''}</span>
       <span class="gname">${m.name}</span>
       <span class="gkind">${ready ? m.kind : 'Coming soon'}</span>
       ${own ? `<span class="sr-only">Bot level here: ${own}</span>` : ''}${daily ? `<span class="sr-only">Today's course not played yet</span>` : ''}
@@ -679,6 +721,8 @@ export class App {
     // over "look away!", in the half of the person who should not be looking).
     // F274: nor one that opens on a setup screen (Sea Battle's fleet: the firing tap looped
     // over the Ready button); the intro's finger has already shown the gesture.
+    // F322: two people who both walk away from a real-time game find it paused, not played out.
+    if (!/turns|Extra/.test(String(meta.kind))) this.runner.onIdle = () => this.pause(true);
     const g = this.runner.game;
     const gesture = g.opensOnCover?.() || g.opensOnSetup?.() ? null : meta.gesture;
     this.playDemo(meta.id, gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined, this.runner.game.firstMover?.() ?? null);
@@ -777,21 +821,28 @@ export class App {
     });
     // A call, a notification or switching apps pauses the match, so coming back
     // shows the pause sheet (and Resume's 3-2-1) instead of a puck already moving.
+    this.interrupt = () => {
+      if (inPlay() && !this.runner?.result) this.pause();
+    };
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden' && inPlay() && !this.runner?.result) this.pause();
+      if (document.visibilityState === 'hidden') this.interrupt();
     });
   }
+
+  /** Pauses a running match because the app left the screen (also the iOS app's pause event, see main.ts). */
+  interrupt: () => void = () => undefined;
 
   /** Quick taps on the pause button that did not pause (playtest counts them). */
   pauseTaps = 0;
 
-  private pause(): void {
+  /** `idle`: the match paused itself (F322), so the sheet says why (F323). */
+  private pause(idle = false): void {
     if (!this.runner || this.runner.paused) return;
     this.runner.paused = true;
     const modal = $('#modal');
     modal.classList.remove('hidden');
     modal.classList.remove('help');
-    modal.innerHTML = `<div class="sheet"><h2>Paused</h2>
+    modal.innerHTML = `<div class="sheet"><h2>Paused</h2>${idle ? '<p class="why">Nobody was playing, so we paused.</p>' : ''}
       <button id="resumeBtn" class="btn primary" aria-label="Resume"><span class="btn-ico" aria-hidden="true">▶️</span>Resume</button>
       <button id="howBtn" class="btn">❓ How to play</button>
       <button id="restartBtn" class="btn">Restart</button>
@@ -860,6 +911,7 @@ export class App {
     this.starters.record(meta.id, this.runner?.game.firstMover?.());
     for (const h of this.helpShown) this.help.played(meta.id, h.p, h.who);
     this.helpShown = [];
+    this.adState.matchesSinceAd++;
     this.store.record(
       meta.id,
       r,
@@ -902,7 +954,7 @@ export class App {
       // It keeps its headline and name line; the numbers show once, in the person's half.
       return `<div class="half p${p} ${won ? 'won' : ''}${faces ? ' faces' : ''}" style="--c:${profiles[p].color};--ink:${inkOn(profiles[p].color)}"><div class="half-inner">
         <div class="res-title">${title}</div>
-        ${faces ? '' : `<div class="res-score">${r.score[p]} – ${r.score[p === 0 ? 1 : 0]}</div>`}
+        ${faces ? '' : scoreHtml(r.score[p], r.score[p === 0 ? 1 : 0], scoreLabels([seatName(profiles, 0), seatName(profiles, 1)], [!!seats?.[0].bot, !!seats?.[1].bot], p))}
         ${r.unit && !faces ? `<div class="res-unit">${esc(r.unit)}</div>` : ''}
         <div class="who">${esc(seatName(profiles, p))}${seats?.[p].bot ? ` 🤖${botFace(seats[p].bot!)}` : ''}${won ? ' 🏆' : ''}</div>
         ${dailyLine(p)}
@@ -933,12 +985,14 @@ export class App {
       for (const b of settle) if (!b.classList.contains('on')) b.disabled = false;
       res.classList.remove('settling');
     }, RESULT_SETTLE_MS);
-    $('#homeBtn', res).addEventListener('click', () => {
-      this.tourneyMatch = false;
-      this.showHome();
-    });
-    res.querySelector('#rematchBtn')?.addEventListener('click', () => this.openGame(meta.id));
-    res.querySelector('#tourneyNextBtn')?.addEventListener('click', () => this.showTournament());
+    $('#homeBtn', res).addEventListener('click', () =>
+      this.betweenMatches(() => {
+        this.tourneyMatch = false;
+        this.showHome();
+      }),
+    );
+    res.querySelector('#rematchBtn')?.addEventListener('click', () => this.betweenMatches(() => this.openGame(meta.id)));
+    res.querySelector('#tourneyNextBtn')?.addEventListener('click', () => this.betweenMatches(() => this.showTournament()));
     const easier = res.querySelector<HTMLButtonElement>('#easierBtn');
     if (offer && easier) {
       easier.addEventListener('click', () => {
@@ -956,4 +1010,13 @@ export class App {
       });
     }
   }
+}
+
+/**
+ * F311: the result half's score with a small name under each number ("2 – 3" over "You" and
+ * "Bot"), so each player reads which number is theirs. Long names are cut with an ellipsis.
+ */
+function scoreHtml(mine: number, theirs: number, [me, them]: [string, string]): string {
+  const side = (n: number, who: string) => `<span class="rs-side"><span class="rs-n">${n}</span><span class="rs-who">${esc(who)}</span></span>`;
+  return `<div class="res-score">${side(mine, me)}<span class="rs-dash">–</span>${side(theirs, them)}</div>`;
 }

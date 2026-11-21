@@ -68,8 +68,32 @@ test('two people pick powers, play air hockey, and see the result', async ({ pag
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.7, { steps: 5 });
   await page.mouse.up();
   await holdPause(page);
+  await expect(page.locator('.sheet .why')).toHaveCount(0); // F323: only a pause nobody pressed says why
   await page.click('#quitBtn');
   await expect(page.locator('#home')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+// F322: Ping Pong between two still paddles rallied forever (a 900 s run ended 1-1, "Rally 879").
+test('two people who both walk away from a real-time game find it paused', async ({ page }) => {
+  const errors = await boot(page);
+  type R = { __famiduel: { runner: { fastForward(s: number): void; result: unknown; paused: boolean } } };
+  for (const id of ['pingpong', 'airhockey']) {
+    await page.evaluate(() => (window as unknown as { __famiduel: { showHome(): void } }).__famiduel.showHome());
+    await page.locator(`.game-card[data-id="${id}"]`).click();
+    await page.locator('.power-card[data-p="0"]').first().click();
+    await page.locator('.power-card[data-p="1"]').first().click();
+    await page.click('#ready0');
+    await page.click('#ready1');
+    await expect(page.locator('#play')).toBeVisible();
+    await page.evaluate(() => (window as unknown as R).__famiduel.runner.fastForward(900));
+    await expect(page.locator('#resumeBtn')).toBeVisible();
+    expect(await page.evaluate(() => (window as unknown as R).__famiduel.runner.result)).toBeNull();
+    // F323: the sheet says why it paused, so nobody wonders who pressed pause.
+    await expect(page.locator('.sheet .why')).toHaveText('Nobody was playing, so we paused.');
+    await page.click('#quitBtn');
+    await expect(page.locator('#home')).toBeVisible();
+  }
   expect(errors).toEqual([]);
 });
 
@@ -167,7 +191,7 @@ for (const g of games.games) {
 // "Match point!"; Air Hockey's power name sat inside GOAL! (F148). The probe in fx.ts lists
 // any two pops born in the same step whose words overlap in the same seat. F150: pops born
 // together now stack like lines of text in every game, so every action game is checked.
-for (const id of ['pingpong', 'airhockey', 'sumo', 'penalty', 'snacksnatch', 'snake', 'quickdraw', 'tanks', 'chopchop', 'minigolf', 'seabattle']) {
+for (const id of ['pingpong', 'airhockey', 'sumo', 'penalty', 'snacksnatch', 'snake', 'quickdraw', 'tanks', 'chopchop', 'minigolf', 'seabattle', 'tugofwar']) {
   test(`pops born together never overlap: ${id}`, async ({ page }) => {
     test.setTimeout(120_000);
     const errors = await boot(page, `POPS-${id}`);
@@ -340,5 +364,42 @@ test('settings and player cards are remembered after a reload', async ({ page })
   await page.locator('.player-chip').first().click();
   await expect(page.locator(`.swatch[data-c="${colour}"]`)).toHaveClass(/\bon\b/);
   await expect(page.locator('#pHand button.on')).toHaveAttribute('data-v', 'left');
+  expect(errors).toEqual([]);
+});
+
+// F311: a bare "2 – 3" didn't say whose number was whose. Each half names both numbers,
+// own first, and long names stay inside the half on a small phone with Bigger text.
+test('result: each score number names its player, also with long names at 320 px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  const errors = await boot(page, 'E2E', false);
+  await page.evaluate(() => {
+    const app = (window as unknown as { __famiduel: { store: { data: { profiles: { name: string; bot: string | null }[]; settings: { bigText?: boolean } }; save(): void }; applyBigText(): void; showHome(): void; openGame(id: string): void } }).__famiduel;
+    app.store.data.profiles[0].name = 'Maximiliana';
+    app.store.data.profiles[1].name = 'Bartholomew';
+    app.store.data.profiles[0].bot = null;
+    app.store.data.profiles[1].bot = null;
+    app.store.data.settings.bigText = true;
+    app.store.save();
+    app.applyBigText();
+    app.showHome();
+    app.openGame('airhockey');
+  });
+  for (const b of await page.locator('#intro .btn.ready').all()) await b.click();
+  await expect(page.locator('#play')).toBeVisible();
+  await page.evaluate(() => {
+    (window as unknown as { __famiduel: { runner: { result: unknown } } }).__famiduel.runner.result = { winner: 1, score: [2, 3] };
+  });
+  await expect(page.locator('#result')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-bigtext', '1');
+  await expect(page.locator('#result .half.p0 .rs-n')).toHaveText(['2', '3']);
+  await expect(page.locator('#result .half.p0 .rs-who')).toHaveText(['You', 'Bartholomew']);
+  await expect(page.locator('#result .half.p1 .rs-n')).toHaveText(['3', '2']);
+  await expect(page.locator('#result .half.p1 .rs-who')).toHaveText(['You', 'Maximiliana']);
+  for (const sel of ['#result .half.p0 .res-score', '#result .half.p1 .res-score']) {
+    const box = (await page.locator(sel).boundingBox())!;
+    expect(box.x, sel).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, sel).toBeLessThanOrEqual(320);
+  }
+  await page.screenshot({ path: 'test-results/result-score-labels.png' });
   expect(errors).toEqual([]);
 });

@@ -142,6 +142,11 @@ type Saved = {
   settingsVersion?: number;
   /** Minigolf's today's course: the best total by a person on that day (bots don't count). */
   dailyGolf?: DailyBest | null;
+  /**
+   * Store build only (engine/ads.ts): "Remove ads" owned (a cache of StoreKit's answer, so an
+   * offline phone stays ad-free) and how many times the app has been opened (the first is ad-free).
+   */
+  ads?: { removed: boolean; launches: number };
 };
 
 /** The best total on one day's course, and who played it. */
@@ -194,6 +199,22 @@ export class Store {
     } catch {
       // A broken save falls back to defaults.
     }
+  }
+
+  /** The app opened once more (core/adpolicy.ts: the first launch has no ads). Returns the count. */
+  countLaunch(): number {
+    const a = (this.data.ads ??= { removed: false, launches: 0 });
+    a.launches++;
+    this.save();
+    return a.launches;
+  }
+
+  /** Remember whether "Remove ads" is owned (from a purchase, a restore or StoreKit at start). */
+  setAdsRemoved(removed: boolean): void {
+    const a = (this.data.ads ??= { removed: false, launches: 0 });
+    if (a.removed === removed) return;
+    a.removed = removed;
+    this.save();
   }
 
   save(): void {

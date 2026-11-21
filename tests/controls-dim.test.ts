@@ -86,7 +86,7 @@ function powerBrightness(id: string, bots: [string | null, string | null], p: 0 
 // F171: the bot's power button read as one more button to press; its face is faint now
 // (the energy ring and the power's icon stay clear).
 describe('Play the bot: the bot\'s power button is drawn faint', () => {
-  for (const id of ['airhockey', 'snake', 'sumo', 'snacksnatch', 'pingpong', 'minigolf', 'chopchop', 'tanks', 'penalty', 'quickdraw']) {
+  for (const id of ['airhockey', 'snake', 'sumo', 'snacksnatch', 'pingpong', 'minigolf', 'chopchop', 'tanks', 'penalty', 'quickdraw', 'tugofwar']) {
     it(id, () => {
       for (const botSeat of [0, 1] as const) {
         const person = botSeat === 0 ? 1 : 0;

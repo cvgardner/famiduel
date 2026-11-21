@@ -133,8 +133,12 @@ class SnakeView implements GameInstance {
     return null;
   }
 
-  /** F203: the crash pop's spot: its own line if any x there is clear, else the nearest clear line. */
-  crashPop(str: string, size: number, x0: number, y0: number, p: PlayerIndex): { x: number; y: number } {
+  /**
+   * F203: the crash pop's spot: its own line if any x there is clear, else the nearest clear line.
+   * F327: null when no line is clear (an arena packed by two careful snakes); the pop is skipped,
+   * since the round-end banner already says what happened and the pop would print over trails.
+   */
+  crashPop(str: string, size: number, x0: number, y0: number, p: PlayerIndex): { x: number; y: number } | null {
     const lo = crashPopY(OY, p);
     const hi = crashPopY(OY + AH, p);
     for (let d = 0; d <= AH; d += 4) {
@@ -144,7 +148,7 @@ class SnakeView implements GameInstance {
         if (x !== null) return { x, y };
       }
     }
-    return { x: x0, y: y0 };
+    return null;
   }
 
   update(dt: number, input: Input): void {
@@ -186,7 +190,7 @@ class SnakeView implements GameInstance {
         fx.burst(cx(e.x), cy(e.y), players[e.p].color, 34, 260, 4);
         fx.burst(cx(e.x), cy(e.y), '#ffffff', 12, 160, 3);
         const at = this.crashPop('CRASH!', 22, cx(e.x), crashPopY(cy(e.y), e.p), e.p);
-        fx.pop('CRASH!', at.x, at.y, '#ffffff', e.p, 22);
+        if (at) fx.pop('CRASH!', at.x, at.y, '#ffffff', e.p, 22);
       } else if (e.type === 'headon') {
         sfx.play('buzz');
         fx.flash('#ffffff', 0.2);

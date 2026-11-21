@@ -192,7 +192,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       less) the intro alone stays 1x. Layout playtest: all intros fit; bigtext-intro-*.png.
 
 ## Content
-- [ ] Mini pool (first update).
+- [x] Mini pool (first update): `src/games/minipool/`.
 - [x] More minigolf holes (target 18): 22 holes now (checked 2026-11-07; this line said 10).
 - [x] 2026-11-01: two new Minigolf holes, so a 3-hole match repeats less often (8 → 10 holes,
       56 → 120 different courses). River Bridge (par 3): water across the middle with a
@@ -392,8 +392,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Bumper Bowl now sits among the par 2s; Lily Pond and Hill Climb lead the par 3s.
 
 ## Ideas found 2026-10-31 (haptics run)
-- [ ] Store wrapper: plug a native haptics call (Capacitor Haptics, iOS Taptic) into
-      `new Haptics(vibrate)` so iPhones get the same feel.
+- [x] 2026-11-15 (iOS store build): Store wrapper: native haptics. `engine/native.ts` turns
+      each vibration pattern into a Taptic feel inside the iOS app (tests/native.test.ts).
 - [ ] Haptics per seat isn't possible on one phone (both players feel every buzz); keep
       patterns for shared moments only. If kids find it distracting, default it off for
       the turn-based games.
@@ -411,7 +411,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2026-11-07 (F68): Settings > For grown-ups > Grown-ups corner, behind the first parental
       gate (src/app/gate.ts: a times-table question in words, a new one after a wrong answer;
       reusable for sharing and the unlock screen). Shows Guided Access (iPhone/iPad) and App
-      pinning (Android) steps. Nothing leaves the phone; playtest grownups-*.png.
+      pinning (Android) steps. Nothing leaves the phone.
+      2026-11-20 (Chris): the gate is gone and "For grown-ups" became Settings > More (Remove
+      ads, Restore purchase, Lock to FamiDuel), since the launch audience is friends and
+      couples and Games 9+ needs no gate. Apple's purchase sheet still asks for Face ID or a
+      password. gate.ts is in git history if sharing ever needs one; playtest stayin-*.png.
 
 ## Ideas found 2026-10-31 (text size run)
 - [x] 2026-11-01 (research run): rematches take turns starting. Store reviews of the
@@ -1078,8 +1082,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and dodging or driving: it turns 90° to sidestep a shell and back to shoot. A person
       does that too; only worth softening if a kid calls the hard tank twitchy. Picking the
       dodge side that needs less turning was tried and made no measurable difference.
-- [ ] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
+- [x] Easy bot still scores own goals off rebounds of its own shots (0.45 s reaction);
       fine for a kid's opponent, but watch it in playtests.
+      2026-11-15 (F331, measured, no change): over 60 matches per pairing, goals where the
+      conceding side touched the puck last and it travelled 0.6 s+ before going in (a shot or
+      clear coming back) run 0.78 a match easy v kid, 0.93 easy mirror, 0.67 normal mirror,
+      0.78 hard mirror: easy is no clumsier than hard. Most "last touched by the conceder"
+      goals are blocks that still go in (hard mirror 6.1 a match), which is normal air hockey.
 
 ## Ideas found 2026-11-01 (ping pong landing spot run)
 - [x] Hard Snake turns about 3× as often as Easy/Normal (it re-plans territory every cell);
@@ -1627,8 +1636,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       for room). At iPad portrait 768x1024 home, intros and Air Hockey / Sumo / Minigolf fill
       the height with 96 px side bars, buttons and text as on a phone: fine. In landscape
       (1024x768) the portrait board is a narrow column at about 1.2x with wide bars.
-- [ ] Store wrapper: lock portrait, also on iPad (UIRequiresFullScreen / Capacitor
-      orientation), so a landscape tablet never shows the narrow board (F168). A turned
+- [x] 2026-11-15 (iOS store build): Store wrapper: portrait only (Info.plist and
+      GameViewController). v1 is iPhone-only, so an iPad runs the iPhone app, portrait (F168). A turned
       landscape layout would need the world rotated and input remapped: only if families ask.
 
 ## Ideas found 2026-11-08 (bigger-text solo run)
@@ -2317,3 +2326,229 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       screen's Games + Rematch row: ~310px of buttons in a 296px row spilled past the screen
       edge with CI's wider fonts (Rematch 98.6% on screen); on a 320px phone the row now has
       8px sides and gap and 14px button sides (local 16px spare each side).
+
+## Ideas found 2026-11-15 (11:17 run, long names in Minigolf)
+- [x] 2026-11-15 (F315, PR #341): with a 12-letter name and Bigger text on a 320 px phone,
+      Minigolf's strip name ran under the "Hole" header and "<name>'s shot" out of its card.
+      The strip name now fits the room before the score columns (as the status line, F300),
+      the card widens up to the course's width for a long name, and a name that won't fit
+      even at the smallest size is cut with "…" (keeping "'s shot"); fitName(),
+      tests/minigolf-long-names.test.ts.
+
+## Ideas found 2026-11-15 (11:17 run, long names in Sumo)
+- [x] 2026-11-15 (F316, PR #342): Sumo's seat names, centred over the round pips at W - 62,
+      already sat at the smallest size (13), so a 12-letter name ran off a 320 px phone's edge
+      and into the HOLD button's charge ring with Bigger text. Names now fit nameRoom() (clear
+      of the edge and the ring) and are cut with "…" when they can't shrink ("Grandma Jo…" with
+      Bigger text); fitName() from draw.ts (F315), tests/sumo-names.test.ts.
+
+## Ideas found 2026-11-15 (11:17 run, long names on the pass-the-phone cover)
+- [x] 2026-11-15 (F314, PR #340): with a 12-letter name and Bigger text on a 320 px phone the
+      pass-the-phone cover (Sea Battle and RPS) ran the big name off both screen edges and
+      "Tap when only <name>" out of its pill ("Grandma Jose" spilled even at usual text). Names
+      now fit NAME_ROOM (clear of the pause button), the pill's words shrink to fit (not under
+      15) or read "Tap when only you / are looking 👀" (the big name above says who), and the
+      "<name>, look away!" lines fit their room; tapLines() in src/engine/secret.ts, playtest
+      'pass the phone: long names ...' checks edges and the pill with two name pairs.
+
+## Ideas found 2026-11-15 (11:17 run, long names and Bigger text at 320 px)
+- [x] 2026-11-15 (F313, PR #339): Sea Battle's "Their ships" / "Your ships" label ran into the
+      first ship of the tally with Bigger text on a 320 px phone (pills started at a fixed
+      GX + 86). The tally now starts 10 units after the label as drawn and shrinks evenly to
+      end at the grid's edge; tallyLayout(), tests/seabattle-tally.test.ts.
+- [x] 2026-11-15 (F311): the result screen's big score read "2 – 3" with nothing saying which
+      number was whose (a kid playing the bot couldn't tell; families ask how the app "picked"
+      a winner). Each number now has a small name under it, the half's own first: "You" /
+      "Bot" playing the bot, "You" / the other player's name between two people (bots keep
+      their names in a bot-vs-bot match). Two equal columns keep the dash centred; long names
+      end in an ellipsis. scoreLabels() in src/app/resulttitle.ts, tests/result-score.test.ts,
+      e2e 'result: each score number names its player' (long names, 320 px + Bigger text).
+- [x] 2026-11-15 (F312): Quick Draw's left cactus (foot at MID + 120, scale 0.9) reached up
+      under the signal cards: a worded fake-out ("Open the DRAW-er!") or DRAW! card hid its top
+      half, which peeked out under the card's corner on a 320 px phone. It now stands a little
+      smaller (0.8) at MID + 139, in the gap between the cards (to MID + 92) and Slow Time's
+      "get ready" line. SIGNAL_CARD / READY_Y, tests/quickdraw-cactus.test.ts.
+
+## Ideas found 2026-11-15 (12:17 run, long names on Minigolf's cards)
+- [x] 2026-11-15 (F320): Minigolf between two people with 12-letter names on a 320 px phone
+      with Bigger text: the scorecard's "<name> leads by 2" ran off the screen, its column
+      header ("WWWWWWWW…") ran over "You" and off the card, and the hole card's "<name> tees off
+      first" reached its card's edges. All three are fitted (fitName, keeping " leads by N" /
+      " wins!" / " tees off first"); tests/minigolf-long-names.test.ts,
+      e2e/minigolf-long-names.spec.ts (edge probe over the hole card and the scorecard; fails
+      on the old lines).
+## Ideas found 2026-11-15 (12:17 run, long names in Rock Paper Scissors)
+- [x] 2026-11-15 (F319): Rock Paper Scissors between two people with 12-letter names on a
+      320 px phone with Bigger text: "<name>, pick in secret", "<name> picks next, then you
+      both reveal", the cover's "<name> has picked ✓" and "<me> 0 – 0 <them>" ran off the
+      screen. Each line now takes the longest wording that fits (fitFirst() in draw.ts:
+      "Pick in secret", "<name> picks next", "You 0 – 0 <them>"), short names keep the full
+      lines. tests/rps-long-names.test.ts, e2e/rps-long-names.spec.ts (edge probe through two
+      picks; fails on the old lines).
+
+## Ideas found 2026-11-15 (12:17 run, long names in Sea Battle)
+- [x] 2026-11-15 (F321): Sea Battle between two people with 12-letter names on a 320 px phone
+      with Bigger text: the header ("WWWWWWWWWWWW, hide your fleet", "..., you go first!") ran
+      off the screen, and the Radar / Mine notices ("💥 <name> hid a mine somewhere in their
+      sea!") would too. The header shrinks to fit; notices are wordings longest first
+      (noticeLines(), drawn with fitFirst: "💥 They hid a mine in their sea!"); "<name>'s fleet"
+      is cut to the small sea's width. tests/seabattle-long-names.test.ts,
+      e2e/seabattle-long-names.spec.ts (edge probe through placement and the hand-overs; fails
+      on the old header).
+## Ideas found 2026-11-15 (12:17 run, long names in every game's countdown and cards)
+- [x] 2026-11-15 (F318): a turn game's countdown pill ("<name> goes first", fixed 260 wide,
+      size 20) ran ~35 units off both screen edges in Penalty with a 12-letter name on a 320 px
+      phone with Bigger text. The words now shrink to fit (not below MIN_TEXT) and the pill
+      grows up to the screen less 8 each side; short names keep the usual pill. starterPill(),
+      tests/starter-pill.test.ts, e2e/long-names.spec.ts (every shown game's countdown words
+      with the edge probe; fails on the old pill).
+- [x] F319-F321 (done 2026-11-15, PRs #346-#348): RPS pick lines, Minigolf scorecard lines and Sea Battle
+      notices with 12-letter names (found reading the code, not yet measured).
+## Ideas found 2026-11-15 (13:17 run, both players walk away)
+- [x] 2026-11-15 (F322, PR #349): with nobody touching, Air Hockey (a resting puck), Sumo (two
+      still wrestlers) and Ping Pong (a straight serve between two centred paddles, a 900 s
+      run ended 1-1 at "Rally 879") never end, so a match left on the table ran forever. Now
+      a real-time game between two people pauses itself after IDLE_PAUSE (30 s of play) with no
+      finger on the screen and no key held: the usual pause sheet, Resume counts 3-2-1. A finger
+      resting on the screen (holding in Sumo) isn't idle; a bot seat plays on (it ends the
+      match); turn games (Minigolf, Penalty, Sea Battle) and the extras never auto-pause, since
+      people think between shots. Runner.watchIdle()/onIdle, tests/idle-pause.test.ts, e2e
+      'two people who both walk away ...'.
+## Ideas found 2026-11-15 (14:17 run, 320 px sweep with long names)
+- [x] 2026-11-15 (F325, PR #351): playing the bot, Tank Duel's bot half read "bot: 1 bonk" and
+      Chop Chop's rival pill "bot: 9" in lower case, while every other card calls it "Bot"; both
+      now use the bot's own name ("Bot: 1 bonk", "Bot: 9"). tests/bot-name.test.ts.
+- [x] 2026-11-15 (F324, PR #350): `npm run sim -- --idle` also plays both seats idle and names
+      the games that never end on their own (Air Hockey, Sumo, Ping Pong: the ones F322 pauses).
+      The sim's idle Ping Pong player had dragged its paddle to the finger spot (H * 0.75),
+      missing every serve, so idle Ping Pong matches ended in the sim (avg 43 s) while the app
+      rallied forever; it now rests on its line like the app (35% end inside 5 min, the rest
+      rally). tests/sim-both-idle.test.ts.
+- [x] 2026-11-15 (F323, PR #352): a pause the match made itself (F322) says why under "Paused":
+      "Nobody was playing, so we paused.", so a family coming back knows nobody pressed
+      anything; a held pause keeps the plain sheet. `.sheet .why`, e2e checks both.
+- [x] 2026-11-15 (F326, PR #353): between two people Chop Chop's small rival pill read "them: 9" in
+      lower case; it now names the other person when the name fits the pill at 13 ("Ann: 9"),
+      else "Them: 9" ("Grandma Jose" with Bigger text at 320 px). fitFirst(), RIVAL_PILL,
+      tests/bot-name.test.ts.
+- [x] 2026-11-15 (F327, PR #354): Snake: two hard snakes met head-on in ~40% of rounds (half of
+      all rounds drawn, matches ran to the 9-round cap; a rival app's review: its hard snake
+      "mimics my actions, making it impossible to win or lose"). The hard bot's territory pull
+      outweighed its head-on worry, and a turn locks the next cell straight (no second tap that
+      soon), so it turned into a head-on it then couldn't leave. Hard now weighs a head-on 1000
+      (cell the other head enters next, or one it can reach) and checks the locked cell after a
+      turn; easy/normal unchanged. 40 hard mirrors: head-ons 0, drawn rounds 52% -> 8%, match
+      draws 15% -> 0%; hard v normal 93%, sim:powers hard all in band. A packed arena (both
+      trapped together) has no clear line for "CRASH!", so the pop is skipped there (the
+      round-end banner says it). tests/snake-headon.test.ts.
+- [x] Easy snakes also meet head-on (51 of 221 easy-mirror rounds drawn this way); easy has no
+      head-on worry at all. Fine for a kid's bot, but if families say easy rounds "just draw",
+      give easy a small one.
+      2026-11-15 (F330, PR #356): easy now has a small head-on worry (HEADON_EASY 10). 60 easy
+      mirrors: head-ons 19% -> 0% of rounds, drawn rounds 20% -> 0.4%, avg match 85 -> 72 s;
+      kid / kid+3 v easy 0% / 2% -> 0% / 1% (n=160, noise), normal v easy 92 -> 90%, easy
+      sim:powers all in band. tests/snake-headon.test.ts.
+- [x] 2026-11-15 (F337, PR #360): Snake: two hard bots still drew 17% of rounds over 40 mirror
+      matches (F327's test read 7.7% on seeds 1-20; seeds 21-40 ran ~25%). Every draw was a
+      same-tick double crash, and ~19 of 33 were a head-on the game didn't call one: both snakes
+      turn toward each other side by side (mirror images, 2 cells apart), a turn locks the next
+      cell straight, so the heads end adjacent and facing and each runs into the other's head
+      cell. The game now calls that swap a head-on too (same buzz and flash), and the hard bot
+      treats a turn whose cell has the other head two cells straight on as a head-on. 40 hard
+      mirrors: drawn rounds 17% -> 3%, head-ons (swaps counted) 10% -> 0%; easy and normal
+      mirrors unchanged (0.6% / 3.6% drawn); hard v normal 90%, hard v easy 96%, kid rows 0%
+      (n=100). tests/snake.test.ts (swap), tests/snake-headon.test.ts (40 seeds, < 8% drawn).
+- [x] 2026-11-15 (F328, no change): a rival app's review says "the person who goes first wins if
+      they get all their shots". Measured who started vs who won in bot mirrors (no powers):
+      Penalty 50/52/47% (easy/normal/hard, n=200), Minigolf 51/53/48% (n=600, ties left out),
+      Sea Battle 48/48/52% (n=600). No starter edge in our turn games; nothing to fix.
+## Ideas found 2026-11-15 (16:17 run, two people tapping fast)
+- [x] 2026-11-15 (F329, PR #355): Sumo: tapping HOLD fast re-dashes a wrestler at the rope just
+      after it bounced them in, so rope saves can come 0.3-0.5 s apart (a two-person 320x568
+      playtest logged 0.45 s and 0.33 s). The second "Saved by the rope!" stacked a line beside
+      the still-bright first one, in both halves, like a stutter. The newest save's words now
+      replace the old (fx.fadeWords()), so each seat shows one rope-save pop at a time and the
+      last save still says "Last rope save!". Bots rarely do it (0-5 per 40 matches).
+      tests/sumo-rope-repeat.test.ts.
+- [x] 2026-11-15 (F332, PR #357): `npm run sim:powers` judged outliers on the "avg" column, which counts
+      the match against no power, so Chop Chop's Shield and Double read 66-67% and were flagged
+      every run (any Chop Chop power beats none ~90%) although every head-to-head pair was
+      33-63% (n=60 normal). The outlier line now uses the average against the other powers and
+      lists a power that loses to no power separately (`judge()`, tests/powers-sim-judge.test.ts).
+- [x] 2026-11-15 (F333, PR #358): Sumo: in ~31-37% of ring-outs (40 bot mirrors per level) the loser
+      leaves the ring beside the centre line, where the two round-end banners' dark boxes sit
+      (MID ± ~49), so its spin-out played behind them. The wrestler who went out is now drawn
+      over the boxes; the winner stays under them so the words (in the winner's colour) never
+      sit on the winner's body; the words are still drawn last. renderBanner(gx, 'box' | 'words'),
+      tests/sumo-banner-under.test.ts.
+- [x] 2026-11-15 (F317): one long-names pass over every shown game on a 320 px phone with
+      Bigger text: two people (a 12-letter name and "Grandma Jose", both ways round) and
+      playing the bot (both named 12 letters), ~3 s from Ready, the box probe lists every
+      word drawn in a frame and a word holding a name must not sit on a different word
+      (e2e/long-names.spec.ts "names in play never sit on other words"). Names show on the
+      board in Minigolf, Sumo, Tank Duel, Sea Battle and RPS; none overlap. The countdown's
+      solid "<name> goes first" pill is skipped: in Penalty it covers the still-empty kick
+      tracker during "3 2 1" (harmless; move the pill only if the tracker ever starts filled).
+- [x] 2026-11-15 (F334, no change): Ping Pong's hard mirror runs longest (`npm run sim -- --game
+      pingpong --n 400`: avg 142 s, 13% over 3 min; normal 108 s, 2%). Measured over 60 mirror
+      matches per level: points per match ~11.5 at every level and 6-6 reached in 8/60 hard
+      (14/60 normal), so it isn't win-by-2 (hardCap 10 already ends deuce); it's rallies: hard
+      rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
+      hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
+      hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-15 (F351, PR #368): Chop Chop's head start after F343 was still all in the third
+      star (easy+0..3 v normal 7/10/11/55%, n=100). Measured each knob: the forgiven branches and
+      the slower timer barely move it; the count's head start decides the race to 50, and the
+      race between bots is so tight that one chop near 12-13 is worth ~30 points. Starting
+      counts 4/9/13 -> 12/12/13 (RULES.assistChops per star): 7/19/24/55%; kid+3 v easy 45%
+      unchanged. tests/chopchop.test.ts, tests/sim-ladder.test.ts.
+- [x] 2026-11-15 (F350, PR #367): Snack Snatch's head start (longer reach, quicker recovery
+      from a miss) was all in the third star: easy+0..3 v normal 1/3/17/63% (n=100). The stars
+      now follow a curve, 3·(a/3)^0.3 (assistStep()), so the first stars give more of it:
+      1/16/28/63%, v hard 0/3/7/23%; three stars and kid+3 v easy (18%) unchanged.
+      tests/sim-ladder.test.ts.
+- [x] 2026-11-15 (F349, PR #366): Snake's head start (slower snake, wall auto-turn at three
+      stars) barely helped the easy bot: easy+0..3 v normal 13/5/14/15%. Its crashes were mostly
+      trails (60 matches at +3: own trail 105, the other's 65, walls 0), and the slower snake
+      just gave the other more room. The wall auto-turn now starts at one star and at three
+      stars it also steers away from a trail one cell ahead (toward the side with more room;
+      the "assist!" pop shows it). Ladder (n=200): v normal 9/15/22/61%, v hard 4/9/23/61%;
+      mashing kid+3 v easy 0% -> 40% (n=80). Handicap line "Slower snake, auto-turn at walls
+      (and trails)". tests/snake.test.ts, tests/sim-ladder.test.ts.
+- [x] 2026-11-15 (F345, PR #365): Sumo's head start was mostly rope saves (3 at no stars,
+      16 at three), but the easy bot is pushed out in ~all the rounds it loses (158/158 at +3 over
+      100 matches v normal) and almost never uses its saves up, so they did nothing; weight was
+      the knob that counts. Mass at three stars 1.3 -> 1.6: ladder easy+0..3 v normal 7/14/18/33%
+      -> 7/20/35/54%, v hard 3/5/13/15% -> 3/13/16/54% (n=160/80); kid+3 v easy 41% -> 43%, rows
+      without a head start unchanged. tests/sim-ladder.test.ts.
+- [x] 2026-11-15 (F346, PR #363): Ping Pong's head start was all in the first star: the easy bot
+      with +0/+1/+2/+3 against normal won 3/70/80/100% (F342's ladder), because the easy bot
+      misses by a little and a slightly wider paddle covered most misses. The paddle and
+      slow-ball help now grow with the square of the stars (1/9, 4/9, all: assistStep()), so
+      each star counts: 2/13/57/100% (n=60); kid / kid+3 v easy 0% / 0% unchanged (the masher
+      never returns a ball, a separate F21 question). tests/pingpong.test.ts.
+- [x] 2026-11-15 (F343, PR #362): Chop Chop's head start only slowed the timer, but rounds end
+      on a bonk or the race to 50, so it did nothing measurable: easy+N v normal 3/3/3/3%,
+      a mashing kid+3 v easy 0%. Measured why easy loses (40 matches): bonks 71 rounds, normal
+      reaching 50 first 47; forgiving branches alone just turned bonks into lost races. Now
+      each star of head start also starts the count ~4 chops ahead (13 at three stars,
+      RULES.assistChops) and forgives one branch a round (RULES.assistSpare, "Saved!" pop
+      where "Shield!" shows). Ladder (n=60, vs normal): 8/10/13/55%; kid+3 v easy 0% -> 45%
+      (n=80); bot-vs-bot rows unchanged (no head start). Handicap line on the intro says so.
+      tests/chopchop.test.ts.
+- [x] 2026-11-15 (F342, PR #361): `npm run sim -- --ladder`: the easy bot with head start
+      +0/+1/+2/+3 against normal and hard, per action game (botSeat() reads `easy+2`;
+      tests/sim-ladder.test.ts). First read (n=30, vs normal): Air Hockey 7/23/47/63%, Ping
+      Pong 3/70/80/100%, Sumo 3/7/27/23%, Snack Snatch 3/0/13/60%, Snake 10/3/10/17%, Quick
+      Draw 0/3/37/77%, Tank Duel 0/3/3/7%, Chop Chop 3/3/3/3%; vs hard only Air Hockey (30%)
+      and Snake (37%) get anywhere at +3. Follow-ups on the todo list: Chop Chop (the head
+      start only slows the timer, rounds end on a bonk), Tank Duel, Snake/Sumo, Ping Pong's
+      steep +1.
+- [x] 2026-11-15 (F344, PR #364): Tank Duel's head start barely helped (easy bot with +3 v
+      normal 7%, n=30): extra armor alone can't close a ~5:1 bonk gap, because an easy aim lands
+      ~1 shot in 12 (normal 1 in 5). The helped player's shells now also reach further toward
+      the other tank (hit radius +0 / 4.7 / 9.3 / 14 at +0..3, never toward their own tank),
+      drawn as a soft ring in their colour the size the shell really bonks at; the bots see
+      and dodge it like a person would. Easy+0..3 v normal (n=80, powers off): 0 / 10 / 19 /
+      51%; vs hard still 10% at +3 (hard dodges well). Bot-vs-bot rows have no assist, so are
+      unchanged. tests/tanks-reach.test.ts.

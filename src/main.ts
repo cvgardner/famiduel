@@ -3,10 +3,14 @@ import { App } from './app/app';
 import { boxProbe, contrastProbe, edgeProbe, readerProbe, smallText } from './engine/draw';
 import { keepPortrait } from './engine/portrait';
 import { popProbe } from './engine/fx';
+import { onAppPause } from './engine/native';
+import { runAdSelfTest } from './app/adselftest';
 
 const root = document.getElementById('app')!;
 const app = new App(root);
 keepPortrait(root, () => app.stage.resize());
+// iOS app: going home / to the app switcher pauses a match, like a hidden tab does.
+onAppPause(() => app.interrupt());
 // Test and debug hooks.
 (window as unknown as { __famiduel: App }).__famiduel = app;
 (window as unknown as { __smallText: Map<string, number> }).__smallText = smallText;
@@ -15,3 +19,5 @@ keepPortrait(root, () => app.stage.resize());
 (window as unknown as { __reader: typeof readerProbe }).__reader = readerProbe;
 (window as unknown as { __pops: typeof popProbe }).__pops = popProbe;
 (window as unknown as { __boxes: typeof boxProbe }).__boxes = boxProbe;
+// Simulator ad self-test (scripts/ios-ad-selftest.sh); off in every normal build.
+if ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_AD_SELFTEST === '1') setTimeout(() => void runAdSelfTest(app), 3000);

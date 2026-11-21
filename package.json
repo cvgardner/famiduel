@@ -16,15 +16,31 @@
     "sim:powers": "vite-node scripts/powers-sim.ts",
     "motion": "vite-node scripts/motion.ts",
     "swipes": "vite-node scripts/pingpong-swipes.ts",
-    "golf": "vite-node scripts/golf.ts"
+    "golf": "vite-node scripts/golf.ts",
+    "ios:sync": "npm run build && npx cap sync ios",
+    "ios:open": "npx cap open ios",
+    "ios:release": "bash scripts/ios-release.sh",
+    "store:art": "vite-node scripts/store-art.ts",
+    "store:shots": "npm run build && vite-node scripts/store-shots.ts",
+    "site:publish": "bash scripts/publish-site.sh"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
     "@playwright/test": "^1.64.1",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^22.20.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vite-node": "^6.0.0",
     "vite-plugin-singlefile": "^2.3.4",
     "vitest": "^5.0.5"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "^8.4.1",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.6.2",
+    "@capgo/native-purchases": "^8.9.16"
   }
 }

@@ -511,6 +511,9 @@ class TankView implements GameInstance {
     }
     for (const s of this.game.shells) {
       const c = players[s.owner].color;
+      // F344: a head start's longer reach shows as a soft ring the size the shell really bonks at.
+      const reach = this.game.reach(s.owner);
+      if (reach > 0) circle(gx, s.x, s.y, RULES.shellR + reach, alpha(c, 0.16), alpha(c, 0.5), 1.5);
       if (s.bouncy) glow(gx, COLORS.gold, 12);
       circle(gx, s.x, s.y, RULES.shellR + 1.5, s.bouncy ? COLORS.gold : c);
       noGlow(gx);
@@ -611,7 +614,7 @@ class TankView implements GameInstance {
     const bonks = `${g.score[p]} bonk${g.score[p] === 1 ? '' : 's'}`;
     if (g.sudden && !g.over) { if (!quiet) text(gx, 'Sudden bonk: next hit wins!', sc.x, sc.y, { size: 13, player: p, color: COLORS.gold }); }
     else if (!g.over && leftT < 20) { if (!quiet) text(gx, `⏱ ${Math.ceil(leftT)} s`, sc.x, sc.y, { size: 13, player: p, color: leftT < 6 ? COLORS.gold : '#ffffff' }); }
-    else text(gx, quiet ? `bot: ${bonks}` : bonks, sc.x, sc.y, { size: 13, player: p, color: COLORS.dim, weight: 700 });
+    else text(gx, quiet ? `${this.ctx.players[p].name}: ${bonks}` : bonks, sc.x, sc.y, { size: 13, player: p, color: COLORS.dim, weight: 700 });
   }
 
   private drawOverlay(gx: G): void {
