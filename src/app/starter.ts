@@ -71,10 +71,11 @@ export const STARTER_DY = 200;
 
 /**
  * F356: the pill sits at STARTER_DY, past the usual digit (COUNT_DY 120). A game that moves
- * its digit out toward the pill (Mini Pool's sits at 190, past the cue ball's spot) gets the
- * pill just past the digit instead, so the solid pill never covers "3 2 1": the digit is at
- * most ~84 units tall (size 110), the pill 44.
+ * its digit out toward the pill (Mini Pool's sits at 190, past the cue ball's spot, with the
+ * player's strip just past it) gets the pill on the middle side of the digit instead, so the
+ * solid pill never covers "3 2 1" or the strip: the digit is at most ~84 units tall (size
+ * 110), the pill 44. In Mini Pool it hides the cue ball for the 3 s of "3 2 1".
  */
 export function starterPillDy(digitDy: number): number {
-  return digitDy > STARTER_DY - 70 ? digitDy + 68 : STARTER_DY;
+  return digitDy > STARTER_DY - 70 ? digitDy - 68 : STARTER_DY;
 }

@@ -37,11 +37,11 @@ describe('F318: the countdown pill fits a long name', () => {
 });
 
 describe('the starter pill clears the countdown digit (F356)', () => {
-  it('stays at its usual spot for the usual digit, and moves past a digit moved out', () => {
+  it('stays at its usual spot for the usual digit, and moves to the middle side of a digit moved out', () => {
     expect(starterPillDy(COUNT_DY)).toBe(STARTER_DY);
     // Mini Pool's digit sits at 190: half a size-110 digit (~42) plus half the pill (22) clear.
-    for (const dy of [150, 190]) expect(starterPillDy(dy) - dy).toBeGreaterThanOrEqual(42 + 22);
-    // And it stays on the screen (pill 44 tall, MID 320, H 640).
-    expect(starterPillDy(190) + 22).toBeLessThan(320 - 16);
+    for (const dy of [150, 190]) expect(dy - starterPillDy(dy)).toBeGreaterThanOrEqual(42 + 22);
+    // And it stays in that person's half, off the middle line (pill 44 tall).
+    for (const dy of [150, 190]) expect(starterPillDy(dy) - 22).toBeGreaterThan(30);
   });
 });
