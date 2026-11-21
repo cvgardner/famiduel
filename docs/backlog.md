@@ -2675,3 +2675,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Bigger text (words up to 1.2x) some pops were born on a puck or ball. They now use
       scaledSize(); each game's pops test runs again at BIG_TEXT (Air Hockey and Mini Pool
       failed there before).
+- [x] 2026-11-21 (F379): Snack Snatch's FRENZY! / "Faster snacks!" banner was bare text drawn
+      under the pops, so it printed through that seat's "🧲 Magnet!", "Miss!" and the catch pops
+      born at the frogs' heads while it showed (1,265 bright-pop frames inside its rows over 15
+      bot matches). It now pops like the game's other words: pops already in its rows fade as it
+      starts and fx.pop moves later ones off it (0 now, tests/snacksnatch-frenzy-pops.test.ts).
+      It shows ~0.9 s instead of 1.6 s and rises a little, as pops do.
+- [x] 2026-11-21 (F380): Snack Snatch's SUDDEN SNACK! sat at the middle as bare text under the
+      pops for the whole sudden snack, so Miss!, power names and the winning gulp's "+3" printed
+      through it. Its two lines now pop once in the FRENZY! rows (gold ink on a gold halo, which
+      reads 3:1 on the grass), fade when the deciding gulp lands, and the timer ring round the
+      pot stays gold for the sudden snack (tests/snacksnatch-sudden-pops.test.ts: 0 readable pops
+      over its lines in 8 bot sudden snacks; 74 before the fade).
+- [x] 2026-11-21 (F381): Tank Duel: a hit's "Oops! Own shot", "Bonked!" and "+1" could land past
+      the arena's edge, printed over that seat's hearts and ammo dots (readable frames outside
+      between bots: Bonked! 36%, Oops! 44%, +1 15%). Their lines (popClear) now keep the whole
+      rise inside the arena: 4% / 2% / 1% left, where no clear line inside exists and fx.pop
+      stacks the word off it (tests/tanks-pops-arena.test.ts). BONK!, POOF! and clink! are born
+      on a tank, often at the edge, so keeping those inside would put them on a tank; left as is.
