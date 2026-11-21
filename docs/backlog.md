@@ -2676,3 +2676,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       bot matches). It now pops like the game's other words: pops already in its rows fade as it
       starts and fx.pop moves later ones off it (0 now, tests/snacksnatch-frenzy-pops.test.ts).
       It shows ~0.9 s instead of 1.6 s and rises a little, as pops do.
+- [x] 2026-11-21 (F380): Snack Snatch's SUDDEN SNACK! sat at the middle as bare text under the
+      pops for the whole sudden snack, so Miss!, power names and the winning gulp's "+3" printed
+      through it. Its two lines now pop once in the FRENZY! rows (gold ink on a gold halo, which
+      reads 3:1 on the grass), fade when the deciding gulp lands, and the timer ring round the
+      pot stays gold for the sudden snack (tests/snacksnatch-sudden-pops.test.ts: 0 readable pops
+      over its lines in 8 bot sudden snacks; 74 before the fade).
