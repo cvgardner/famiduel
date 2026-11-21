@@ -12,7 +12,7 @@ serves both. Ads stay child-directed for v1 (docs/ads.md).
 | Field | Value | Limit |
 |---|---|---|
 | Name | FamiDuel: 2 Player Games | 30 |
-| Subtitle | 1v1 duels with super powers | 30 |
+| Subtitle | Offline 1v1 duels & powers | 30 |
 | Primary category | Games, subcategories Family and Casual | |
 | Secondary category | Entertainment | |
 | Content rights | Does not contain, show or access third-party content | |
@@ -30,16 +30,16 @@ Free, with one in-app purchase: **Remove Ads** (non-consumable, product ID `fami
 
 ### Promotional text (170, can change any time without a review)
 
-Two players, one phone. Lay it flat between you and play Air Hockey, Minigolf, Sumo and 9 more, with super powers to pick. Every game free, nothing to sign up for.
+Two players, one phone. Lay it flat between you and play Air Hockey, Minigolf, Sumo and 10 more, with super powers to pick. Every game free, nothing to sign up for.
 
 ### Description (4000)
 
 Two players. One phone. Super powers.
 
-Settle it right now, across the table. Lay your phone flat between you and your friend, your partner, your roommate or your kid. Each player owns the half nearest them, and every game is played with one finger: tap, drag or flick. No accounts, no second phone, no waiting for anyone online. Pick a game and play.
+Settle it right now, across the table. Lay your phone flat between you and your friend, your partner, your roommate or your kid. Each player owns the half nearest them, and every game is played with one finger: tap, drag or flick. No accounts, no second phone, no waiting for anyone online. It all works offline too, so no Wi-Fi or data is needed: on a plane, on a road trip or anywhere the signal drops. Pick a game and play.
 
-13 GAMES
-Minigolf, Air Hockey, Sumo, Ping Pong, Penalty Shootout, Snack Snatch, Snake Duel, Quick Draw, Tank Duel, Chop Chop, Tug of War, Sea Battle and Rock Paper Scissors.
+14 GAMES
+Minigolf, Air Hockey, Sumo, Ping Pong, Penalty Shootout, Mini Pool, Snack Snatch, Snake Duel, Quick Draw, Tank Duel, Chop Chop, Tug of War, Sea Battle and Rock Paper Scissors.
 
 SUPER POWERS
 Before each match, both players pick one of three powers for that game. Energy fills as you play, and the player who's behind charges faster, so a match is never over early. Powers are shown before they land, so you can see them coming and fight back. New players start on the classic rules; switch super powers on in Settings when you're ready.
@@ -57,11 +57,11 @@ EASY TO PICK UP
 Big buttons, a bigger text setting, light and dark menus, and a pause button that needs a press and hold, so a stray tap never stops the game. Anyone can play in seconds, from little kids to grandparents.
 
 FREE, AND FAIR ABOUT IT
-Every game is free. A short ad can show between matches now and then, never during a game and never in your first session. Ads are family-safe and never personalized, and the app never tracks you. One purchase removes them for good, behind a grown-ups question so kids can't buy it by accident. No accounts and no chat; names and scores stay on your phone.
+Every game is free. A short ad can show between matches now and then, never during a game and never in your first session. Ads are family-safe and never personalized, and the app never tracks you. One purchase removes them for good. No accounts and no chat; names and scores stay on your phone.
 
 ### Keywords (100, comma separated, no spaces after commas)
 
-two,versus,friends,couple,family,kids,party,air hockey,minigolf,sumo,ping pong,penalty,offline,duo
+two,versus,friends,couple,family,kids,party,air hockey,minigolf,sumo,ping pong,penalty,duo,minigames
 
 ### Support URL
 

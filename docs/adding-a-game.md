@@ -12,6 +12,7 @@ tests/<id>.test.ts        vitest: bot-vs-bot finishes, determinism, handicap, ea
 content/games.json        already has an entry for every planned game (name, how-to, handicap text).
 content/powers.json       add "<id>": [3 powers] if the game has powers.
 src/games/registry.ts     import the def and add it to GAMES.
+src/app/cardpic.ts        a still picture of the game for its home card (tests/cardpic.test.ts).
 ```
 
 The `<id>` must match `content/games.json`. Once registered the home screen enables

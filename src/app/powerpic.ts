@@ -22,38 +22,40 @@ const circle = (cx: number, cy: number, r: number, fill: string, kids = '', extr
   `<circle cx="${cx}" cy="${cy}" r="${r}" ${fill.startsWith('var(') ? `style="fill:${fill}"` : `fill="${fill}"`}${extra}>${kids}</circle>`;
 
 // Minigolf: a green with the cup near the top.
-const green = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1f7a4a"/>${circle(32, 9, 4, '#0b2a18')}`;
+export const green = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1f7a4a"/>${circle(32, 9, 4, '#0b2a18')}`;
 // Air hockey: a table with a goal slot at each end.
-const table = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1d3a5c"/><line x1="4" y1="22" x2="60" y2="22" stroke="${LINE}" stroke-width="1"/><rect x="22" y="1" width="20" height="3" rx="1.5" fill="#0a1626"/><rect x="22" y="40" width="20" height="3" rx="1.5" fill="#0a1626"/>`;
+export const table = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1d3a5c"/><line x1="4" y1="22" x2="60" y2="22" stroke="${LINE}" stroke-width="1"/><rect x="22" y="1" width="20" height="3" rx="1.5" fill="#0a1626"/><rect x="22" y="40" width="20" height="3" rx="1.5" fill="#0a1626"/>`;
+// Mini Pool: a table with six pockets.
+export const pool = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#6b3f22"/><rect x="5" y="5" width="54" height="34" rx="2" fill="#1f8f6a"/>${[[6, 6], [58, 6], [6, 38], [58, 38], [32, 5], [32, 39]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#07060a"/>`).join('')}`;
 // Sumo: the ring from above.
-const ring = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#5a3a22"/><circle cx="32" cy="22" r="19" fill="#c9a66b" stroke="#fff" stroke-opacity="0.7" stroke-width="1.5"/>`;
+export const ring = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#5a3a22"/><circle cx="32" cy="22" r="19" fill="#c9a66b" stroke="#fff" stroke-opacity="0.7" stroke-width="1.5"/>`;
 
 const rect = (x: number, y: number, w: number, h: number, fill: string, kids = '') =>
   `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(w, h) / 2}" ${fill.startsWith('var(') ? `style="fill:${fill}"` : `fill="${fill}"`}>${kids}</rect>`;
 
 // Ping Pong: a table with the net across the middle.
-const pong = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1b6b5a"/><rect x="8" y="4" width="48" height="36" fill="none" stroke="#fff" stroke-opacity="0.6" stroke-width="1"/><line x1="4" y1="22" x2="60" y2="22" stroke="#fff" stroke-width="2"/>`;
+export const pong = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1b6b5a"/><rect x="8" y="4" width="48" height="36" fill="none" stroke="#fff" stroke-opacity="0.6" stroke-width="1"/><line x1="4" y1="22" x2="60" y2="22" stroke="#fff" stroke-width="2"/>`;
 // Penalty: grass with a goal at the top.
-const pitch = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2f8f46"/><rect x="14" y="2" width="36" height="9" fill="none" stroke="#fff" stroke-width="1.5"/>`;
+export const pitch = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2f8f46"/><rect x="14" y="2" width="36" height="9" fill="none" stroke="#fff" stroke-width="1.5"/>`;
 // Snack Snatch: a mat with your critter's mouth at the bottom.
-const mat = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#3a2c5c"/>`;
+export const mat = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#3a2c5c"/>`;
 
 // Tanks: a dark arena.
-const arena = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2c3b2e" stroke="#7f8f7a" stroke-width="2"/>`;
+export const arena = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#2c3b2e" stroke="#7f8f7a" stroke-width="2"/>`;
 // Snake: a dark board.
-const board = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#14202c"/>`;
+export const board = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#14202c"/>`;
 // Chop Chop: sky with two trees, theirs on the left, yours on the right.
-const woods = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#9fd3f0"/><rect x="1" y="36" width="62" height="7" rx="3" fill="#5aa04a"/>`;
+export const woods = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#9fd3f0"/><rect x="1" y="36" width="62" height="7" rx="3" fill="#5aa04a"/>`;
 // Quick Draw: sand with the signal in the middle.
-const sand = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#e8b878"/><line x1="4" y1="22" x2="60" y2="22" stroke="#b07a40" stroke-width="1" stroke-dasharray="4 3"/>`;
+export const sand = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#e8b878"/><line x1="4" y1="22" x2="60" y2="22" stroke="#b07a40" stroke-width="1" stroke-dasharray="4 3"/>`;
 // Tug of War: grass with a mud strip, the rope from them (top) to you (bottom), their line and yours.
-const tug = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#3a8a37"/><rect x="4" y="19" width="56" height="6" rx="3" fill="#7a5230"/><line x1="6" y1="11" x2="58" y2="11" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="6" y1="33" x2="58" y2="33" style="stroke:${YOU}" stroke-width="2"/><line x1="32" y1="2" x2="32" y2="42" stroke="#c8a16a" stroke-width="3"/>`;
+export const tug = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#3a8a37"/><rect x="4" y="19" width="56" height="6" rx="3" fill="#7a5230"/><line x1="6" y1="11" x2="58" y2="11" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="6" y1="33" x2="58" y2="33" style="stroke:${YOU}" stroke-width="2"/><line x1="32" y1="2" x2="32" y2="42" stroke="#c8a16a" stroke-width="3"/>`;
 /** The red ribbon on the rope, moving through `ys` at `times`. */
 const ribbon = (ys: number[], times: number[]) => `<rect x="26" y="20" width="12" height="4" rx="2" fill="#e8312b">${anim('y', ys.map((y) => y - 2), times)}</rect>`;
 // Sea Battle: a strip of sea cells.
-const sea = (x0: number, n: number, rows: number) =>
+export const sea = (x0: number, n: number, rows: number) =>
   Array.from({ length: n * rows }, (_, i) => `<rect x="${x0 + (i % n) * 9}" y="${8 + Math.floor(i / n) * 9}" width="8" height="8" rx="1.5" fill="#1d4f7a"/>`).join('');
-const seaBg = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#0f2c48"/>`;
+export const seaBg = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#0f2c48"/>`;
 const line = (x1: number, y1: number, x2: number, y2: number, stroke: string, w: number, kids = '', extra = '') =>
   `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${stroke.startsWith('var(') ? `style="stroke:${stroke}"` : `stroke="${stroke}"`} stroke-width="${w}" stroke-linecap="round"${extra}>${kids}</line>`;
 const tank = (x: number, y: number, fill: string, kids = '') => rect(x - 5, y - 4, 10, 8, fill, kids);
@@ -99,6 +101,25 @@ const PICS: Record<string, Record<string, string>> = {
       circle(32, 8, 6, THEM) +
       circle(32, 36, 6, YOU) +
       [-1, 1].map((d) => circle(32, 28, 3, '#fff', anim('cx', [32, 32, 32 + d * 8, 32 + d * 8], [0, 0.35, 0.85, 1]) + anim('cy', [28, 22, 4, 4], [0, 0.35, 0.85, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.8, 0.85, 1]))).join(''),
+  },
+  minipool: {
+    // A dotted line runs from your cue ball, off the cushion, to your ball, which drops in.
+    longaim:
+      pool +
+      `<polyline points="16,32 40,8 52,18" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 2">${anim('opacity', [0, 0.9, 0.9, 0, 0], [0, 0.15, 0.45, 0.55, 1])}</polyline>` +
+      circle(52, 18, 3.5, YOU, anim('cx', [52, 52, 56, 58, 58], [0, 0.6, 0.75, 0.82, 1]) + anim('cy', [18, 18, 10, 6, 6], [0, 0.6, 0.75, 0.82, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.6, 0.8, 0.85, 1])) +
+      circle(16, 32, 3.5, '#f7f4ea', anim('cx', [16, 16, 40, 48, 48], [0, 0.45, 0.52, 0.6, 1]) + anim('cy', [32, 32, 8, 16, 16], [0, 0.45, 0.52, 0.6, 1])),
+    // The pockets grow and glow gold; your ball rolls in.
+    bigpocket:
+      pool +
+      [[6, 6], [58, 6], [6, 38], [58, 38], [32, 5], [32, 39]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#07060a" stroke="#ffd166" stroke-width="1">${anim('r', [3, 3, 6.5, 6.5, 3], [0, 0.15, 0.35, 0.85, 1])}</circle>`).join('') +
+      circle(32, 26, 3.5, YOU, anim('cx', [32, 32, 52, 52], [0, 0.4, 0.75, 1]) + anim('cy', [26, 26, 35, 35], [0, 0.4, 0.75, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.4, 0.72, 0.78, 1])),
+    // Their ball by the pocket turns to ice; their cue ball bounces off it.
+    freeze:
+      pool +
+      circle(14, 12, 3.5, THEM, anim('fill', [THEM, THEM, '#9fe3ff', '#9fe3ff', THEM], [0, 0.2, 0.25, 0.9, 1]), ' stroke="#fff" stroke-width="0.8"') +
+      circle(40, 30, 3.5, '#f7f4ea', anim('cx', [40, 40, 20, 34, 34], [0, 0.35, 0.6, 0.85, 1]) + anim('cy', [30, 30, 16, 32, 32], [0, 0.35, 0.6, 0.85, 1])) +
+      circle(48, 36, 3.5, YOU),
   },
   pingpong: {
     // Your return flies super fast, leaving a streak.

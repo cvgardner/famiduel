@@ -192,7 +192,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       less) the intro alone stays 1x. Layout playtest: all intros fit; bigtext-intro-*.png.
 
 ## Content
-- [ ] Mini pool (first update).
+- [x] Mini pool (first update): `src/games/minipool/`.
 - [x] More minigolf holes (target 18): 22 holes now (checked 2026-11-07; this line said 10).
 - [x] 2026-11-01: two new Minigolf holes, so a 3-hole match repeats less often (8 → 10 holes,
       56 → 120 different courses). River Bridge (par 3): water across the middle with a
@@ -411,7 +411,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2026-11-07 (F68): Settings > For grown-ups > Grown-ups corner, behind the first parental
       gate (src/app/gate.ts: a times-table question in words, a new one after a wrong answer;
       reusable for sharing and the unlock screen). Shows Guided Access (iPhone/iPad) and App
-      pinning (Android) steps. Nothing leaves the phone; playtest grownups-*.png.
+      pinning (Android) steps. Nothing leaves the phone.
+      2026-11-20 (Chris): the gate is gone and "For grown-ups" became Settings > More (Remove
+      ads, Restore purchase, Lock to FamiDuel), since the launch audience is friends and
+      couples and Games 9+ needs no gate. Apple's purchase sheet still asks for Face ID or a
+      password. gate.ts is in git history if sharing ever needs one; playtest stayin-*.png.
 
 ## Ideas found 2026-10-31 (text size run)
 - [x] 2026-11-01 (research run): rematches take turns starting. Store reviews of the

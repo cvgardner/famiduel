@@ -24,6 +24,26 @@
         "desc": "Your next shot floats through one wall or obstacle."
       }
     ],
+    "minipool": [
+      {
+        "id": "longaim",
+        "name": "Long Aim",
+        "icon": "🔭",
+        "desc": "Your next shot shows its whole path, bounces and all."
+      },
+      {
+        "id": "bigpocket",
+        "name": "Big Pockets",
+        "icon": "🕳️",
+        "desc": "Your next shot: every pocket is much bigger."
+      },
+      {
+        "id": "freeze",
+        "name": "Freeze Ball",
+        "icon": "🧊",
+        "desc": "On the other player's next shot, the ball of theirs nearest a pocket is frozen still."
+      }
+    ],
     "airhockey": [
       {
         "id": "freeze",

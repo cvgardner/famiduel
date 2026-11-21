@@ -17,14 +17,15 @@ the Challenge"); the plan and market research are in the GameDev project's
 - **Monetization:** free with fair ads + one-time $4.99–6.99 remove-ads / unlock-all.
   At most one interstitial between matches, never mid-round or in the first session, never
   to unlock a game. Families-certified ad SDKs, non-personalized for kids, listed in Games 9+
-  (not Apple's Kids category), parental gate. Paid installs only after measuring LTV > CPI.
+  (not Apple's Kids category). No in-app parental gate (removed 20 Nov 2026: the launch
+  audience is friends and couples, and Apple requires one only in the Kids category).
+  Paid installs only after measuring LTV > CPI.
 - **Super powers:** energy fills from play; each player picks 1 of 3 per game before the
   match; telegraphed so they can be countered; the trailing / assisted player charges faster.
   Classic-mode toggle. Powers are never sold. Powers live in `content/powers.json`.
 - **Sharing (later):** highlight clips, rivalry cards, daily minigolf course with a
   friends-first leaderboard (Game Center / Play Games), Family Wrapped each December.
-  NOT "design for being filmed". Sharing sits behind a parental gate; no accounts, no chat,
-  names stay on the device.
+  NOT "design for being filmed". No accounts, no chat, names stay on the device.
 - **Hidden for now (1 Nov 2026):** Checkers, Four in a Row, Tic-Tac-Toe (board/thought games
   families already own). `"hidden": true` in `content/games.json` removes the home card and
   keeps everything else; delete the flag to bring one back, `/?all` shows all. Focus new
@@ -78,8 +79,11 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
   docs/accessibility-labels.md (Larger Text needs a setting that reaches 2x: Chris's call).
 - Settled (don't reopen without new evidence): Sea Battle's seat bias was noise (2000
   mirrored games, 49-50%); Minigolf's easy bot was made weaker for small kids (+0.8 over par).
+- Mini Pool (Chris, 20 Nov 2026: "build the mini pool"): one rack, 3 balls each in the seat
+  colour plus the 8. Sink yours then the 8; potting yours shoots again, a scratch passes the
+  turn, the 8 early or with the cue loses. Ball physics in `src/games/minipool/physics.ts`.
 - Not built yet: highlight clips, rivalry cards, daily course sharing,
-  Family Wrapped, mini pool.
+  Family Wrapped.
 
 ## iOS store build (15 Nov 2026, Chris: "get the app in front of users, not iterate more")
 
@@ -101,7 +105,7 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
 - **Ads (Chris, 16 Nov 2026: v1 ships with them):** Google AdMob interstitials, child-directed,
   non-personalized, G-rated, no ATT prompt; only when a result screen is left, never in the
   first session, at most one per 2 matches and 3 min (`src/core/adpolicy.ts`). Remove Ads is a
-  $4.99 non-consumable `famiduel.removeads` behind the parental gate. Browsers get no ads
+  $4.99 non-consumable `famiduel.removeads` in Settings > More (no in-app gate). Browsers get no ads
   (`?fakeads` for tests). Details: docs/ads.md. Privacy answers and policy already reflect it.
 
 ## Release flow (Mac)
