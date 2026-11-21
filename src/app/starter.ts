@@ -77,5 +77,15 @@ export const STARTER_DY = 200;
  * 110), the pill 44. In Mini Pool it hides the cue ball for the 3 s of "3 2 1".
  */
 export function starterPillDy(digitDy: number): number {
-  return digitDy > STARTER_DY - 70 ? digitDy - 68 : STARTER_DY;
+  return digitDy > STARTER_DY - 70 ? digitDy - (DIGIT_REACH + 22 + PILL_GAP) : STARTER_DY;
 }
+
+/**
+ * F400: how far the countdown digit reaches toward the middle line from its centre, in
+ * world units, at its biggest (size 110). F356 guessed ~42; Chromium measures a bold "3"
+ * 49 above its middle baseline, plus half its size/6 stroke (9.2), so Mini Pool's digit
+ * touched the pill's ring on both sides.
+ */
+export const DIGIT_REACH = 59;
+/** Space between the digit's reach and the pill's ring. */
+export const PILL_GAP = 4;

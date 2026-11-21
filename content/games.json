@@ -24,7 +24,7 @@
     { "id": "penalty", "gesture": "kick", "name": "Penalty Shootout", "icon": "⚽", "kind": "Aim · turns", "free": false, "color": "#2ecc71",
       "blurb": "Five kicks each, then sudden death.", "howTo": "Shooter: swipe at the goal. Keeper: tap a dive button; dive too soon and the shooter can switch.",
       "handicap": "Bigger goal and keeper, longer clock" },
-    { "id": "minipool", "pauseRing": true, "gesture": "pull", "name": "Mini Pool", "icon": "🎱", "kind": "Aim · turns", "free": false, "color": "#1f8f6a",
+    { "id": "minipool", "pauseRing": true, "gesture": "pull", "demoAt": 0.75, "name": "Mini Pool", "icon": "🎱", "kind": "Aim · turns", "free": false, "color": "#1f8f6a",
       "blurb": "Sink your 3 balls, then the 8.", "howTo": "Pull back and let go to shoot. Sink one of yours to go again. Sink the 8 last: too soon loses.",
       "handicap": "Longer aim, bigger pockets, misses forgiven" },
     { "id": "quickdraw", "gesture": "tap", "name": "Quick Draw", "icon": "🤠", "kind": "Reaction", "free": false, "color": "#f6c945",
