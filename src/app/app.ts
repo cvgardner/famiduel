@@ -363,6 +363,7 @@ export class App {
   private showStayIn(): void {
     const modal = $('#modal');
     modal.classList.remove('hidden', 'help');
+    modal.classList.add('one');
     modal.innerHTML = `<div class="sheet stayin">
       <h2>Keep a little one in the game</h2>
       <p class="gu-lead">Your phone can lock itself to FamiDuel, so a small kid can't swipe out to other apps while you play.</p>
@@ -498,6 +499,8 @@ export class App {
     const other = this.store.data.profiles[p === 0 ? 1 : 0];
     const modal = $('#modal');
     modal.classList.remove('hidden', 'help');
+    // F359: one person's sheet, so Text size > Largest puts it at 2x like home and settings.
+    modal.classList.add('one');
     modal.innerHTML = `<div class="sheet">
       <h2>Player ${p + 1}</h2>
       <label class="field">Name<input id="pName" maxlength="12" value="${esc(seatName(this.store.data.profiles, p))}"/></label>
@@ -853,7 +856,7 @@ export class App {
     if (!this.runner || this.runner.paused) return;
     this.runner.paused = true;
     const modal = $('#modal');
-    modal.classList.remove('hidden');
+    modal.classList.remove('hidden', 'one');
     modal.classList.remove('help');
     modal.innerHTML = `<div class="sheet"><h2>Paused</h2>${idle ? '<p class="why">Nobody was playing, so we paused.</p>' : ''}
       <button id="resumeBtn" class="btn primary" aria-label="Resume"><span class="btn-ico" aria-hidden="true">▶️</span>Resume</button>
@@ -898,6 +901,7 @@ export class App {
       const charge = pl.power && e ? { value: e.value, active: e.active } : null;
       return howToHalfHtml({ p, name: pl.name, color: pl.color, bot: !!pl.bot, solo: players.some((q) => !!q.bot), lefty: !!pl.lefty, power: pl.power, charge }, meta);
     };
+    modal.classList.remove('one');
     modal.classList.add('help');
     modal.innerHTML = `<div class="pause-help">${seat(1)}<div class="intro-mid"><button id="helpBack" class="link">← Menu</button><button id="helpResume" class="btn primary" aria-label="Resume"><span class="btn-ico" aria-hidden="true">▶️</span>Resume</button></div>${seat(0)}</div>`;
     $('#helpBack', modal).addEventListener('click', () => {
