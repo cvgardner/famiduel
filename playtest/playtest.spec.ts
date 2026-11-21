@@ -1383,9 +1383,14 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
       // on its own, with no "Time's up!" pop rising over the chop count and that banner.
       const end = await page.evaluate(() => {
         const r = (window as unknown as { __famiduel: { runner: { game: { game: { choppers: { outReason: string | null }[] } }; fx: { floaters: { str: string }[] } } } }).__famiduel.runner;
-        return { why: r.game.game.choppers[0].outReason, pops: r.fx.floaters.map((f) => f.str) };
+        const ch = r.game.game.choppers;
+        return { why: ch[0].outReason, botOut: ch[1].outReason, pops: r.fx.floaters.map((f) => f.str) };
       });
-      expect(end.why, 'chopchop: the idle person ran out of time').toBe('time');
+      // The easy bot can bonk itself a few chops in, before the idle person's time runs out
+      // (the bot level and seed depend on the matches played before); then the person won the
+      // round and was never out. Otherwise the person must be out of time, not bonked.
+      if (end.botOut === 'bonk' && end.why === null) expect(end.pops, 'chopchop: the bot went out first').not.toContain("Time's up!");
+      else expect(end.why, 'chopchop: the idle person ran out of time').toBe('time');
       expect(end.pops, 'chopchop: no "Time\'s up!" pop over the round banner').not.toContain("Time's up!");
     }
     await page.screenshot({ path: path.join(OUT, `solo-round-${id}.png`) });
