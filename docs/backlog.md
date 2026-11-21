@@ -2652,11 +2652,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Freeze 59%, Stop Shot 46%, Plug a Pocket 53% (avg vs the other powers), none 46%; no outliers,
       so no power changed. Long Aim's row equals none's: the bot doesn't read the guide (it picks its
       own line), so the power only helps people.
-- [x] F375 (2026-11-21, PR TBD) Tug of War round stars: an empty star was a dark blot like the grass
+- [x] F375 (2026-11-21, PR #399) Tug of War round stars: an empty star was a dark blot like the grass
       tufts beside it, so a kid couldn't count rounds won. Every star now has a white outline
       (3:1 on both grasses) and is a touch bigger; a won star is gold (3:1 against an empty one).
       tests/tugofwar-stars.test.ts.
-- [x] F376 (2026-11-21, PR TBD) Tug of War: the losing seat's round card ("Into the mud!") sat over
+- [x] F376 (2026-11-21, PR #399) Tug of War: the losing seat's round card ("Into the mud!") sat over
       that seat's own round stars, so the player who just lost couldn't see the tally. The loser's
       card is now narrower and centred, ending left of the stars (cardBox()); test in
       tests/tugofwar-stars.test.ts.
