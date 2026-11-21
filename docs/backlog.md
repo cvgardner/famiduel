@@ -2496,6 +2496,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-21 (F353, PR #381): Tug of War's head start (stronger pull, nearer line) grew in
+      a straight line to 1.5, but a tap-rate race is a cliff (easy 4.3, normal 5.7, hard 7.2 taps
+      a second): easy+0..3 v normal 0/0/45/100%, v hard 0% at every star. Pull per star is now
+      a table, 1 / 1.3 / 1.45 / 1.75 (RULES.gainByStar, gainFor()): v normal 0/21/99/100%, v hard
+      0/0/0/60% (n=80). tests/sim-ladder.test.ts, tests/tugofwar.test.ts.
 - [x] 2026-11-15 (F351, PR #368): Chop Chop's head start after F343 was still all in the third
       star (easy+0..3 v normal 7/10/11/55%, n=100). Measured each knob: the forgiven branches and
       the slower timer barely move it; the count's head start decides the race to 50, and the
