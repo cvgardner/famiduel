@@ -2652,7 +2652,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Freeze 59%, Stop Shot 46%, Plug a Pocket 53% (avg vs the other powers), none 46%; no outliers,
       so no power changed. Long Aim's row equals none's: the bot doesn't read the guide (it picks its
       own line), so the power only helps people.
-- [x] F378 (2026-11-21, PR TBD) Mini Pool pops ("Go again!", "2 to go!", power names) printed over
+- [x] F378 (2026-11-21, PR #400) Mini Pool pops ("Go again!", "2 to go!", power names) printed over
       balls on the table, hiding a ball the player was lining up on (71 pops born on a ball over 24
       bot racks). Each pop now starts on the nearest line where its words, as they rise, stay off
       every ball (clearOfBalls()): 0. tests/minipool-pops.test.ts.
