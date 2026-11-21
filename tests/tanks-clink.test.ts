@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -13,7 +14,9 @@ type Floater = { str: string; x: number; y: number; life: number; size: number; 
 // F192: two shells meeting popped "clink!" for each seat at the clash ± 13, and shells often
 // meet right at a muzzle, so the word printed on that tank (bot match, 320x568).
 describe('Tank Duel: "clink!" stays off the tanks', () => {
-  it('in bot matches, both seats', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches, both seats${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     let frames = 0;
     let covered = 0;
     const seats = new Set<number>();
@@ -30,10 +33,10 @@ describe('Tank Duel: "clink!" stays off the tanks', () => {
         for (const f of pops) {
           seats.add(f.player);
           frames++;
-          const w = ([...f.str].length * f.size * 0.55) / 2;
+          const w = ([...f.str].length * scaledSize(f.size) * 0.55) / 2;
           const hit = g.tanks.some((tk) => {
             const nx = Math.max(f.x - w, Math.min(f.x + w, tk.x));
-            const ny = Math.max(f.y - f.size * 0.45, Math.min(f.y + f.size * 0.45, tk.y));
+            const ny = Math.max(f.y - scaledSize(f.size) * 0.45, Math.min(f.y + scaledSize(f.size) * 0.45, tk.y));
             return Math.hypot(tk.x - nx, tk.y - ny) < RULES.tankR + 8;
           });
           if (hit) covered++;

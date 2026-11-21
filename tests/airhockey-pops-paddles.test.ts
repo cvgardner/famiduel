@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import powers from '../content/powers.json';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo, PowerDef } from '../src/core/types';
@@ -20,7 +21,9 @@ type Floater = { str: string; x: number; y: number; life: number; size: number; 
 // (fx.fadeNear()), mostly the conceding player's GOAL! as their paddle races to the served puck:
 // GOAL! 0.8%, the rest 0-0.4%.
 describe('Air Hockey: centre pops start clear of the paddles', () => {
-  it('in bot matches at every level with powers, both seats', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches at every level with powers, both seats${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     const list = (powers.games as Record<string, PowerDef[]>).airhockey;
     const total: Record<string, number> = {};
     const covered: Record<string, number> = {};
@@ -42,11 +45,11 @@ describe('Air Hockey: centre pops start clear of the paddles', () => {
             seats.add(f.player);
             const key = f.str.startsWith('GOAL') ? 'GOAL!' : f.str;
             total[key] = (total[key] ?? 0) + 1;
-            const w = ([...f.str].length * f.size * 0.55) / 2;
+            const w = ([...f.str].length * scaledSize(f.size) * 0.55) / 2;
             const onPaddle = ([0, 1] as const).some((p) => {
               const pd = g.paddles[p];
               const nx = Math.max(f.x - w, Math.min(f.x + w, pd.x));
-              const ny = Math.max(f.y - f.size * 0.45, Math.min(f.y + f.size * 0.45, pd.y));
+              const ny = Math.max(f.y - scaledSize(f.size) * 0.45, Math.min(f.y + scaledSize(f.size) * 0.45, pd.y));
               return Math.hypot(pd.x - nx, pd.y - ny) < g.paddleRadius(p);
             });
             if (onPaddle) covered[key] = (covered[key] ?? 0) + 1;

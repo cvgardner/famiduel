@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import powers from '../content/powers.json';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo, PowerDef } from '../src/core/types';
@@ -20,9 +21,12 @@ const CLOCK_HALF_H = 17;
 // through the seconds-left clock beside the pot ("🧲 Magnet" printed on the "18" in a bot match).
 // Readable frames on a clock before: Double 1410/1851, Sticky 1372/1922, Magnet 1512/1970 (73-77%).
 // The few left (about 1%) are a power used while a crowd of "+N" pops fills every line out to
-// the frogs, so fx.pop stacks the name back into the field.
+// the frogs, so fx.pop stacks the name back into the field. F398: there the pops in its way now
+// fade and the name keeps its line: 0 at 1x and Bigger text.
 describe('Snack Snatch: power names stay off the seconds-left clock', () => {
-  it('in bot matches at every level with powers, both seats', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches at every level with powers, both seats${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     const total: Record<string, number> = {};
     const covered: Record<string, number> = {};
     const list = (powers.games as Record<string, PowerDef[]>).snacksnatch;
@@ -41,8 +45,8 @@ describe('Snack Snatch: power names stay off the seconds-left clock', () => {
           for (const f of (fx as unknown as { floaters: Floater[] }).floaters) {
             if (f.life < 0.45 || !names.has(f.str)) continue;
             total[f.str] = (total[f.str] ?? 0) + 1;
-            const w = ([...f.str].length * f.size * 0.55) / 2;
-            const h = f.size * 0.45;
+            const w = ([...f.str].length * scaledSize(f.size) * 0.55) / 2;
+            const h = scaledSize(f.size) * 0.45;
             const hit = clockSpots().some(([, lx, ly]) => Math.abs(f.x - lx) < w + CLOCK_HALF_W && Math.abs(f.y - ly) < h + CLOCK_HALF_H);
             if (hit) covered[f.str] = (covered[f.str] ?? 0) + 1;
           }

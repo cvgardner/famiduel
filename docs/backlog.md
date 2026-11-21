@@ -2724,3 +2724,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       past the edge, over the hearts (Bonked! 5.2% of readable frames). Now the still-bright pops
       in its way fade (fx.fadeInWay()) and it keeps its line: 0 of those words cross the edge at
       1x or Bigger text (tests/tanks-pops-arena.test.ts runs at both).
+- [x] 2026-11-21 (F398): more pops tests now also run at Bigger text with words sized as text()
+      draws them: Air Hockey paddles, Penalty kick-off words, Snack Snatch FRENZY!, SUDDEN SNACK!
+      and power names on the clock, Tank Duel bonk pair and clink, Sea Battle shot words, Sumo rope
+      pop. All passed except Snack Snatch's clock check ("🧲 Magnet" on the seconds-left clock in
+      2.5% of readable frames, bound 2%): when a crowd of "+N" pops left no free line out to the
+      frogs, fx.pop stacked the name back onto the clock. Now the pops in its way fade and it keeps
+      its line (fx.fadeInWay(), as Tank Duel's hits do): 0 at 1x and Bigger text.

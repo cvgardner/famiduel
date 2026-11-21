@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -13,7 +14,9 @@ type Floater = { str: string; x: number; y: number; life: number; size: number; 
 // F181: "Saved by the rope!" popped just inside the rope, and the rope bounces the wrestler
 // back in, often straight into the words (seen in the head-start playtest, bottom seat).
 describe('Sumo: the rope-save words stay off the wrestlers', () => {
-  it('in bot matches with a head start (more rope saves), both seats', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches with a head start (more rope saves), both seats${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     let frames = 0;
     let covered = 0;
     const seats = new Set<number>();
@@ -32,11 +35,11 @@ describe('Sumo: the rope-save words stay off the wrestlers', () => {
           if (f.life < 0.45) continue;
           seats.add(f.player);
           frames++;
-          const w = Math.min(344, [...f.str].length * f.size * 0.55) / 2;
+          const w = Math.min(344, [...f.str].length * scaledSize(f.size) * 0.55) / 2;
           const hit = ([0, 1] as const).some((q) => {
             const wr = g.wrestlers[q];
             const nx = Math.max(f.x - w, Math.min(f.x + w, wr.x));
-            const ny = Math.max(f.y - f.size * 0.45, Math.min(f.y + f.size * 0.45, wr.y));
+            const ny = Math.max(f.y - scaledSize(f.size) * 0.45, Math.min(f.y + scaledSize(f.size) * 0.45, wr.y));
             return Math.hypot(wr.x - nx, wr.y - ny) < g.radius(q);
           });
           if (hit) covered++;

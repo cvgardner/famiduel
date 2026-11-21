@@ -465,7 +465,13 @@ class SnackSnatchView implements GameInstance {
       if (second && !this.ctx.fx.popFits(second, W / 2, y + down * line, size, p)) continue;
       return y;
     }
-    return MID + down * POWER_POP_DY;
+    // F398: no free line out to the frogs (a crowd of "+N" pops). fx.pop would stack the name back
+    // toward the middle and onto the clock (Bigger text: "🧲 Magnet" on it 2.5% of its frames), so
+    // the still-bright pops in its way fade and it keeps the first line, as Tank Duel's hits do.
+    const y = MID + down * POWER_POP_DY;
+    this.ctx.fx.fadeInWay(first, W / 2, y, size, p);
+    if (second) this.ctx.fx.fadeInWay(second, W / 2, y + down * line, size, p);
+    return y;
   }
 
   private clearOfClock(str: string, x: number, y: number, size: number, p: PlayerIndex): number {
