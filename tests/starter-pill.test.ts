@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { PILL_EDGE, PILL_W, STARTER_DY, starterLines, starterPill, starterPillDy } from '../src/app/starter';
+import { DIGIT_REACH, PILL_EDGE, PILL_W, STARTER_DY, starterLines, starterPill, starterPillDy } from '../src/app/starter';
 import { COUNT_DY } from '../src/app/demo';
 import { BIG_TEXT, MIN_TEXT, setTextScale, type G } from '../src/engine/draw';
 import { W } from '../src/engine/world';
@@ -39,9 +39,19 @@ describe('F318: the countdown pill fits a long name', () => {
 describe('the starter pill clears the countdown digit (F356)', () => {
   it('stays at its usual spot for the usual digit, and moves to the middle side of a digit moved out', () => {
     expect(starterPillDy(COUNT_DY)).toBe(STARTER_DY);
-    // Mini Pool's digit sits at 190: half a size-110 digit (~42) plus half the pill (22) clear.
-    for (const dy of [150, 190]) expect(dy - starterPillDy(dy)).toBeGreaterThanOrEqual(42 + 22);
+    // Mini Pool's digit sits at 190: a size-110 digit's reach (F400: measured, see below)
+    // plus half the pill (22) clear.
+    for (const dy of [150, 190]) expect(dy - starterPillDy(dy)).toBeGreaterThan(DIGIT_REACH + 22);
     // And it stays in that person's half, off the middle line (pill 44 tall).
     for (const dy of [150, 190]) expect(starterPillDy(dy) - 22).toBeGreaterThan(30);
+  });
+});
+
+describe('F400: the digit reach the pill clears is what a canvas draws', () => {
+  it('a size-110 bold "3" (ascent above its middle + half its stroke) fits in DIGIT_REACH', () => {
+    // Chromium's measureText for '800 110px system-ui' with textBaseline middle: "1" 47.9,
+    // "2" 48.9, "3" 48.9 above the middle; text() strokes at size / 6, half of it outside.
+    const ascent = 48.9;
+    expect(ascent + 110 / 6 / 2).toBeLessThanOrEqual(DIGIT_REACH);
   });
 });

@@ -2753,3 +2753,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2.5% of readable frames, bound 2%): when a crowd of "+N" pops left no free line out to the
       frogs, fx.pop stacked the name back onto the clock. Now the pops in its way fade and it keeps
       its line (fx.fadeInWay(), as Tank Duel's hits do): 0 at 1x and Bigger text.
+- [x] 2026-11-21 (F400): Mini Pool's "3 2 1" digit (at 190 from the middle) touched the "You go
+      first!" / "X goes first" pill's ring on both sides at every match start: F356 guessed half a
+      size-110 digit at ~42 units, but a bold "3" reaches 49 above its middle plus half its stroke
+      (9). starterPillDy() now clears DIGIT_REACH 59 + 4: a clear gap at 1x and Bigger text.
