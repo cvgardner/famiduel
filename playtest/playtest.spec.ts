@@ -1225,7 +1225,9 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
 });
 
 // Solo games whose next point waits for the person's own move: a person plays them (F125).
-const WAITS_FOR_PERSON = ['seabattle', 'rps', 'minipool'];
+const WAITS_FOR_PERSON = ['seabattle', 'rps'];
+/** Solo games that wait on the person's own move before a point can come (they may go first). */
+const SOLO_PERSON_MOVES = [...WAITS_FOR_PERSON, 'minipool'];
 
 test('play the bot: one tap on home makes every game a solo match, with its own tally', async ({ page }) => {
   const errors: string[] = [];
@@ -1333,7 +1335,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     // F125: Sea Battle and RPS wait for the person's move, so a person plays a few turns
     // in real time instead (the probe still on), up to the bot's answer and the next banner.
     let personMoves = -1;
-    if (WAITS_FOR_PERSON.includes(id)) {
+    if (SOLO_PERSON_MOVES.includes(id)) {
       await page.evaluate(() => {
         const r = (window as unknown as { __reader: { on: boolean; turned: Set<string> } }).__reader;
         r.turned.clear();
