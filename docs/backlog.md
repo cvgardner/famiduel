@@ -2037,6 +2037,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       200% text" playtest checks it a screenful at a time (the sticky Play button may float over
       tiles, F308). The split screens (intro, result, pause how-to) stay at Bigger: under half a
       phone each.
+- [x] 2026-11-21 (F361, PR #TBD): Tank Duel: a bonk's (and a mine's) word for each seat no longer
+      lands on one line: each seat's "BONK!" was moved off the tanks on its own, and 680 of 4888
+      readable pair frames (14%) printed the two words on each other. The top seat's word now stays
+      a line below the bottom seat's, so they rise apart: 0. tests/tanks-bonk-pair.test.ts.
+- [x] 2026-11-21 (F348, measured, no PR): Tank Duel kid+3 v easy is still 0% after F344's reach
+      ring (matches last 45 s vs the plain kid's 26 s); the reach rings never covered a shell path or
+      FIRE ring in 320 px Bigger-text frames. F21 (a mashing-kid head start) stays Chris's call.
 - [x] 2026-11-14 (F248, PR #281): Chop Chop: pops reaching either seat's round-end card
     ("You win the round!", "They got to 50!") fade as the card comes up (the winning chop's
     "50!" started right on it, late "+2"s rose into it): 1418 readable pops over 9317 card
