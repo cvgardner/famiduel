@@ -2496,6 +2496,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-21 (F358, PR #384): Mini Pool's head start (longer guide, pockets +5) barely
+      helped: easy+0..3 v normal 8/15/23/23%, v hard 5/3/0/10% (pockets +11 only reached 33%:
+      the easy player misses outright). Each star now also forgives one plain miss a rack
+      (never the break or a scratch; "Another go!" pop, ↺N strip badge; RULES.assistRetries,
+      retriesFor()): v normal 7/17/27/50%, v hard 7/20/27/27% (n=30). Card line "Longer aim,
+      bigger pockets, misses forgiven". tests/minipool.test.ts, tests/minipool-levels.test.ts.
 - [x] 2026-11-21 (F357, PR #383): Mini Pool's rack safety cap (40 shots, fewer balls left wins,
       level goes to who didn't break) ended 30% of easy-v-easy racks, mostly both on the 8. Cap
       now 80: 3% at the cap, ~13 s more a match (107 -> 120 s), normal v easy unchanged (83%).
