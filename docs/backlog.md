@@ -2698,6 +2698,22 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rise inside the arena: 4% / 2% / 1% left, where no clear line inside exists and fx.pop
       stacks the word off it (tests/tanks-pops-arena.test.ts). BONK!, POOF! and clink! are born
       on a tank, often at the edge, so keeping those inside would put them on a tank; left as is.
+- [x] 2026-11-21 (F386): Tug of War's pops (PULL!, "The lines are closing in!", power names)
+      were all centred on the rope at the card line, so the red ribbon often sat in the words
+      (7% of readable pop frames in bot matches). popFor() now takes the nearest line in that
+      seat's half whose words and bright rise stay 30 units off the ribbon (clearOfRibbon()):
+      0.5-0.6% left, where the ribbon slides into a pop already up.
+      tests/tugofwar-pops-ribbon.test.ts (usual and Bigger text).
+- [x] 2026-11-21 (F385): with Bigger text, Snake (clearOfHeads, crashPopX), Tank Duel
+      (clearOfTanks) and Snack Snatch (besideNeck, clearOfClock, power names) kept pops off
+      the pieces by their unscaled size. They now use scaledSize(); Snack Snatch power names
+      pop a size smaller under Bigger text when a line would be wider than the lane between
+      the frogs (still drawn at 24 or more). Each game's pops test runs again at BIG_TEXT;
+      before: Snake CRASH! on a trail 8, "🧲 Magnet" on a frog 10%, a pop on the seconds
+      clock 87%, Tank "🫧 Shield!" on a tank 6%; after: all within the 1x bounds. Chop Chop
+      has no such room helper (F208 covers its names). Not yet at BIG_TEXT: tanks-pops-arena
+      (after #404's wider fx stacking, Bigger-text Bonked! crosses the arena edge in 5.2% of
+      readable frames vs the 5% bound; keeping it inside put it on a tank instead): F387.
 - [x] 2026-11-21 (F388): Sea Battle: a shell dropped from 160 units above its cell, so a shot
       at the top rows started over the header pill (crossing "… is aiming…") and a shot on the
       small sea started over the big board. It now falls from at most its own sea's top edge
