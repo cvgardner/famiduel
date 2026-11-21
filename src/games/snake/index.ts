@@ -45,6 +45,9 @@ const POP_HALF = 13;
  * crash at the far wall used to pop on the wall and float up over the other seat's turn
  * buttons. Pops rise toward the crasher's far side (up for seat 0, down for seat 1).
  */
+/** Seconds between a seat's "assist!" pops (F352). */
+export const ASSIST_POP_GAP = 3;
+
 export function crashPopY(y: number, p: PlayerIndex): number {
   const top = OY + POP_HALF + (p === 0 ? POP_RISE : 0);
   const bottom = OY + AH - POP_HALF - (p === 1 ? POP_RISE : 0);
@@ -60,6 +63,8 @@ class SnakeView implements GameInstance {
   private bombRings: { x: number; y: number; t: number; c: string }[] = [];
   private t = 0;
   private flash = 0;
+  /** When each seat's last "assist!" pop showed (view clock), so repeats within ASSIST_POP_GAP stay quiet. */
+  private assistPopT: [number, number] = [-Infinity, -Infinity];
   private ended = false;
 
   constructor(private readonly ctx: GameContext) {
@@ -183,7 +188,13 @@ class SnakeView implements GameInstance {
     for (const e of g.events) {
       if (e.type === 'turn') {
         sfx.play(e.auto ? 'pop' : 'click');
-        if (e.auto) fx.pop('assist!', cx(g.snakes[e.p].x), cy(g.snakes[e.p].y) + (e.p === 0 ? -14 : 14), COLORS.gold, e.p, 13);
+        // F352: at three stars the auto-turn also dodges trails, so in easy+3 bot matches 27% of
+        // "assist!" pops came within 3 s of the last (up to 5 a round) and stacked on the head.
+        // The sound still plays on every auto-turn; the word shows at most once per gap.
+        if (e.auto && this.t - this.assistPopT[e.p] >= ASSIST_POP_GAP) {
+          this.assistPopT[e.p] = this.t;
+          fx.pop('assist!', cx(g.snakes[e.p].x), cy(g.snakes[e.p].y) + (e.p === 0 ? -14 : 14), COLORS.gold, e.p, 13);
+        }
       } else if (e.type === 'move') {
         const s = g.snakes[e.p];
         if (s.boost > 0) fx.burst(cx(s.x), cy(s.y), COLORS.gold, 2, 60, 2);
