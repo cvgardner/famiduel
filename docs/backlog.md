@@ -2603,7 +2603,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       only near either line, where it came too late to matter (F362). sim:powers n=40: heave 63,
       butter 61, yank 54 (was 47), anchor 60, grip 55% avg, none 9%. First tries: a 2.5-5 s
       no-slide anchor read 18-38%, a 2.5 s tie-off 84%, a 2-3 s grip 68-82%.
-- [x] 2026-11-21 (F368): Snack Snatch's head start barely helped a mashing kid (kid+3 v easy
+- [x] 2026-11-21 (F368, PR #395): Snack Snatch's head start barely helped a mashing kid (kid+3 v easy
       18%, n=100; Sumo 57%, Snake 47%): random snaps rarely meet a passing snack. A longer neck
       helped (reach 175 read 42%) but would put the head over the clock digits on the centre
       line, which must cover no snack a critter can gulp, so a full head start now bites wider to
