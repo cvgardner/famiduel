@@ -2757,3 +2757,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       text: pops never print over the other seat's (all 12 shown action games), Snack Snatch
       "Miss!" off the frog's head, Penalty's early-dive pop off the shooter lines. All pass; no
       game change needed.
+- [x] 2026-11-21 (F404): Mini Pool physics checked beyond the break (a rival pool game's
+      reviews: "physics a bit wacky"): 300 seeded 85-100% power shots from random layouts, with
+      each power's table mods (Big Pockets, Freeze, Plug, Stop Shot): no ball ever past a cushion
+      or off the cloth, none left inside another, the table never gains speed between frames,
+      and every shot stops before the roll limit (tests/minipool-physics-sane.test.ts; a planted
+      bouncy hit with one substep fails it). No physics change needed.
