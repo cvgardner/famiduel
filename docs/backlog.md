@@ -2652,12 +2652,36 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Freeze 59%, Stop Shot 46%, Plug a Pocket 53% (avg vs the other powers), none 46%; no outliers,
       so no power changed. Long Aim's row equals none's: the bot doesn't read the guide (it picks its
       own line), so the power only helps people.
+- [x] F378 (2026-11-21, PR #400) Mini Pool pops ("Go again!", "2 to go!", power names) printed over
+      balls on the table, hiding a ball the player was lining up on (71 pops born on a ball over 24
+      bot racks). Each pop now starts on the nearest line where its words, as they rise, stay off
+      every ball (clearOfBalls()): 0. tests/minipool-pops.test.ts.
+- [x] F375 (2026-11-21, PR #399) Tug of War round stars: an empty star was a dark blot like the grass
+      tufts beside it, so a kid couldn't count rounds won. Every star now has a white outline
+      (3:1 on both grasses) and is a touch bigger; a won star is gold (3:1 against an empty one).
+      tests/tugofwar-stars.test.ts.
+- [x] F376 (2026-11-21, PR #399) Tug of War: the losing seat's round card ("Into the mud!") sat over
+      that seat's own round stars, so the player who just lost couldn't see the tally. The loser's
+      card is now narrower and centred, ending left of the stars (cardBox()); test in
+      tests/tugofwar-stars.test.ts.
 - [x] 2026-11-21 (F373): Tug of War and Mini Pool joined the playtest "how to play" PICTURED
       list, so each half's picked-power picture and its movement are checked there like every
       other shown game (both already passed).
 - [x] 2026-11-21 (F374): Tug of War's how-to said its goal twice (blurb "Pull the ribbon past
       your line", then "Get the red ribbon past your line!"); it now reads "Tap fast anywhere on
       your side to pull the red ribbon your way."
+- [x] 2026-11-21 (F379): Snack Snatch's FRENZY! / "Faster snacks!" banner was bare text drawn
+      under the pops, so it printed through that seat's "🧲 Magnet!", "Miss!" and the catch pops
+      born at the frogs' heads while it showed (1,265 bright-pop frames inside its rows over 15
+      bot matches). It now pops like the game's other words: pops already in its rows fade as it
+      starts and fx.pop moves later ones off it (0 now, tests/snacksnatch-frenzy-pops.test.ts).
+      It shows ~0.9 s instead of 1.6 s and rises a little, as pops do.
+- [x] 2026-11-21 (F380): Snack Snatch's SUDDEN SNACK! sat at the middle as bare text under the
+      pops for the whole sudden snack, so Miss!, power names and the winning gulp's "+3" printed
+      through it. Its two lines now pop once in the FRENZY! rows (gold ink on a gold halo, which
+      reads 3:1 on the grass), fade when the deciding gulp lands, and the timer ring round the
+      pot stays gold for the sudden snack (tests/snacksnatch-sudden-pops.test.ts: 0 readable pops
+      over its lines in 8 bot sudden snacks; 74 before the fade).
 - [x] 2026-11-21 (F381): Tank Duel: a hit's "Oops! Own shot", "Bonked!" and "+1" could land past
       the arena's edge, printed over that seat's hearts and ammo dots (readable frames outside
       between bots: Bonked! 36%, Oops! 44%, +1 15%). Their lines (popClear) now keep the whole
