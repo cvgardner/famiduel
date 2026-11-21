@@ -2632,3 +2632,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (tests/contrast.test.ts) and pops born together never overlap (e2e/app.spec.ts). All passed;
       the contrast check only needed Mini Pool's pop()/both() helpers written with fx.pop in a braced
       body so the source check can read their callers' colours (no visible change).
+- [x] 2026-11-21 (F366): Mini Pool's powers are judged like every other game's:
+      `npm run pool -- --powers-table [--n 80] [--level normal]` plays each pool power against every
+      other (and none) and flags outliers with the same 35-65% rule (judge() and OUTLIER moved to
+      scripts/simlib.ts). poolPairing() now plays each seed both ways round, as `npm run sim` does:
+      with one seed per match, normal v normal with no powers read 57.5% for the first-named seat and
+      every cell plus its mirror summed to ~107%. n=80, normal: Long Aim 46%, Big Pockets 49%,
+      Freeze 59%, Stop Shot 46%, Plug a Pocket 53% (avg vs the other powers), none 46%; no outliers,
+      so no power changed. Long Aim's row equals none's: the bot doesn't read the guide (it picks its
+      own line), so the power only helps people.
