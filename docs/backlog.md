@@ -2724,3 +2724,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       past the edge, over the hearts (Bonked! 5.2% of readable frames). Now the still-bright pops
       in its way fade (fx.fadeInWay()) and it keeps its line: 0 of those words cross the edge at
       1x or Bigger text (tests/tanks-pops-arena.test.ts runs at both).
+- [x] 2026-11-21 (F395+F396+F397): the pops tests that still ran at 1x only now also run at
+      Bigger text, sizing words as text() draws them (scaledSize()): Sumo (power names, HOLD and
+      power buttons, BONK!/KA-BOOM!, round-end banner), Chop Chop (bonk, milestone, banner, tree),
+      Ping Pong power names, Sea Battle sunk and airstrike pops. All passed except Ping Pong, whose
+      clearOfBall() kept power names off the ball by their unscaled size: at Bigger text 1.3% of
+      readable frames sat on the ball (bound 1%); it now uses scaledSize(): 0.7% (1x unchanged, 0.4%).

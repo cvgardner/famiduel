@@ -103,18 +103,20 @@ class PingPongView implements GameInstance {
     const path: { x: number; y: number }[] = [];
     // F284: look 0.45 s ahead, a power name's whole bright time (bots now use Slow-mo more).
     for (let k = 0; k <= 9; k++) path.push({ x: b.x + b.vx * f * 0.05 * k, y: b.y + b.vy * f * 0.05 * k });
-    const half = ([...str].length * size * 0.55) / 2 + RULES.ballR + 4;
+    // F397: sized as text() draws it (Bigger text draws a 24 at 28).
+    const s = scaledSize(size);
+    const half = ([...str].length * s * 0.55) / 2 + RULES.ballR + 4;
     const rise = p === 0 ? -36 : 36;
     const hits = (y: number) => {
       if (!this.ctx.fx.popFits(str, W / 2, y, size, p)) return true;
-      const top = Math.min(y, y + rise) - size * 0.45 - RULES.ballR - 4;
-      const bot = Math.max(y, y + rise) + size * 0.45 + RULES.ballR + 4;
+      const top = Math.min(y, y + rise) - s * 0.45 - RULES.ballR - 4;
+      const bot = Math.max(y, y + rise) + s * 0.45 + RULES.ballR + 4;
       return path.some((q) => q.x > W / 2 - half && q.x < W / 2 + half && q.y > top && q.y < bot);
     };
     // Stay in the half the line started in, on screen.
     const lower = home > MID;
-    const lo = lower ? MID + size / 2 + (rise < 0 ? 36 : 0) : size;
-    const hi = lower ? H - size : MID - size / 2 - (rise > 0 ? 36 : 0);
+    const lo = lower ? MID + s / 2 + (rise < 0 ? 36 : 0) : s;
+    const hi = lower ? H - s : MID - s / 2 - (rise > 0 ? 36 : 0);
     if (!hits(home)) return home;
     for (let d = 2; d <= H / 2; d += 2) {
       for (const y of [home - d, home + d]) if (y >= lo && y <= hi && !hits(y)) return y;
