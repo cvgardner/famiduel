@@ -4,7 +4,7 @@
 // the bottom player's frame and turned 180° for the top player.
 import { liftOn, popColor, POP_OUTLINE } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, controlsAlpha, facing, glow, line, noGlow, rrect, seatEdges, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, facing, glow, line, noGlow, rrect, scaledSize, seatEdges, shade, silentSeat, text, type G } from '../../engine/draw';
 import { pulse } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
@@ -48,6 +48,10 @@ export const L = {
 const MUD_H = 26;
 /** The final yank: how long the winner's flourish plays at the end of a round. */
 const YANK_T = 0.7;
+/** F386: how far (up and down) a pop's words keep off the ribbon's centre: its bow, yank ring and some travel. */
+const RIBBON_CLEAR = 30;
+/** F386: how far a pop rises while it is still bright (fx: 40/s for POP_FRESH s, a little more for long words). */
+const POP_BRIGHT_RISE = 30;
 /** The round card waits until the yank and the tumble into the mud have played. */
 const CARD_AT = 0.8;
 /**
@@ -157,10 +161,37 @@ class TugOfWarView implements GameInstance {
     }
   }
 
-  /** A pop in seat p's half, on the card line (a second pop this step goes a line up). */
+  /**
+   * A pop in seat p's half, on the card line (a second pop this step goes a line up).
+   * F386: every pop is centred on the rope, and "The lines are closing in!" printed across the
+   * red ribbon players watch. It now takes the nearest line whose words, over their bright rise,
+   * stay RIBBON_CLEAR off the ribbon, in that seat's half and on a line fx.pop won't move.
+   */
   private popFor(p: PlayerIndex, str: string, color: string, size: number): void {
-    const s = toScreen(p, W / 2, L.cardY + 30 - 28 * this.pops[p]++);
+    const home = L.cardY + 30 - 28 * this.pops[p]++;
+    const y = this.clearOfRibbon(str, size, home, p);
+    const s = toScreen(p, W / 2, y);
     this.ctx.fx.pop(str, s.x, s.y, color, p, size);
+  }
+
+  /** F386: the local line nearest `home` where seat p's centred pop stays off the ribbon (home if none). */
+  clearOfRibbon(str: string, size: number, home: number, p: PlayerIndex): number {
+    const shown = scaledSize(size);
+    const ry = p === 0 ? this.ribbon() : H - this.ribbon();
+    const free = (y: number) => {
+      // The pop rises POP_BRIGHT_RISE toward the middle (up, in the seat's own view) while bright.
+      const top = y - POP_BRIGHT_RISE - shown * 0.45;
+      const bot = y + shown * 0.45;
+      if (top < MID + 4 || bot > L.padY - L.padR - 8) return false;
+      // The words are centred on the rope, so they always share the ribbon's x (half >= RIBBON_HALF_W).
+      if (top < ry + RIBBON_CLEAR && ry - RIBBON_CLEAR < bot) return false;
+      const sc = toScreen(p, W / 2, y);
+      return this.ctx.fx.popFits(str, sc.x, sc.y, size, p);
+    };
+    for (let d = 0; d <= 160; d += 4) {
+      for (const y of d ? [home - d, home + d] : [home]) if (free(y)) return y;
+    }
+    return home;
   }
 
   private onRound(r: RoundResult): void {
