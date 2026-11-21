@@ -1230,6 +1230,8 @@ const WAITS_FOR_PERSON = ['seabattle', 'rps'];
 const SOLO_PERSON_MOVES = [...WAITS_FOR_PERSON, 'minipool'];
 
 test('play the bot: one tap on home makes every game a solo match, with its own tally', async ({ page }) => {
+  // Every shown game, three of them (Sea Battle, RPS, Mini Pool) played in real time by a person.
+  test.setTimeout(240_000);
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
   await boot(page, errors);
