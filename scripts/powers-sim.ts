@@ -5,27 +5,10 @@
 // power that loses to "none" is one the bot can't use. Options: `--n 20`,
 // `--level normal`, `--game sumo`.
 import type { BotLevel, PowerDef } from '../src/core/types';
-import { pairing, powersOf, SPECS } from './simlib';
+import { judge, OUTLIER, pairing, powersOf, SPECS } from './simlib';
 
-/** A row power is flagged when its average share against the other POWERS is outside this band. */
-export const OUTLIER = [0.35, 0.65] as const;
-
-/**
- * F332: the outlier list judges each power on its average against the other powers only.
- * The "avg" column also counts the match against no power, so in a game where any power
- * crushes none (Chop Chop: ~90%) every power read 66-67% and was flagged although each
- * head-to-head pair sat in 33-63%. Losing to none is a separate flag: the bot can't use it.
- * `vsPowers` = the row power's shares against each other power, `vsNone` = against none.
- */
-export function judge(game: string, power: string, vsPowers: number[], vsNone: number | undefined): string[] {
-  const out: string[] = [];
-  if (vsPowers.length) {
-    const avg = vsPowers.reduce((s, x) => s + x, 0) / vsPowers.length;
-    if (avg < OUTLIER[0] || avg > OUTLIER[1]) out.push(`${game}/${power}: ${Math.round(avg * 100)}% vs the other powers`);
-  }
-  if (vsNone !== undefined && vsNone < OUTLIER[0]) out.push(`${game}/${power}: loses to no power (${Math.round(vsNone * 100)}%)`);
-  return out;
-}
+// OUTLIER and judge() live in simlib.ts so scripts/pool.ts (Mini Pool's table) shares them.
+export { judge, OUTLIER };
 
 function main() {
   const args = process.argv.slice(2);

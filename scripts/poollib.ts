@@ -10,8 +10,8 @@ import type { BotLevel, PlayerIndex, PlayerInfo } from '../src/core/types';
 import { MiniPool, MiniPoolBot, type RackEnd } from '../src/games/minipool/logic';
 
 const DT = 1 / 60;
-type PowerDef = { id: string; name: string; icon: string; desc: string };
-const POOL = (powers.games as Record<string, PowerDef[]>).minipool ?? [];
+export type PowerDef = { id: string; name: string; icon: string; desc: string };
+export const POOL = (powers.games as Record<string, PowerDef[]>).minipool ?? [];
 
 export interface PoolRow {
   /** Share of finished matches won by the first-named seat (level a). */
@@ -26,21 +26,28 @@ function info(level: BotLevel, assist: number, power: PowerDef | null): PlayerIn
   return { name: level, color: '#3fa9ff', assist, power, bot: level } as PlayerInfo;
 }
 
-/** n matches of level a (with head start `assist`) against level b, seats swapped every other one. */
-export function poolPairing(a: BotLevel, b: BotLevel, n: number, assist = 0, powersOn = false, seed0 = 1): PoolRow {
+/**
+ * n matches of level a (with head start `assist`) against level b, seats swapped every other one.
+ * `picks` (F366) fixes a's and b's power (null = none) instead of a random pool power each.
+ */
+export function poolPairing(a: BotLevel, b: BotLevel, n: number, assist = 0, powersOn = false, seed0 = 1, picks?: [PowerDef | null, PowerDef | null]): PoolRow {
   let won = 0;
   let done = 0;
   let shots = 0;
   let seconds = 0;
   const ends: Record<RackEnd, number> = { eight: 0, early8: 0, scratch8: 0, cap: 0 };
   for (let i = 0; i < n; i++) {
-    const rng = makeRng(seed0 + i * 7919);
+    // F366: each seed is played both ways round (as in simlib's pairing()), so a seed that
+    // favours one seat favours each side once. One seed per match let the seeds' luck pick a
+    // side: normal v normal with no powers read 57.5% for the first-named seat at n=80, and
+    // every powers-table cell and its mirror summed to ~107%.
+    const rng = makeRng(seed0 + (i >> 1) * 7919);
     const aSeat: PlayerIndex = i % 2 === 0 ? 0 : 1;
     const pick = () => (powersOn && POOL.length ? POOL[Math.floor(rng.next() * POOL.length)] : null);
-    const pa = info(a, assist, pick());
-    const pb = info(b, 0, pick());
+    const pa = info(a, assist, picks ? picks[0] : pick());
+    const pb = info(b, 0, picks ? picks[1] : pick());
     const players: [PlayerInfo, PlayerInfo] = aSeat === 0 ? [pa, pb] : [pb, pa];
-    const g = new MiniPool(players, powersOn, rng, (i >> 1) % 2 === 0 ? 0 : 1);
+    const g = new MiniPool(players, powersOn, rng, (i >> 2) % 2 === 0 ? 0 : 1);
     const bots = [new MiniPoolBot(0, players[0].bot!, rng), new MiniPoolBot(1, players[1].bot!, rng)];
     let shot = 0;
     while (!g.finished && g.t < 900) {
