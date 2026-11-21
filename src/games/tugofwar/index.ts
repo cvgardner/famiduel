@@ -18,6 +18,11 @@ const MUD = '#7a5230';
 /** The colours most of the play area is painted in (tests read pops against them). */
 export const SURFACES: readonly string[] = [GRASS_NEAR, GRASS_FAR, MUD];
 /** A seat colour lifted until a small pop reads behind its outline on the grass and mud. */
+/**
+ * F375: round stars. An empty star was a dark blot that read like the grass tufts beside
+ * it, so every star now has a light outline (3:1 on both grasses) and a won star is gold.
+ */
+export const STAR = { outline: '#ffffff', empty: 'rgba(0,0,0,0.3)', won: COLORS.gold, line: 2 } as const;
 export function seatPop(color: string): string {
   return SURFACES.reduce((c, s) => liftOn(c, POP_OUTLINE, s), popColor(color));
 }
@@ -50,6 +55,13 @@ const CARD_AT = 0.8;
  * ribbon has gone past it), the loser's further back, clear of their puller lying in the mud.
  */
 export const CARD_Y = { won: MID + 72, lost: MID + 176 };
+/** Round card box (local x) for each card: the loser's sits level with that seat's round
+ *  stars, so it stops short of them (F376), kept centred; the winner's spans the field. */
+export function cardBox(lost: boolean): { x: number; w: number } {
+  if (!lost) return { x: 28, w: W - 56 };
+  const right = L.starX - 11 - STAR.line - 6;
+  return { x: W - right, w: 2 * right - W };
+}
 
 /** Local point in player p's frame to a screen point. */
 const toScreen = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
@@ -365,7 +377,7 @@ class TugOfWarView implements GameInstance {
     const c = this.ctx.players[p].color;
     this.drawPuller(gx, p, c);
     this.drawPad(gx, p, c);
-    for (let i = 0; i < RULES.winRounds; i++) star(gx, L.starX, L.starY + i * 26, 10, i < g.score[p] ? COLORS.gold : 'rgba(0,0,0,0.3)');
+    for (let i = 0; i < RULES.winRounds; i++) star(gx, L.starX, L.starY + i * 26, 11, i < g.score[p] ? STAR.won : STAR.empty);
     if (silentSeat(this.ctx.players, p)) return;
     if (g.phase === 'ready') {
       text(gx, `Round ${g.round}`, W / 2, L.cardY - 14, { size: 18, color: '#ffffff', stroke: 'rgba(0,0,0,0.45)' });
@@ -394,11 +406,13 @@ class TugOfWarView implements GameInstance {
       color = '#a02a1f';
       sub = bot ? 'Bot wins the round' : 'They win the round';
     }
-    const y = r.winner !== null && r.winner !== p ? CARD_Y.lost : CARD_Y.won;
+    const lost = r.winner !== null && r.winner !== p;
+    const y = lost ? CARD_Y.lost : CARD_Y.won;
+    const box = cardBox(lost);
     const a = Math.min(1, (this.game.phaseT - CARD_AT) / 0.15);
     const a0 = gx.globalAlpha;
     gx.globalAlpha = a0 * a;
-    rrect(gx, 28, y - 30, W - 56, sub ? 64 : 48, 16, 'rgba(255,250,236,0.95)', alpha(this.ctx.players[p].color, 0.9), 3);
+    rrect(gx, box.x, y - 30, box.w, sub ? 64 : 48, 16, 'rgba(255,250,236,0.95)', alpha(this.ctx.players[p].color, 0.9), 3);
     text(gx, title, W / 2, y - 8, { size: 22, color });
     if (sub) text(gx, sub, W / 2, y + 18, { size: 14, color: '#4a3412' });
     gx.globalAlpha = a0;
@@ -486,8 +500,8 @@ function star(gx: G, x: number, y: number, r: number, fill: string): void {
   gx.closePath();
   gx.fillStyle = fill;
   gx.fill();
-  gx.strokeStyle = 'rgba(0,0,0,0.35)';
-  gx.lineWidth = 1.5;
+  gx.strokeStyle = STAR.outline;
+  gx.lineWidth = STAR.line;
   gx.stroke();
 }
 
