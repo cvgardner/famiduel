@@ -127,6 +127,9 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
    the badge, and needs that width back, so the room shrinks as text grows. */
 .player-chip[data-p="0"] { padding-right: max(8px, calc(16px * (2.2 - var(--ts)))); }
 .player-chip[data-p="1"] { padding-left: max(8px, calc(16px * (2.2 - var(--ts)))); }
+/* The outer side gives 4px back at large text: "Player 2" at 28px was 2px short of its line at 320. */
+.player-chip[data-p="0"] { padding-left: clamp(6px, calc(10px - 16px * (var(--ts) - 1.5)), 10px); }
+.player-chip[data-p="1"] { padding-right: clamp(6px, calc(10px - 16px * (var(--ts) - 1.5)), 10px); }
 .player-chip small { color: var(--dim); font-size: calc(12px * var(--ts)); font-weight: 700; }
 .player-chip small:not(.botlbl):not(.edit) { color: #e0a800; }
 :root:not([data-theme="light"]) .player-chip small:not(.botlbl):not(.edit) { color: var(--gold); }
