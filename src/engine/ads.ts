@@ -49,7 +49,8 @@ export type Money = { ads: AdBackend; purchases: PurchaseBackend; fake: boolean 
 
 /** The store build's backends, the `?fakeads` stand-ins, or null in a plain browser. */
 export function makeMoney(search = typeof location !== 'undefined' ? location.search : ''): Money | null {
-  if (new URLSearchParams(search).has('fakeads')) return { ads: new FakeAds(), purchases: new FakePurchases(), fake: true };
+  const q = new URLSearchParams(search);
+  if (q.has('fakeads')) return { ads: new FakeAds(), purchases: new FakePurchases(q.has('fakeowned'), q.has('fakestore')), fake: true };
   if (!isNativeApp()) return null;
   return { ads: new AdMobAds(), purchases: new StorePurchases(), fake: false };
 }
@@ -171,8 +172,17 @@ export class FakeAds implements AdBackend {
   }
 }
 
+/**
+ * A stand-in store. `?fakeowned`: this Apple ID already bought Remove ads (a reinstall or a
+ * new phone), so Restore finds it. `?fakestore`: the store answers at launch (StoreKit is the
+ * truth: owned removes ads with no tap, not owned brings them back after a refund); without
+ * it the store is unreachable at launch and the saved answer stands.
+ */
 export class FakePurchases implements PurchaseBackend {
-  private has = false;
+  constructor(
+    private has = false,
+    private answers = false,
+  ) {}
   async price(): Promise<string | null> {
     return '$4.99';
   }
@@ -184,6 +194,6 @@ export class FakePurchases implements PurchaseBackend {
     return this.has;
   }
   async owned(): Promise<boolean | null> {
-    return null;
+    return this.answers ? this.has : null;
   }
 }

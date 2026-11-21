@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -15,7 +16,9 @@ type Floater = { str: string; x: number; y: number; life: number; size: number; 
 // F180: a bonk ends the round and its "Bonked!" card comes up at once; the BONK! pop over the
 // chopper's head rose into the card's top edge (seen for the top seat in a bot match).
 describe('Chop Chop: BONK! stays clear of the round card', () => {
-  it('for both seats, for the whole time the pop shows', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`for both seats, for the whole time the pop shows${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     const clashes: string[] = [];
     const seats = new Set<number>();
     for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
@@ -32,9 +35,9 @@ describe('Chop Chop: BONK! stays clear of the round card', () => {
           // Back to the seat's own frame (the top seat is turned).
           const x = f.player === 0 ? f.x : W - f.x;
           const y = f.player === 0 ? f.y : H - f.y;
-          const half = ([...f.str].length * f.size * 0.55) / 2;
+          const half = ([...f.str].length * scaledSize(f.size) * 0.55) / 2;
           const inX = x - half < W / 2 + 130 && W / 2 - 130 < x + half;
-          const inY = y - f.size * 0.45 < CARD_Y + 24 && CARD_Y - 24 < y + f.size * 0.45;
+          const inY = y - scaledSize(f.size) * 0.45 < CARD_Y + 24 && CARD_Y - 24 < y + scaledSize(f.size) * 0.45;
           if (inX && inY) clashes.push(`seed ${seed} step ${i} seat ${f.player}: BONK! at y ${y.toFixed(0)} on the card`);
           expect(x - half, 'on screen').toBeGreaterThanOrEqual(0);
           expect(x + half, 'on screen').toBeLessThanOrEqual(W);

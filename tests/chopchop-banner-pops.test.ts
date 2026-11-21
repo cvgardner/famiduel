@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -14,7 +15,9 @@ type Floater = { str: string; y: number; life: number; max: number; size: number
 // round-end card ("You win the round!" / "They got to 50!") and late "+2"s rose into it.
 // Pops reaching either card now fade as the cards appear.
 describe('Chop Chop: no readable pop over the round-end card', () => {
-  it('in bot matches at every level, with and without powers', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches at every level, with and without powers${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     let frames = 0;
     let over = 0;
     const bands = bannerBands();
@@ -38,7 +41,7 @@ describe('Chop Chop: no readable pop over the round-end card', () => {
           frames++;
           for (const f of (fx as unknown as { floaters: Floater[] }).floaters) {
             const readable = Math.min(1, (f.life / f.max) * 1.6) >= 0.5;
-            const half = f.size * 0.45;
+            const half = scaledSize(f.size) * 0.45;
             if (readable && bands.some(([y0, y1]) => f.y + half > y0 && f.y - half < y1)) over++;
           }
         }

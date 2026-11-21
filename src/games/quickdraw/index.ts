@@ -3,7 +3,7 @@
 import { STEP } from '../../engine/stage';
 import { liftOn, popColor, POP_OUTLINE } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, fitSize, glow, line, noGlow, rrect, silentSeat, shade, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, fitSize, glow, line, noGlow, rrect, scaledSize, silentSeat, shade, text, type G } from '../../engine/draw';
 import { pulse } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
@@ -34,6 +34,18 @@ const L = {
  * rising into a fake-out card's words). A pop rises 36 units, ending at his belt.
  */
 export const POP_Y = L.cowboyY + 30;
+/** The round stars' left edge (they sit at W / 2 + 116, radius 10) and the gap a pop keeps from it. */
+const STARS_LEFT = W / 2 + 106;
+const STARS_GAP = 4;
+/**
+ * F394: a pop's centre x on its seat's pop lines, which run across the round stars' rows. Centred
+ * unless its words (as text() draws them, so up to 1.2x with Bigger text) would reach the stars;
+ * then slid left just enough ("⚡ they used Head Start" at Bigger text ran 5 units into them).
+ */
+export function popX(str: string, size: number): number {
+  const half = ([...str].length * scaledSize(size) * 0.55) / 2;
+  return Math.min(W / 2, STARS_LEFT - STARS_GAP - half);
+}
 
 /**
  * F312: the box every signal card fills (a fake-out card at signalY ± 34 from x 24, DRAW! at
@@ -181,7 +193,7 @@ class QuickDrawView implements GameInstance {
         fx.burst(s.x, s.y, '#7fd3ff', 10, 140, 3);
       } else if (e.type === 'forgiven') {
         sfx.play('pop');
-        const s = toScreen(e.p, W / 2, this.popY(e.p));
+        const s = toScreen(e.p, popX('Phew! Forgiven 🎯', 18), this.popY(e.p));
         fx.pop('Phew! Forgiven 🎯', s.x, s.y, COLORS.gold, e.p, 18);
         this.fizzle[e.p] = 0.5;
       } else if (e.type === 'power') {
@@ -196,11 +208,13 @@ class QuickDrawView implements GameInstance {
           fx.burst(o.x, o.y, '#c8a06a', 12, 120, 3);
         }
         const pw = players[e.p].power!;
-        const s = toScreen(e.p, W / 2, this.popY(e.p));
+        const mine = `${pw.icon} ${pw.name}!`;
+        const theirs = `${pw.icon} they used ${pw.name}`;
+        const s = toScreen(e.p, popX(mine, 22), this.popY(e.p));
         fx.flash('#ffd54a', 0.1);
-        const o = toScreen(other(e.p), W / 2, this.popY(other(e.p)));
-        fx.pop(`${pw.icon} they used ${pw.name}`, o.x, o.y, seatPop(players[e.p].color), other(e.p), 15);
-        fx.pop(`${pw.icon} ${pw.name}!`, s.x, s.y, COLORS.gold, e.p, 22);
+        const o = toScreen(other(e.p), popX(theirs, 15), this.popY(other(e.p)));
+        fx.pop(theirs, o.x, o.y, seatPop(players[e.p].color), other(e.p), 15);
+        fx.pop(mine, s.x, s.y, COLORS.gold, e.p, 22);
       } else if (e.type === 'round') this.onRound(e.result);
       else if (e.type === 'win' && !this.ended) {
         this.ended = true;

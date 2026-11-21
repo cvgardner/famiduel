@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -13,7 +14,9 @@ type Floater = { str: string; x: number; y: number; life: number; size: number; 
 // F177: a power's name popped at a fixed spot by the near rope, so a wrestler standing there
 // (often the one who had just grown) covered the word ("Grow!" under the top wrestler).
 describe('Sumo: a power\'s name clears both wrestlers', () => {
-  it('for both seats, over several bot matches, for the whole time the pop shows', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`for both seats, over several bot matches, for the whole time the pop shows${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     const clashes: string[] = [];
     const seats = new Set<number>();
     let checked = 0;
@@ -36,11 +39,11 @@ describe('Sumo: a power\'s name clears both wrestlers', () => {
           const born = !seen.has(f);
           seen.add(f);
           let hit = false;
-          const w = Math.min(344, [...f.str].length * f.size * 0.55) / 2;
+          const w = Math.min(344, [...f.str].length * scaledSize(f.size) * 0.55) / 2;
           for (const q of [0, 1] as const) {
             const wr = g.wrestlers[q];
             const nx = Math.max(f.x - w, Math.min(f.x + w, wr.x));
-            const ny = Math.max(f.y - f.size * 0.45, Math.min(f.y + f.size * 0.45, wr.y));
+            const ny = Math.max(f.y - scaledSize(f.size) * 0.45, Math.min(f.y + scaledSize(f.size) * 0.45, wr.y));
             const gap = Math.hypot(wr.x - nx, wr.y - ny) - g.radius(q);
             if (gap < 0) hit = true;
             if (gap < 0 && born) clashes.push(`seed ${seed} step ${i} seat ${f.player}: pop born ${gap.toFixed(1)} into wrestler ${q}`);
