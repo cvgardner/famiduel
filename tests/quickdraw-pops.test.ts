@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel, PlayerInfo } from '../src/core/types';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { Fx } from '../src/engine/fx';
 import type { Input } from '../src/engine/input';
 import type { Sfx } from '../src/engine/sfx';
@@ -24,16 +25,18 @@ const BTN = { x: W / 2, y: H - 58, r: 47 }; // SQUIRT! button
 const hits = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
 
 describe('Quick Draw: power and "Forgiven" pops stay off the button, the signal and the score', () => {
-  it('in both seats, over bot matches with every power', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in both seats, over bot matches with every power${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     const covered: Record<string, number> = { signal: 0, button: 0, stars: 0, score: 0, badges: 0 };
     const examples: string[] = [];
     const kinds = new Set<string>();
     let checked = 0;
-    const ids = ['fakeout', 'slowtime', 'double'];
+    const ids = ['fakeout', 'slowtime', 'double', 'headstart', 'fly'];
     for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
       for (const level of ['easy', 'normal'] as BotLevel[]) {
-        const a = ids[seed % 3];
-        const b = ids[(seed + 1) % 3];
+        const a = ids[seed % 5];
+        const b = ids[(seed + 2) % 5];
         const players: [PlayerInfo, PlayerInfo] = [player({ bot: level, power: power('quickdraw', a) }), player({ bot: level, power: power('quickdraw', b) })];
         const fx = new Fx();
         const view = GAMES.quickdraw.create({ seed, rng: makeRng(seed), players, powersOn: true, sfx: { play() {} } as unknown as Sfx, fx, end() {} }) as unknown as { game: QuickDraw; update(dt: number, i: Input): void };
@@ -48,8 +51,9 @@ describe('Quick Draw: power and "Forgiven" pops stay off the button, the signal 
             // The seat's own upright view: the top seat's world is turned 180°.
             const x = f.player === 0 ? f.x : W - f.x;
             const y = f.player === 0 ? f.y : H - f.y;
-            const w = ([...f.str].length * f.size * 0.55) / 2;
-            const box: Box = { x0: x - w, y0: y - f.size * 0.45, x1: x + w, y1: y + f.size * 0.45 };
+            const size = scaledSize(f.size);
+            const w = ([...f.str].length * size * 0.55) / 2;
+            const box: Box = { x0: x - w, y0: y - size * 0.45, x1: x + w, y1: y + size * 0.45 };
             const near = Math.hypot(BTN.x - Math.max(box.x0, Math.min(box.x1, BTN.x)), BTN.y - Math.max(box.y0, Math.min(box.y1, BTN.y)));
             const on: [string, boolean][] = [['signal', hits(box, SIGNAL)], ['button', near < BTN.r], ['stars', hits(box, STARS)], ['score', hits(box, SCORE)], ['badges', hits(box, BADGES)]];
             for (const [k, hit] of on) {
