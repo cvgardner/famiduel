@@ -2585,3 +2585,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       only near either line, where it came too late to matter (F362). sim:powers n=40: heave 63,
       butter 61, yank 54 (was 47), anchor 60, grip 55% avg, none 9%. First tries: a 2.5-5 s
       no-slide anchor read 18-38%, a 2.5 s tie-off 84%, a 2-3 s grip 68-82%.
+- [x] 2026-11-21 (F363, PR #TBD): Tug of War head start for a mashing kid: tap-war reviews say little
+      kids lose every round to a parent's drumming, and `npm run sim` had kid+3 v easy at 0% (a gain
+      only multiplies the little grip a slow, uneven tapper has). Now a head start also adds a little
+      grip while you keep tapping (RULES.assistGrip, 0.2 at three stars): kid+3 v easy 54% (n=160),
+      kid alone still 0%, the easy bot's ladder unchanged. tests/sim-ladder.test.ts.
