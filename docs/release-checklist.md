@@ -121,7 +121,8 @@ npm run store:shots               # writes docs/app-store/screenshots/
 ```
 
 Look through them, then upload `iphone-6.9/` to the 6.9" slot and `iphone-6.3/` to the
-6.3" slot on the version page (App Store Connect scales them for smaller phones).
+6.3" slot on the version page (App Store Connect scales them for smaller phones). Order and
+captions: docs/app-store/screenshots.json (listing.md, "Screenshots").
 
 ## 6. Upload a build
 

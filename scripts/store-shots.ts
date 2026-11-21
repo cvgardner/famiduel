@@ -1,10 +1,14 @@
 // App Store screenshots, taken from the real web build in a headless phone browser.
 //
 //   npm run store:shots            (builds first; needs `npx playwright install chromium` once)
+//   npm run store:shots -- --plain (bare app screens as JPEGs, no captions)
 //
-// Writes JPEGs (App Store Connect refuses PNGs with an alpha channel) to
-// docs/app-store/screenshots/<size>/, one folder per display size App Store Connect asks
-// for. Sizes checked against Apple's "Screenshot specifications" page, Nov 2026:
+// Order and captions come from docs/app-store/screenshots.json. Each screen is framed with
+// its caption (scripts/storeframe.ts) and written as an RGB PNG (App Store Connect refuses
+// PNGs with an alpha channel) to docs/app-store/screenshots/<size>/, one folder per display
+// size App Store Connect asks for: upload each folder as it is, in file order. The bare
+// screens go to docs/app-store/screenshots/raw/<size>/ for a look. Both are wiped first, so
+// no old shot is left to upload by mistake. Sizes checked against Apple's "Screenshot specifications" page, Nov 2026:
 //   - iPhone 6.9" (Dynamic Island, large)  1320 x 2868  (optional, but shown on the
 //     biggest phones; it also covers the "Face ID large" slot)
 //   - iPhone 6.3" (Dynamic Island, medium) 1206 x 2622  (required)
@@ -12,12 +16,17 @@
 // Pass --ipad to also make 13" iPad shots (2064 x 2752) if you switch to universal.
 import { chromium, type Page } from '@playwright/test';
 import { spawn } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { frame, type Caption } from './storeframe';
 
 const ROOT = join(import.meta.dirname, '..');
 const OUT = join(ROOT, 'docs/app-store/screenshots');
 const PORT = 4179;
+const PLAIN = process.argv.includes('--plain');
+const PLAN = JSON.parse(readFileSync(join(ROOT, 'docs/app-store/screenshots.json'), 'utf8')) as {
+  shots: ({ scene: string } & Caption)[];
+};
 const URL = `http://localhost:${PORT}/?seed=STORE`;
 
 type Size = { name: string; w: number; h: number; scale: number };
@@ -69,29 +78,37 @@ async function midMatch(page: Page, id: string, seconds: number): Promise<void> 
   await page.waitForTimeout(400); // a few drawn frames
 }
 
-const SCENES: { file: string; take: (p: Page) => Promise<void> }[] = [
-  { file: '01-home', take: (p) => fresh(p) },
-  { file: '02-airhockey', take: (p) => midMatch(p, 'airhockey', 6) },
-  {
-    file: '03-powers',
-    take: async (p) => {
-      await fresh(p);
-      await p.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.openGame('sumo'));
-      await p.locator('#intro').waitFor();
-      await p.waitForTimeout(400);
-    },
+/** A game's intro with this week's three super powers to pick from. */
+async function powerPick(page: Page, id: string): Promise<void> {
+  await fresh(page);
+  await page.evaluate((gameId) => (window as unknown as { __famiduel: Hook }).__famiduel.openGame(gameId), id);
+  await page.locator('#intro').waitFor();
+  await page.waitForTimeout(400);
+}
+
+/**
+ * Every scene screenshots.json can name. Seconds into a match are picked so both bots are
+ * mid-rally or mid-shot; if a frame lands on a pause or a round card, change the number.
+ */
+const SCENES: Record<string, (p: Page) => Promise<void>> = {
+  home: (p) => fresh(p),
+  powers: (p) => powerPick(p, 'airhockey'),
+  pingpong: (p) => midMatch(p, 'pingpong', 6),
+  snake: (p) => midMatch(p, 'snake', 5),
+  minipool: (p) => midMatch(p, 'minipool', 8),
+  tugofwar: (p) => midMatch(p, 'tugofwar', 4),
+  minigolf: (p) => midMatch(p, 'minigolf', 8),
+  airhockey: (p) => midMatch(p, 'airhockey', 6),
+  penalty: (p) => midMatch(p, 'penalty', 7),
+  sumo: (p) => midMatch(p, 'sumo', 5),
+  tournament: async (p) => {
+    await fresh(p);
+    await p.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showTournament());
+    await p.waitForTimeout(400);
   },
-  { file: '04-minigolf', take: (p) => midMatch(p, 'minigolf', 8) },
-  { file: '05-penalty', take: (p) => midMatch(p, 'penalty', 7) },
-  {
-    file: '06-tournament',
-    take: async (p) => {
-      await fresh(p);
-      await p.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.showTournament());
-      await p.waitForTimeout(400);
-    },
-  },
-];
+};
+for (const s of PLAN.shots) if (!SCENES[s.scene]) throw new Error(`screenshots.json names an unknown scene "${s.scene}"`);
+if (PLAN.shots.length > 10) throw new Error('App Store Connect takes at most 10 screenshots per size');
 
 async function waitForServer(): Promise<void> {
   for (let i = 0; i < 100; i++) {
@@ -111,7 +128,13 @@ try {
   const browser = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {});
   for (const s of SIZES) {
     const dir = join(OUT, s.name);
-    mkdirSync(dir, { recursive: true });
+    const rawDir = join(OUT, 'raw', s.name);
+    for (const d of [dir, rawDir]) {
+      rmSync(d, { recursive: true, force: true });
+      mkdirSync(d, { recursive: true });
+    }
+    const W = s.w * s.scale;
+    const H = s.h * s.scale;
     const ctx = await browser.newContext({
       viewport: { width: s.w, height: s.h },
       deviceScaleFactor: s.scale,
@@ -122,11 +145,18 @@ try {
     const page = await ctx.newPage();
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(String(e)));
-    for (const scene of SCENES) {
-      await scene.take(page);
-      const file = join(dir, `${scene.file}.jpg`);
-      await page.screenshot({ path: file, type: 'jpeg', quality: 92 });
-      console.log(`${s.name}/${scene.file}.jpg  ${s.w * s.scale}x${s.h * s.scale}`);
+    for (const [i, shot] of PLAN.shots.entries()) {
+      await SCENES[shot.scene](page);
+      const name = `${String(i + 1).padStart(2, '0')}-${shot.scene}`;
+      if (PLAIN) {
+        await page.screenshot({ path: join(dir, `${name}.jpg`), type: 'jpeg', quality: 92 });
+        console.log(`${s.name}/${name}.jpg  ${W}x${H}`);
+        continue;
+      }
+      const png = await page.screenshot({ type: 'png' });
+      writeFileSync(join(rawDir, `${name}.png`), png);
+      writeFileSync(join(dir, `${name}.png`), frame(png, W, H, shot));
+      console.log(`${s.name}/${name}.png  ${W}x${H}  "${shot.caption.replace('\n', ' ')}"`);
     }
     if (errors.length) throw new Error(`page errors on ${s.name}:\n${errors.join('\n')}`);
     await ctx.close();
