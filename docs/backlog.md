@@ -1999,8 +1999,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       other's puck or ball was already moving), and a match pauses itself when the page is
       hidden (a call, a notification, switching apps). Runner.resume(); e2e "Resume counts
       3-2-1...". Seen in a rival 2-player reflex app's v1.4 notes.
-- [ ] Store wrapper: Capacitor's app `pause` event should call the same pause as
+- [x] Store wrapper: Capacitor's app `pause` event should call the same pause as
       visibilitychange (iOS can freeze the web view before the page sees it hidden).
+      2026-11-21 (F369, PR #395): already true: src/main.ts wires `onAppPause()`
+      (src/engine/native.ts, App 'pause') to `app.interrupt()`, the same call the page's
+      visibilitychange listener makes (src/app/app.ts); tests/native.test.ts keeps it off in browsers.
 - [x] 2026-11-14 (F244, PR #279): docs/accessibility-labels.md: which App Store
       Accessibility Nutrition Labels we can claim (Dark Interface, Sufficient Contrast,
       Differentiate Without Color Alone, Reduced Motion), which not yet (Larger Text, VoiceOver,
