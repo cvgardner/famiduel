@@ -6,7 +6,7 @@
 // The bottom player is drawn in seat 1's colour (`--y`), the top one in seat 2's (`--t`),
 // the same way round as at the table. A new game needs one too (tests/cardpic.test.ts).
 
-import { arena, board, green, mat, pitch, pong, ring, sand, sea, seaBg, table, woods } from './powerpic';
+import { arena, board, green, mat, pitch, pong, pool, ring, sand, sea, seaBg, table, woods } from './powerpic';
 
 /** Bottom player (seat 1) and top player (seat 2). */
 const Y = 'var(--y, #ffd166)';
@@ -42,6 +42,8 @@ const tank = (x: number, y: number, ax: number, ay: number, fill: string) => {
 /** A snake's head with an eye, facing along (dx, dy). */
 const snakeHead = (x: number, y: number, dx: number, dy: number, fill: string) =>
   dot(x, y, 3.6, fill, OUTLINE) + dot(x + dx * 1.4 - dy * 1.2, y + dy * 1.4 + dx * 1.2, 1, '#14112b');
+/** A pool ball with a thin dark edge, so it reads as a ball and not a ring. */
+const ball = (cx: number, cy: number, fill: string) => dot(cx, cy, 2.8, fill, ' stroke="#07060a" stroke-opacity="0.6" stroke-width="0.5"');
 /** A kid seen from above: a head in the seat colour with a lighter face. */
 const kid = (cx: number, cy: number, fill: string) => dot(cx, cy, 4.2, fill, OUTLINE) + dot(cx, cy + 0.8, 2, '#ffd9b5', ' opacity="0.9"');
 /** A hand reaching in from the player's own edge (sleeve in the seat colour): rock or scissors. */
@@ -117,6 +119,18 @@ const PICS: Record<string, string> = {
     path('M32 38Q22 28 20 8', '#fff', 1.1, DASH) +
     `<circle cx="21" cy="12" r="3.2" fill="#fff" stroke="#14112b" stroke-width="0.8"/><circle cx="21" cy="12" r="1" fill="#14112b"/>` +
     dot(32, 39, 2.5, Y, ' opacity="0.5"'),
+  // The 8 and a few balls left; your cue is drawn back, aimed at one of yours by the corner.
+  minipool:
+    pool +
+    ball(16, 12, T) +
+    ball(44, 30, T) +
+    ball(25, 16, '#14112b') +
+    `<text x="25" y="17.3" text-anchor="middle" font-size="3.1" font-weight="900" font-family="system-ui, sans-serif" fill="#fff">8</text>` +
+    ball(12, 29, Y) +
+    path('M30 32L48.5 13.5', '#fff', 1, DASH) +
+    ball(51, 11, Y) +
+    path('M27.6 34.4L19 43', '#c98f62', 2.2) +
+    ball(30, 32, '#fff'),
   // DRAW! in the middle and both buttons ready; you tap first.
   quickdraw:
     sand +

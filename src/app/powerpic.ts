@@ -25,6 +25,8 @@ const circle = (cx: number, cy: number, r: number, fill: string, kids = '', extr
 export const green = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1f7a4a"/>${circle(32, 9, 4, '#0b2a18')}`;
 // Air hockey: a table with a goal slot at each end.
 export const table = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#1d3a5c"/><line x1="4" y1="22" x2="60" y2="22" stroke="${LINE}" stroke-width="1"/><rect x="22" y="1" width="20" height="3" rx="1.5" fill="#0a1626"/><rect x="22" y="40" width="20" height="3" rx="1.5" fill="#0a1626"/>`;
+// Mini Pool: a table with six pockets.
+export const pool = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#6b3f22"/><rect x="5" y="5" width="54" height="34" rx="2" fill="#1f8f6a"/>${[[6, 6], [58, 6], [6, 38], [58, 38], [32, 5], [32, 39]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#07060a"/>`).join('')}`;
 // Sumo: the ring from above.
 export const ring = `<rect x="1" y="1" width="62" height="42" rx="8" fill="#5a3a22"/><circle cx="32" cy="22" r="19" fill="#c9a66b" stroke="#fff" stroke-opacity="0.7" stroke-width="1.5"/>`;
 
@@ -95,6 +97,25 @@ const PICS: Record<string, Record<string, string>> = {
       circle(32, 8, 6, THEM) +
       circle(32, 36, 6, YOU) +
       [-1, 1].map((d) => circle(32, 28, 3, '#fff', anim('cx', [32, 32, 32 + d * 8, 32 + d * 8], [0, 0.35, 0.85, 1]) + anim('cy', [28, 22, 4, 4], [0, 0.35, 0.85, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.8, 0.85, 1]))).join(''),
+  },
+  minipool: {
+    // A dotted line runs from your cue ball, off the cushion, to your ball, which drops in.
+    longaim:
+      pool +
+      `<polyline points="16,32 40,8 52,18" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 2">${anim('opacity', [0, 0.9, 0.9, 0, 0], [0, 0.15, 0.45, 0.55, 1])}</polyline>` +
+      circle(52, 18, 3.5, YOU, anim('cx', [52, 52, 56, 58, 58], [0, 0.6, 0.75, 0.82, 1]) + anim('cy', [18, 18, 10, 6, 6], [0, 0.6, 0.75, 0.82, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.6, 0.8, 0.85, 1])) +
+      circle(16, 32, 3.5, '#f7f4ea', anim('cx', [16, 16, 40, 48, 48], [0, 0.45, 0.52, 0.6, 1]) + anim('cy', [32, 32, 8, 16, 16], [0, 0.45, 0.52, 0.6, 1])),
+    // The pockets grow and glow gold; your ball rolls in.
+    bigpocket:
+      pool +
+      [[6, 6], [58, 6], [6, 38], [58, 38], [32, 5], [32, 39]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#07060a" stroke="#ffd166" stroke-width="1">${anim('r', [3, 3, 6.5, 6.5, 3], [0, 0.15, 0.35, 0.85, 1])}</circle>`).join('') +
+      circle(32, 26, 3.5, YOU, anim('cx', [32, 32, 52, 52], [0, 0.4, 0.75, 1]) + anim('cy', [26, 26, 35, 35], [0, 0.4, 0.75, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.4, 0.72, 0.78, 1])),
+    // Their ball by the pocket turns to ice; their cue ball bounces off it.
+    freeze:
+      pool +
+      circle(14, 12, 3.5, THEM, anim('fill', [THEM, THEM, '#9fe3ff', '#9fe3ff', THEM], [0, 0.2, 0.25, 0.9, 1]), ' stroke="#fff" stroke-width="0.8"') +
+      circle(40, 30, 3.5, '#f7f4ea', anim('cx', [40, 40, 20, 34, 34], [0, 0.35, 0.6, 0.85, 1]) + anim('cy', [30, 30, 16, 32, 32], [0, 0.35, 0.6, 0.85, 1])) +
+      circle(48, 36, 3.5, YOU),
   },
   pingpong: {
     // Your return flies super fast, leaving a streak.

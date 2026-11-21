@@ -30,7 +30,7 @@ Free, with one in-app purchase: **Remove Ads** (non-consumable, product ID `fami
 
 ### Promotional text (170, can change any time without a review)
 
-Two players, one phone. Lay it flat between you and play Air Hockey, Minigolf, Sumo and 9 more, with super powers to pick. Every game free, nothing to sign up for.
+Two players, one phone. Lay it flat between you and play Air Hockey, Minigolf, Sumo and 10 more, with super powers to pick. Every game free, nothing to sign up for.
 
 ### Description (4000)
 
@@ -38,8 +38,8 @@ Two players. One phone. Super powers.
 
 Settle it right now, across the table. Lay your phone flat between you and your friend, your partner, your roommate or your kid. Each player owns the half nearest them, and every game is played with one finger: tap, drag or flick. No accounts, no second phone, no waiting for anyone online. It all works offline too, so no Wi-Fi or data is needed: on a plane, on a road trip or anywhere the signal drops. Pick a game and play.
 
-12 GAMES
-Minigolf, Air Hockey, Sumo, Ping Pong, Penalty Shootout, Snack Snatch, Snake Duel, Quick Draw, Tank Duel, Chop Chop, Sea Battle and Rock Paper Scissors.
+13 GAMES
+Minigolf, Air Hockey, Sumo, Ping Pong, Penalty Shootout, Mini Pool, Snack Snatch, Snake Duel, Quick Draw, Tank Duel, Chop Chop, Sea Battle and Rock Paper Scissors.
 
 SUPER POWERS
 Before each match, both players pick one of three powers for that game. Energy fills as you play, and the player who's behind charges faster, so a match is never over early. Powers are shown before they land, so you can see them coming and fight back. New players start on the classic rules; switch super powers on in Settings when you're ready.

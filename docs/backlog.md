@@ -192,7 +192,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       less) the intro alone stays 1x. Layout playtest: all intros fit; bigtext-intro-*.png.
 
 ## Content
-- [ ] Mini pool (first update).
+- [x] Mini pool (first update): `src/games/minipool/`.
 - [x] More minigolf holes (target 18): 22 holes now (checked 2026-11-07; this line said 10).
 - [x] 2026-11-01: two new Minigolf holes, so a 3-hole match repeats less often (8 → 10 holes,
       56 → 120 different courses). River Bridge (par 3): water across the middle with a

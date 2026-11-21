@@ -11,7 +11,7 @@ const table = (powers as { games: Record<string, { id: string; name: string; ico
 describe('power pictures', () => {
   it('every power of every shown game has a looping picture', () => {
     const FREE = Object.keys(table).filter((g) => shown.has(g));
-    expect(FREE.length).toBe(11);
+    expect(FREE.length).toBe(12);
     for (const g of FREE) {
       expect(table[g]?.length, g).toBe(3);
       for (const p of table[g]) {
