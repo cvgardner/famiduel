@@ -2719,3 +2719,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       small sea started over the big board. It now falls from at most its own sea's top edge
       (shellY(), same flight time, a shorter drop for top rows; rows from the 7th down still
       drop the whole way). tests/seabattle-shell-drop.test.ts.
+- [x] 2026-11-21 (F387): Tank Duel with Bigger text: when a hit's word ("Bonked!", "Oops! Own
+      shot", "+1") had no clear line inside the arena, fx.pop stacked it off another pop and out
+      past the edge, over the hearts (Bonked! 5.2% of readable frames). Now the still-bright pops
+      in its way fade (fx.fadeInWay()) and it keeps its line: 0 of those words cross the edge at
+      1x or Bigger text (tests/tanks-pops-arena.test.ts runs at both).

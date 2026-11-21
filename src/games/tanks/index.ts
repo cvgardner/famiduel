@@ -237,7 +237,11 @@ class TankView implements GameInstance {
 
   /** F205: a seat's pop, started on the nearest line whose rise misses both tanks. */
   private popClear(str: string, x: number, y: number, color: string, p: PlayerIndex, size: number): void {
-    this.ctx.fx.pop(str, x, this.clearOfTanks(str, size, x, y, p, undefined, true), color, p, size);
+    const cy = this.clearOfTanks(str, size, x, y, p, undefined, true);
+    // F387: no clear line inside the arena (common with Bigger text): fx.pop would stack it off
+    // another pop and out past the edge, over the hearts. The older pops fade so it keeps its line.
+    if (!this.ctx.fx.popFits(str, x, cy, size, p)) this.ctx.fx.fadeInWay(str, x, cy, size, p);
+    this.ctx.fx.pop(str, x, cy, color, p, size);
   }
 
   /**
