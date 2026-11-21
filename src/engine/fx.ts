@@ -3,7 +3,7 @@
 
 import { BLINK_MAX_HZ, reducedMotion } from './calm';
 import { contrastRatio, luminance, over, parseColor } from '../core/contrast';
-import { COLORS, fitSize, insideX, text, type G } from './draw';
+import { COLORS, fitSize, insideX, scaledSize, text, type G } from './draw';
 import { W, H } from './world';
 
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number };
@@ -75,8 +75,12 @@ const fresh = (f: { life: number; max: number }) => f.max - f.life < POP_FRESH +
 /** Test hook (F149): with `on`, pop() lists new pops printed over a still-bright one. */
 export const popProbe = { on: false, hits: [] as string[] };
 
-/** A pop's box, estimated: 0.55 em a character (at most the screen's width), 0.9 em tall. */
-function popBox(str: string, x: number, y: number, size: number): [number, number, number, number] {
+/**
+ * A pop's box, estimated: 0.55 em a character (at most the screen's width), 0.9 em tall.
+ * F383: at the size text() really draws it (Bigger text draws an 18 at 21.6).
+ */
+function popBox(str: string, x: number, y: number, unscaled: number): [number, number, number, number] {
+  const size = scaledSize(unscaled);
   const w = Math.min(W - 16, [...str].length * size * 0.55);
   return [x - w / 2, y - size * 0.45, x + w / 2, y + size * 0.45];
 }
@@ -149,7 +153,7 @@ export class Fx {
   fadeBand(y0: number, y1: number, t = 0.15): void {
     for (const f of this.floaters) {
       // Where its words go for the rest of its life (pops rise POP_RISE over their life, up their reader's screen).
-      const half = f.size * 0.45;
+      const half = scaledSize(f.size) * 0.45;
       const end = f.y + (f.player === 0 ? -f.rise : f.rise) * f.life;
       if (Math.max(f.y, end) + half > y0 && Math.min(f.y, end) - half < y1) f.life = Math.min(f.life, t);
     }
@@ -173,9 +177,10 @@ export class Fx {
   fadeNear(x: number, y: number, r: number, t = 0.15, minAge = 0.2): void {
     for (const f of this.floaters) {
       if (f.max - f.life < minAge) continue;
-      const w = ([...f.str].length * f.size * 0.55) / 2;
+      const fs = scaledSize(f.size);
+      const w = ([...f.str].length * fs * 0.55) / 2;
       const nx = Math.max(f.x - w, Math.min(f.x + w, x));
-      const ny = Math.max(f.y - f.size * 0.45, Math.min(f.y + f.size * 0.45, y));
+      const ny = Math.max(f.y - fs * 0.45, Math.min(f.y + fs * 0.45, y));
       if (Math.hypot(x - nx, y - ny) < r) f.life = Math.min(f.life, t);
     }
   }
@@ -196,7 +201,7 @@ export class Fx {
     for (let tries = 0; tries < 4; tries++) {
       const hit = this.floaters.find((f) => f.player === player && inWay(f, str, x, y, size, player));
       if (!hit) break;
-      const gap = (hit.size + size) * 0.5 + 4;
+      const gap = (scaledSize(hit.size) + scaledSize(size)) * 0.5 + 4;
       const dir = hit.life === hit.max ? down : -down;
       // No room at the screen's edge: the line goes the other way instead.
       y = hit.y + dir * gap;
