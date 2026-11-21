@@ -2652,3 +2652,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Freeze 59%, Stop Shot 46%, Plug a Pocket 53% (avg vs the other powers), none 46%; no outliers,
       so no power changed. Long Aim's row equals none's: the bot doesn't read the guide (it picks its
       own line), so the power only helps people.
+- [x] 2026-11-21 (F373): Tug of War and Mini Pool joined the playtest "how to play" PICTURED
+      list, so each half's picked-power picture and its movement are checked there like every
+      other shown game (both already passed).
+- [x] 2026-11-21 (F374): Tug of War's how-to said its goal twice (blurb "Pull the ribbon past
+      your line", then "Get the red ribbon past your line!"); it now reads "Tap fast anywhere on
+      your side to pull the red ribbon your way."
