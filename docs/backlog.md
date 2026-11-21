@@ -2656,3 +2656,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tufts beside it, so a kid couldn't count rounds won. Every star now has a white outline
       (3:1 on both grasses) and is a touch bigger; a won star is gold (3:1 against an empty one).
       tests/tugofwar-stars.test.ts.
+- [x] F376 (2026-11-21, PR TBD) Tug of War: the losing seat's round card ("Into the mud!") sat over
+      that seat's own round stars, so the player who just lost couldn't see the tally. The loser's
+      card is now narrower and centred, ending left of the stars (cardBox()); test in
+      tests/tugofwar-stars.test.ts.

@@ -55,6 +55,13 @@ const CARD_AT = 0.8;
  * ribbon has gone past it), the loser's further back, clear of their puller lying in the mud.
  */
 export const CARD_Y = { won: MID + 72, lost: MID + 176 };
+/** Round card box (local x) for each card: the loser's sits level with that seat's round
+ *  stars, so it stops short of them (F376), kept centred; the winner's spans the field. */
+export function cardBox(lost: boolean): { x: number; w: number } {
+  if (!lost) return { x: 28, w: W - 56 };
+  const right = L.starX - 11 - STAR.line - 6;
+  return { x: W - right, w: 2 * right - W };
+}
 
 /** Local point in player p's frame to a screen point. */
 const toScreen = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
@@ -399,11 +406,13 @@ class TugOfWarView implements GameInstance {
       color = '#a02a1f';
       sub = bot ? 'Bot wins the round' : 'They win the round';
     }
-    const y = r.winner !== null && r.winner !== p ? CARD_Y.lost : CARD_Y.won;
+    const lost = r.winner !== null && r.winner !== p;
+    const y = lost ? CARD_Y.lost : CARD_Y.won;
+    const box = cardBox(lost);
     const a = Math.min(1, (this.game.phaseT - CARD_AT) / 0.15);
     const a0 = gx.globalAlpha;
     gx.globalAlpha = a0 * a;
-    rrect(gx, 28, y - 30, W - 56, sub ? 64 : 48, 16, 'rgba(255,250,236,0.95)', alpha(this.ctx.players[p].color, 0.9), 3);
+    rrect(gx, box.x, y - 30, box.w, sub ? 64 : 48, 16, 'rgba(255,250,236,0.95)', alpha(this.ctx.players[p].color, 0.9), 3);
     text(gx, title, W / 2, y - 8, { size: 22, color });
     if (sub) text(gx, sub, W / 2, y + 18, { size: 14, color: '#4a3412' });
     gx.globalAlpha = a0;
