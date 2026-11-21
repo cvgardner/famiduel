@@ -2496,6 +2496,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-21 (F357, PR #383): Mini Pool's rack safety cap (40 shots, fewer balls left wins,
+      level goes to who didn't break) ended 30% of easy-v-easy racks, mostly both on the 8. Cap
+      now 80: 3% at the cap, ~13 s more a match (107 -> 120 s), normal v easy unchanged (83%).
+      tests/minipool-levels.test.ts checks easy racks end at the cap <= 10%.
 - [x] 2026-11-21 (F355, PR #382): Mini Pool is a turn game, so no sim played it. `npm run pool`
       (scripts/poollib.ts) plays bot matches per level pairing, seats and break swapped: normal v
       easy 83%, hard v normal 78%, hard v easy 95% (n=40); racks end on the 8 sunk last 93-100%
