@@ -2023,6 +2023,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and checks those screens stay 1.2 (1 for an iPhone SE intro). Not checked in a browser
       here: the cloud env had no Chromium, so `npm run verify` ran typecheck, unit tests and
       build only; run the e2e and playtest steps before merging.
+- [x] 2026-11-21 (F352, PR #TBD): Snake: the "assist!" word over a three-star snake shows at most once
+      per 3 s per seat (ASSIST_POP_GAP); every auto-turn still makes its sound. Easy+3 v normal bot
+      matches had 1.45 auto-turns a round (up to 5) and 27% within 3 s of the last, stacking on the
+      head. tests/snake-assist-pop.test.ts.
 - [ ] Larger Text, the rest: the player sheet and the grown-ups sheets at 2x (one-person
       sheets, likely to fit: segments wrap, the sheet scrolls), then the tournament screen.
       The split screens (intro, result, pause how-to) stay at Bigger: under half a phone each.
