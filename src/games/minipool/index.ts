@@ -200,6 +200,10 @@ class MiniPoolView implements GameInstance {
         const pw = players[e.p].power!;
         fx.flash('#ffd54a', 0.15);
         both(`${pw.icon} ${pw.name}!`, COLORS.gold, 24, 110);
+      } else if (e.type === 'plugged') {
+        sfx.play('chop');
+        const pk = POCKETS[e.pocket];
+        fx.burst(pk.x, pk.y, COLORS.gold, 14, 140, 3);
       } else if (e.type === 'frozen') {
         sfx.play('chop');
         const b = g.balls[e.id];
@@ -297,6 +301,18 @@ class MiniPoolView implements GameInstance {
       circle(gx, pk.x, pk.y, drawR + 3, '#2a1a0e');
       circle(gx, pk.x, pk.y, drawR, '#07060a');
       if (big) circle(gx, pk.x, pk.y, drawR + 1, undefined, alpha(COLORS.gold, 0.6 + 0.3 * Math.sin(this.t * 6)), 3);
+      // Plug a Pocket: a gold lid over the shooter's plugged pocket while they aim and roll.
+      if (shooting && mods.closed === i) {
+        circle(gx, pk.x, pk.y, drawR + 1, '#ffd166', '#7a4b12', 2.5);
+        gx.strokeStyle = '#7a4b12';
+        gx.lineWidth = 2.5;
+        gx.beginPath();
+        gx.moveTo(pk.x - drawR * 0.6, pk.y - drawR * 0.6);
+        gx.lineTo(pk.x + drawR * 0.6, pk.y + drawR * 0.6);
+        gx.moveTo(pk.x + drawR * 0.6, pk.y - drawR * 0.6);
+        gx.lineTo(pk.x - drawR * 0.6, pk.y + drawR * 0.6);
+        gx.stroke();
+      }
       if (this.pocketFlash[i] > 0) circle(gx, pk.x, pk.y, drawR + 6 * (1 - this.pocketFlash[i]), undefined, alpha('#ffffff', this.pocketFlash[i]), 3);
     });
   }
@@ -421,6 +437,8 @@ class MiniPoolView implements GameInstance {
     if (g.longAim[p]) badges.push('🔭');
     if (g.bigPocket[p]) badges.push('🕳️');
     if (g.freezeOn[p]) badges.push(quiet ? '❄ frozen' : '❄ on you');
+    if (g.stopOn[p]) badges.push('🛑');
+    if (g.plugOn[p]) badges.push(quiet ? '🚧 plugged' : '🚧 on you');
     if (g.retries[p] > 0) badges.push(`↺${g.retries[p]}`);
     // Name, then one dot per ball still on the table (the 8 once they're all down), on the
     // top line; the status gets the whole second line.
