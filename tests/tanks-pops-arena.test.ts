@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import powers from '../content/powers.json';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo, PowerDef } from '../src/core/types';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { Fx } from '../src/engine/fx';
 import type { Input } from '../src/engine/input';
 import type { Sfx } from '../src/engine/sfx';
@@ -16,8 +17,12 @@ type Floater = { str: string; x: number; y: number; life: number; max: number; s
 // 782 of 1,760, +1 807 of 5,434). Their lines now keep the whole rise inside the arena; what's
 // left is where no clear line inside exists and fx.pop stacks the word off it. (BONK!, POOF! and
 // clink! are born on a tank, often at the edge, and still may cross it.)
+// F387: and with Bigger text, where words are drawn up to 1.2x: a hit's word with no clear line
+// inside was stacked off another pop by fx.pop, out past the edge (Bonked! 5.2%).
 describe('Tank Duel: a hit\'s words stay inside the arena', () => {
-  it('in bot matches at every level with powers', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches at every level with powers${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     const total: Record<string, number> = {};
     const out: Record<string, number> = {};
     const list = (powers.games as Record<string, PowerDef[]>).tanks;
@@ -34,7 +39,7 @@ describe('Tank Duel: a hit\'s words stay inside the arena', () => {
           for (const f of (fx as unknown as { floaters: Floater[] }).floaters) {
             if (Math.min(1, (f.life / f.max) * 1.6) < 0.5 || f.str === 'Time!') continue;
             total[f.str] = (total[f.str] ?? 0) + 1;
-            const half = f.size * 0.45;
+            const half = scaledSize(f.size) * 0.45;
             if (f.y - half < ARENA.y || f.y + half > ARENA.y + ARENA.h) out[f.str] = (out[f.str] ?? 0) + 1;
           }
         }

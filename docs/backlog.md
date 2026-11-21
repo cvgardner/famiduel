@@ -2714,3 +2714,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       has no such room helper (F208 covers its names). Not yet at BIG_TEXT: tanks-pops-arena
       (after #404's wider fx stacking, Bigger-text Bonked! crosses the arena edge in 5.2% of
       readable frames vs the 5% bound; keeping it inside put it on a tank instead): F387.
+- [x] 2026-11-21 (F387): Tank Duel with Bigger text: when a hit's word ("Bonked!", "Oops! Own
+      shot", "+1") had no clear line inside the arena, fx.pop stacked it off another pop and out
+      past the edge, over the hearts (Bonked! 5.2% of readable frames). Now the still-bright pops
+      in its way fade (fx.fadeInWay()) and it keeps its line: 0 of those words cross the edge at
+      1x or Bigger text (tests/tanks-pops-arena.test.ts runs at both).
