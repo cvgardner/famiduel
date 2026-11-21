@@ -2746,3 +2746,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Ping Pong power names, Sea Battle sunk and airstrike pops. All passed except Ping Pong, whose
       clearOfBall() kept power names off the ball by their unscaled size: at Bigger text 1.3% of
       readable frames sat on the ball (bound 1%); it now uses scaledSize(): 0.7% (1x unchanged, 0.4%).
+- [x] 2026-11-21 (F398): more pops tests now also run at Bigger text with words sized as text()
+      draws them: Air Hockey paddles, Penalty kick-off words, Snack Snatch FRENZY!, SUDDEN SNACK!
+      and power names on the clock, Tank Duel bonk pair and clink, Sea Battle shot words, Sumo rope
+      pop. All passed except Snack Snatch's clock check ("🧲 Magnet" on the seconds-left clock in
+      2.5% of readable frames, bound 2%): when a crowd of "+N" pops left no free line out to the
+      frogs, fx.pop stacked the name back onto the clock. Now the pops in its way fade and it keeps
+      its line (fx.fadeInWay(), as Tank Duel's hits do): 0 at 1x and Bigger text.

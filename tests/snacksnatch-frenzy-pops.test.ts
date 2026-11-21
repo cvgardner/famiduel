@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -10,8 +11,8 @@ import { DT, player, power } from './helpers';
 
 type Floater = { str: string; x: number; y: number; life: number; max: number; size: number; player: 0 | 1 };
 const box = (f: Floater) => {
-  const w = Math.min(W - 16, [...f.str].length * f.size * 0.55);
-  return [f.x - w / 2, f.y - f.size * 0.45, f.x + w / 2, f.y + f.size * 0.45];
+  const w = Math.min(W - 16, [...f.str].length * scaledSize(f.size) * 0.55);
+  return [f.x - w / 2, f.y - scaledSize(f.size) * 0.45, f.x + w / 2, f.y + scaledSize(f.size) * 0.45];
 };
 const readable = (f: Floater) => Math.min(1, (f.life / f.max) * 1.6) >= 0.5;
 const BANNER = new Set(['FRENZY!', 'Faster snacks!']);
@@ -20,7 +21,9 @@ const BANNER = new Set(['FRENZY!', 'Faster snacks!']);
 // seat's "🧲 Magnet!", "Miss!" and catch pops. It now pops like the game's other words, so no
 // readable pop shares its box while it is readable.
 describe('Snack Snatch: no readable pop over the FRENZY! lines', () => {
-  it('in normal v easy bot matches with every power', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in normal v easy bot matches with every power${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     let frames = 0;
     let over = 0;
     const hits: Record<string, number> = {};

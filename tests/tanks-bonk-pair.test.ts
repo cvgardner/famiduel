@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel, PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -11,15 +12,17 @@ import { DT, player } from './helpers';
 type Floater = { str: string; x: number; y: number; life: number; size: number; player: 0 | 1 };
 
 const box = (f: Floater) => {
-  const w = [...f.str].length * f.size * 0.55;
-  return [f.x - w / 2, f.y - f.size * 0.45, f.x + w / 2, f.y + f.size * 0.45];
+  const w = [...f.str].length * scaledSize(f.size) * 0.55;
+  return [f.x - w / 2, f.y - scaledSize(f.size) * 0.45, f.x + w / 2, f.y + scaledSize(f.size) * 0.45];
 };
 
 // F361: a bonk pops "BONK!" for each seat (one each side of the tank, rising apart), but each
 // seat's word was moved off the tanks on its own, so both could land on one line: the bottom
 // seat's "BONK!" and the top seat's upside-down one printed on top of each other (320 px).
 describe('Tank Duel: the two seats\' "BONK!" / "POOF!" never sit on each other', () => {
-  it('in bot matches with powers, both seats', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches with powers, both seats${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     let frames = 0;
     let overlap = 0;
     const pairs: [BotLevel, BotLevel, number][] = [['easy', 'normal', 3], ['hard', 'normal', 0], ['normal', 'normal', 0]];

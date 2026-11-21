@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import powers from '../content/powers.json';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo, PowerDef } from '../src/core/types';
@@ -18,7 +19,9 @@ const SAVE = ['Save it!', 'Sudden death! Save it'];
 // 66 past the ball) ended its rise on the keeper's "Save it!" (lefty-penalty.png): one seat's
 // words printed over the other's. Their boxes now never meet while either is readable.
 describe("Penalty: the two seats' kick-off words never meet", () => {
-  it('in bot matches at every level with powers, both seats shooting', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches at every level with powers, both seats shooting${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     let both = 0;
     let touching = 0;
     const list = (powers.games as Record<string, PowerDef[]>).penalty;
@@ -37,7 +40,7 @@ describe("Penalty: the two seats' kick-off words never meet", () => {
           const s = fl.find((f) => SAVE.includes(f.str));
           if (!k || !s) continue;
           both++;
-          const box = (f: Floater) => ({ w: ([...f.str].length * f.size * 0.55) / 2, h: f.size * 0.45 });
+          const box = (f: Floater) => ({ w: ([...f.str].length * scaledSize(f.size) * 0.55) / 2, h: scaledSize(f.size) * 0.45 });
           const a = box(k);
           const b = box(s);
           if (Math.abs(k.x - s.x) < a.w + b.w && Math.abs(k.y - s.y) < a.h + b.h + 2) touching++;

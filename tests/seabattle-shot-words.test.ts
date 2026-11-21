@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerIndex, PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -26,8 +27,8 @@ const WORDS = new Set(['Splash', 'HIT!', 'Hit back!', 'MINE!']);
 function onShip(f: Floater, sea: Sea): boolean {
   const x = f.player === 1 ? W - f.x : f.x;
   const y = f.player === 1 ? H - f.y : f.y;
-  const w = ([...f.str].length * f.size * 0.55) / 2;
-  const h = f.size * 0.45;
+  const w = ([...f.str].length * scaledSize(f.size) * 0.55) / 2;
+  const h = scaledSize(f.size) * 0.45;
   for (let c = 0; c < N * N; c++) {
     if (sea.occ[c] < 0) continue;
     const cx = GX + (c % N) * C;
@@ -41,7 +42,9 @@ function onShip(f: Floater, sea: Sea): boolean {
 // F273: a shot's "Splash" / "HIT!" popped a fixed 22-26 units above (or below) the cell, often
 // right on one of the defender's own ships on their big "Your ships" board.
 describe('Sea Battle: shot words start off the ships on the big board', () => {
-  it('in bot matches with every power', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches with every power${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     let total = 0;
     let covered = 0;
     for (const level of ['easy', 'normal', 'hard'] as const) {
