@@ -2688,3 +2688,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rise inside the arena: 4% / 2% / 1% left, where no clear line inside exists and fx.pop
       stacks the word off it (tests/tanks-pops-arena.test.ts). BONK!, POOF! and clink! are born
       on a tank, often at the edge, so keeping those inside would put them on a tank; left as is.
+- [x] 2026-11-21 (F386): Tug of War's pops (PULL!, "The lines are closing in!", power names)
+      were all centred on the rope at the card line, so the red ribbon often sat in the words
+      (7% of readable pop frames in bot matches). popFor() now takes the nearest line in that
+      seat's half whose words and bright rise stay 30 units off the ribbon (clearOfRibbon()):
+      0.5-0.6% left, where the ribbon slides into a pop already up.
+      tests/tugofwar-pops-ribbon.test.ts (usual and Bigger text).
