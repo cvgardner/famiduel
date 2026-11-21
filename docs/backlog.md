@@ -2656,3 +2656,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       balls on the table, hiding a ball the player was lining up on (71 pops born on a ball over 24
       bot racks). Each pop now starts on the nearest line where its words, as they rise, stay off
       every ball (clearOfBalls()): 0. tests/minipool-pops.test.ts.
+- [x] 2026-11-21 (F373): Tug of War and Mini Pool joined the playtest "how to play" PICTURED
+      list, so each half's picked-power picture and its movement are checked there like every
+      other shown game (both already passed).
+- [x] 2026-11-21 (F374): Tug of War's how-to said its goal twice (blurb "Pull the ribbon past
+      your line", then "Get the red ribbon past your line!"); it now reads "Tap fast anywhere on
+      your side to pull the red ribbon your way."
