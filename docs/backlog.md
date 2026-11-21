@@ -2586,14 +2586,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       only near either line, where it came too late to matter (F362). sim:powers n=40: heave 63,
       butter 61, yank 54 (was 47), anchor 60, grip 55% avg, none 9%. First tries: a 2.5-5 s
       no-slide anchor read 18-38%, a 2.5 s tie-off 84%, a 2-3 s grip 68-82%.
-- [x] 2026-11-21 (F354b, PR #TBD): Mini Pool has a pool of 5 powers like every shown game: Stop Shot
+- [x] 2026-11-21 (F354b, PR #392): Mini Pool has a pool of 5 powers like every shown game: Stop Shot
       (🛑, your next shot: the cue ball stops dead where it hits a ball, so a cut can't glance it into a
       pocket) and Plug a Pocket (🚧, on the other player's next shot the pocket nearest their best ball
       gets a gold lid and balls roll off it; picked when their turn starts, so they see it and aim
       elsewhere). Logic tests for each, powerpic exemption dropped. Normal bots, 30 per cell: Stop
       ~41% avg (40% vs none), Plug ~63% avg. A "Second Shot" (a miss keeps the turn) was tried
       first and read 71-87%, so it was dropped.
-- [x] 2026-11-21 (F367, PR #TBD): Mini Pool bot lines up again (a fresh look, after its usual
+- [x] 2026-11-21 (F367, PR #392): Mini Pool bot lines up again (a fresh look, after its usual
       delay) when the other player's Freeze or Plug a Pocket lands mid-aim; before, a shot judged
       with the pocket open could still be played into the plug (1 in 12 seeded matches' racks).
       Vitest: shots that would have dropped one of its balls in the plugged pocket after a mid-aim plug: 0.
