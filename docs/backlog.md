@@ -2496,6 +2496,30 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-21 (F358, PR #384): Mini Pool's head start (longer guide, pockets +5) barely
+      helped: easy+0..3 v normal 8/15/23/23%, v hard 5/3/0/10% (pockets +11 only reached 33%:
+      the easy player misses outright). Each star now also forgives one plain miss a rack
+      (never the break or a scratch; "Another go!" pop, ↺N strip badge; RULES.assistRetries,
+      retriesFor()): v normal 7/17/27/50%, v hard 7/20/27/27% (n=30). Card line "Longer aim,
+      bigger pockets, misses forgiven". tests/minipool.test.ts, tests/minipool-levels.test.ts.
+- [x] 2026-11-21 (F357, PR #383): Mini Pool's rack safety cap (40 shots, fewer balls left wins,
+      level goes to who didn't break) ended 30% of easy-v-easy racks, mostly both on the 8. Cap
+      now 80: 3% at the cap, ~13 s more a match (107 -> 120 s), normal v easy unchanged (83%).
+      tests/minipool-levels.test.ts checks easy racks end at the cap <= 10%.
+- [x] 2026-11-21 (F355, PR #382): Mini Pool is a turn game, so no sim played it. `npm run pool`
+      (scripts/poollib.ts) plays bot matches per level pairing, seats and break swapped: normal v
+      easy 83%, hard v normal 78%, hard v easy 95% (n=40); racks end on the 8 sunk last 93-100%
+      except easy mirrors (30% hit the 40-shot cap, ~107 s a match); head start easy+0..3 v
+      normal 8/15/23/23%, v hard 5/3/0/10%. tests/minipool-levels.test.ts holds normal >= 75%
+      v easy and hard >= 60% v normal.
+- [x] 2026-11-21 (F347, PR #386): every shown game's head-start line checked against its assist
+      code; all match except Snack Snatch, now "Longer reach, back sooner after a miss" (F350's
+      quicker miss recovery). The line is a wrapping HTML paragraph, so no length cap needed.
+- [x] 2026-11-21 (F353, PR #381): Tug of War's head start (stronger pull, nearer line) grew in
+      a straight line to 1.5, but a tap-rate race is a cliff (easy 4.3, normal 5.7, hard 7.2 taps
+      a second): easy+0..3 v normal 0/0/45/100%, v hard 0% at every star. Pull per star is now
+      a table, 1 / 1.3 / 1.45 / 1.75 (RULES.gainByStar, gainFor()): v normal 0/21/99/100%, v hard
+      0/0/0/60% (n=80). tests/sim-ladder.test.ts, tests/tugofwar.test.ts.
 - [x] 2026-11-15 (F351, PR #368): Chop Chop's head start after F343 was still all in the third
       star (easy+0..3 v normal 7/10/11/55%, n=100). Measured each knob: the forgiven branches and
       the slower timer barely move it; the count's head start decides the race to 50, and the

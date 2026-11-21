@@ -9,7 +9,7 @@ import type { Stage } from '../engine/stage';
 import { STEP } from '../engine/stage';
 import { H, MID, W } from '../engine/world';
 import { countdownDy } from './demo';
-import { countdownSeats, starterLines, starterPill } from './starter';
+import { countdownSeats, starterLines, starterPill, starterPillDy } from './starter';
 
 const COUNT_STEP = 0.6;
 const OUTRO = 1.6;
@@ -158,11 +158,12 @@ export class Runner {
       }
       // Turn games: say who goes first, on both sides, so a rematch's swap reads as on purpose.
       const lines = this.resuming ? [null, null] : this.starterLines();
+      const pillDy = starterPillDy(dy);
       for (const p of [0, 1] as const) {
         const line = lines[p];
         if (!line || silentSeat(this.players, p)) continue;
         const mine = line === 'You go first!';
-        const y = p === 0 ? MID + 200 : MID - 200;
+        const y = p === 0 ? MID + pillDy : MID - pillDy;
         // A solid pill, so the game's own turn line underneath doesn't show through.
         const starter = this.game.firstMover?.();
         const ring = starter === 0 || starter === 1 ? this.players[starter].color : '#fff';
