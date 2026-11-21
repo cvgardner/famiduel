@@ -14,6 +14,7 @@
     "verify": "npm run typecheck && npm test && npm run build && npm run test:e2e && npm run playtest",
     "sim": "vite-node scripts/sim.ts",
     "sim:powers": "vite-node scripts/powers-sim.ts",
+    "pool": "vite-node scripts/pool.ts",
     "motion": "vite-node scripts/motion.ts",
     "swipes": "vite-node scripts/pingpong-swipes.ts",
     "golf": "vite-node scripts/golf.ts",

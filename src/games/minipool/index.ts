@@ -189,6 +189,9 @@ class MiniPoolView implements GameInstance {
             if (!silentSeat(players, e.kind)) pop(e.kind, left ? `${left} to go!` : 'Now the 8!', col, 24);
           } else if (!silentSeat(players, e.kind)) pop(e.kind, 'One of yours! ✓', col, 20);
         }
+      } else if (e.type === 'retry') {
+        // Head start: a plain miss forgiven, so the helped player shoots again.
+        if (!silentSeat(players, e.p)) pop(e.p, e.left ? `Another go! (${e.left} left)` : 'Another go!', players[e.p].color, 22);
       } else if (e.type === 'scratch') {
         both('Scratch! Turn over', '#ffffff', 22);
         fx.shake(4, 0.2);
@@ -418,6 +421,7 @@ class MiniPoolView implements GameInstance {
     if (g.longAim[p]) badges.push('🔭');
     if (g.bigPocket[p]) badges.push('🕳️');
     if (g.freezeOn[p]) badges.push(quiet ? '❄ frozen' : '❄ on you');
+    if (g.retries[p] > 0) badges.push(`↺${g.retries[p]}`);
     // Name, then one dot per ball still on the table (the 8 once they're all down), on the
     // top line; the status gets the whole second line.
     const right = lefty ? W - 74 : W - 16;

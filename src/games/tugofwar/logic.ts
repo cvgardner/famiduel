@@ -31,8 +31,11 @@ export const RULES = {
   line: 1,
   /** At assist 3 the assisted player's own line sits this close (they pull less far). */
   lineAt3: 0.8,
-  /** Pull strength at assist 0 and 3. */
-  gainAt3: 1.5,
+  /** Pull strength per head-start star (assist 0..3, in between is interpolated). Tug of War
+   *  is a tap-rate race, so a gain only wins once it closes the gap in taps a second (easy
+   *  4.3, normal 5.7, hard 7.2): a straight line to 1.5 did nothing at one star, and three
+   *  stars never caught hard (F353). */
+  gainByStar: [1, 1.3, 1.45, 1.75],
   /** Grip added per counted tap, and how fast it fades (seconds). Steady grip ≈ taps/s × tau. */
   tapPull: 1,
   tau: 0.35,
@@ -129,7 +132,7 @@ export class TugOfWar {
   ) {
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     this.line = [lerpAssist(players[0].assist, RULES.line, RULES.lineAt3), lerpAssist(players[1].assist, RULES.line, RULES.lineAt3)];
-    this.gain = [lerpAssist(players[0].assist, 1, RULES.gainAt3), lerpAssist(players[1].assist, 1, RULES.gainAt3)];
+    this.gain = [gainFor(players[0].assist), gainFor(players[1].assist)];
   }
 
   /** Power p's effect is running (Heave, Anchor, Steady Grip, or the Butter it put on the other player). */
@@ -292,6 +295,14 @@ export class TugOfWar {
     this.taps = [0, 0];
     this.events.push({ type: 'ready', round: this.round });
   }
+}
+
+/** Pull strength for a head start of `assist` stars (0..3), from RULES.gainByStar. */
+export function gainFor(assist: number): number {
+  const t = RULES.gainByStar;
+  const a = Math.max(0, Math.min(t.length - 1, assist));
+  const i = Math.min(t.length - 2, Math.floor(a));
+  return t[i] + (t[i + 1] - t[i]) * (a - i);
 }
 
 // ---------- Honest bot ----------

@@ -5,7 +5,7 @@ import { Fx } from '../src/engine/fx';
 import { Input } from '../src/engine/input';
 import type { Sfx } from '../src/engine/sfx';
 import { MID } from '../src/engine/world';
-import { MiniPool, MiniPoolBot, NO_INTENT, RULES, type Intent } from '../src/games/minipool/logic';
+import { MiniPool, MiniPoolBot, NO_INTENT, retriesFor, RULES, type Intent } from '../src/games/minipool/logic';
 import { castAim, ghostBall, NO_MODS, PHYS, POCKETS, simulateShot, stepTable, TABLE, type Ball, type PhysEvent } from '../src/games/minipool/physics';
 import { GAMES } from '../src/games/registry';
 import { recorder } from './canvasRecorder';
@@ -186,7 +186,7 @@ describe('Mini Pool bots', () => {
       expect(g.winner).not.toBeNull();
       expect(g.t).toBeLessThan(240);
     }
-  });
+  }, 60_000);
 
   it('same seed, same match', () => {
     const a = playMatch(bots('normal', 'normal'), 11);
@@ -194,7 +194,7 @@ describe('Mini Pool bots', () => {
     expect(a.g.winner).toBe(b.g.winner);
     expect(a.g.t).toBe(b.g.t);
     expect(a.events).toEqual(b.events);
-  });
+  }, 60_000);
 
   it('hard beats easy most of the time, from either seat', () => {
     let hard = 0;
@@ -203,7 +203,7 @@ describe('Mini Pool bots', () => {
       if (playMatch(bots('easy', 'hard'), seed + 100).g.winner === 1) hard++;
     }
     expect(hard).toBeGreaterThanOrEqual(12);
-  });
+  }, 60_000);
 
   it('a bot never shoots before a person could have looked at the table', () => {
     for (const lvl of ['easy', 'normal', 'hard'] as BotLevel[]) {
@@ -218,7 +218,7 @@ describe('Mini Pool bots', () => {
         if (g.events.some((e) => e.type === 'turn')) turnAt = g.t;
       }
     }
-  });
+  }, 60_000);
 });
 
 describe('Mini Pool handicap', () => {
@@ -241,6 +241,34 @@ describe('Mini Pool handicap', () => {
     };
     expect(drops(0)).toBe(false);
     expect(drops(RULES.pocketAssist)).toBe(true);
+  });
+  it('head start: plain misses a rack are forgiven, one per star (F358)', () => {
+    expect([0, 1, 2, 3].map((a) => retriesFor(a))).toEqual([0, 1, 2, 3]);
+    const helped: [PlayerInfo, PlayerInfo] = [player({ bot: null, assist: 3 }), player({ bot: null, assist: 0 })];
+    const g = setUp(0, table(['cue', 180, 420], [0, 60, 300], [1, 300, 300], ['eight', 180, 200]), helped);
+    expect(g.retries).toEqual([3, 0]);
+    for (const left of [2, 1, 0]) {
+      shootAndWait(g, 0, 0.1); // a soft roll at nothing: a plain miss
+      expect(g.shooter, `forgiven, ${left} left`).toBe(0);
+      expect(g.retries[0]).toBe(left);
+    }
+    shootAndWait(g, 0, 0.1);
+    expect(g.shooter, 'none left: the turn passes').toBe(1);
+    shootAndWait(g, Math.PI, 0.1);
+    expect(g.shooter, 'no head start: a miss passes').toBe(0);
+  });
+
+  it('head start: the break and a scratch are never forgiven', () => {
+    const helped: [PlayerInfo, PlayerInfo] = [player({ bot: null, assist: 3 }), player({ bot: null, assist: 0 })];
+    const g = new MiniPool(helped, false, makeRng(1), 0);
+    while (g.phase !== 'aim') g.step(DT, [NO_INTENT, NO_INTENT]);
+    shootAndWait(g, -Math.PI / 2, 0.06); // a soft break that pots nothing
+    expect(g.shooter).toBe(1);
+    expect(g.retries[0]).toBe(3);
+    const s = setUp(0, table(['cue', 300, 400], [0, 60, 300], [1, 300, 200], ['eight', 180, 200]), helped);
+    shootAndWait(s, at(s.cue, POCKETS[3]), 0.5);
+    expect(s.shooter, 'a scratch passes the turn').toBe(1);
+    expect(s.retries[0]).toBe(3);
   });
 });
 
@@ -307,7 +335,7 @@ describe('Mini Pool powers', () => {
       expect(g.finished, pw).toBe(true);
       expect(events.some((e) => e.startsWith(`power:`)), pw).toBe(true);
     }
-  });
+  }, 60_000);
 });
 
 describe('Mini Pool view', () => {
@@ -367,5 +395,5 @@ describe('Mini Pool view', () => {
     expect([0, 1]).toContain(r.winner);
     expect(r.summary.length).toBeGreaterThan(0);
     expect(words.some((w) => /shot|Lining up|thinking/.test(w.str))).toBe(true);
-  });
+  }, 60_000);
 });

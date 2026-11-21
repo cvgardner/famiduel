@@ -31,8 +31,13 @@ export const RULES = {
   pocketAssist: 5,
   /** Extra pocket capture radius from Big Pockets. */
   bigPocket: 11,
-  /** A rack with this many shots ends: fewer balls left wins it (bots never stall, but be safe). */
-  rackShotCap: 40,
+  /** A rack with this many shots ends: fewer balls left wins it (so a rack can't go on for
+   *  ever). At 40, two easy players ended 30% of racks here, mostly both left on the 8, so the
+   *  rack went to "fewer balls left" (or, level, to the one who didn't break) instead of the 8;
+   *  at 80 it's 3% for ~13 s more a match (F357, `npm run pool`). */
+  rackShotCap: 80,
+  /** Head start: plain misses a rack forgiven (the helped player shoots again), per star. */
+  assistRetries: [0, 1, 2, 3],
   /** Where the cue ball starts (and comes back after a scratch): this far into the shooter's half. */
   spotDy: 115,
   energyShot: 0.14,
@@ -55,10 +60,16 @@ export type Event =
   | { type: 'shot'; p: PlayerIndex; x: number; y: number; power: number }
   | PhysEvent
   | { type: 'scratch'; p: PlayerIndex }
+  | { type: 'retry'; p: PlayerIndex; left: number }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'frozen'; p: PlayerIndex; id: number }
   | { type: 'rackWon'; p: PlayerIndex; how: RackEnd }
   | { type: 'win'; p: PlayerIndex };
+
+/** Forgiven misses a rack for a head start of `assist` stars. */
+export function retriesFor(assist: number): number {
+  return RULES.assistRetries[Math.max(0, Math.min(3, Math.round(assist)))];
+}
 
 export class MiniPool {
   balls: Ball[] = [];
@@ -71,6 +82,8 @@ export class MiniPool {
   /** Increments each time a turn starts (bots use it to know a new turn began). */
   turnId = 0;
   shotsThisRack = 0;
+  /** Head-start misses still forgiven this rack ("Another go!"). */
+  retries: [number, number] = [0, 0];
   /** Racks won. */
   score: [number, number] = [0, 0];
   energy: [Energy, Energy];
@@ -192,6 +205,7 @@ export class MiniPool {
 
   /** Racks the balls: the 8 in the middle of the table, the point toward the breaker. */
   private setRack(): void {
+    this.retries = [retriesFor(this.players[0].assist), retriesFor(this.players[1].assist)];
     const r = PHYS.r;
     const s = this.breaker === 0 ? 1 : -1;
     const dx = r * 2 + 0.6;
@@ -333,6 +347,11 @@ export class MiniPool {
       return this.beginTurn(q, false);
     }
     if (mine > 0) return this.beginTurn(p, true);
+    if (this.retries[p] > 0 && this.shotsThisRack > 1) {
+      this.retries[p]--;
+      this.events.push({ type: 'retry', p, left: this.retries[p] });
+      return this.beginTurn(p, true);
+    }
     this.beginTurn(q, false);
   }
 
