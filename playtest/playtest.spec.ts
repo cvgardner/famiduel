@@ -339,8 +339,13 @@ async function smallFonts(page: Page, screen: string): Promise<string[]> {
       const el = n.parentElement;
       if (!el || !el.checkVisibility({ visibilityProperty: true, opacityProperty: true })) continue;
       if (el.getBoundingClientRect().width === 0) continue;
-      const px = parseFloat(getComputedStyle(el).fontSize);
-      if (px < min - 0.01) out.push(`${el.className || el.tagName} "${str.slice(0, 20)}" ${px}px`);
+      // SVG text (the home cards' pictures) is sized in the picture's own units: measure what
+      // reaches the screen, its font size times the picture's scale.
+      const svg = el instanceof SVGGraphicsElement ? el.getScreenCTM() : null;
+      const scale = svg ? Math.hypot(svg.a, svg.b) : 1;
+      const px = Math.round(parseFloat(getComputedStyle(el).fontSize) * scale * 10) / 10;
+      const name = typeof el.className === 'string' ? el.className : el.tagName;
+      if (px < min - 0.01) out.push(`${name || el.tagName} "${str.slice(0, 20)}" ${px}px`);
     }
     return out;
   }, MIN_FONT);

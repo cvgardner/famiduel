@@ -134,8 +134,8 @@ const PICS: Record<string, string> = {
   // DRAW! in the middle and both buttons ready; you tap first.
   quickdraw:
     sand +
-    `<rect x="14" y="16" width="36" height="12" rx="6" fill="#5eead4" stroke="#fff" stroke-width="1.2"/>` +
-    `<text x="32" y="25.2" text-anchor="middle" font-size="8.5" font-weight="900" font-family="system-ui, sans-serif" fill="#0b3b36">DRAW!</text>` +
+    `<rect x="12" y="15.5" width="40" height="13" rx="6.5" fill="#5eead4" stroke="#fff" stroke-width="1.2"/>` +
+    `<text x="32" y="25.6" text-anchor="middle" font-size="9.5" font-weight="900" font-family="system-ui, sans-serif" fill="#0b3b36">DRAW!</text>` +
     dot(32, 7, 5, T, OUTLINE) +
     `<circle cx="32" cy="37" r="8.5" fill="none" stroke="#fff" stroke-width="1" opacity="0.7"/>` +
     dot(32, 37, 5, Y, OUTLINE),
