@@ -83,7 +83,7 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
   its share link / leaderboard is not built.
 - App Store accessibility labels we can claim and the test behind each:
   docs/accessibility-labels.md (Larger Text: Text size > Largest puts home and settings at 2x;
-  the player sheet at 2x is what's left before claiming it).
+  the player and Lock to FamiDuel sheets too since F359, so the menus can claim it).
 - Settled (don't reopen without new evidence): Sea Battle's seat bias was noise (2000
   mirrored games, 49-50%); Minigolf's easy bot was made weaker for small kids (+0.8 over par).
 - Mini Pool (Chris, 20 Nov 2026: "build the mini pool"): one rack, 3 balls each in the seat

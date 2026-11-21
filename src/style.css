@@ -52,6 +52,8 @@
    phones) still take the intro down to 1. */
 :root[data-largesttext] { --ts: 2; }
 :root[data-largesttext] :is(#intro, #play, #result, #tourney), :root[data-largesttext] .modal { --ts: 1.2; }
+/* F359: one-person sheets (player, stay-in) are full-width menus: 2x like home and settings. */
+:root[data-largesttext] .modal.one { --ts: 2; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
 body { overscroll-behavior: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
@@ -130,6 +132,13 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* The outer side gives 4px back at large text: "Player 2" at 28px was 2px short of its line at 320. */
 .player-chip[data-p="0"] { padding-left: clamp(6px, calc(10px - 16px * (var(--ts) - 1.5)), 10px); }
 .player-chip[data-p="1"] { padding-right: clamp(6px, calc(10px - 16px * (var(--ts) - 1.5)), 10px); }
+/* F359: at 2x on a 320 px phone "Player 2" ran 2 px over its chip ("Playe…"); the card and
+   the chips' outer edges give back 8 px of the side padding. Only on narrow phones: wider chips at 390 px would put the name back beside the dot. */
+@media (max-width: 340px) {
+  :root[data-largesttext] .versus { padding-inline: 8px; }
+  :root[data-largesttext] .player-chip[data-p="0"] { padding-left: 6px; }
+  :root[data-largesttext] .player-chip[data-p="1"] { padding-right: 6px; }
+}
 .player-chip small { color: var(--dim); font-size: calc(12px * var(--ts)); font-weight: 700; }
 .player-chip small:not(.botlbl):not(.edit) { color: #e0a800; }
 :root:not([data-theme="light"]) .player-chip small:not(.botlbl):not(.edit) { color: var(--gold); }
@@ -235,9 +244,11 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .modal { position: fixed; inset: 0; background: rgba(5,4,15,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10; padding: 16px; }
 .sheet { width: 100%; max-width: 380px; max-height: 100%; overflow-y: auto; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
 .sheet h2 { margin: 0; text-align: center; }
+/* F359: one-person sheets grow their title with Text size like the rest of their words. */
+.modal.one .sheet h2 { font-size: calc(24px * var(--ts)); }
 .sheet .why { margin: -6px 0 0; text-align: center; color: var(--dim); font-weight: 700; font-size: calc(15px * var(--ts)); }
-.field { display: flex; flex-direction: column; gap: 6px; font-weight: 800; }
-.field small { color: var(--dim); font-weight: 600; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 800; font-size: calc(16px * var(--ts)); }
+.field small { color: var(--dim); font-weight: 600; font-size: calc(13px * var(--ts)); }
 .field input { font: inherit; font-weight: 700; padding: 10px 12px; border-radius: 12px; border: 0; background: var(--surface-2); color: var(--text); }
 /* Each swatch is a 44px-plus tap target; the colour dot is drawn inside it. */
 .swatches { display: flex; }
