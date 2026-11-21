@@ -258,3 +258,48 @@ export const rpsPerson: Person = async (page, ms, seed) => {
   }
   return { gestures, moves: made };
 };
+
+/**
+ * Mini Pool as whoever's turn it is (a person seat): put a finger down in their own half,
+ * pull back toward their own edge and let go (src/games/minipool/index.ts). Returns shots
+ * taken per seat.
+ */
+export const miniPoolPerson: Person = async (page, ms) => {
+  const box = await worldBox(page);
+  const moves = [0, 0];
+  let gestures = 0;
+  const end = Date.now() + ms;
+  const at = (x: number, y: number) => ({ x: box.x + (x / 360) * box.width, y: box.y + (y / 640) * box.height });
+  while (Date.now() < end) {
+    const turn = await page
+      .evaluate(() => {
+        type V = { ctx: { players: { bot: string | null }[] }; game: { phase: string; shooter: number } };
+        const v = (window as unknown as { __famiduel: { runner: { game: V } | null } }).__famiduel.runner?.game;
+        if (!v || v.game.phase !== 'aim' || v.ctx.players[v.game.shooter]?.bot) return -1;
+        return v.game.shooter;
+      })
+      .catch(() => -1);
+    if (turn < 0) {
+      await sleep(120);
+      continue;
+    }
+    const s = turn === 0 ? 1 : -1;
+    const id = 400 + (gestures % 50);
+    const f = (t: string, x: number, y: number) => {
+      const c = at(x, y);
+      return page.evaluate(([i, tt, cx, cy]) => (window as unknown as { __finger: (...a: unknown[]) => void }).__finger(i, tt, cx, cy), [id, t, c.x, c.y] as const);
+    };
+    const y0 = 320 + s * 150;
+    await f('pointerdown', 180, y0);
+    for (let k = 1; k <= 4; k++) {
+      await sleep(40);
+      await f('pointermove', 180, y0 + s * 20 * k);
+    }
+    await sleep(60);
+    await f('pointerup', 180, y0 + s * 80);
+    gestures++;
+    moves[turn]++;
+    await sleep(900);
+  }
+  return { gestures, moves };
+};

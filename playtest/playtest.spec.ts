@@ -13,7 +13,7 @@ import { PLAYER_COLORS } from '../src/core/colors';
 import { buildGrid, LAYOUTS } from '../src/games/tanks/mazes';
 import { domContrast, faintLabels } from './domcontrast';
 import { installFingers, monkey, tapWorld, worldBox } from './monkey';
-import { checkersPerson, fourInARowPerson, rpsPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
+import { checkersPerson, fourInARowPerson, miniPoolPerson, rpsPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
 
 const OUT = path.resolve('playtest-report');
 const SECONDS = Number(process.env.PLAYTEST_SECONDS ?? 8);
@@ -1225,7 +1225,7 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
 });
 
 // Solo games whose next point waits for the person's own move: a person plays them (F125).
-const WAITS_FOR_PERSON = ['seabattle', 'rps'];
+const WAITS_FOR_PERSON = ['seabattle', 'rps', 'minipool'];
 
 test('play the bot: one tap on home makes every game a solo match, with its own tally', async ({ page }) => {
   const errors: string[] = [];
@@ -3002,6 +3002,7 @@ test('rock paper scissors: two people pick behind a look-away cover, one at a ti
 const PEOPLE: Record<string, Person> = {
   seabattle: seaBattlePerson,
   rps: rpsPerson,
+  minipool: miniPoolPerson,
   checkers: checkersPerson,
   fourinarow: fourInARowPerson,
   tictactoe: ticTacToePerson,
