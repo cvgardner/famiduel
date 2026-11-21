@@ -2023,6 +2023,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and checks those screens stay 1.2 (1 for an iPhone SE intro). Not checked in a browser
       here: the cloud env had no Chromium, so `npm run verify` ran typecheck, unit tests and
       build only; run the e2e and playtest steps before merging.
+- [x] 2026-11-21 (F361, PR #TBD): Tank Duel: a bonk's (and a mine's) word for each seat no longer
+      lands on one line: each seat's "BONK!" was moved off the tanks on its own, and 680 of 4888
+      readable pair frames (14%) printed the two words on each other. The top seat's word now stays
+      a line below the bottom seat's, so they rise apart: 0. tests/tanks-bonk-pair.test.ts.
+- [x] 2026-11-21 (F348, measured, no PR): Tank Duel kid+3 v easy is still 0% after F344's reach
+      ring (matches last 45 s vs the plain kid's 26 s); the reach rings never covered a shell path or
+      FIRE ring in 320 px Bigger-text frames. F21 (a mashing-kid head start) stays Chris's call.
 - [ ] Larger Text, the rest: the player sheet and the grown-ups sheets at 2x (one-person
       sheets, likely to fit: segments wrap, the sheet scrolls), then the tournament screen.
       The split screens (intro, result, pause how-to) stay at Bigger: under half a phone each.
