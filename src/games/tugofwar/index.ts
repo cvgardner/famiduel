@@ -18,6 +18,11 @@ const MUD = '#7a5230';
 /** The colours most of the play area is painted in (tests read pops against them). */
 export const SURFACES: readonly string[] = [GRASS_NEAR, GRASS_FAR, MUD];
 /** A seat colour lifted until a small pop reads behind its outline on the grass and mud. */
+/**
+ * F375: round stars. An empty star was a dark blot that read like the grass tufts beside
+ * it, so every star now has a light outline (3:1 on both grasses) and a won star is gold.
+ */
+export const STAR = { outline: '#ffffff', empty: 'rgba(0,0,0,0.3)', won: COLORS.gold, line: 2 } as const;
 export function seatPop(color: string): string {
   return SURFACES.reduce((c, s) => liftOn(c, POP_OUTLINE, s), popColor(color));
 }
@@ -365,7 +370,7 @@ class TugOfWarView implements GameInstance {
     const c = this.ctx.players[p].color;
     this.drawPuller(gx, p, c);
     this.drawPad(gx, p, c);
-    for (let i = 0; i < RULES.winRounds; i++) star(gx, L.starX, L.starY + i * 26, 10, i < g.score[p] ? COLORS.gold : 'rgba(0,0,0,0.3)');
+    for (let i = 0; i < RULES.winRounds; i++) star(gx, L.starX, L.starY + i * 26, 11, i < g.score[p] ? STAR.won : STAR.empty);
     if (silentSeat(this.ctx.players, p)) return;
     if (g.phase === 'ready') {
       text(gx, `Round ${g.round}`, W / 2, L.cardY - 14, { size: 18, color: '#ffffff', stroke: 'rgba(0,0,0,0.45)' });
@@ -486,8 +491,8 @@ function star(gx: G, x: number, y: number, r: number, fill: string): void {
   gx.closePath();
   gx.fillStyle = fill;
   gx.fill();
-  gx.strokeStyle = 'rgba(0,0,0,0.35)';
-  gx.lineWidth = 1.5;
+  gx.strokeStyle = STAR.outline;
+  gx.lineWidth = STAR.line;
   gx.stroke();
 }
 
