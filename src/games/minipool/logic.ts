@@ -31,8 +31,11 @@ export const RULES = {
   pocketAssist: 5,
   /** Extra pocket capture radius from Big Pockets. */
   bigPocket: 11,
-  /** A rack with this many shots ends: fewer balls left wins it (bots never stall, but be safe). */
-  rackShotCap: 40,
+  /** A rack with this many shots ends: fewer balls left wins it (so a rack can't go on for
+   *  ever). At 40, two easy players ended 30% of racks here, mostly both left on the 8, so the
+   *  rack went to "fewer balls left" (or, level, to the one who didn't break) instead of the 8;
+   *  at 80 it's 3% for ~13 s more a match (F357, `npm run pool`). */
+  rackShotCap: 80,
   /** Where the cue ball starts (and comes back after a scratch): this far into the shooter's half. */
   spotDy: 115,
   energyShot: 0.14,

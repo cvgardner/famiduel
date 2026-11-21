@@ -21,4 +21,11 @@ describe('Mini Pool bot levels feel different', () => {
     // 2026-11-21 (n=40): easy+0..3 v normal 8 / 15 / 23 / 23%.
     expect(a3).toBeGreaterThan(a0);
   }, 120_000);
+
+  it('two easy players finish the rack on the 8, not at the shot cap (F357)', () => {
+    const r = poolPairing('easy', 'easy', 20);
+    const racks = r.ends.eight + r.ends.early8 + r.ends.scratch8 + r.ends.cap;
+    // 2026-11-21 (n=40): cap 40 -> 30% of easy racks ended at the cap; cap 80 -> 3%.
+    expect(r.ends.cap / racks).toBeLessThanOrEqual(0.1);
+  }, 120_000);
 });
