@@ -2753,3 +2753,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2.5% of readable frames, bound 2%): when a crowd of "+N" pops left no free line out to the
       frogs, fx.pop stacked the name back onto the clock. Now the pops in its way fade and it keeps
       its line (fx.fadeInWay(), as Tank Duel's hits do): 0 at 1x and Bigger text.
+- [x] 2026-11-21 (F401): Mini Pool's first match: each person's in-play finger card sat on the
+      "Sink your 3, then the 8" goal card for about a second after the countdown ("then the 8"
+      crossed by the card). `demoAt` 0.65 puts it between the rack and the goal card, still
+      beside the cue ball (measured 397-435 units down at 320 px, 388-444 on a 390 px phone; the
+      goal card starts at 461). tests/demo.test.ts checks the boxes.

@@ -27,6 +27,9 @@ const STRIP_CARD = 'rgba(10,12,28,0.85)';
 const CARD = 'rgba(10,12,28,0.88)';
 /** The "3 2 1" digit sits past the cue ball's spot so it never covers the ball or the rack. */
 const COUNT_DY = 190;
+/** Centre of the "Sink your 3, then the 8" card (68 tall) from the top, for seat 0. */
+export const INTRO_Y = MID + 175;
+export const INTRO_H = 68;
 /** F378: room kept between a pop's words and a ball. */
 export const POP_BALL_GAP = 4;
 
@@ -504,9 +507,9 @@ class MiniPoolView implements GameInstance {
   private drawIntro(gx: G, p: PlayerIndex): void {
     const g = this.game;
     const k = Math.min(1, (RULES.introTime - g.timer) / 0.25, g.timer / 0.25);
-    const y = MID + 175;
+    const y = INTRO_Y;
     gx.globalAlpha = Math.max(0, k);
-    rrect(gx, 30, y - 34, W - 60, 68, 14, CARD);
+    rrect(gx, 30, y - INTRO_H / 2, W - 60, INTRO_H, 14, CARD);
     text(gx, `Sink your ${RULES.ballsEach}, then the 8`, W / 2, y - 12, { size: 20, color: this.ctx.players[p].color, weight: 900 });
     text(gx, g.breaker === p ? 'You break first' : `${this.ctx.players[g.breaker].name} breaks first`, W / 2, y + 14, { size: 15, color: '#ffffff' });
     gx.globalAlpha = 1;

@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import games from '../content/games.json';
 import { besideCountdown, DEMO_MATCHES, demoHelpHtml, demoHtml, firstMatchOf, GESTURES, HelpMemory, howToHalfHtml, howToText, isGesture, PLAY_DEMO_MS, PLAY_DEMO_OUT, PLAY_DEMO_OUT_KEEPER, playDemoHtml, SHOOTER_LOOP, playDemoOut, powerStatus, showsDemo } from '../src/app/demo';
+import { INTRO_H as MINIPOOL_INTRO_H, INTRO_Y as MINIPOOL_INTRO_Y } from '../src/games/minipool/index';
+import { H, MID } from '../src/engine/world';
 
 describe('ghost finger demo', () => {
   it('every game names a known gesture', () => {
@@ -46,6 +48,16 @@ describe('ghost finger demo', () => {
       const at = (g as { demoAt?: number }).demoAt;
       if (at !== undefined) expect(at > 0.5 && at < 0.95, g.id).toBe(true);
     }
+  });
+
+  it('F401: Mini Pool\'s first-match finger sits between the rack and the goal card', () => {
+    const at = (games.games.find((g) => g.id === 'minipool') as { demoAt?: number }).demoAt!;
+    // The card is fixed CSS size, so in world units it is tallest on a ~390 px wide phone:
+    // measured 57 units there (38 at 320 px). Its centre is at * H on seat 0's side.
+    const half = 30;
+    expect(at * H + half, 'above "Sink your 3, then the 8"').toBeLessThan(MINIPOOL_INTRO_Y - MINIPOOL_INTRO_H / 2);
+    expect(at * H - half, 'below the rack').toBeGreaterThan(MID + 50);
+    expect(besideCountdown(at), 'beside the cue ball, not on it').toBe(true);
   });
 
   it('renders a finger for every gesture, hidden from screen readers', () => {
