@@ -14,6 +14,8 @@ describe('home card pictures', () => {
       expect(svg, `${g.id} shows the top player`).toContain('var(--t');
       // A still: nothing on the home screen moves (and reduce motion has nothing to stop).
       expect(svg).not.toContain('<animate');
+      // Pictures, not words: SVG text would be read as menu text (size and contrast probes).
+      expect(svg, `${g.id} has no text`).not.toContain('<text');
       // No stray NaN or undefined from a helper.
       expect(svg).not.toMatch(/NaN|undefined/);
     }
