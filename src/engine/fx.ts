@@ -170,6 +170,15 @@ export class Fx {
   }
 
   /**
+   * F387: the still-bright pops that a pop here would be moved off fade out within `t` seconds,
+   * so a pop that must keep its line (Tank Duel: a hit's word with no clear line inside the
+   * arena was stacked off another pop, out past the edge) takes it instead.
+   */
+  fadeInWay(str: string, x: number, y: number, size: number, player: 0 | 1, t = 0.12): void {
+    for (const f of this.floaters) if (inWay(f, str, x, y, size, player)) f.life = Math.min(f.life, t);
+  }
+
+  /**
    * F240: pops whose words a round piece of radius r at (x, y) now covers fade out within `t`
    * seconds (Air Hockey: a paddle racing to the served puck ran into its player's GOAL!). A pop
    * younger than `minAge` is left alone, so every pop is read for a moment.
