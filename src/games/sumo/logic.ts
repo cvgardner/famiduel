@@ -49,6 +49,12 @@ export const RULES = {
   poundWindup: 0.35,
   poundPush: 430,
   poundRange: 260,
+  /** Iron Feet: friction while your feet grip, and the share of any shove (bump, pound) you still feel. */
+  ironFriction: 9,
+  ironTake: 0.3,
+  /** Dash power: the arrow freezes and glows for dashWindup seconds, then you shoot off at dashBurst. */
+  dashWindup: 0.25,
+  dashBurst: 720,
   /** Seconds after contact during which the rope will not catch you (a push still counts). */
   ropeGrace: 0.7,
   /** Speed a caught wrestler bounces back off the rope, as a fraction of their outward speed. */
@@ -77,6 +83,10 @@ export type Wrestler = {
   grow: number;
   slip: number;
   pound: number;
+  /** Seconds left on Iron Feet. */
+  iron: number;
+  /** Seconds left on the Dash power's windup (the burst comes when it runs out). */
+  dash: number;
   out: boolean;
   /** Seconds since this wrestler last touched the other one (or was pounded). */
   freeT: number;
@@ -96,6 +106,8 @@ export type Event =
   /** The rope caught a wrestler who was about to step out on their own. */
   | { type: 'teeter'; p: PlayerIndex; x: number; y: number; left: number }
   | { type: 'pound'; p: PlayerIndex; x: number; y: number }
+  /** The Dash power's burst. */
+  | { type: 'zoom'; p: PlayerIndex; x: number; y: number }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'win'; p: PlayerIndex | null };
 
@@ -128,7 +140,7 @@ export class Sumo {
       x: 0, y: 0, vx: 0, vy: 0, angle: 0, spin: 1, charging: false, charge: 0, cooldown: 0,
       baseMass: lerpAssist(players[p].assist, RULES.mass, RULES.massMax),
       margin: lerpAssist(players[p].assist, 0, RULES.marginMax),
-      grow: 0, slip: 0, pound: 0, out: false, freeT: 99, saves: 0,
+      grow: 0, slip: 0, pound: 0, iron: 0, dash: 0, out: false, freeT: 99, saves: 0,
     });
     this.wrestlers = [mk(0), mk(1)];
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
@@ -156,7 +168,19 @@ export class Sumo {
   }
 
   friction(p: PlayerIndex): number {
-    return this.wrestlers[p].slip > 0 ? RULES.slipFriction : RULES.friction;
+    const w = this.wrestlers[p];
+    // Soap beats iron: Slippery Floor on someone with Iron Feet still makes them slide.
+    return w.slip > 0 ? RULES.slipFriction : w.iron > 0 ? RULES.ironFriction : RULES.friction;
+  }
+
+  /** The share of a shove this wrestler feels (Iron Feet feels only a little of it). */
+  take(p: PlayerIndex): number {
+    return this.wrestlers[p].iron > 0 ? RULES.ironTake : 1;
+  }
+
+  /** How far the Dash power's burst would carry this wrestler on their floor. */
+  dashReach(p: PlayerIndex): number {
+    return RULES.dashBurst / this.friction(p);
   }
 
   /** Dash speed for a charge in 0..1. */
@@ -178,7 +202,7 @@ export class Sumo {
       w.charging = false;
       w.charge = 0;
       w.cooldown = 0;
-      w.grow = w.slip = w.pound = 0;
+      w.grow = w.slip = w.pound = w.iron = w.dash = 0;
       w.out = false;
       w.freeT = 99;
       w.saves = Math.round(lerpAssist(this.players[p].assist, RULES.ropeSaves, RULES.ropeSavesMax));
@@ -221,11 +245,16 @@ export class Sumo {
       if (this.powersOn && this.players[p].power) e.charge(RULES.energyPerSec * dt, this.score[p] < this.score[other(p)]);
       w.grow = Math.max(0, w.grow - dt);
       w.slip = Math.max(0, w.slip - dt);
+      w.iron = Math.max(0, w.iron - dt);
       w.cooldown = Math.max(0, w.cooldown - dt);
       w.freeT += dt;
       if (w.pound > 0) {
         w.pound -= dt;
         if (w.pound <= 0) this.groundPound(p);
+      }
+      if (w.dash > 0) {
+        w.dash -= dt;
+        if (w.dash <= 0) this.zoom(p);
       }
       if (this.powersOn && intents[p].power) this.firePower(p);
       this.control(p, intents[p], dt);
@@ -236,6 +265,8 @@ export class Sumo {
 
   private control(p: PlayerIndex, intent: Intent, dt: number): void {
     const w = this.wrestlers[p];
+    // Dash windup: the arrow holds still (everyone sees where you will go) and the button rests.
+    if (w.dash > 0) return;
     if (intent.hold && w.cooldown <= 0) {
       if (!w.charging) {
         w.charging = true;
@@ -287,20 +318,24 @@ export class Sumo {
     const ny = dy / d;
     const ma = this.mass(0);
     const mb = this.mass(1);
-    // Push apart, weighted by mass.
+    // Push apart, weighted by mass (Iron Feet stand their ground: they give way less).
     const overlap = R - d;
-    a.x -= nx * overlap * (mb / (ma + mb));
-    a.y -= ny * overlap * (mb / (ma + mb));
-    b.x += nx * overlap * (ma / (ma + mb));
-    b.y += ny * overlap * (ma / (ma + mb));
+    const ga = (mb / (ma + mb)) * this.take(0);
+    const gb = (ma / (ma + mb)) * this.take(1);
+    const share = overlap / (ga + gb);
+    a.x -= nx * share * ga;
+    a.y -= ny * share * ga;
+    b.x += nx * share * gb;
+    b.y += ny * share * gb;
     const vn = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
     a.freeT = b.freeT = 0;
     if (vn >= 0) return;
     const j = (-(1 + RULES.restitution) * vn) / (1 / ma + 1 / mb);
-    a.vx -= (j / ma) * nx;
-    a.vy -= (j / ma) * ny;
-    b.vx += (j / mb) * nx;
-    b.vy += (j / mb) * ny;
+    // Iron Feet feel only a share of the shove; the other wrestler bounces off as usual.
+    a.vx -= (j / ma) * nx * this.take(0);
+    a.vy -= (j / ma) * ny * this.take(0);
+    b.vx += (j / mb) * nx * this.take(1);
+    b.vy += (j / mb) * ny * this.take(1);
     capSpeed(a);
     capSpeed(b);
     const strength = -vn;
@@ -404,6 +439,12 @@ export class Sumo {
       w.grow = power.duration ?? 3;
     } else if (power.id === 'slip') {
       foe.slip = power.duration ?? 3.5;
+    } else if (power.id === 'iron') {
+      w.iron = power.duration ?? 3;
+    } else if (power.id === 'dash') {
+      w.dash = RULES.dashWindup;
+      w.charging = false;
+      w.charge = 0;
     }
     this.events.push({ type: 'power', p, id: power.id });
   }
@@ -420,12 +461,23 @@ export class Sumo {
     const dy = foe.y - w.y;
     const d = Math.hypot(dx, dy) || 1;
     const fall = clamp(1 - d / RULES.poundRange, 0.3, 1);
-    const sp = (RULES.poundPush * fall) / this.mass(q);
+    const sp = (RULES.poundPush * fall * this.take(q)) / this.mass(q);
     foe.vx += (dx / d) * sp;
     foe.vy += (dy / d) * sp;
     foe.charging = false;
     foe.charge = 0;
     capSpeed(foe);
+  }
+
+  /** The Dash power's burst: shoot off the way the (frozen) arrow points. */
+  private zoom(p: PlayerIndex): void {
+    const w = this.wrestlers[p];
+    w.dash = 0;
+    w.vx += Math.cos(w.angle) * RULES.dashBurst;
+    w.vy += Math.sin(w.angle) * RULES.dashBurst;
+    capSpeed(w);
+    w.cooldown = RULES.dashCooldown;
+    this.events.push({ type: 'zoom', p, x: w.x, y: w.y });
   }
 }
 
@@ -564,6 +616,19 @@ export class SumoBot {
     if (id === 'pound') return gap < 120 && foeD > Math.hypot(me.x - RULES.cx, me.y - RULES.cy);
     if (id === 'grow') return gap < 140;
     if (id === 'slip') return foeD > game.ringR() * 0.4;
+    const myD = Math.hypot(me.x - RULES.cx, me.y - RULES.cy);
+    if (id === 'iron') {
+      // Plant your feet when a shove is coming: they are winding up a big dash at you, a pound
+      // is about to land, or they are right on you while you stand near the rope.
+      const aimedAtMe = Math.abs(angleDiff(foe.angle, Math.atan2(me.y - foe.y, me.x - foe.x))) < 0.45;
+      return (foe.charging && foe.charge > 0.45 && aimedAtMe && gap < 260) || (foe.pound > 0 && gap < 160) || (foe.dash > 0 && aimedAtMe) || (gap < 70 && myD > game.ringR() * 0.6);
+    }
+    if (id === 'dash') {
+      // Zoom when the arrow already points at them, they are within reach and stand further
+      // out than you (so the hit sends them toward the rope, not you past them).
+      const toFoe = Math.atan2(foe.y - me.y, foe.x - me.x);
+      return !me.charging && Math.abs(angleDiff(toFoe, me.angle)) < 0.18 && gap < game.dashReach(this.p) + 40 && foeD > myD - 10;
+    }
     return false;
   }
 }

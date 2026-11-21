@@ -1,5 +1,6 @@
 // The app shell: home screen with the game grid and family scoreboard, player
 // cards, the split-screen "pick your power" intro, the match and the results.
+import { weeklyPowers, type PowerTable } from '../core/rotation';
 import { BIG_TEXT, setTextScale } from '../engine/draw';
 import { setBigHands } from '../engine/widgets';
 import gamesJson from '../../content/games.json';
@@ -33,7 +34,7 @@ import { makeMoney, type Money } from '../engine/ads';
 export type GameMeta = (typeof gamesJson.games)[number];
 export const META: GameMeta[] = gamesJson.games;
 const SHOW_ALL = typeof location !== 'undefined' && new URLSearchParams(location.search).has('all');
-const POWERS = powersJson.games as Record<string, PowerDef[]>;
+const POWER_TABLE = powersJson as unknown as PowerTable;
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string, root: ParentNode = document) => root.querySelector(sel) as T;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -559,7 +560,7 @@ export class App {
     if (!meta || !GAMES[id]) return;
     this.current = meta;
     this.picks = [null, null];
-    const powers = this.store.data.settings.powers ? (POWERS[id] ?? []) : [];
+    const powers = this.store.data.settings.powers ? this.powersFor(id) : [];
     const ready: [boolean, boolean] = [false, false];
     const intro = $('#intro');
     this.show('intro');
@@ -687,6 +688,18 @@ export class App {
       }
     }
     refresh();
+  }
+
+  /** The day the weekly powers are read for: today, unless a test or the console sets it. */
+  powerDate: Date | null = null;
+
+  /**
+   * This week's 3 powers for a game (src/core/rotation.ts). A tournament keeps the week it
+   * started in, so its games offer the same powers even when it runs past Sunday night.
+   */
+  powersFor(id: string): PowerDef[] {
+    const t = this.tourneyMatch ? this.store.data.tournament : null;
+    return weeklyPowers(POWER_TABLE, id, this.powerDate ?? (t ? new Date(t.started) : new Date()));
   }
 
   private assistFor(p: PlayerIndex): number {

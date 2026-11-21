@@ -4,6 +4,7 @@
 // it back chops, and a sideways or diagonal swipe through the ball curves it. The ball shows its spin, a shadow,
 // a bounce ring on the table and a trail that heats up as the rally grows.
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
+import { blink } from '../../engine/calm';
 import { alpha, circle, COLORS, facing, glow, line, MIN_TEXT, noGlow, rrect, scaledSize, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
@@ -57,6 +58,8 @@ type Trail = { x: number; y: number; color: string };
 /** Trail and glow colour for each kind of shot. */
 const SHOT_COLOR: Record<Shot, string> = { serve: '#ffffff', block: '#ffffff', drive: '#ffd54a', smash: '#ff7a3d', chop: '#6ad1ff' };
 const CURVE_COLOR = '#c08bff';
+/** Wobble Ball: the armed paddle, the swaying ball and its trail. */
+const WOBBLE_COLOR = '#5eead4';
 
 class PingPongView implements GameInstance {
   readonly game: PingPong;
@@ -156,6 +159,9 @@ class PingPongView implements GameInstance {
         if (big) {
           fx.shake(7, 0.2);
           this.popBoth('SMASH!', '#ff7a3d', 28);
+        } else if (e.wobble) {
+          sfx.play('whoosh');
+          this.popBoth('WOBBLE!', WOBBLE_COLOR, 26);
         } else if (e.curve) this.popBoth('CURVE!', CURVE_COLOR, 26);
         else if (Math.abs(e.spin) >= RULES.curveCall) this.popBoth('Curve!', CURVE_COLOR, 20);
         else if (e.shot === 'chop') this.popBoth('Chop!', '#6ad1ff', 18);
@@ -208,7 +214,7 @@ class PingPongView implements GameInstance {
     const b = g.ball;
     this.spinAngle += dt * (b.ax / 25 + b.top * 14 + 4);
     if (!g.serving && g.pointT <= 0) {
-      const color = this.curving ? CURVE_COLOR : g.hits >= 10 && b.shot === 'block' ? '#ff9a3d' : SHOT_COLOR[b.shot];
+      const color = b.wob > 0 ? WOBBLE_COLOR : this.curving ? CURVE_COLOR : g.hits >= 10 && b.shot === 'block' ? '#ff9a3d' : SHOT_COLOR[b.shot];
       this.trail.push({ x: b.x, y: b.y, color });
       // The trail grows with the rally.
       const len = 10 + Math.min(g.hits, 12);
@@ -369,7 +375,7 @@ class PingPongView implements GameInstance {
     });
     // Shadow on the table drifts away from the ball as it rises
     circle(gx, b.x + z * 0.35, b.y + z * 0.55, RULES.ballR * (1 - z / 120), `rgba(0,0,0,${0.35 - z / 200})`);
-    const tint = this.curving ? CURVE_COLOR : b.shot === 'block' || b.shot === 'serve' ? null : SHOT_COLOR[b.shot];
+    const tint = b.wob > 0 ? WOBBLE_COLOR : this.curving ? CURVE_COLOR : b.shot === 'block' || b.shot === 'serve' ? null : SHOT_COLOR[b.shot];
     if (tint) glow(gx, tint, b.smash ? 16 : 12);
     circle(gx, b.x, b.y, r, b.smash ? '#ffd2a8' : '#fffdf5', tint ?? '#d9d2bf', 1.5);
     noGlow(gx);
@@ -414,12 +420,15 @@ class PingPongView implements GameInstance {
     rrect(gx, pd.x - pd.w / 2 + 3, y - hh / 2 + 5, pd.w, hh, 6, 'rgba(0,0,0,0.3)');
     if (pd.smash) glow(gx, '#ff7a3d', 18 + 6 * Math.sin(this.t * 12));
     else if (pd.curve) glow(gx, '#c08bff', 18 + 6 * Math.sin(this.t * 12));
+    else if (pd.wobble) glow(gx, WOBBLE_COLOR, 18 + 6 * Math.sin(this.t * 12));
+    // Wide Paddle glows gold, and flickers in its last second so the other player knows it's ending.
+    else if (pd.wide > 0 && (pd.wide > 1 || blink(this.t))) glow(gx, COLORS.gold, 16);
     rrect(gx, pd.x - pd.w / 2, y - hh / 2, pd.w, hh, 6, col, shade(col, -0.4), 2.5);
     noGlow(gx);
     // Rubber face stripe on the net side
     rrect(gx, pd.x - pd.w / 2 + 4, y - dir * (hh / 2 - 2) - 1.5, pd.w - 8, 3, 2, shade(col, 0.4));
     gx.restore();
-    const badge = pd.smash ? '💥' : pd.curve ? '🌀' : pd.slowmo > 0 ? '🐢' : '';
+    const badge = pd.smash ? '💥' : pd.curve ? '🌀' : pd.wobble ? '〰️' : pd.wide > 0 ? '↔️' : pd.slowmo > 0 ? '🐢' : '';
     if (badge) text(gx, badge, pd.x, y - dir * 26, { size: 18, player: p });
   }
 }

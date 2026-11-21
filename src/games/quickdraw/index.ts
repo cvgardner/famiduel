@@ -78,6 +78,27 @@ export function handicapLine(pen: number): string {
 }
 
 /**
+ * The small line under a time: the handicap added and/or a Head Start taken off
+ * ("−0.05 s head start"), or null when neither changed it.
+ */
+export function adjustLine(pen: number, head: number): string | null {
+  if (head > 0.001 && pen > 0.001) return `+${secs(pen)} −${secs(head)} ⚡`;
+  if (head > 0.001) return `−${secs(head)} head start`;
+  if (pen > 0.001) return handicapLine(pen);
+  return null;
+}
+
+/**
+ * Buzzy Fly's spot (local frame) at time t: it loops round the cowboy, from his hat brim
+ * (y MID + 120, wings to MID + 110: under the signal cards and the "(your fake-out 🎭)" tag,
+ * which end by MID + 109) down to his knees (MID + 192, over the badge line), so it never
+ * covers the signal or the SQUIRT! button.
+ */
+export function flySpot(t: number): { x: number; y: number } {
+  return { x: W / 2 + 118 * Math.sin(t * 2.3), y: MID + 156 + 36 * Math.sin(t * 3.7 + 1) };
+}
+
+/**
  * F263: one side of the round card's time line. A seat that never drew says so in words
  * ("You: no shot"); a lone dash ("You —") means nothing to a young kid.
  */
@@ -167,6 +188,13 @@ class QuickDrawView implements GameInstance {
         // A fake-out stays secret: only its "(your fake-out)" tag tells the player who played it.
         if (e.id === 'fakeout') continue;
         sfx.play('power');
+        if (e.id === 'fly') {
+          // Buzzy Fly: a buzz and a puff of dust where it flies in, on the other side.
+          sfx.play('buzz');
+          const f = flySpot(this.t);
+          const o = toScreen(other(e.p), f.x, f.y);
+          fx.burst(o.x, o.y, '#c8a06a', 12, 120, 3);
+        }
         const pw = players[e.p].power!;
         const s = toScreen(e.p, W / 2, this.popY(e.p));
         fx.flash('#ffd54a', 0.1);
@@ -279,6 +307,7 @@ class QuickDrawView implements GameInstance {
     this.drawSignal(gx, p);
     this.drawCowboy(gx, p, c);
     this.drawButton(gx, p, c);
+    if (g.fly[p] && (g.phase === 'ready' || g.phase === 'wait')) this.drawFly(gx);
     // Round wins as stars beside the cowboy
     for (let i = 0; i < RULES.winRounds; i++) {
       const x = W / 2 + 116;
@@ -291,6 +320,7 @@ class QuickDrawView implements GameInstance {
     const badges: string[] = [];
     if (g.shots[p] > 0) badges.push(`🎯 x${g.shots[p]}`);
     if (g.focus[p]) badges.push('⏳ armed');
+    if (g.head[p] > 0 || (g.phase === 'draw' && g.headNow[p] > 0)) badges.push('⚡ head start');
     if (badges.length) text(gx, badges.join('  '), W / 2 - 110, L.cowboyY + 52, { size: 13, color: '#5a3400' });
   }
 
@@ -353,10 +383,11 @@ class QuickDrawView implements GameInstance {
       const right = timeLine(bot ? 'Bot' : 'Them', theirs);
       text(gx, left, W / 2 - 74, y + 16, { size: fitSize(gx, left, TIME_W, 17), color: shade(this.ctx.players[p].color, -0.65) });
       text(gx, right, W / 2 + 74, y + 16, { size: fitSize(gx, right, TIME_W, 17), color: shade(this.ctx.players[other(p)].color, -0.65) });
-      const pen = r.penalty[p];
-      if (pen > 0.001 && mine !== null) text(gx, handicapLine(pen), W / 2 - 74, y + 32, { size: 13, color: '#4a2c0c' });
-      const penO = r.penalty[other(p)];
-      if (penO > 0.001 && theirs !== null) text(gx, handicapLine(penO), W / 2 + 74, y + 32, { size: 13, color: '#4a2c0c' });
+      const head = r.head ?? [0, 0];
+      const adj = adjustLine(r.penalty[p], head[p]);
+      if (adj && mine !== null) text(gx, adj, W / 2 - 74, y + 32, { size: fitSize(gx, adj, TIME_W, 13), color: '#4a2c0c' });
+      const adjO = adjustLine(r.penalty[other(p)], head[other(p)]);
+      if (adjO && theirs !== null) text(gx, adjO, W / 2 + 74, y + 32, { size: fitSize(gx, adjO, TIME_W, 13), color: '#4a2c0c' });
     }
   }
 
@@ -424,6 +455,30 @@ class QuickDrawView implements GameInstance {
       text(gx, 'SPLASH!', x - 82, y - 10, { size: 18, color: '#1e88e5', stroke: '#ffffff' });
     }
     gx.restore();
+  }
+
+  /** Buzzy Fly: a cartoon fly looping round the cowboy, with a dotted trail and flapping wings. */
+  private drawFly(gx: G): void {
+    for (let i = 1; i <= 4; i++) {
+      const s = flySpot(this.t - i * 0.07);
+      circle(gx, s.x, s.y, 1.6, 'rgba(60,40,20,0.35)');
+    }
+    const { x, y } = flySpot(this.t);
+    const flap = 0.6 + 0.4 * pulse(this.t);
+    gx.save();
+    gx.globalAlpha = 0.85;
+    gx.beginPath();
+    gx.ellipse(x - 5, y - 6, 6, 4 * flap, -0.5, 0, Math.PI * 2);
+    gx.ellipse(x + 5, y - 6, 6, 4 * flap, 0.5, 0, Math.PI * 2);
+    gx.fillStyle = '#e8f6ff';
+    gx.fill();
+    gx.strokeStyle = 'rgba(60,60,80,0.6)';
+    gx.lineWidth = 1;
+    gx.stroke();
+    gx.restore();
+    circle(gx, x, y, 6, '#2b2b33', '#111', 1.5);
+    circle(gx, x - 3, y - 4, 2.4, '#d33c2c');
+    circle(gx, x + 3, y - 4, 2.4, '#d33c2c');
   }
 
   private drawButton(gx: G, p: PlayerIndex, c: string): void {

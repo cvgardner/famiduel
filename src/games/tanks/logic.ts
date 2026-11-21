@@ -52,6 +52,12 @@ export const RULES = {
   holdFire: HUMAN.reaction,
   /** A tank's own shell can bonk it once this old (or after its first bounce). */
   selfArm: 0.12,
+  /** Turbo Treads: drive speed and turn rate multipliers while it lasts. */
+  turboSpeed: 1.6,
+  turboTurn: 1.6,
+  /** Spread Shot: the two side shells fly this far either side of the barrel (radians) and bounce this often. */
+  spreadAngle: 0.26,
+  spreadBounces: 0,
   mineR: 9,
   mineArm: 1,
   blastR: 36,
@@ -75,6 +81,9 @@ export type Tank = {
   reload: number;
   shield: number;
   bouncy: number;
+  /** Seconds left on Turbo Treads and on Spread Shot. */
+  turbo: number;
+  spread: number;
   /** Seconds since last shot, for the recoil animation. */
   fired: number;
   /** Seconds left on a buffered FIRE tap (see RULES.fireBuffer). */
@@ -96,6 +105,8 @@ export type Shell = {
   age: number;
   bouncy: boolean;
   alive: boolean;
+  /** A Spread Shot side shell: it doesn't count against RULES.maxShells. */
+  extra?: boolean;
 };
 
 export type Mine = { id: number; owner: PlayerIndex; x: number; y: number; arm: number; alive: boolean };
@@ -103,7 +114,7 @@ export type Mine = { id: number; owner: PlayerIndex; x: number; y: number; arm: 
 export type Phase = 'ready' | 'play' | 'bonk' | 'over';
 
 export type Event =
-  | { type: 'fire'; p: PlayerIndex; x: number; y: number; bouncy: boolean }
+  | { type: 'fire'; p: PlayerIndex; x: number; y: number; bouncy: boolean; spread?: boolean }
   | { type: 'dud'; p: PlayerIndex; x: number; y: number }
   | { type: 'bounce'; x: number; y: number; bouncy: boolean }
   | { type: 'fizzle'; x: number; y: number }
@@ -277,7 +288,7 @@ export class TankDuel {
 
   private newTank(p: PlayerIndex): Tank {
     const s = spawnOf(p);
-    return { x: s.x, y: s.y, a: s.a, hits: 0, armor: armorFor(this.players[p].assist), reload: 0, shield: 0, bouncy: 0, fired: 9, speed: 0, queued: 0, readyFor: 0 };
+    return { x: s.x, y: s.y, a: s.a, hits: 0, armor: armorFor(this.players[p].assist), reload: 0, shield: 0, bouncy: 0, turbo: 0, spread: 0, fired: 9, speed: 0, queued: 0, readyFor: 0 };
   }
 
   /** Bonks a tank can still take. */
@@ -286,7 +297,7 @@ export class TankDuel {
   }
 
   shellsOf(p: PlayerIndex): number {
-    return this.shells.filter((s) => s.alive && s.owner === p).length;
+    return this.shells.filter((s) => s.alive && s.owner === p && !s.extra).length;
   }
 
   canFire(p: PlayerIndex): boolean {
@@ -330,6 +341,8 @@ export class TankDuel {
       tk.reload = Math.max(0, tk.reload - dt);
       tk.shield = Math.max(0, tk.shield - dt);
       tk.bouncy = Math.max(0, tk.bouncy - dt);
+      tk.turbo = Math.max(0, tk.turbo - dt);
+      tk.spread = Math.max(0, tk.spread - dt);
       tk.fired += dt;
       tk.queued = Math.max(0, tk.queued - dt);
       if (this.powersOn && intents[p].power) this.firePower(p);
@@ -358,12 +371,13 @@ export class TankDuel {
     if (mag <= RULES.dead) return;
     const target = Math.atan2(it.my, it.mx);
     const diff = wrapAngle(target - tk.a);
-    const turn = Math.sign(diff) * Math.min(Math.abs(diff), RULES.turnRate * dt);
+    const turbo = tk.turbo > 0;
+    const turn = Math.sign(diff) * Math.min(Math.abs(diff), RULES.turnRate * (turbo ? RULES.turboTurn : 1) * dt);
     tk.a = wrapAngle(tk.a + turn);
     const left = wrapAngle(target - tk.a);
     const drive = clamp((mag - RULES.driveFrom) / (0.85 - RULES.driveFrom), 0, 1);
     const align = Math.max(0, Math.cos(left));
-    const sp = RULES.speed * drive * align * align;
+    const sp = RULES.speed * (turbo ? RULES.turboSpeed : 1) * drive * align * align;
     tk.speed = sp;
     tk.x += Math.cos(tk.a) * sp * dt;
     tk.y += Math.sin(tk.a) * sp * dt;
@@ -400,20 +414,29 @@ export class TankDuel {
       return;
     }
     const bouncy = tk.bouncy > 0;
-    this.shells.push({
-      id: this.nextId++,
-      owner: p,
-      x: m.x,
-      y: m.y,
-      vx: Math.cos(tk.a) * RULES.shellSpeed,
-      vy: Math.sin(tk.a) * RULES.shellSpeed,
-      bounces: 0,
-      maxBounces: bouncy ? RULES.bouncyBounces : RULES.bounces,
-      age: 0,
-      bouncy,
-      alive: true,
-    });
-    this.events.push({ type: 'fire', p, x: m.x, y: m.y, bouncy });
+    const spread = tk.spread > 0;
+    const shell = (a: number, extra: boolean) => {
+      // A side shell starts at its own muzzle point (same distance out, fanned); none from inside a block.
+      const at = extra ? this.muzzle(p, a) : m;
+      if (extra && this.arena.solidAt(at.x, at.y)) return;
+      this.shells.push({
+        id: this.nextId++,
+        owner: p,
+        x: at.x,
+        y: at.y,
+        vx: Math.cos(a) * RULES.shellSpeed,
+        vy: Math.sin(a) * RULES.shellSpeed,
+        bounces: 0,
+        maxBounces: extra ? RULES.spreadBounces : bouncy ? RULES.bouncyBounces : RULES.bounces,
+        age: 0,
+        bouncy,
+        alive: true,
+        ...(extra ? { extra: true } : {}),
+      });
+    };
+    shell(tk.a, false);
+    if (spread) for (const side of [-1, 1]) shell(tk.a + side * RULES.spreadAngle, true);
+    this.events.push({ type: 'fire', p, x: m.x, y: m.y, bouncy, ...(spread ? { spread } : {}) });
   }
 
   /** F344: extra hit radius of p's shells against the other tank (head start). */
@@ -427,6 +450,8 @@ export class TankDuel {
     const tk = this.tanks[p];
     if (power.id === 'bouncy') tk.bouncy = power.duration ?? 8;
     else if (power.id === 'shield') tk.shield = power.duration ?? 3;
+    else if (power.id === 'turbo') tk.turbo = power.duration ?? 5;
+    else if (power.id === 'spread') tk.spread = power.duration ?? 6;
     else if (power.id === 'mine') {
       const back = { x: tk.x - Math.cos(tk.a) * (RULES.tankR + 10), y: tk.y - Math.sin(tk.a) * (RULES.tankR + 10) };
       const spot = this.arena.solidAt(back.x, back.y) ? { x: tk.x, y: tk.y } : back;
@@ -571,7 +596,7 @@ export class TankDuel {
     for (const p of PLAYERS) {
       const tk = this.tanks[p];
       const s = spawnOf(p);
-      Object.assign(tk, { x: s.x, y: s.y, a: s.a, reload: 0, shield: 0, bouncy: 0, fired: 9, speed: 0, queued: 0, readyFor: 0 });
+      Object.assign(tk, { x: s.x, y: s.y, a: s.a, reload: 0, shield: 0, bouncy: 0, turbo: 0, spread: 0, fired: 9, speed: 0, queued: 0, readyFor: 0 });
       this.energy[p].active = 0;
     }
     this.shells = [];
@@ -734,7 +759,8 @@ export class TankBot {
     // 1. Is a shell about to bonk me? Get out of its way (if I noticed in time).
     const threat = this.threat(game);
     if (threat) {
-      if (ready && powerId === 'shield') this.wantPower = true;
+      // Shield blocks it; Turbo Treads gets out of its way faster.
+      if (ready && (powerId === 'shield' || powerId === 'turbo')) this.wantPower = true;
       const opts = [
         { x: -threat.vy, y: threat.vx },
         { x: threat.vy, y: -threat.vx },
@@ -763,7 +789,7 @@ export class TankBot {
         this.lostShot = 0;
         this.aimShot = shot;
         this.aimAngle = shot + this.aimNoise;
-        if (ready && powerId === 'bouncy') this.wantPower = true;
+        if (ready && (powerId === 'bouncy' || powerId === 'spread')) this.wantPower = true;
         return;
       }
     }
@@ -786,6 +812,8 @@ export class TankBot {
     const wake = Math.abs(wrapAngle(Math.atan2(foe.y - me.y, foe.x - me.x) - (me.a + Math.PI))) < Math.PI / 4;
     if (ready && powerId === 'mine' && ((wake && dist < 220) || this.rng.chance(0.05))) this.wantPower = true;
     if (ready && powerId === 'bouncy' && this.rng.chance(0.25)) this.wantPower = true;
+    // Turbo on a long drive gets to a firing spot first.
+    if (ready && powerId === 'turbo' && this.path.length > 6) this.wantPower = true;
   }
 
   private threat(game: TankDuel): { x: number; y: number; vx: number; vy: number } | null {

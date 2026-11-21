@@ -240,6 +240,96 @@ describe('quick draw', () => {
 
   it('bots use powers', () => {
     expect(play(['normal', 'normal'], 8, { powers: ['fakeout', 'double'] }).powersFired).toBeGreaterThan(0);
+    expect(play(['normal', 'normal'], 8, { powers: ['headstart', 'fly'] }).powersFired).toBeGreaterThan(0);
+  });
+
+  it('head start: next round your tap after DRAW! counts a tiny bit sooner, shown on the card', () => {
+    expect(power('quickdraw', 'headstart').desc.length).toBeLessThanOrEqual(80);
+    // A tie in one step goes to the head start.
+    let g = fresh({ powers: ['headstart', 'headstart'] });
+    g.energy[0].value = 1;
+    g.step(DT, [{ tap: false, power: true }, idle]);
+    expect(g.head).toEqual([RULES.headStart, 0]);
+    until(g, 'draw');
+    expect(g.head).toEqual([0, 0]); // used up by this DRAW!
+    for (let i = 0; i < 15; i++) g.step(DT, [idle, idle]);
+    g.step(DT, [tap, tap]);
+    expect(g.last?.reason).toBe('faster');
+    expect(g.last?.winner).toBe(0);
+    expect(g.last?.head).toEqual([RULES.headStart, 0]);
+    expect(g.last?.times[0]).toBe(g.last?.times[1]); // the card shows the real times
+    // It's a tiny edge: two frames (0.033 s) behind still wins, four frames (0.067 s) loses.
+    for (const [behind, winner] of [[2, 0], [4, 1]] as const) {
+      g = fresh({ powers: ['headstart', 'headstart'] });
+      g.energy[0].value = 1;
+      g.step(DT, [{ tap: false, power: true }, idle]);
+      until(g, 'draw');
+      for (let i = 0; i < 15; i++) g.step(DT, [idle, idle]);
+      g.step(DT, [idle, tap]);
+      for (let i = 1; i <= behind && g.phase === 'draw'; i++) g.step(DT, [i === behind ? tap : idle, idle]);
+      expect(g.last?.winner, `${behind} frames behind`).toBe(winner);
+    }
+    // The next round is back to normal.
+    until(g, 'draw');
+    for (let i = 0; i < 15; i++) g.step(DT, [idle, idle]);
+    g.step(DT, [tap, tap]);
+    expect(g.last?.reason).toBe('tie');
+  });
+
+  it('head start never wins without reacting: a tap before DRAW! still loses', () => {
+    const g = fresh({ powers: ['headstart', 'headstart'] });
+    g.energy[0].value = 1;
+    g.step(DT, [{ tap: false, power: true }, idle]);
+    until(g, 'wait');
+    g.step(DT, [tap, idle]);
+    expect(g.last?.winner).toBe(1);
+    expect(['early', 'fooled']).toContain(g.last?.reason);
+  });
+
+  it('buzzy fly: next round a fly buzzes on the other side only, until DRAW!; it changes no rule', () => {
+    const g = fresh({ powers: ['fly', 'fly'] });
+    g.energy[0].value = 1;
+    g.step(DT, [{ tap: false, power: true }, idle]);
+    expect(g.fly).toEqual([false, true]);
+    expect(g.events.some((e) => e.type === 'power' && e.id === 'fly')).toBe(true);
+    // A second fly can't be stacked on the same side.
+    g.energy[0].value = 1;
+    g.step(DT, [{ tap: false, power: true }, idle]);
+    expect(g.energy[0].value).toBe(1);
+    until(g, 'wait');
+    expect(g.fly).toEqual([false, true]);
+    until(g, 'draw');
+    expect(g.fly).toEqual([false, false]); // gone the moment DRAW! is up
+    // Taps after DRAW! work exactly as without it.
+    for (let i = 0; i < 15; i++) g.step(DT, [idle, idle]);
+    g.step(DT, [idle, tap]);
+    for (let i = 0; i < 5; i++) g.step(DT, [tap, idle]);
+    expect(g.last?.winner).toBe(1);
+    expect(g.last?.reason).toBe('faster');
+  });
+
+  it('buzzy fly leaves with its round, even one that ended before DRAW!', () => {
+    const g = fresh({ powers: ['fly', 'fly'] });
+    g.energy[0].value = 1;
+    g.step(DT, [{ tap: false, power: true }, idle]);
+    until(g, 'wait');
+    g.step(DT, [idle, tap]); // they jumped
+    expect(g.last?.winner).toBe(0);
+    expect(g.fly).toEqual([false, false]);
+  });
+
+  it('a fly makes a bot flinch before DRAW! more often, the way it makes a person', () => {
+    const early = (powers?: [string, string]) => {
+      let n = 0;
+      let rounds = 0;
+      for (let s = 0; s < 40; s++) {
+        const { g } = play(['normal', 'normal'], 500 + s, powers ? { powers } : {});
+        rounds += g.history.length;
+        n += g.history.filter((h) => h.reason === 'early' || h.reason === 'bothEarly').length;
+      }
+      return n / rounds;
+    };
+    expect(early(['fly', 'fly'])).toBeGreaterThan(early() + 0.02);
   });
 });
 
@@ -253,5 +343,27 @@ describe('pre-reader cue (F147)', () => {
     // The fake-out card's branch draws no hand.
     const fake = src.slice(src.indexOf('FAKE_TEXT[f.kind]'), src.indexOf("'Wait for it…'"));
     expect(fake).not.toMatch(/waitHand/);
+  });
+});
+
+describe('new powers on screen', () => {
+  it('Buzzy Fly loops round the cowboy, never over the signal cards or the SQUIRT! button', async () => {
+    const { flySpot } = await import('../src/games/quickdraw/index');
+    const { H, MID, W } = await import('../src/engine/world');
+    for (let t = 0; t < 30; t += 0.01) {
+      const { x, y } = flySpot(t);
+      expect(y - 10).toBeGreaterThan(MID + 109); // wings clear of the signal and "(your fake-out 🎭)"
+      expect(y + 8).toBeLessThan(H - 58 - 47); // body clear of the button
+      expect(x - 11).toBeGreaterThan(0);
+      expect(x + 11).toBeLessThan(W);
+    }
+  });
+
+  it('the round card says a Head Start was taken off, next to any handicap', async () => {
+    const { adjustLine } = await import('../src/games/quickdraw/index');
+    expect(adjustLine(0, 0)).toBeNull();
+    expect(adjustLine(0, 0.05)).toBe('−0.05 s head start');
+    expect(adjustLine(0.12, 0)).toBe('+0.12 s handicap');
+    expect(adjustLine(0.12, 0.05)).toBe('+0.12 s −0.05 s ⚡');
   });
 });

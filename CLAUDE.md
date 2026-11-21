@@ -23,6 +23,12 @@ the Challenge"); the plan and market research are in the GameDev project's
 - **Super powers:** energy fills from play; each player picks 1 of 3 per game before the
   match; telegraphed so they can be countered; the trailing / assisted player charges faster.
   Classic-mode toggle. Powers are never sold. Powers live in `content/powers.json`.
+- **Power rotation (Chris, 15 Nov 2026):** "weekly rotations with seasonal sets in the future
+  or as promotionals". Each game has a pool of 5 powers; every week the intro offers 3 of
+  them, picked on the phone from the local week (Monday to Sunday, no server), the same 3 on
+  every phone and for both players (`src/core/rotation.ts`). A tournament keeps the week it
+  started in. Dated seasonal / promo sets go in `"sets"` in `content/powers.json` (pin
+  powers into a game's offer between two dates); none are live yet.
 - **Sharing (later):** highlight clips, rivalry cards, daily minigolf course with a
   friends-first leaderboard (Game Center / Play Games), Family Wrapped each December.
   NOT "design for being filmed". No accounts, no chat, names stay on the device.
@@ -63,7 +69,7 @@ knob, each power), and it is covered automatically by the e2e "bot vs bot" test.
 ## Status (14 Nov 2026)
 
 All 13 launch games plus Tic-Tac-Toe and RPS are playable, each with an honest bot, a
-handicap knob and (except Checkers, TTT, RPS) three powers. Since then: Play the bot (solo,
+handicap knob and (except Checkers, TTT, RPS) a pool of super powers. Since then: Play the bot (solo,
 bot words face the person), Text size (Usual / Bigger / Largest) and Little hands settings, menus at 200% text,
 light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match nights, the
 7-game tournament, and many weekend-loop polish passes (docs/backlog.md has each with its PR).
@@ -71,8 +77,8 @@ light/dark menus, pause with 3-2-1 resume, first-match ghost finger, match night
   (board games stay out), first to 4, a draw adds a game. Rules in `src/core/tournament.ts`,
   saved in the store so a quit game or closed app carries on.
 - Retention direction (Chris, 1 Nov 2026): no new minigame every two weeks (bloat). Lean on
-  super powers instead: new powers and/or a rotation keep the app fresh (how it rotates is
-  not decided).
+  super powers instead: new powers and a rotation keep the app fresh. Decided 15 Nov 2026:
+  weekly rotation of 3 from a 5-power pool, seasonal / promo sets later (see Super powers).
 - Daily minigolf course: on-device only (intro "📅 Today" switch, day's best kept on the phone);
   its share link / leaderboard is not built.
 - App Store accessibility labels we can claim and the test behind each:

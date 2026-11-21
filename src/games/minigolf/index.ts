@@ -11,7 +11,7 @@ import { liftOn, popLife } from '../../engine/fx';
 import { H, MID, W } from '../../engine/world';
 import { waitingLine } from '../../core/turnline';
 import { Minigolf, MinigolfBot, RULES, type Intent, type Shot } from './logic';
-import { inZone, moverSegs, PHYS, simulate, type Course, type Pt } from './physics';
+import { cupRadius, inZone, moverSegs, NO_MODS, PHYS, simulate, type Course, type Mods, type Pt } from './physics';
 const FLOOR = '#16302a';
 const GREEN = '#3fae5e';
 /** The colours most of the play area is painted in (tests read pops against them). */
@@ -38,6 +38,9 @@ export const BANNER_CARD = 'rgba(10,12,28,0.8)';
 export const STRIP_CARD = 'rgba(10,12,28,0.85)';
 
 type Aim = { id: number; sx: number; sy: number; x: number; y: number };
+
+/** Seconds the Do-over's "went back" line fades over. */
+const REDO_FX = 0.9;
 
 const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 
@@ -66,6 +69,8 @@ class MinigolfView implements GameInstance {
   private lastWallSfx = 0;
   private flagWiggle = 0;
   private sunkFlash = 0;
+  /** Do-over: the missed ball's spot and where it went back to, fading over REDO_FX s. */
+  private redoFx: { x: number; y: number; toX: number; toY: number; t: number } | null = null;
   private ended = false;
 
   constructor(private readonly ctx: GameContext) {
@@ -144,6 +149,7 @@ class MinigolfView implements GameInstance {
     else this.bannerT = Math.max(0, this.bannerT - dt);
     this.flagWiggle = Math.max(0, this.flagWiggle - dt);
     this.sunkFlash = Math.max(0, this.sunkFlash - dt);
+    if (this.redoFx && (this.redoFx.t -= dt) <= 0) this.redoFx = null;
 
     if (g.phase === 'roll') {
       const b = g.balls[g.shooter];
@@ -356,6 +362,16 @@ class MinigolfView implements GameInstance {
         const name = `${pw.icon} ${pw.name}!`;
         fx.pop(name, W / 2, this.clearPopY(name, 26, W / 2, MID + 70, 0), COLORS.gold, 0, 26);
         fx.pop(name, W / 2, this.clearPopY(name, 26, W / 2, MID - 70, 1), COLORS.gold, 1, 26);
+      } else if (e.type === 'redo') {
+        // Do-over: the missed ball zips back to where it was hit from, for a free try.
+        sfx.play('whoosh');
+        const from = this.toScreen(e.x, e.y);
+        const to = this.toScreen(e.toX, e.toY);
+        fx.burst(from.x, from.y, '#9ff0ff', 14, 140, 3);
+        fx.burst(to.x, to.y, players[e.p].color, 12, 120, 3);
+        this.redoFx = { x: e.x, y: e.y, toX: e.toX, toY: e.toY, t: REDO_FX };
+        this.trail = [];
+        both('🔁 Do-over! Try again', W / 2, MID, '#9ff0ff', 24);
       } else if (e.type === 'holeEnd') {
         sfx.play('count');
       } else if (e.type === 'win' && !this.ended) {
@@ -512,9 +528,12 @@ class MinigolfView implements GameInstance {
     rrect(gx, tx - 18, ty - 9, 36, 18, 5, 'rgba(20,60,30,0.45)', 'rgba(255,255,255,0.35)', 1.5);
     // Cup and flag
     const [cx, cy] = h.cup;
-    circle(gx, cx, cy, PHYS.cupR + 3, '#e8f5e9');
-    circle(gx, cx, cy, PHYS.cupR, '#0f1a14');
-    circle(gx, cx, cy + 2, PHYS.cupR - 3, '#000000');
+    // Tiny Cup: the shooter's cup is drawn at its shrunk size, inside a red ring the size
+    // of the normal cup, so both players see it before the shot (drawPowersOnCourse).
+    const cupR = cupRadius(this.liveMods() ?? NO_MODS);
+    circle(gx, cx, cy, cupR + 3, '#e8f5e9');
+    circle(gx, cx, cy, cupR, '#0f1a14');
+    circle(gx, cx, cy + 2, Math.max(2, cupR - 3), '#000000');
     if (this.sunkFlash > 0) circle(gx, cx, cy, PHYS.cupR + 6 + (1 - this.sunkFlash) * 30, undefined, `rgba(255,213,74,${this.sunkFlash})`, 4);
     const wig = Math.sin(this.t * 18) * this.flagWiggle * 0.5;
     gx.save();
@@ -590,12 +609,52 @@ class MinigolfView implements GameInstance {
     }
   }
 
+  /** The mods on the shot in play: the rolling shot's, or the next one's while lining up. */
+  private liveMods(): Mods | null {
+    const g = this.game;
+    return g.phase === 'roll' ? g.rollMods : g.phase === 'turn' || g.phase === 'aim' ? g.modsFor(g.shooter) : null;
+  }
+
   private drawPowersOnCourse(gx: G): void {
     const g = this.game;
     const p = g.shooter;
-    const live = g.phase === 'roll' ? g.rollMods : g.phase === 'turn' || g.phase === 'aim' ? g.modsFor(p) : null;
-    if (!live) return;
     const [cx, cy] = g.hole.cup;
+    // Do-over: a dashed ring in the shooter's colour marks the spot a missed ball comes back to,
+    // and a fading line shows the ball that just went back.
+    const redoOn = (g.phase === 'roll' && g.rollRedo) || ((g.phase === 'turn' || g.phase === 'aim') && g.redo[p]);
+    if (redoOn) {
+      const b = g.balls[p];
+      const [hx, hy] = g.phase === 'roll' ? [b.lastX, b.lastY] : [b.x, b.y];
+      const c = this.ctx.players[p].color;
+      const spin = this.t * 2.5;
+      gx.setLineDash([6, 5]);
+      gx.lineDashOffset = -spin * 6;
+      circle(gx, hx, hy, PHYS.ballR + 14, undefined, alpha(c, 0.9), 3);
+      gx.setLineDash([]);
+      gx.lineDashOffset = 0;
+      glow(gx, '#9ff0ff', 10);
+      circle(gx, hx, hy, PHYS.ballR + 19 + 2 * Math.sin(this.t * 5), undefined, 'rgba(159,240,255,0.55)', 2);
+      noGlow(gx);
+    }
+    if (this.redoFx) {
+      const f = this.redoFx;
+      const k = f.t / REDO_FX;
+      gx.setLineDash([5, 6]);
+      line(gx, f.x, f.y, f.toX, f.toY, `rgba(159,240,255,${0.8 * k})`, 3);
+      gx.setLineDash([]);
+      circle(gx, f.x, f.y, PHYS.ballR, `rgba(255,255,255,${0.5 * k})`);
+    }
+    const live = this.liveMods();
+    if (!live) return;
+    if (live.tiny) {
+      // Tiny Cup: a red ring where the normal cup's edge was, pulsing inward onto the small cup.
+      const pulse = 0.5 + 0.5 * Math.sin(this.t * 6);
+      glow(gx, '#ff4d6d', 12);
+      circle(gx, cx, cy, PHYS.cupR + 3, undefined, `rgba(255,90,120,${0.6 + 0.3 * pulse})`, 3);
+      noGlow(gx);
+      const k = (this.t * 0.9) % 1;
+      circle(gx, cx, cy, PHYS.cupR + 14 - k * (PHYS.cupR + 14 - PHYS.tiny.cupR - 3), undefined, `rgba(255,140,160,${0.6 * (1 - k)})`, 2);
+    }
     if (live.magnet) {
       const pulse = 0.5 + 0.5 * Math.sin(this.t * 5);
       glow(gx, '#ff5cf0', 18);
@@ -789,10 +848,12 @@ class MinigolfView implements GameInstance {
     const badges: string[] = [];
     if (g.magnet[p]) badges.push('🧲');
     if (g.ghost[p]) badges.push('👻');
+    if (g.redo[p]) badges.push('🔁');
     // F122: a bot facing the one person never says "you" (they'd read it as their own).
     const quiet = silentSeat(this.ctx.players, p);
     if (g.wind[p]) badges.push(quiet ? '🌬️ wind' : '🌬️ on you');
     if (g.wind[p]?.dir && myTurn) badges[badges.length - 1] = '🌬️ Wind!';
+    if (g.tiny[p]) badges.push(myTurn ? '🤏 Tiny cup!' : quiet ? '🤏 tiny cup' : '🤏 on you');
     if (badges.length) {
       status = myTurn ? `${badges.join(' ')} · ${this.bots[p] ? 'Lining up…' : 'Pull back, let go'}` : `${badges.join(' ')} next shot`;
       shorter = myTurn && !this.bots[p] ? [`${badges.join(' ')} · Shoot!`, badges.join(' ')] : [badges.join(' ')];

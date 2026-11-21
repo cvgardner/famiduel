@@ -19,6 +19,9 @@ in order, and stops at the first failure:
      swipes) in the bottom half, then two people at once in both halves;
    - hands both seats to bots and checks the match reaches the result screen;
    - fails on any page error or console error; warns on a frozen screen or < 40 fps.
+   - (`playtest/powers.spec.ts`) opens each game's intro on enough weeks of the power
+     rotation to show every power in its pool once, at 320×568 and 360×640, with and
+     without Bigger text, and fails if a card is cut off;
    It writes `playtest-report/index.html` (screenshots of every step for every game) and
    `playtest-report/summary.json`. **Look at the screenshots** after any visual change.
 

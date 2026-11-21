@@ -2,16 +2,19 @@
 import { popColor } from '../../engine/fx';
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { alpha, circle, COLORS, controlsAlpha, facing, fitSize, glow, noGlow, seatRing, rrect, silentSeat, seatEdges, shade, text, type G } from '../../engine/draw';
-import { pulse } from '../../engine/calm';
+import { blink as flashOn, pulse } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { PowerButton } from '../../engine/widgets';
 import { H, MID, W } from '../../engine/world';
-import { DX, DY, RULES, SnakeBot, SnakeDuel, type Intent } from './logic';
+import { BRICK, DX, DY, RULES, SnakeBot, SnakeDuel, type Intent } from './logic';
 
 /** Width of the boxed round banner (clear of the pause button at the left edge). */
 export const BANNER_W = 240;
 const FLOOR = '#0d0b22';
+/** Brick Wall's bricks and their mortar. */
+const BRICK_FILL = '#d0703f';
+const MORTAR = '#f3c9a1';
 /** The colours most of the play area is painted in (tests read pops against them). */
 export const SURFACES: readonly string[] = [FLOOR];
 
@@ -194,6 +197,20 @@ class SnakeView implements GameInstance {
       } else if (e.type === 'headon') {
         sfx.play('buzz');
         fx.flash('#ffffff', 0.2);
+      } else if (e.type === 'brick') {
+        // Bricks drop in, blinking: both players see where the wall is going up.
+        sfx.play('click');
+        for (const [x, y] of e.cells) fx.burst(cx(x), cy(y), BRICK_FILL, 4, 70, 3);
+      } else if (e.type === 'brickSet') {
+        if (e.cells.length) sfx.play('thud');
+        for (const [x, y] of e.cells) fx.burst(cx(x), cy(y), MORTAR, 5, 90, 2.5);
+        if (e.cells.length) fx.shake(3, 0.12);
+      } else if (e.type === 'wrap') {
+        // Into one wall, out of the other: a puff on each side.
+        sfx.play('whoosh');
+        fx.burst(cx(e.fx), cy(e.fy), players[e.p].color, 12, 140, 3);
+        fx.burst(cx(e.x), cy(e.y), players[e.p].color, 16, 160, 3.5);
+        fx.burst(cx(e.x), cy(e.y), '#ffffff', 8, 120, 2.5);
       } else if (e.type === 'phaseThrough') {
         sfx.play('whoosh');
         fx.burst(cx(e.x), cy(e.y), '#d9d2ff', 12, 120, 3);
@@ -245,6 +262,19 @@ class SnakeView implements GameInstance {
     seatEdges(gx, col[0], col[1]);
     // Arena
     rrect(gx, OX - 4, OY - 4, AW + 8, AH + 8, 8, '#171436', '#3b3577', 3);
+    // Wall Wrap: the walls glow in the user's colour while they are doors (both seats see it).
+    for (const p of PLAYERS) {
+      const s = g.snakes[p];
+      if (s.wrap <= 0 || !s.alive) continue;
+      const fading = s.wrap < 1 && !flashOn(this.t);
+      gx.setLineDash([10, 6]);
+      gx.lineDashOffset = -this.t * 30 * (p === 0 ? 1 : -1);
+      glow(gx, col[p], 12);
+      rrect(gx, OX - 4 - p * 4, OY - 4 - p * 4, AW + 8 + p * 8, AH + 8 + p * 8, 8, undefined, alpha(col[p], fading ? 0.3 : 0.9), 3);
+      noGlow(gx);
+      gx.setLineDash([]);
+      gx.lineDashOffset = 0;
+    }
     gx.strokeStyle = 'rgba(120,120,220,0.08)';
     gx.lineWidth = 1;
     gx.beginPath();
@@ -270,10 +300,22 @@ class SnakeView implements GameInstance {
       for (let x = 0; x < COLS; x++) {
         const v = g.grid[g.idx(x, y)];
         if (!v) continue;
+        if (v === BRICK) {
+          drawBrick(gx, OX + x * C, OY + y * C, 1);
+          continue;
+        }
         const c = col[v - 1];
         rrect(gx, OX + x * C + 1, OY + y * C + 1, C - 2, C - 2, 3, shade(c, -0.15));
         rrect(gx, OX + x * C + 3, OY + y * C + 3, C - 6, C - 6, 2, alpha('#ffffff', 0.18));
       }
+    // Bricks still blinking before they set, outlined in the dropper's colour.
+    for (const b of g.bricks) {
+      const a = 0.35 + 0.45 * pulse(this.t);
+      for (const [x, y] of b.cells) {
+        drawBrick(gx, OX + x * C, OY + y * C, a);
+        rrect(gx, OX + x * C + 0.5, OY + y * C + 0.5, C - 1, C - 1, 2, undefined, col[b.owner], 1.5);
+      }
+    }
     for (const r of this.bombRings) circle(gx, r.x, r.y, 10 + r.t * 90, undefined, alpha(r.c, 1 - r.t * 2), 4);
     // Heads
     for (const p of PLAYERS) this.drawHead(gx, p, col[p]);
@@ -305,6 +347,26 @@ class SnakeView implements GameInstance {
       const ey = y + fy * 3 + fx * side * 3.5;
       circle(gx, ex, ey, 2.4, '#ffffff');
       circle(gx, ex + fx, ey + fy, 1.2, '#14112b');
+    }
+    // Wall Wrap: a swirl round the head, and a marker where it will pop out if it runs into
+    // the wall just ahead, so the other player can see it coming and get in the way.
+    if (s.wrap > 0 && s.alive) {
+      for (let i = 0; i < 3; i++) {
+        const a = this.t * 5 + (i * Math.PI * 2) / 3;
+        circle(gx, x + Math.cos(a) * 14, y + Math.sin(a) * 14, 2.2, i ? c : '#ffffff');
+      }
+      const g = this.game;
+      for (let k = 0; k < 3; k++) {
+        const ax = s.x + DX[s.dir] * k;
+        const ay = s.y + DY[s.dir] * k;
+        if (!g.inside(ax + DX[s.dir], ay + DY[s.dir])) {
+          const out = g.ahead(s, s.dir, ax, ay);
+          gx.setLineDash([3, 3]);
+          circle(gx, cx(out.x), cy(out.y), 8, alpha(c, 0.25), c, 2);
+          gx.setLineDash([]);
+          break;
+        }
+      }
     }
     // Before a round starts, show which way each snake is facing.
     if (this.game.phase === 'intro') {
@@ -388,6 +450,26 @@ export function roundEndLines(winner: PlayerIndex | null | undefined): [string, 
   if (winner !== 0 && winner !== 1) return ['Draw round! Again', 'Draw round! Again'];
   const lost = 'Ouch! Next round…';
   return winner === 0 ? ['You win the round!', lost] : [lost, 'You win the round!'];
+}
+
+/** One brick in the cell whose top-left corner is (x, y), at opacity a. */
+function drawBrick(gx: G, x: number, y: number, a: number): void {
+  const was = gx.globalAlpha;
+  gx.globalAlpha = was * a;
+  rrect(gx, x + 0.5, y + 0.5, C - 1, C - 1, 2, BRICK_FILL);
+  gx.strokeStyle = MORTAR;
+  gx.lineWidth = 1;
+  gx.beginPath();
+  gx.moveTo(x + 1, y + C / 2);
+  gx.lineTo(x + C - 1, y + C / 2);
+  gx.moveTo(x + C / 2, y + 1);
+  gx.lineTo(x + C / 2, y + C / 2);
+  gx.moveTo(x + C / 4, y + C / 2);
+  gx.lineTo(x + C / 4, y + C - 1);
+  gx.moveTo(x + (3 * C) / 4, y + C / 2);
+  gx.lineTo(x + (3 * C) / 4, y + C - 1);
+  gx.stroke();
+  gx.globalAlpha = was;
 }
 
 /** A curved arrow: turn -1 bends left, +1 bends right (in the current frame). */

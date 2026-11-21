@@ -181,6 +181,90 @@ describe('sumo', () => {
     expect(slide(true)).toBeGreaterThan(slide(false) * 1.5);
   });
 
+  it('Iron Feet: for 3 seconds pushes barely move you, and your feet grip', () => {
+    // The same dash into a still wrestler, with and without Iron Feet on them.
+    const shove = (iron: boolean) => {
+      const s = fight({ powers: [null, power('sumo', 'iron')] });
+      const [a, b] = s.wrestlers;
+      a.x = b.x = RULES.cx;
+      a.y = RULES.cy + 40;
+      b.y = RULES.cy - 12;
+      a.vx = 0;
+      a.vy = -500;
+      if (iron) {
+        s.energy[1].value = 1;
+        s.step(DT, [idle, { hold: false, power: true }]);
+        expect(b.iron).toBeGreaterThan(2.9);
+        expect(s.friction(1)).toBe(RULES.ironFriction);
+      } else s.step(DT, [idle, idle]);
+      const y0 = b.y;
+      for (let i = 0; i < 30; i++) s.step(DT, [idle, idle]);
+      return y0 - b.y;
+    };
+    expect(shove(true)).toBeLessThan(shove(false) * 0.35);
+    // A Ground Pound barely moves iron feet either.
+    const pound = (iron: boolean) => {
+      const s = fight({ powers: [power('sumo', 'pound'), null] });
+      const b = s.wrestlers[1];
+      if (iron) b.iron = 3;
+      s.energy[0].value = 1;
+      s.step(DT, [{ hold: false, power: true }, idle]);
+      const y0 = b.y;
+      for (let i = 0; i < 40; i++) s.step(DT, [idle, idle]);
+      return y0 - b.y;
+    };
+    expect(pound(true)).toBeLessThan(pound(false) * 0.35);
+    // It wears off after 3 seconds.
+    const g = fight({ powers: [power('sumo', 'iron'), null] });
+    g.energy[0].value = 1;
+    g.step(DT, [{ hold: false, power: true }, idle]);
+    expect(g.take(0)).toBe(RULES.ironTake);
+    for (let i = 0; i < 3.1 / DT; i++) g.step(DT, [idle, idle]);
+    expect(g.wrestlers[0].iron).toBe(0);
+    expect(g.take(0)).toBe(1);
+    expect(g.friction(0)).toBe(RULES.friction);
+  });
+
+  it('Dash: the arrow holds still for a short windup, then you zoom off faster than a full dash', () => {
+    const g = fight({ powers: [power('sumo', 'dash'), null] });
+    const w = g.wrestlers[0];
+    g.wrestlers[1].x = 40; // out of the way
+    w.angle = 0;
+    g.energy[0].value = 1;
+    g.step(DT, [{ hold: false, power: true }, idle]);
+    expect(w.dash).toBeGreaterThan(0);
+    // Windup: the arrow does not turn, nothing moves yet, and holding does not charge.
+    for (let i = 0; i < Math.floor(RULES.dashWindup / DT) - 2; i++) g.step(DT, [{ hold: true, power: false }, idle]);
+    expect(w.angle).toBe(0);
+    expect(w.charging).toBe(false);
+    expect(Math.hypot(w.vx, w.vy)).toBe(0);
+    let zoom = false;
+    for (let i = 0; i < 5; i++) {
+      g.step(DT, [idle, idle]);
+      if (g.events.some((e) => e.type === 'zoom' && e.p === 0)) zoom = true;
+    }
+    expect(zoom).toBe(true);
+    // Straight along the arrow, faster than the strongest charged dash.
+    expect(w.vx).toBeGreaterThan(RULES.dashMax);
+    expect(Math.abs(w.vy)).toBeLessThan(1);
+    expect(g.dashReach(0)).toBeGreaterThan(Sumo.dashSpeed(1) / RULES.friction);
+  });
+
+  it('bots use Iron Feet and Dash and still finish', () => {
+    let fired = 0;
+    for (const [i, powers] of ([[power('sumo', 'iron'), power('sumo', 'dash')], [power('sumo', 'dash'), power('sumo', 'pound')], [power('sumo', 'grow'), power('sumo', 'iron')]] as [PowerDef, PowerDef][]).entries()) {
+      const rng = makeRng(60 + i);
+      const g = new Sumo([player({ bot: 'normal', power: powers[0] }), player({ bot: 'hard', power: powers[1] })], true, rng);
+      const bots = [new SumoBot(0, 'normal', rng), new SumoBot(1, 'hard', rng)];
+      for (let t = 0; t < 600 && !g.finished; t += DT) {
+        g.step(DT, [bots[0].think(g, DT), bots[1].think(g, DT)]);
+        fired += g.events.filter((e) => e.type === 'power' && (e.id === 'iron' || e.id === 'dash')).length;
+      }
+      expect(g.finished).toBe(true);
+    }
+    expect(fired).toBeGreaterThan(2);
+  });
+
   it('the ring shrinks in a long round so rounds always end', () => {
     const g = fight();
     const r0 = g.ringR();

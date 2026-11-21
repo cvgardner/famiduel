@@ -26,7 +26,9 @@ describe('Air Hockey: centre pops start clear of the paddles', () => {
     const covered: Record<string, number> = {};
     const seats = new Set<number>();
     for (const level of ['easy', 'normal', 'hard'] as const) {
-      for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+      // 30 seeds a level: with 5 powers in the pool, 9 seeds gave each power only a few matches
+      // and GOAL! read 1.1% on the luck of the draw (0.4-0.7% for every power over 450 matches).
+      for (let seed = 1; seed <= 30; seed++) {
         const players: [PlayerInfo, PlayerInfo] = [player({ bot: level, power: list[seed % list.length] }), player({ bot: level, power: list[(seed + 1) % list.length] })];
         const fx = new Fx();
         const view = GAMES.airhockey.create({ seed, rng: makeRng(seed), players, powersOn: true, sfx: { play() {} } as unknown as Sfx, fx, end() {} }) as unknown as { game: AirHockey; update(dt: number, i: Input): void };

@@ -82,6 +82,18 @@ const PICS: Record<string, Record<string, string>> = {
       green +
       `<rect x="14" y="20" width="36" height="5" rx="2" fill="#e8e2d0"/>` +
       circle(32, 38, 3, YOU, anim('cy', [38, 38, 9, 9], [0, 0.1, 0.75, 1]) + anim('opacity', [1, 1, 0.35, 0.35, 1, 1, 0], [0, 0.3, 0.38, 0.52, 0.6, 0.85, 1])),
+    // Your shot misses the cup, zips back to the dashed ring it was hit from, and drops on the second try.
+    redo:
+      green +
+      `<circle cx="32" cy="38" r="5.5" fill="none" style="stroke:${YOU}" stroke-width="1.2" stroke-dasharray="2 2"/>` +
+      circle(32, 38, 3, YOU, anim('cx', [32, 32, 46, 46, 32, 32, 32, 32], [0, 0.08, 0.35, 0.45, 0.55, 0.62, 0.86, 1]) + anim('cy', [38, 38, 12, 12, 38, 38, 9, 9], [0, 0.08, 0.35, 0.45, 0.55, 0.62, 0.86, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.88, 0.92, 1])),
+    // The cup shrinks inside a red ring; the other player's ball rolls just past it.
+    tiny:
+      green +
+      `<circle cx="32" cy="9" r="3.3" fill="none" stroke="#1f7a4a" stroke-width="0">${anim('stroke-width', [0, 0, 2.6, 2.6, 0], [0, 0.1, 0.25, 0.9, 1])}</circle>` +
+      `<circle cx="32" cy="9" r="6" fill="none" stroke="#ff5c7a" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.1, 0.25, 0.9, 1])}</circle>` +
+      circle(12, 36, 3, YOU) +
+      circle(32, 38, 3, THEM, anim('cx', [32, 32, 33, 37, 37], [0, 0.3, 0.6, 0.78, 1]) + anim('cy', [38, 38, 16, 3, 3], [0, 0.3, 0.6, 0.78, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.85, 0.9, 1])),
   },
   airhockey: {
     // The other paddle slides, turns to ice and stops; the puck goes in.
@@ -101,6 +113,19 @@ const PICS: Record<string, Record<string, string>> = {
       circle(32, 8, 6, THEM) +
       circle(32, 36, 6, YOU) +
       [-1, 1].map((d) => circle(32, 28, 3, '#fff', anim('cx', [32, 32, 32 + d * 8, 32 + d * 8], [0, 0.35, 0.85, 1]) + anim('cy', [28, 22, 4, 4], [0, 0.35, 0.85, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.8, 0.85, 1]))).join(''),
+    // A low wall pops up in the middle of your goal; their shot bounces off it.
+    guard:
+      table +
+      circle(32, 10, 6, THEM) +
+      circle(14, 34, 6, YOU) +
+      rect(25, 38, 14, 4, YOU, anim('opacity', [0, 0, 1, 1, 0], [0, 0.1, 0.15, 0.9, 1])) +
+      circle(32, 17, 3, '#fff', anim('cx', [32, 32, 32, 44, 44], [0, 0.25, 0.55, 0.85, 1]) + anim('cy', [17, 17, 35, 16, 16], [0, 0.25, 0.55, 0.85, 1]) + anim('opacity', [1, 1, 1, 1, 0], [0, 0.25, 0.55, 0.85, 1])),
+    // The other paddle shrinks small; your shot slips past it into their goal.
+    tiny:
+      table +
+      circle(32, 10, 6, THEM, anim('r', [6, 6, 3, 3, 6], [0, 0.15, 0.3, 0.85, 1])) +
+      circle(32, 36, 6, YOU) +
+      circle(36, 28, 3, '#fff', anim('cx', [36, 36, 37, 37], [0, 0.4, 0.75, 1]) + anim('cy', [28, 28, 2, 2], [0, 0.4, 0.75, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.4, 0.75, 1])),
   },
   minipool: {
     // A dotted line runs from your cue ball, off the cushion, to your ball, which drops in.
@@ -142,6 +167,18 @@ const PICS: Record<string, Record<string, string>> = {
       rect(16, 4, 12, 3, THEM) +
       rect(24, 37, 16, 4, YOU) +
       circle(32, 34, 2.5, '#fff', anim('cx', [32, 32, 24, 34, 50, 50], [0, 0.15, 0.35, 0.55, 0.75, 1]) + anim('cy', [34, 34, 26, 16, 6, 6], [0, 0.15, 0.35, 0.55, 0.75, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.75, 0.8, 0.85, 1])),
+    // Your paddle grows extra wide and reaches a ball far out to the side.
+    wide:
+      pong +
+      rect(26, 4, 12, 3, THEM) +
+      rect(24, 37, 16, 4, YOU, anim('x', [24, 24, 16, 16, 24], [0, 0.1, 0.25, 0.9, 1]) + anim('width', [16, 16, 32, 32, 16], [0, 0.1, 0.25, 0.9, 1])) +
+      circle(32, 8, 2.5, '#fff', anim('cx', [32, 32, 45, 36, 36], [0, 0.2, 0.55, 0.85, 1]) + anim('cy', [8, 8, 35, 10, 10], [0, 0.2, 0.55, 0.85, 1]) + anim('opacity', [1, 1, 1, 1, 0], [0, 0.2, 0.55, 0.85, 1])),
+    // Your return wobbles side to side all the way over.
+    wobble:
+      pong +
+      rect(26, 4, 12, 3, THEM) +
+      rect(24, 37, 16, 4, YOU) +
+      circle(32, 34, 2.5, '#5eead4', anim('cx', [32, 32, 40, 24, 40, 24, 32, 32], [0, 0.1, 0.22, 0.34, 0.46, 0.58, 0.7, 1]) + anim('cy', [34, 34, 29, 24, 19, 14, 8, 8], [0, 0.1, 0.22, 0.34, 0.46, 0.58, 0.7, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.7, 0.75, 0.8, 1]), ' stroke="#fff" stroke-width="0.8"'),
   },
   penalty: {
     // Your shot swings out wide, then bends back on target past the keeper.
@@ -160,6 +197,17 @@ const PICS: Record<string, Record<string, string>> = {
       rect(26, 8, 12, 4, THEM, anim('x', [26, 26, 16, 16], [0, 0.4, 0.6, 1])) +
       circle(32, 38, 3, YOU, anim('cx', [32, 32, 46, 46], [0, 0.15, 0.6, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.15, 0.6, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.85, 0.9, 1])) +
       circle(32, 38, 3, YOU, anim('cx', [32, 32, 20, 20], [0, 0.15, 0.6, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.15, 0.6, 1]) + anim('opacity', [0, 0, 0.6, 0.6, 0, 0], [0, 0.14, 0.16, 0.6, 0.7, 1]), ' stroke="#fff" stroke-dasharray="2 2"'),
+    // Your shot streaks in with a flame trail; the keeper moves too late.
+    rocket:
+      pitch +
+      rect(26, 8, 12, 4, THEM, anim('x', [26, 26, 32, 32, 26], [0, 0.42, 0.55, 0.9, 1])) +
+      `<line x1="32" y1="38" x2="40" y2="7" stroke="#ff8a3d" stroke-width="3" stroke-linecap="round" opacity="0">${anim('opacity', [0, 0, 0.9, 0, 0], [0, 0.3, 0.42, 0.6, 1])}</line>` +
+      circle(32, 38, 3, YOU, anim('cx', [32, 32, 40, 40], [0, 0.3, 0.42, 1]) + anim('cy', [38, 38, 7, 7], [0, 0.3, 0.42, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.85, 0.9, 1])),
+    // The other player's shot drifts in slowly inside a pale ring; your keeper gets across and saves it.
+    slowmo:
+      pitch +
+      rect(26, 7, 12, 4, YOU, anim('x', [26, 26, 34, 34, 26], [0, 0.35, 0.5, 0.9, 1])) +
+      [3, 5].map((r) => circle(32, 38, r, r === 3 ? THEM : 'none', anim('cx', [32, 32, 40, 38, 38], [0, 0.1, 0.8, 0.9, 1]) + anim('cy', [38, 38, 12, 22, 22], [0, 0.1, 0.8, 0.9, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.9, 0.95, 1]), r === 5 ? ' stroke="#96dcff" stroke-width="1.2"' : '')).join(''),
   },
   snacksnatch: {
     // Snacks drift toward your critter.
@@ -178,6 +226,20 @@ const PICS: Record<string, Record<string, string>> = {
       mat +
       circle(32, 6, 3, '#ffb347', anim('opacity', [1, 1, 0, 0, 1], [0, 0.55, 0.6, 0.9, 1])) +
       `<line x1="32" y1="34" x2="32" y2="34" stroke="#ff7eb3" stroke-width="4" stroke-linecap="round">${anim('y2', [34, 34, 22, 22, 34, 34, 7, 34, 34], [0, 0.1, 0.2, 0.25, 0.32, 0.4, 0.55, 0.7, 1])}</line>` +
+      rect(22, 34, 20, 8, YOU),
+    // Three speedy extra snacks shoot out of the pot your way.
+    rain:
+      mat +
+      circle(32, 12, 6, '#c0703f', anim('r', [6, 6, 7, 6, 7, 6, 7, 6, 6], [0, 0.1, 0.13, 0.35, 0.38, 0.6, 0.63, 0.85, 1])) +
+      rect(22, 34, 20, 8, YOU) +
+      [0, 0.25, 0.5].map((t0, i) => circle(32, 12, 3, '#ffb347', anim('cx', [32, 32, 22 + i * 10, 22 + i * 10], [0, t0 + 0.1, t0 + 0.3, 1]) + anim('cy', [12, 12, 33, 33], [0, t0 + 0.1, t0 + 0.3, 1]) + anim('opacity', [0, 0, 1, 1, 0, 0], [0, t0 + 0.1, t0 + 0.11, t0 + 0.3, t0 + 0.32, 1]))).join(''),
+    // The other critters doze off: their snap creeps out too slowly and the snack rolls past.
+    sleepy:
+      mat +
+      rect(22, 2, 20, 8, THEM) +
+      `<line x1="32" y1="10" x2="32" y2="10" stroke="#ff7eb3" stroke-width="4" stroke-linecap="round">${anim('y2', [10, 10, 20, 20, 10], [0, 0.2, 0.85, 0.9, 1])}</line>` +
+      `<polyline points="46,4 52,4 46,10 52,10" fill="none" stroke="#dfe6ff" stroke-width="1.5">${anim('opacity', [0, 1, 0.3, 1, 0], [0, 0.2, 0.5, 0.8, 1])}</polyline>` +
+      circle(4, 20, 3, '#ffb347', anim('cx', [4, 4, 60, 60], [0, 0.2, 0.7, 1]) + anim('opacity', [0, 1, 1, 0, 0], [0, 0.2, 0.7, 0.72, 1])) +
       rect(22, 34, 20, 8, YOU),
   },
   tanks: {
@@ -201,6 +263,19 @@ const PICS: Record<string, Record<string, string>> = {
       `<circle cx="30" cy="30" r="3" fill="none" stroke="#ffd166" stroke-width="2">${anim('r', [3, 3, 14, 14], [0, 0.62, 0.8, 1])}${anim('opacity', [0, 0, 1, 0, 0], [0, 0.62, 0.64, 0.8, 1])}</circle>` +
       tank(30, 30, YOU, anim('x', [25, 25, 7, 7], [0, 0.1, 0.35, 1])) +
       tank(54, 30, THEM, anim('x', [49, 49, 25, 25, 49], [0, 0.35, 0.62, 0.95, 1])),
+    // Turbo Treads: your tank zooms across in a burst of flame, faster than the other tank's shell.
+    turbo:
+      arena +
+      tank(50, 10, THEM) +
+      circle(46, 14, 2, '#fff', anim('cx', [46, 46, 14, 14], [0, 0.15, 0.7, 1]) + anim('cy', [14, 14, 34, 34], [0, 0.15, 0.7, 1]) + anim('opacity', [0, 1, 1, 0, 0], [0, 0.15, 0.7, 0.72, 1])) +
+      [30, 38].map((y) => line(4, y, 4, y, '#ff9f43', 2, anim('x1', [4, 4, 4, 30, 30], [0, 0.1, 0.15, 0.55, 1]) + anim('x2', [4, 4, 18, 44, 44], [0, 0.1, 0.15, 0.55, 1]) + anim('opacity', [0, 0, 0.9, 0.9, 0, 0], [0, 0.1, 0.15, 0.5, 0.65, 1]))).join('') +
+      tank(14, 34, YOU, anim('x', [9, 9, 49, 49, 9], [0, 0.1, 0.55, 0.9, 1])),
+    // Spread Shot: one shot fires a fan of 3 shells; a side one catches the other tank.
+    spread:
+      arena +
+      tank(46, 10, THEM) +
+      [-1, 0, 1].map((d) => circle(32, 31, 2, d ? '#c9a0ff' : '#fff', anim('cx', [32, 32, 32 + d * 14, 32 + d * 14], [0, 0.2, 0.7, 1]) + anim('cy', [31, 31, 10, 10], [0, 0.2, 0.7, 1]) + anim('opacity', [0, 0, 1, 1, 0, 0], [0, 0.19, 0.21, 0.7, 0.72, 1]))).join('') +
+      tank(32, 36, YOU),
   },
   snake: {
     // Your snake zooms faster.
@@ -222,6 +297,20 @@ const PICS: Record<string, Record<string, string>> = {
       line(36, 15, 36, 29, THEM, 4, anim('opacity', [1, 1, 0, 0, 1], [0, 0.35, 0.4, 0.9, 1])) +
       line(6, 22, 28, 22, YOU, 4) +
       `<circle cx="30" cy="22" r="3" fill="none" stroke="#ffd166" stroke-width="2.5">${anim('r', [3, 3, 14, 14], [0, 0.3, 0.5, 1])}${anim('opacity', [0, 0, 1, 0, 0], [0, 0.3, 0.32, 0.5, 1])}</circle>`,
+    // A brick wall blinks in across the other snake's path, then sets; it has to turn away.
+    brick:
+      board +
+      line(6, 38, 26, 38, YOU, 4) +
+      [10, 16, 22, 28].map((y) => `<rect x="44" y="${y}" width="6" height="6" rx="1" fill="#d0703f" stroke="#f3c9a1" stroke-width="0.8">${anim('opacity', [0, 0, 0.8, 0.2, 0.8, 1, 1, 0], [0, 0.15, 0.2, 0.3, 0.4, 0.45, 0.9, 1])}</rect>`).join('') +
+      line(6, 19, 6, 19, THEM, 4, anim('x2', [6, 6, 36, 36, 36], [0, 0.05, 0.55, 0.6, 1]) + anim('opacity', [1, 1, 1, 0], [0, 0.9, 0.95, 1])) +
+      line(36, 19, 36, 19, THEM, 4, anim('y2', [19, 19, 6, 6], [0, 0.55, 0.85, 1]) + anim('opacity', [0, 0, 1, 1, 0], [0, 0.54, 0.56, 0.9, 1])),
+    // Wall Wrap: the walls glow, your snake goes into one side and pops out of the other.
+    wrap:
+      board +
+      `<rect x="2" y="2" width="60" height="40" rx="7" fill="none" style="stroke:${YOU}" stroke-width="1.5" stroke-dasharray="4 3">${anim('opacity', [0, 1, 1, 0], [0, 0.1, 0.9, 1])}</rect>` +
+      line(4, 12, 40, 12, THEM, 4) +
+      line(30, 28, 30, 28, YOU, 4, anim('x1', [30, 30, 50, 60, 60], [0, 0.05, 0.4, 0.5, 1]) + anim('x2', [38, 38, 60, 60, 60], [0, 0.05, 0.32, 0.5, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.45, 0.5, 0.52, 1])) +
+      line(4, 28, 4, 28, YOU, 4, anim('x2', [4, 4, 26, 26], [0, 0.32, 0.8, 1]) + anim('opacity', [0, 0, 1, 1, 0], [0, 0.31, 0.33, 0.9, 1])),
   },
   chopchop: {
     // A falling branch breaks on you instead of bonking you: mash away.
@@ -246,6 +335,22 @@ const PICS: Record<string, Record<string, string>> = {
       // Each chop knocks out two logs.
       [0, 0.45].flatMap((t0) => [28, 18].map((y) => `<rect x="28" y="${y}" width="8" height="8" fill="#ffd166" stroke="#8b5a2b" stroke-width="1">${anim('x', [28, 28, 4, 4], [0, t0 + 0.05, t0 + 0.3, 1])}${anim('opacity', [0, 0, 1, 1, 0, 0], [0, t0 + 0.05, t0 + 0.07, t0 + 0.22, t0 + 0.3, 1])}</rect>`)).join('') +
       circle(44, 31, 4, YOU, anim('cx', [44, 44, 40, 44, 44, 40, 44, 44], [0, 0.03, 0.06, 0.1, 0.48, 0.51, 0.55, 1])),
+    // The other tree grows taller: they have more to chop.
+    tall:
+      woods +
+      `<rect x="10" y="18" width="8" height="19" fill="#8b5a2b">${anim('y', [18, 18, 5, 5, 18], [0, 0.2, 0.45, 0.9, 1])}${anim('height', [19, 19, 32, 32, 19], [0, 0.2, 0.45, 0.9, 1])}</rect>` +
+      `<circle cx="14" cy="16" r="6" fill="#3f9b4f">${anim('cy', [16, 16, 4, 4, 16], [0, 0.2, 0.45, 0.9, 1])}</circle>` +
+      [12, 20, 28].map((y, i) => `<rect x="9" y="${y}" width="10" height="2" rx="1" fill="#5aa04a">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.25 + i * 0.07, 0.3 + i * 0.07, 0.9, 1])}</rect>`).join('') +
+      circle(6, 31, 4, THEM) +
+      tree(46, '#8b5a2b') +
+      circle(40, 31, 4, YOU),
+    // Your axe glows hot: one chop burns through 4 pieces at once.
+    hotaxe:
+      woods +
+      tree(32, '#8b5a2b') +
+      `<circle cx="40" cy="27" r="4" fill="#ff7a1a">${anim('r', [3, 5, 3, 5, 3, 3], [0, 0.1, 0.2, 0.3, 0.4, 1])}${anim('opacity', [1, 1, 1, 1, 1, 0, 0, 1], [0, 0.1, 0.2, 0.3, 0.4, 0.45, 0.95, 1])}</circle>` +
+      [30, 22, 14, 6].map((y, i) => `<rect x="28" y="${y}" width="8" height="7" fill="#ff9f43" stroke="#c0392b" stroke-width="1">${anim('x', [28, 28, 4 - i * 2, 4 - i * 2], [0, 0.42, 0.7, 1])}${anim('opacity', [0, 0, 1, 1, 0, 0], [0, 0.42, 0.44, 0.6, 0.72, 1])}</rect>`).join('') +
+      circle(44, 31, 4, YOU, anim('cx', [44, 44, 40, 44, 44], [0, 0.4, 0.43, 0.47, 1])),
   },
   quickdraw: {
     // A fake signal that only you know is fake: the other player jumps the gun.
@@ -268,6 +373,21 @@ const PICS: Record<string, Record<string, string>> = {
       `<circle cx="32" cy="22" r="7" fill="#5eead4" stroke="#fff" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.55, 0.57, 0.9, 1])}</circle>` +
       circle(32, 7, 5, THEM) +
       circle(32, 37, 5, YOU, anim('r', [5, 5, 4, 5, 5, 4, 5, 5], [0, 0.2, 0.23, 0.27, 0.6, 0.63, 0.67, 1])),
+    // You both tap at once on the signal, but your ⚡ tap counts a little sooner: you splash first.
+    headstart:
+      sand +
+      `<polygon points="44,30 40,37 43,37 41,43 47,35 44,35 46,30" fill="#ffd166" stroke="#b07a00" stroke-width="0.8">${anim('opacity', [1, 0.5, 1, 0.5, 1], [0, 0.25, 0.5, 0.75, 1])}</polygon>` +
+      `<circle cx="32" cy="22" r="7" fill="#5eead4" stroke="#fff" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.45, 0.47, 0.9, 1])}</circle>` +
+      line(32, 31, 32, 31, '#7fd3ff', 2.5, anim('y2', [31, 31, 12, 12, 31], [0, 0.56, 0.66, 0.85, 1]) + anim('opacity', [0, 0, 1, 1, 0], [0, 0.56, 0.57, 0.85, 1])) +
+      circle(32, 7, 5, THEM, anim('r', [5, 5, 4, 5, 5], [0, 0.55, 0.58, 0.62, 1]) + anim('fill', [THEM, THEM, '#7fd3ff', '#7fd3ff', THEM], [0, 0.65, 0.66, 0.9, 1])) +
+      circle(32, 37, 5, YOU, anim('r', [5, 5, 4, 5, 5], [0, 0.55, 0.58, 0.62, 1])),
+    // A fly buzzes round the other player: they jump before the signal.
+    fly:
+      sand +
+      `<circle cx="32" cy="22" r="7" fill="#5eead4" stroke="#fff" stroke-width="1.5">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.6, 0.62, 0.9, 1])}</circle>` +
+      circle(32, 7, 5, THEM, anim('r', [5, 5, 4, 5, 5], [0, 0.4, 0.43, 0.47, 1]) + anim('fill', [THEM, THEM, '#ff5c7a', '#ff5c7a', THEM], [0, 0.42, 0.43, 0.9, 1])) +
+      [0, -2].map((dy, i) => circle(22, 7 + dy, i ? 1.6 : 1.8, i ? '#ffffff' : '#2b2b33', anim('cx', [22, 32, 42, 32, 22], [0, 0.25, 0.5, 0.75, 1]) + anim('cy', [7 + dy, 2 + dy, 7 + dy, 14 + dy, 7 + dy], [0, 0.25, 0.5, 0.75, 1]))).join('') +
+      circle(32, 37, 5, YOU),
   },
   tugofwar: {
     // You glow strong for a moment: the ribbon races to your line.
@@ -314,6 +434,20 @@ const PICS: Record<string, Record<string, string>> = {
       circle(17, 21, 2.5, '#ffd166') +
       `<circle cx="17" cy="21" r="3" fill="none" stroke="#ff5c7a" stroke-width="2">${anim('r', [3, 3, 12, 12], [0, 0.3, 0.5, 1])}${anim('opacity', [0, 0, 1, 0, 0], [0, 0.3, 0.32, 0.5, 1])}</circle>` +
       `<rect x="45" y="17" width="8" height="8" rx="1.5" fill="#ff5c7a">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.55, 0.6, 0.9, 1])}</rect>`,
+    // A torpedo runs up a column from the bottom, splashing through water, and hits the first ship.
+    torpedo:
+      seaBg +
+      sea(5, 6, 3) +
+      [[30, 0.3], [21, 0.45]].map(([y, at]) => circle(36, y, 1.8, '#fff', anim('opacity', [0, 0, 1, 1, 0], [0, at, at + 0.02, 0.9, 1]), ' opacity="0"')).join('') +
+      `<rect x="32" y="8" width="8" height="8" rx="1.5" fill="#ff5c7a" opacity="0">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.6, 0.62, 0.9, 1])}</rect>` +
+      rect(34, 40, 4, 8, YOU, anim('y', [44, 44, 9, 9], [0, 0.1, 0.6, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.1, 0.6, 0.62, 1])),
+    // Two shots in one turn: the first misses, the second still gets to fire, and hits.
+    double:
+      seaBg +
+      sea(5, 6, 3) +
+      `<circle cx="18" cy="21" r="5.5" fill="none" style="stroke:${YOU}" stroke-width="1.5">${anim('cx', [18, 18, 45, 45], [0, 0.4, 0.5, 1])}${anim('cy', [21, 21, 12, 12], [0, 0.4, 0.5, 1])}${anim('opacity', [0, 1, 1, 0], [0, 0.1, 0.9, 1])}</circle>` +
+      circle(18, 21, 1.8, '#fff', anim('opacity', [0, 0, 1, 1, 0], [0, 0.3, 0.32, 0.9, 1]), ' opacity="0"') +
+      `<rect x="41" y="8" width="8" height="8" rx="1.5" fill="#ff5c7a" opacity="0">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.65, 0.67, 0.9, 1])}</rect>`,
   },
   sumo: {
     // Stomp: a shockwave shoves the other wrestler away.
@@ -333,6 +467,19 @@ const PICS: Record<string, Record<string, string>> = {
       [[38, 30], [46, 16], [30, 12]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="2" fill="none" stroke="#fff" stroke-width="1">${anim('opacity', [0, 0.9, 0], [0, 0.3 + i * 0.15, 1])}${anim('r', [1, 3, 3], [0, 0.3 + i * 0.15, 1])}</circle>`).join('') +
       circle(24, 22, 7, YOU) +
       circle(40, 22, 7, THEM, anim('cx', [40, 46, 36, 46, 40], [0, 0.25, 0.5, 0.75, 1]) + anim('cy', [22, 16, 28, 26, 22], [0, 0.25, 0.5, 0.75, 1])),
+    // Iron Feet: a steel ring plants you; the other wrestler charges in and bounces off.
+    iron:
+      ring +
+      `<circle cx="24" cy="22" r="10" fill="none" stroke="#aeb8c6" stroke-width="2.5" stroke-dasharray="3 2">${anim('opacity', [0, 1, 1, 0], [0, 0.15, 0.85, 1])}</circle>` +
+      circle(24, 22, 7, YOU) +
+      circle(48, 22, 7, THEM, anim('cx', [48, 48, 41, 50, 48], [0, 0.3, 0.45, 0.65, 1])),
+    // Dash: your arrow lights up, then you zoom forward and knock the other wrestler back.
+    dash:
+      ring +
+      line(28, 22, 40, 22, '#ffd166', 2, anim('opacity', [0, 0, 1, 1, 0, 0], [0, 0.1, 0.15, 0.38, 0.42, 1]), ' stroke-dasharray="2 3"') +
+      circle(16, 22, 3, '#fff', anim('opacity', [0, 0, 0.8, 0, 0], [0, 0.4, 0.45, 0.65, 1]) + anim('cx', [16, 16, 16, 10, 10], [0, 0.4, 0.45, 0.65, 1])) +
+      circle(20, 22, 7, YOU, anim('cx', [20, 20, 30, 30, 20], [0, 0.4, 0.5, 0.85, 1])) +
+      circle(40, 22, 7, THEM, anim('cx', [40, 40, 40, 51, 51, 40], [0, 0.4, 0.48, 0.62, 0.85, 1])),
   },
 };
 

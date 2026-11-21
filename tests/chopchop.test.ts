@@ -231,6 +231,78 @@ describe('chop chop', () => {
 
   it('bots use powers', () => {
     expect(play(['normal', 'normal'], 8, { powers: ['freeze', 'double'] }).powersFired).toBeGreaterThan(0);
+    expect(play(['normal', 'normal'], 8, { powers: ['tall', 'hotaxe'] }).powersFired).toBeGreaterThan(0);
+  });
+
+  it('tall tree: the other tree grows 3 pieces taller, so they need 3 more chops this round', () => {
+    const g = fresh({ powers: ['tall', 'tall'] });
+    expect(power('chopchop', 'tall').count).toBe(3);
+    g.energy[0].value = 1;
+    g.step(DT, [{ chop: 0, power: true }, idle]);
+    expect(g.choppers[1].extra).toBe(3);
+    expect(g.goal(1)).toBe(RULES.goal + 3);
+    expect(g.goal(0)).toBe(RULES.goal);
+    // 50 chops are no longer enough for them...
+    const c = g.choppers[1];
+    let n = 0;
+    while (c.chops < RULES.goal && n++ < 400) g.step(DT, [idle, { chop: safe(g, 1), power: false }]);
+    expect(c.chops).toBe(RULES.goal);
+    expect(g.phase).toBe('play');
+    // ...53 are, and the next round is back to 50.
+    while (g.phase === 'play' && n++ < 800) g.step(DT, [idle, { chop: safe(g, 1), power: false }]);
+    expect(c.chops).toBe(RULES.goal + 3);
+    expect(g.lastRound).toBe(1);
+    while (g.phase !== 'play' && n++ < 2000) g.step(DT, [idle, idle]);
+    expect(g.goal(1)).toBe(RULES.goal);
+  });
+
+  it('hot axe: your next chop burns through 4 pieces at once, branches and all', () => {
+    const g = fresh({ powers: ['hotaxe', 'hotaxe'] });
+    const c = g.choppers[0];
+    expect(power('chopchop', 'hotaxe').count).toBe(4);
+    g.energy[0].value = 1;
+    g.step(DT, [{ chop: 0, power: true }, idle]);
+    expect(c.hot).toBe(4);
+    // A count, not seconds: waiting doesn't use it up.
+    for (let i = 0; i < 120; i++) g.step(DT, [idle, idle]);
+    expect(c.hot).toBe(4);
+    // Walk up to a branch one piece above you, then chop on its side: it burns instead of bonking.
+    let n = 0;
+    c.hot = 0;
+    while (g.branch(0, c.idx + 1) === 0 && n++ < 100) g.step(DT, [{ chop: safe(g, 0), power: false }, idle]);
+    c.hot = 4;
+    const bad = g.branch(0, c.idx + 1) as -1 | 1;
+    const [idx, chops] = [c.idx, c.chops];
+    g.step(DT, [{ chop: bad, power: false }, idle]);
+    expect(c.out).toBe(false);
+    expect(c.idx).toBe(idx + 4);
+    expect(c.chops).toBe(chops + 4);
+    expect(c.hot).toBe(0);
+    expect(g.events.some((e) => e.type === 'hotChop' && e.count === 4)).toBe(true);
+    // The piece it lands on is burned bare too (it was too high up to be seen).
+    expect(g.branch(0, c.idx)).toBe(0);
+    // Only one chop: after that a branch bonks again.
+    n = 0;
+    while (g.branch(0, c.idx + 1) === 0 && n++ < 100) g.step(DT, [{ chop: safe(g, 0), power: false }, idle]);
+    g.step(DT, [{ chop: g.branch(0, c.idx + 1) as -1 | 1, power: false }, idle]);
+    expect(c.out).toBe(true);
+  });
+
+  it("hot axe doesn't thaw a frozen tree: the ice cracks first, then the axe burns", () => {
+    const g = fresh({ powers: ['hotaxe', 'freeze'] });
+    const c = g.choppers[0];
+    g.energy[0].value = 1;
+    g.energy[1].value = 1;
+    g.step(DT, [{ chop: 0, power: true }, { chop: 0, power: true }]);
+    expect(c.hot).toBe(4);
+    expect(c.frozen).toBe(3);
+    for (let k = 0; k < 3; k++) {
+      g.step(DT, [{ chop: safe(g, 0), power: false }, idle]);
+      for (let i = 0; i < 10; i++) g.step(DT, [idle, idle]);
+    }
+    expect(c.hot).toBe(4);
+    g.step(DT, [{ chop: c.side, power: false }, idle]);
+    expect(c.chops).toBe(4);
   });
 });
 

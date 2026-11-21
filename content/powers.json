@@ -3,6 +3,9 @@
     "assistBonus": 0.15,
     "trailingBonus": 0.25
   },
+  "rotation": {
+    "perWeek": 3
+  },
   "games": {
     "minigolf": [
       {
@@ -22,6 +25,18 @@
         "name": "Ghost Ball",
         "icon": "👻",
         "desc": "Your next shot floats through one wall or obstacle."
+      },
+      {
+        "id": "redo",
+        "name": "Do-over",
+        "icon": "🔁",
+        "desc": "If your next shot misses, the ball comes back and you try again free."
+      },
+      {
+        "id": "tiny",
+        "name": "Tiny Cup",
+        "icon": "🤏",
+        "desc": "The hole shrinks to a tiny cup for the other player's next shot."
       }
     ],
     "minipool": [
@@ -65,6 +80,20 @@
         "icon": "✨",
         "desc": "The puck splits in two. Either one can score.",
         "duration": 6
+      },
+      {
+        "id": "guard",
+        "name": "Goal Guard",
+        "icon": "🧱",
+        "desc": "A low wall guards the middle of your goal for 5 seconds.",
+        "duration": 5
+      },
+      {
+        "id": "tiny",
+        "name": "Tiny Paddle",
+        "icon": "🐜",
+        "desc": "The other paddle shrinks small for 5 seconds.",
+        "duration": 5
       }
     ],
     "tanks": [
@@ -87,6 +116,20 @@
         "name": "Mine",
         "icon": "💣",
         "desc": "Drop a blinking mine behind you. The other tank or a shell sets it off. It can't hurt you."
+      },
+      {
+        "id": "turbo",
+        "name": "Turbo Treads",
+        "icon": "🏎️",
+        "desc": "Your tank drives and turns much faster for 5 seconds.",
+        "duration": 5
+      },
+      {
+        "id": "spread",
+        "name": "Spread Shot",
+        "icon": "🔱",
+        "desc": "For 6 seconds every shot fires a fan of 3 shells.",
+        "duration": 6
       }
     ],
     "snake": [
@@ -109,6 +152,19 @@
         "name": "Trail Bomb",
         "icon": "💣",
         "desc": "Blow a gap in every trail around your head."
+      },
+      {
+        "id": "brick",
+        "name": "Brick Wall",
+        "icon": "🧱",
+        "desc": "Drop a brick wall in front of the other snake. It blinks first."
+      },
+      {
+        "id": "wrap",
+        "name": "Wall Wrap",
+        "icon": "🌀",
+        "desc": "For 5 seconds, go into a wall and pop out the other side.",
+        "duration": 5
       }
     ],
     "quickdraw": [
@@ -129,6 +185,18 @@
         "name": "Double Shot",
         "icon": "🎯",
         "desc": "One early tap is forgiven."
+      },
+      {
+        "id": "headstart",
+        "name": "Head Start",
+        "icon": "⚡",
+        "desc": "Next round, your tap after DRAW! counts a tiny bit sooner."
+      },
+      {
+        "id": "fly",
+        "name": "Buzzy Fly",
+        "icon": "🪰",
+        "desc": "Next round, a fly buzzes round the other player. Will they jump?"
       }
     ],
     "chopchop": [
@@ -151,6 +219,20 @@
         "name": "Double Chop",
         "icon": "✌️",
         "desc": "Your next 4 chops count twice.",
+        "count": 4
+      },
+      {
+        "id": "tall",
+        "name": "Tall Tree",
+        "icon": "🌲",
+        "desc": "The other tree grows 3 pieces taller, so they need 3 more chops.",
+        "count": 3
+      },
+      {
+        "id": "hotaxe",
+        "name": "Hot Axe",
+        "icon": "🔥",
+        "desc": "Your next chop burns through 4 pieces at once, branches and all.",
         "count": 4
       }
     ],
@@ -175,6 +257,20 @@
         "icon": "🧼",
         "desc": "The other wrestler slides around for 3.5 seconds.",
         "duration": 3.5
+      },
+      {
+        "id": "iron",
+        "name": "Iron Feet",
+        "icon": "🦶",
+        "desc": "Your feet grip the floor for 3 seconds. Pushes barely move you.",
+        "duration": 3
+      },
+      {
+        "id": "dash",
+        "name": "Dash",
+        "icon": "💨",
+        "desc": "Zoom! A quick, extra-strong dash the way your arrow points.",
+        "duration": 0.25
       }
     ],
     "snacksnatch": [
@@ -198,6 +294,20 @@
         "icon": "👅",
         "desc": "Your next 3 snaps reach twice as far.",
         "duration": 0
+      },
+      {
+        "id": "rain",
+        "name": "Snack Rain",
+        "icon": "🌧️",
+        "desc": "Three speedy extra snacks zoom your way. Catch them quick!",
+        "duration": 2
+      },
+      {
+        "id": "sleepy",
+        "name": "Nap Time",
+        "icon": "😴",
+        "desc": "The other critters snap in slow motion for 3 seconds.",
+        "duration": 3
       }
     ],
     "pingpong": [
@@ -220,6 +330,20 @@
         "name": "Curve Ball",
         "icon": "🌀",
         "desc": "Your next return bends away from the other paddle.",
+        "duration": 0
+      },
+      {
+        "id": "wide",
+        "name": "Wide Paddle",
+        "icon": "↔️",
+        "desc": "Your paddle grows extra wide for 5 seconds.",
+        "duration": 5
+      },
+      {
+        "id": "wobble",
+        "name": "Wobble Ball",
+        "icon": "〰️",
+        "desc": "Your next return wobbles side to side all the way over.",
         "duration": 0
       }
     ],
@@ -244,6 +368,20 @@
         "icon": "👻",
         "desc": "Your next shot sends a fake ball too. The keeper has to pick one.",
         "duration": 0
+      },
+      {
+        "id": "rocket",
+        "name": "Rocket Shot",
+        "icon": "🚀",
+        "desc": "Your next shot flies super fast. The keeper has to be quick!",
+        "duration": 0
+      },
+      {
+        "id": "slowmo",
+        "name": "Slow-Mo",
+        "icon": "🐢",
+        "desc": "The other player's next shot flies slowly, so it's easier to save.",
+        "duration": 0
       }
     ],
     "seabattle": [
@@ -264,6 +402,18 @@
         "name": "Hit-back Mine",
         "icon": "💥",
         "desc": "Hide a mine in your sea. Whoever fires on it gets one of their own ships hit."
+      },
+      {
+        "id": "torpedo",
+        "name": "Torpedo",
+        "icon": "🚀",
+        "desc": "Fire a torpedo up a column. It hits the first ship in its way."
+      },
+      {
+        "id": "double",
+        "name": "Double Shot",
+        "icon": "✌️",
+        "desc": "Get an extra shot this turn, so one miss won't end it."
       }
     ],
     "tugofwar": [
@@ -308,5 +458,6 @@
         "desc": "Pick a column they can't play on their next turn. You still drop a disc."
       }
     ]
-  }
+  },
+  "sets": []
 }

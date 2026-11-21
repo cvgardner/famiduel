@@ -11,6 +11,9 @@ import { CONTROLS_Y, controlsFor, FIRE_R, FIRE_R_BIG, FIRE_RIM, fireLook, STICK_
 import { COLS, LAYOUTS, ROWS } from './mazes';
 import { ARENA, CELL, IDLE, RULES, TankBot, TankDuel, type Intent, type Tank } from './logic';
 const FLOOR = '#2a2150';
+/** Turbo Treads' flame glow and Spread Shot's fan of barrels. */
+const TURBO = '#ff9f43';
+const SPREAD = '#c9a0ff';
 /** F192: a pop keeps this far from a tank's centre (its seat ring and shield reach tankR + 11.5). */
 const TANK_CLEAR = RULES.tankR + 12;
 /** The colours most of the play area is painted in (tests read pops against them). */
@@ -41,6 +44,8 @@ class TankView implements GameInstance {
   private readonly controls: Controls[];
   private tracks: Track[] = [];
   private trackDist = [0, 0];
+  /** Seconds to the next Turbo Treads exhaust puff, per seat. */
+  private puffT = [0, 0];
   private trails = new Map<number, Trail>();
   private dizzy: (number | null)[] = [null, null];
   private booms: { x: number; y: number; t: number }[] = [];
@@ -157,6 +162,14 @@ class TankView implements GameInstance {
     for (const p of PLAYERS) {
       const tk = g.tanks[p];
       this.trackDist[p] += tk.speed * dt;
+      // Turbo Treads: exhaust puffs out the back while it drives.
+      this.puffT[p] -= dt;
+      if (tk.turbo > 0 && tk.speed > 20 && this.puffT[p] <= 0) {
+        this.puffT[p] = 0.06;
+        const bx = tk.x - Math.cos(tk.a) * (RULES.tankR + 4);
+        const by = tk.y - Math.sin(tk.a) * (RULES.tankR + 4);
+        this.ctx.fx.burst(bx, by, TURBO, 2, 50, 3);
+      }
       if (this.trackDist[p] > 7) {
         this.trackDist[p] = 0;
         this.tracks.push({ x: tk.x, y: tk.y, a: tk.a, life: 2.5 });
@@ -230,6 +243,10 @@ class TankView implements GameInstance {
     for (const e of g.events) {
       if (e.type === 'fire') {
         sfx.play(e.bouncy ? 'coin' : 'pop');
+        if (e.spread) {
+          sfx.play('whoosh');
+          fx.burst(e.x, e.y, SPREAD, 8, 120, 2.5);
+        }
         fx.burst(e.x, e.y, e.bouncy ? COLORS.gold : '#ffffff', 5, 90, 2.5);
       } else if (e.type === 'dud') {
         sfx.play('click');
@@ -430,14 +447,22 @@ class TankView implements GameInstance {
     circle(gx, 2, 5, RULES.tankR + 3, 'rgba(30,20,60,0.25)');
     gx.rotate(tk.a + spin);
     gx.scale(squash, 2 - squash);
-    // Treads
-    const tread = shade(c, -0.55);
+    // Treads (glowing hot with Turbo Treads; they blink as it wears off)
+    const turbo = tk.turbo > 0 && !(tk.turbo < 1 && !flashOn(this.t));
+    if (turbo) {
+      glow(gx, TURBO, 14);
+      // Speed streaks out the back, longer the faster it drives.
+      const len = 4 + 10 * Math.min(1, tk.speed / (RULES.speed * RULES.turboSpeed));
+      for (const side of [-1, 1]) line(gx, -17, side * 11, -17 - len, side * 11, alpha(TURBO, 0.8), 3);
+    }
+    const tread = turbo ? TURBO : shade(c, -0.55);
     const roll = (this.t * tk.speed * 0.25) % 6;
     for (const side of [-1, 1]) {
       rrect(gx, -15, side * 11 - 4, 30, 8, 4, tread);
       gx.fillStyle = 'rgba(255,255,255,0.18)';
       for (let i = -12 + roll; i < 13; i += 6) gx.fillRect(i, side * 11 - 3, 2, 6);
     }
+    noGlow(gx);
     // Hull
     rrect(gx, -13, -10, 26, 20, 8, c, shade(c, -0.35), 2.5);
     rrect(gx, -10, -8, 14, 6, 3, alpha('#ffffff', 0.3));
@@ -445,7 +470,18 @@ class TankView implements GameInstance {
     const kick = Math.max(0, 1 - tk.fired * 8) * 4;
     const bouncy = tk.bouncy > 0;
     if (bouncy) glow(gx, COLORS.gold, 10 + 4 * Math.sin(this.t * 10));
-    rrect(gx, 2 - kick, -3.5, 17, 7, 3.5, bouncy ? COLORS.gold : shade(c, -0.2), shade(c, -0.45), 2);
+    if (tk.spread > 0) {
+      // Spread Shot: two extra barrels fanned out either side, glowing.
+      const fading = tk.spread < 1 && !flashOn(this.t);
+      glow(gx, SPREAD, fading ? 4 : 12);
+      for (const side of [-1, 1]) {
+        gx.save();
+        gx.rotate(side * RULES.spreadAngle);
+        rrect(gx, 2 - kick, -2.5, 15, 5, 2.5, fading ? shade(SPREAD, -0.3) : SPREAD, shade(c, -0.45), 1.5);
+        gx.restore();
+      }
+    }
+    rrect(gx, 2 - kick, -3.5, 17, 7, 3.5, bouncy ? COLORS.gold : tk.spread > 0 ? SPREAD : shade(c, -0.2), shade(c, -0.45), 2);
     noGlow(gx);
     // Turret with a friendly face
     circle(gx, 0, 0, 8.5, shade(c, 0.25), shade(c, -0.35), 2);

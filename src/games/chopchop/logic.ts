@@ -39,6 +39,10 @@ export const RULES = {
   freeze: 3,
   /** Chops Branch Shield covers (a count, like Double Chop, so its worth doesn't grow with tapping speed). */
   shield: 12,
+  /** Pieces Tall Tree adds to the other tree this round (their goal goes up by this many chops). */
+  tallTree: 3,
+  /** Pieces Hot Axe's next chop burns through at once, branches and all. */
+  hotAxe: 4,
   energyPerChop: 0.02,
   energyLose: 0.35,
 };
@@ -65,6 +69,10 @@ export type Chopper = {
   spare: number;
   /** Pattern indices whose branch this chopper broke off with a shield. */
   broken: Set<number>;
+  /** Tall Tree: extra chops this chopper needs this round, on top of RULES.goal. */
+  extra: number;
+  /** Hot Axe: pieces the next chop burns through (0 = no hot axe). */
+  hot: number;
 };
 
 export type Event =
@@ -73,6 +81,8 @@ export type Event =
   | { type: 'timeUp'; p: PlayerIndex }
   | { type: 'shieldBreak'; p: PlayerIndex; side: Side; /** A head-start spare (F343), not the Shield power. */ spare?: boolean }
   | { type: 'frozenTap'; p: PlayerIndex }
+  /** Hot Axe's chop: p burned through `count` pieces at once. */
+  | { type: 'hotChop'; p: PlayerIndex; side: Side; count: number }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'roundStart'; round: number }
   | { type: 'roundEnd'; winner: PlayerIndex | null }
@@ -106,7 +116,7 @@ export class ChopChop {
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     const mk = (p: PlayerIndex): Chopper => ({
       side: -1, idx: 0, chops: 0, timer: RULES.timerStart, out: false, outReason: null, shield: 0, frozen: 0, double: 0,
-      drainMul: lerpAssist(players[p].assist, 1, RULES.assistDrain), spare: this.spareFor(p), broken: new Set(),
+      drainMul: lerpAssist(players[p].assist, 1, RULES.assistDrain), spare: this.spareFor(p), broken: new Set(), extra: 0, hot: 0,
     });
     this.choppers = [mk(0), mk(1)];
     this.resetRound();
@@ -126,7 +136,7 @@ export class ChopChop {
     this.pattern = pat;
     for (const p of [0, 1] as PlayerIndex[]) {
       const c = this.choppers[p];
-      Object.assign(c, { side: -1, idx: 0, chops: this.startChops(p), timer: RULES.timerStart, out: false, outReason: null, shield: 0, frozen: 0, double: 0, spare: this.spareFor(p) });
+      Object.assign(c, { side: -1, idx: 0, chops: this.startChops(p), timer: RULES.timerStart, out: false, outReason: null, shield: 0, frozen: 0, double: 0, spare: this.spareFor(p), hot: 0, extra: 0 });
       c.broken = new Set();
     }
     this.phase = 'intro';
@@ -139,6 +149,11 @@ export class ChopChop {
   branch(p: PlayerIndex, i: number): Branch {
     if (this.choppers[p].broken.has(i)) return 0;
     return this.pattern[i] ?? 0;
+  }
+
+  /** Chops player p needs to win this round (Tall Tree adds to it). */
+  goal(p: PlayerIndex): number {
+    return RULES.goal + this.choppers[p].extra;
   }
 
   /** Chops this player's count starts each round on (the head start, F343). */
@@ -195,8 +210,10 @@ export class ChopChop {
       }
     }
     const [a, b] = this.choppers;
-    const reached = ([0, 1] as PlayerIndex[]).filter((p) => this.choppers[p].chops >= RULES.goal && !this.choppers[p].out);
-    if (reached.length === 2) this.endRound(a.chops === b.chops ? null : a.chops > b.chops ? 0 : 1);
+    const reached = ([0, 1] as PlayerIndex[]).filter((p) => this.choppers[p].chops >= this.goal(p) && !this.choppers[p].out);
+    // Both done on one step: whoever went further past their own goal wins.
+    const past = (p: PlayerIndex) => this.choppers[p].chops - this.goal(p);
+    if (reached.length === 2) this.endRound(past(0) === past(1) ? null : past(0) > past(1) ? 0 : 1);
     else if (reached.length === 1) this.endRound(reached[0]);
     else if (a.out && b.out) this.endRound(null);
     else if (a.out) this.endRound(1);
@@ -229,6 +246,21 @@ export class ChopChop {
       this.events.push({ type: 'frozenTap', p });
       return;
     }
+    if (c.hot > 0) {
+      // Hot Axe: one chop burns through several pieces, branches and all, so it never bonks.
+      const n = c.hot;
+      c.hot = 0;
+      for (let k = 0; k <= n; k++) if (this.branch(p, c.idx + k) !== 0) c.broken.add(c.idx + k);
+      c.side = side;
+      c.idx += n;
+      c.chops += n;
+      // Each piece refills the bar like a chop would: the timer drains by pieces chopped (idx).
+      c.timer = Math.min(1, c.timer + RULES.refill * n);
+      this.energy[p].charge(RULES.energyPerChop, c.chops < this.choppers[other(p)].chops);
+      this.events.push({ type: 'hotChop', p, side, count: n });
+      this.events.push({ type: 'chop', p, side, count: n });
+      return;
+    }
     // Stepping round to a side where a branch hangs at your level: bonk.
     if (!this.hit(p, c.idx, side)) return;
     c.side = side;
@@ -249,10 +281,14 @@ export class ChopChop {
     const c = this.choppers[p];
     if (!power || c.out) return;
     if (power.id === 'shield' && c.shield > 0) return;
+    if (power.id === 'hotaxe' && c.hot > 0) return;
+    if (power.id === 'tall' && this.choppers[other(p)].out) return;
     if (!this.energy[p].spend(power.duration ?? 0)) return;
     if (power.id === 'shield') c.shield = power.count ?? RULES.shield;
     else if (power.id === 'freeze') this.choppers[other(p)].frozen = power.count ?? RULES.freeze;
     else if (power.id === 'double') c.double = power.count ?? RULES.doubleChop;
+    else if (power.id === 'tall') this.choppers[other(p)].extra += power.count ?? RULES.tallTree;
+    else if (power.id === 'hotaxe') c.hot = power.count ?? RULES.hotAxe;
     this.events.push({ type: 'power', p, id: power.id });
   }
 
@@ -312,6 +348,8 @@ export class ChopBot {
     this.wait = Math.max(HUMAN.tapGap, (1 / rate) * (1 + this.rng.range(-cfg.jitter, cfg.jitter)));
     // A frozen tree takes taps to crack, so it taps on, the way a person does.
     if (c.frozen > 0) return { chop: c.side, power };
+    // A hot axe burns through whatever hangs there, so there's nothing to read: stay put.
+    if (c.hot > 0) return { chop: c.side, power };
     const safe = (s: -1 | 1) => game.branch(this.p, c.idx) !== s && game.branch(this.p, c.idx + 1) !== s;
     if (shielded) return { chop: c.side, power };
     let side: -1 | 1 = safe(c.side) ? c.side : (-c.side as -1 | 1);
@@ -322,6 +360,7 @@ export class ChopBot {
   private wantsPower(game: ChopChop): boolean {
     const id = game.players[this.p].power?.id;
     if (id === 'freeze') return !game.choppers[other(this.p)].out;
+    if (id === 'tall') return !game.choppers[other(this.p)].out;
     return true;
   }
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../src/core/rng';
 import type { BotLevel } from '../src/core/types';
-import { AirHockey, AirHockeyBot, RULES } from '../src/games/airhockey/logic';
+import { AirHockey, AirHockeyBot, RULES, type Intent } from '../src/games/airhockey/logic';
 import { H } from '../src/engine/world';
 import { DT, player, power } from './helpers';
 
@@ -72,6 +72,83 @@ describe('air hockey', () => {
     const y = g.paddles[1].y;
     g.step(DT, [{ tx: 180, ty: 560, power: false }, { tx: 100, ty: 200, power: false }]);
     expect(g.paddles[1].y).toBe(y);
+  });
+
+  it('Goal Guard: a low wall in the middle of your goal turns shots back for 5 seconds, the sides stay open', () => {
+    const shoot = (x: number, guardUp: boolean) => {
+      const g = new AirHockey([player({ power: power('airhockey', 'guard') }), player()], true, makeRng(2));
+      g.serve = 0;
+      g.energy[0].value = 1;
+      // Seat 1's paddle waits off to the side; seat 0's paddle is out of the way too.
+      const away = [{ tx: 40, ty: 340, power: guardUp }, { tx: 320, ty: 40, power: false }] as [Intent, Intent];
+      g.pucks = [{ x, y: H - 200, vx: 0, vy: 700, alive: true }];
+      g.paddles[0].x = 40;
+      g.paddles[0].y = 340;
+      g.paddles[1].x = 320;
+      g.paddles[1].y = 40;
+      g.step(DT, away);
+      away[0].power = false;
+      let blocked = false;
+      for (let t = 0; t < 1 && g.score[1] === 0; t += DT) {
+        g.step(DT, away);
+        if (g.events.some((e) => e.type === 'block' && e.p === 0)) blocked = true;
+      }
+      return { g, blocked };
+    };
+    // Dead centre: in without it, bounced back with it.
+    expect(shoot(180, false).g.score[1]).toBe(1);
+    const mid = shoot(180, true);
+    expect(mid.blocked).toBe(true);
+    expect(mid.g.score[1]).toBe(0);
+    expect(mid.g.pucks[0].vy).toBeLessThan(0);
+    // Past the end of the wall, still inside the posts: a goal (aim wide to beat it).
+    const wide = 180 + RULES.goalW * RULES.guardFrac / 2 + RULES.puckR;
+    expect(wide).toBeLessThan(180 + RULES.goalW / 2 - RULES.puckR * 0.3);
+    expect(shoot(wide, true).g.score[1]).toBe(1);
+    // It lasts 5 seconds, then the goal is open again.
+    const g = new AirHockey([player({ power: power('airhockey', 'guard') }), player()], true, makeRng(2));
+    g.energy[0].value = 1;
+    g.step(DT, [{ tx: 180, ty: 560, power: true }, { tx: 180, ty: 80, power: false }]);
+    expect(g.guardHalf(0)).toBeCloseTo(RULES.goalW * RULES.guardFrac / 2);
+    expect(g.guardHalf(1)).toBe(0);
+    for (let t = 0; t < 5; t += DT) g.step(DT, [{ tx: 180, ty: 560, power: false }, { tx: 180, ty: 80, power: false }]);
+    expect(g.guardHalf(0)).toBe(0);
+  });
+
+  it('Tiny Paddle: the other paddle shrinks for 5 seconds, then grows back', () => {
+    const g = new AirHockey([player({ power: power('airhockey', 'tiny') }), player()], true, makeRng(2));
+    g.energy[0].value = 1;
+    const r = g.paddleRadius(1);
+    g.step(DT, [{ tx: 180, ty: 560, power: true }, { tx: 180, ty: 80, power: false }]);
+    expect(g.paddleRadius(1)).toBeCloseTo(r * RULES.tinyScale);
+    expect(g.paddleRadius(0)).toBe(r);
+    expect(g.energy[0].value).toBe(0);
+    // A small paddle can still move and hit; it just covers less.
+    for (let t = 0; t < 4.5; t += DT) g.step(DT, [{ tx: 180, ty: 560, power: false }, { tx: 100, ty: 120, power: false }]);
+    expect(g.paddleRadius(1)).toBeCloseTo(r * RULES.tinyScale);
+    expect(g.paddles[1].x).toBeCloseTo(100);
+    for (let t = 0; t < 0.6; t += DT) g.step(DT, [{ tx: 180, ty: 560, power: false }, { tx: 100, ty: 120, power: false }]);
+    expect(g.paddleRadius(1)).toBe(r);
+  });
+
+  it('the bot puts its Goal Guard up while they line up a shot, and shrinks the other paddle when it has the puck', () => {
+    const asks = (id: string, y: number, vy: number) => {
+      const pw = power('airhockey', id);
+      const g = new AirHockey([player({ bot: 'normal', power: pw }), player({ bot: 'normal', power: pw })], true, makeRng(4));
+      const bot = new AirHockeyBot(0, 'normal', makeRng(5));
+      g.energy[0].value = 1;
+      let asked = 0;
+      for (let i = 0; i < 60; i++) {
+        Object.assign(g.pucks[0], { x: 180, y, vx: 0, vy });
+        if (bot.think(g, DT).power) asked++;
+      }
+      return asked;
+    };
+    expect(asks('guard', H * 0.3, 0)).toBeGreaterThan(0); // in their half: they are about to shoot
+    expect(asks('guard', H * 0.3, -600)).toBe(0); // flying away to their back wall
+    expect(asks('guard', H * 0.7, 0)).toBe(0); // we have it
+    expect(asks('tiny', H * 0.7, 0)).toBeGreaterThan(0); // we have it: about to shoot
+    expect(asks('tiny', H * 0.3, 0)).toBe(0);
   });
 
   describe('stall rule', () => {
