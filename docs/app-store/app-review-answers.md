@@ -1,6 +1,8 @@
-# App Store Connect form answers (v1.0)
+# App Store Connect form answers (v1.1)
 
-Answers for the forms App Store Connect asks before review, for v1 as built: free, with
+Answers for the forms App Store Connect asks before review, for v1.1 as built (nothing in
+App Privacy, age rating or export compliance changed since v1.0; only the App Review notes
+did, because the grown-ups gate is gone): free, with
 fair interstitial ads from Google AdMob between matches (docs/ads.md) and one non-consumable
 purchase, **Remove Ads** (`famiduel.removeads`). No accounts, no chat, no tracking. The
 app's own code still makes no network requests (`grep -rn "fetch(\|XMLHttpRequest\|sendBeacon" src`
@@ -90,7 +92,7 @@ so App Store Connect won't ask on each upload.
 
 - **Sign-in required:** No.
 - **Contact:** your name, phone and email (Apple only; not shown on the store).
-- **Notes** (paste):
+- **Notes** (paste; replaces the v1.0 notes, which still mention the grown-ups question):
 
   FamiDuel is a two-player game for one phone: lay the phone flat between two people and
   each player uses the half of the screen nearest them. To try it alone, tap "Play the bot"
@@ -126,4 +128,4 @@ in code and all sounds are synthesized (CLAUDE.md "Tech"); no trademarked game n
 ## Accessibility (optional, App Store accessibility labels)
 
 docs/accessibility-labels.md lists the labels the app can claim and the test behind each.
-"Larger Text" still needs a setting that reaches 2x (PR #338).
+"Larger Text": menus reach 2x since v1.1 (Settings > Look > Text size > Largest); claiming it is Chris's call.

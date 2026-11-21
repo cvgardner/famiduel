@@ -37,10 +37,11 @@ uploads from April 2027. GitHub Actions failures are a billing block: ignore the
    All five steps must pass (typecheck, unit tests, build, e2e, playtest). Glance at
    `playtest-report/index.html` if anything visual changed.
 3. Version. Each upload gets a fresh build number automatically (UTC date and time), so
-   nothing to bump for another build of the same version. For a **new store version**
-   (after 1.0.0 is released), ask Chris which number, then:
+   nothing to bump for another build of the same version. v1.1.0 is already set on main
+   (`MARKETING_VERSION`, PR for the 1.1 release). For a later **new store version**, ask
+   Chris which number, then:
    ```sh
-   sed -i '' 's/MARKETING_VERSION = 1.0.0;/MARKETING_VERSION = 1.0.1;/' ios/App/App.xcodeproj/project.pbxproj
+   sed -i '' 's/MARKETING_VERSION = 1.1.0;/MARKETING_VERSION = 1.1.1;/' ios/App/App.xcodeproj/project.pbxproj
    ```
    (both Debug and Release lines change), commit it on a branch and open a PR.
 4. Ask Chris, then upload:
@@ -60,11 +61,38 @@ simulator and saves screenshots to `build/ios/`.
 
 ```sh
 git checkout main && git pull --ff-only
+npx playwright install chromium   # first time on this Mac
 npm run store:shots
 ```
 
-Writes `docs/app-store/screenshots/iphone-6.9/` and `iphone-6.3/`. Show Chris where they
-are; uploading them in App Store Connect is his step.
+Takes each scene in `docs/app-store/screenshots.json` from the real web build in a headless
+phone browser, puts its caption above it and writes `docs/app-store/screenshots/iphone-6.9/`
+and `iphone-6.3/` (wiped first, so only this run's files are there). The bare screens are in
+`docs/app-store/screenshots/raw/`.
+
+Then **look at every image** before handing over. A shot is bad if the screen is mid-fade,
+shows a round card, a pause sheet or a countdown over the play, or nothing is happening. To
+fix one, change that scene's seconds in the `SCENES` table of `scripts/store-shots.ts` and run
+it again (that change goes on a branch with a PR, like any other). Then open the 6.9 folder in
+Finder for Chris (`open docs/app-store/screenshots/iphone-6.9`) and tell him the upload order
+is the file names. Uploading them in App Store Connect is his step.
+
+## New store version (v1.1.0 and later)
+
+When main already has the version bump (a merged PR, like v1.1.0's), Chris can say
+**"ship a new build and redo the screenshots"**. Do, in order: Ship a new build (rule 1,
+`npm run verify`, ask, `npm run ios:release`), then Store screenshots above. Don't publish the
+site unless he asks. Then hand him this list for App Store Connect:
+
+1. App Store tab > iOS App > **+** next to the version list > the new version number.
+2. What's New, Promotional Text and Description: copy from `docs/app-store/listing.md`.
+3. Screenshots: delete the old ones in the 6.9" and 6.3" slots, upload the new folders in
+   file order.
+4. Build: pick the one just uploaded (after processing).
+5. App Review Information > Notes: paste the notes from `docs/app-store/app-review-answers.md`.
+6. App Privacy, age rating, pricing and countries carry over: leave them unless that file
+   says something changed.
+7. Add for Review > Submit.
 
 ## Support and privacy site
 
