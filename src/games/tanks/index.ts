@@ -197,7 +197,7 @@ class TankView implements GameInstance {
    * F192: the nearest start line for a seat's pop whose whole rise (fx floats it 40/s for
    * 0.9 s, up for seat 0, down for seat 1) misses both tanks and their rings.
    */
-  clearOfTanks(str: string, size: number, x: number, y: number, p: PlayerIndex): number {
+  clearOfTanks(str: string, size: number, x: number, y: number, p: PlayerIndex, allowed: (cy: number) => boolean = () => true): number {
     const half = ([...str].length * size * 0.55) / 2;
     const rise = p === 0 ? -36 : 36;
     const hits = (cy: number) => {
@@ -215,14 +215,14 @@ class TankView implements GameInstance {
       );
     };
     // F205: a line another of this seat's pops holds would be moved off by fx.pop, back onto a tank.
-    const ok = (cy: number) => !hits(cy) && this.ctx.fx.popFits(str, x, cy, size, p);
+    const ok = (cy: number) => allowed(cy) && !hits(cy) && this.ctx.fx.popFits(str, x, cy, size, p);
     if (ok(y)) return y;
     for (let d = 2; d <= 160; d += 2) {
       for (const cy of [y - d, y + d]) if (cy > size && cy < H - size && ok(cy)) return cy;
     }
-    if (!hits(y)) return y;
+    if (allowed(y) && !hits(y)) return y;
     for (let d = 2; d <= 160; d += 2) {
-      for (const cy of [y - d, y + d]) if (cy > size && cy < H - size && !hits(cy)) return cy;
+      for (const cy of [y - d, y + d]) if (cy > size && cy < H - size && allowed(cy) && !hits(cy)) return cy;
     }
     return y;
   }
@@ -232,9 +232,17 @@ class TankView implements GameInstance {
     this.ctx.fx.pop(str, x, this.clearOfTanks(str, size, x, y, p), color, p, size);
   }
 
+  /**
+   * One word for each seat, the bottom seat's above the top seat's so they rise apart. F361: each
+   * was moved off the tanks on its own, so both could land on one line (14% of bonk frames had
+   * the two words printed on each other); the top seat's now stays a line below the bottom's.
+   */
   private popBoth(str: string, x: number, y: number, color: string, size = 26): void {
-    this.popClear(str, x, y - size * 0.8, color, 0, size);
-    this.popClear(str, x, y + size * 0.8, color, 1, size);
+    const y0 = this.clearOfTanks(str, size, x, y - size * 0.8, 0);
+    const below = y0 + size;
+    const y1 = this.clearOfTanks(str, size, x, Math.max(y + size * 0.8, below), 1, (cy) => cy >= below);
+    this.ctx.fx.pop(str, x, y0, color, 0, size);
+    this.ctx.fx.pop(str, x, Math.max(y1, below), color, 1, size);
   }
 
   private handleEvents(): void {

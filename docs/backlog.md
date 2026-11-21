@@ -2024,9 +2024,27 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and checks those screens stay 1.2 (1 for an iPhone SE intro). Not checked in a browser
       here: the cloud env had no Chromium, so `npm run verify` ran typecheck, unit tests and
       build only; run the e2e and playtest steps before merging.
-- [ ] Larger Text, the rest: the player sheet and the grown-ups sheets at 2x (one-person
-      sheets, likely to fit: segments wrap, the sheet scrolls), then the tournament screen.
-      The split screens (intro, result, pause how-to) stay at Bigger: under half a phone each.
+- [x] 2026-11-21 (F352, PR #TBD): Snake: the "assist!" word over a three-star snake shows at most once
+      per 3 s per seat (ASSIST_POP_GAP); every auto-turn still makes its sound. Easy+3 v normal bot
+      matches had 1.45 auto-turns a round (up to 5) and 27% within 3 s of the last, stacking on the
+      head. tests/snake-assist-pop.test.ts.
+- [x] 2026-11-21 (F359, PR #TBD): Larger Text, the one-person sheets: Text size > Largest puts the
+      player sheet and Lock to FamiDuel at 2x (`.modal.one`; field labels, hints and titles now
+      scale with --ts); the "menus at 200% text" playtest checks each sheet a screenful at a time
+      at 390, 360 and 320 px. On a 320 px phone "Player 2" ran 2 px over its home chip at 2x
+      ("Playe…", flaky by font): the card gives back 8 px of side padding there.
+- [x] 2026-11-21 (F360, PR #TBD): Larger Text, the tournament screen at 2x (one upright list): title
+      and tiles grow (tiles 126 px min at Largest, still two across at 320 px), and the "menus at
+      200% text" playtest checks it a screenful at a time (the sticky Play button may float over
+      tiles, F308). The split screens (intro, result, pause how-to) stay at Bigger: under half a
+      phone each.
+- [x] 2026-11-21 (F361, PR #TBD): Tank Duel: a bonk's (and a mine's) word for each seat no longer
+      lands on one line: each seat's "BONK!" was moved off the tanks on its own, and 680 of 4888
+      readable pair frames (14%) printed the two words on each other. The top seat's word now stays
+      a line below the bottom seat's, so they rise apart: 0. tests/tanks-bonk-pair.test.ts.
+- [x] 2026-11-21 (F348, measured, no PR): Tank Duel kid+3 v easy is still 0% after F344's reach
+      ring (matches last 45 s vs the plain kid's 26 s); the reach rings never covered a shell path or
+      FIRE ring in 320 px Bigger-text frames. F21 (a mashing-kid head start) stays Chris's call.
 - [x] 2026-11-14 (F248, PR #281): Chop Chop: pops reaching either seat's round-end card
     ("You win the round!", "They got to 50!") fade as the card comes up (the winning chop's
     "50!" started right on it, late "+2"s rose into it): 1418 readable pops over 9317 card
