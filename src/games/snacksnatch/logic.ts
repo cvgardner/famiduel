@@ -27,6 +27,13 @@ export const RULES = {
   reach: 92,
   /** Reach at assist 3. */
   reachMax: 140,
+  /**
+   * A full head start's wider bite (F368): at three stars a snap gulps snacks this many times
+   * further to either side of the head (never further forward, so the clock digits on the
+   * centre line still cover no snack a critter could gulp). A mashing kid snaps at random, and
+   * the wider bite lets more of those snaps land.
+   */
+  wideTop: 1.15,
   extendT: 0.12,
   holdT: 0.05,
   retractT: 0.16,
@@ -129,6 +136,8 @@ export class SnackSnatch {
   critters: [[Critter, Critter], [Critter, Critter]];
   energy: [Energy, Energy];
   reach: [number, number];
+  /** Each player's sideways bite: 1, or RULES.wideTop at a full head start (F368). */
+  wide: [number, number];
   /** Each player's miss cooldown (shorter with assist). */
   missCooldown: [number, number];
   /** Remaining "Double Grab" snaps. */
@@ -172,6 +181,7 @@ export class SnackSnatch {
     ];
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     this.reach = [lerpAssist(assistStep(players[0].assist), RULES.reach, RULES.reachMax), lerpAssist(assistStep(players[1].assist), RULES.reach, RULES.reachMax)];
+    this.wide = [players[0].assist >= 3 ? RULES.wideTop : 1, players[1].assist >= 3 ? RULES.wideTop : 1];
     this.missCooldown = [
       lerpAssist(assistStep(players[0].assist), RULES.missCooldown, RULES.missCooldownMin),
       lerpAssist(assistStep(players[1].assist), RULES.missCooldown, RULES.missCooldownMin),
@@ -285,7 +295,7 @@ export class SnackSnatch {
     const hy = this.headY(c);
     for (const sn of this.snacks) {
       if (!sn.alive) continue;
-      if (Math.hypot(sn.x - c.x, sn.y - hy) > RULES.headR + sn.r) continue;
+      if (Math.hypot((sn.x - c.x) / this.wide[c.p], sn.y - hy) > RULES.headR + sn.r) continue;
       sn.alive = false;
       c.gulps++;
       const value = sn.gold ? RULES.goldValue : 1;
