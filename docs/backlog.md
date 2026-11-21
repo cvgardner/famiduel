@@ -2698,3 +2698,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rise inside the arena: 4% / 2% / 1% left, where no clear line inside exists and fx.pop
       stacks the word off it (tests/tanks-pops-arena.test.ts). BONK!, POOF! and clink! are born
       on a tank, often at the edge, so keeping those inside would put them on a tank; left as is.
+- [x] 2026-11-21 (F388): Sea Battle: a shell dropped from 160 units above its cell, so a shot
+      at the top rows started over the header pill (crossing "… is aiming…") and a shot on the
+      small sea started over the big board. It now falls from at most its own sea's top edge
+      (shellY(), same flight time, a shorter drop for top rows; rows from the 7th down still
+      drop the whole way). tests/seabattle-shell-drop.test.ts.
