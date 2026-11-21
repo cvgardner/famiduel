@@ -2590,3 +2590,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       only multiplies the little grip a slow, uneven tapper has). Now a head start also adds a little
       grip while you keep tapping (RULES.assistGrip, 0.2 at three stars): kid+3 v easy 54% (n=160),
       kid alone still 0%, the easy bot's ladder unchanged. tests/sim-ladder.test.ts.
+- [x] 2026-11-21 (F364, PR #TBD): Tug of War rounds end sooner (sore fingers in long pulls, from
+      tap-war reviews): the lines start closing in at 5 s (was 8), close over 8 s (was 14) and a round
+      ends at 20 s (was 30). Even bots' p90 round 27-28 s -> 18-20 s, median ~21 -> ~13 s; mirror
+      seat shares 54/56/44% (were 53/53/44, n=160), kid+3 v easy 63%, sim:powers all 55-59%.
+      tests/tugofwar.test.ts checks every level's p90 round <= 20 s.

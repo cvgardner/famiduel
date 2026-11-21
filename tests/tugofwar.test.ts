@@ -188,8 +188,9 @@ describe('tug of war', () => {
     expect(pullFor(helped, 3, [1 / 5, 1 / 7])).toBeGreaterThan(0);
     // Gentle: at assist 1 the faster bot still usually wins.
     let normal = 0;
-    for (let s = 1; s <= 10; s++) if (play(['easy', 'normal'], s, { assist: [1, 0] }).g.winner === 1) normal++;
-    expect(normal).toBeGreaterThanOrEqual(8);
+    for (let s = 1; s <= 40; s++) if (play(['easy', 'normal'], s, { assist: [1, 0] }).g.winner === 1) normal++;
+    // Same 80% bar over 40 seeds (10 seeds read 7/10 by chance after F364's shorter rounds; 40 read 35).
+    expect(normal).toBeGreaterThanOrEqual(32);
   });
 
   it('Mighty Heave: your pulls count extra for its duration', () => {
@@ -336,4 +337,27 @@ describe('tug of war', () => {
       expect(first).toBeGreaterThanOrEqual(HUMAN.reaction - DT);
     }
   });
+});
+
+describe('Tug of War round length (F364)', () => {
+  it('even bots finish 9 rounds in 10 within 20 s of tapping, at every level', () => {
+    for (const level of ['easy', 'normal', 'hard'] as BotLevel[]) {
+      const lens: number[] = [];
+      for (let i = 0; i < 30; i++) {
+        const rng = makeRng(1 + i * 7919);
+        const g = new TugOfWar([player({ bot: level }), player({ bot: level })], false, rng);
+        const bots = [new TugOfWarBot(0, level, rng), new TugOfWarBot(1, level, rng)];
+        let start = 0;
+        while (!g.done && g.t < 300) {
+          const was = g.phase;
+          g.step(DT, [bots[0].think(g, DT), bots[1].think(g, DT)]);
+          if (was !== 'pull' && g.phase === 'pull') start = g.t;
+          if (was === 'pull' && g.phase !== 'pull') lens.push(g.t - start);
+        }
+      }
+      lens.sort((a, b) => a - b);
+      expect(lens[Math.floor(0.9 * (lens.length - 1))], level).toBeLessThanOrEqual(20);
+      expect(lens[lens.length - 1], level).toBeLessThanOrEqual(RULES.roundTime + 1);
+    }
+  }, 60_000);
 });

@@ -52,12 +52,14 @@ export const RULES = {
   /** Rope response: acceleration per unit of grip difference, and drag. */
   accel: 0.7,
   drag: 4,
-  /** From this long into a round the lines slide in, over closeLen seconds, to closeTo of the way. */
-  closeAt: 8,
-  closeLen: 14,
+  /** From this long into a round the lines slide in, over closeLen seconds, to closeTo of the way.
+   *  Tap-war reviews complain of sore fingers in long pulls: even bots' rounds ran p90 27-28 s at
+   *  8 / 14 / 30 s; now every level's p90 round is under 20 s of tapping (F364). */
+  closeAt: 5,
+  closeLen: 8,
   closeTo: 0.1,
   /** A round ends here: the ribbon's side wins it. */
-  roundTime: 30,
+  roundTime: 20,
   /** Energy per counted tap, for winning and for losing a round. A full bar: ~20 s of pulling. */
   energyTap: 0.007,
   energyWin: 0.12,
