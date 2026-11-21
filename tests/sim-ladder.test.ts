@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { botSeat, ladder, SPECS } from '../scripts/simlib';
+import { botSeat, ladder, pairing, SPECS } from '../scripts/simlib';
 
 // F342: `npm run sim -- --ladder` plays the easy bot with head start 0-3 against normal and
 // hard, so handicap tuning starts from numbers (the knob is for a parent and a young kid).
@@ -42,6 +42,12 @@ describe('sim head-start ladder', () => {
     expect(a1).toBeGreaterThan(a0 + 0.05);
     expect(a2).toBeGreaterThan(a1);
     expect(a3).toBeGreaterThan(a2);
+  }, 60_000);
+
+  it('a mashing kid with a full head start can beat the easy bot in Snack Snatch (F368)', () => {
+    const spec = SPECS.find((s) => s.id === 'snacksnatch')!;
+    // 2026-11-21 (n=100-200): 18% before the wider bite, ~40-50% with it (wideTop 1.1-1.2 read 36-53%).
+    expect(pairing(spec, ['kid+3', 'easy'], 80).wins).toBeGreaterThan(0.3);
   }, 60_000);
 
   it('the first head-start star counts in Chop Chop (F351)', () => {

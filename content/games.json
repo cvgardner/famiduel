@@ -14,7 +14,7 @@
       "handicap": "Bigger paddle, slower ball toward you" },
     { "id": "snacksnatch", "gesture": "sides", "name": "Snack Snatch", "icon": "🐸", "kind": "Frantic", "free": false, "color": "#b06cff",
       "blurb": "Most points in 30 seconds. Gold is worth 3.", "howTo": "Tap left or right to snap that critter at the snacks. A miss makes it dizzy.",
-      "handicap": "Longer reach, back sooner after a miss" },
+      "handicap": "Longer, wider reach; back sooner after a miss" },
     { "id": "tanks", "seatRing": true, "gesture": "stick", "name": "Tank Duel", "icon": "🛡️", "kind": "Action", "free": false, "color": "#8bc34a",
       "blurb": "Five bonks wins.", "howTo": "Push your stick to drive (a little push just turns). Tap or hold FIRE. Shells bounce off blocks: watch out for your own!",
       "handicap": "Extra armor and bigger-reaching shells" },
