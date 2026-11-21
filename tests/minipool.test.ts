@@ -366,6 +366,35 @@ describe('Mini Pool powers', () => {
     expect(g.modsFor(0).closed ?? null).toBeNull();
   });
 
+  it('a bot lines up again when a plug lands mid-aim, so it never plays into the plugged pocket', () => {
+    let into = 0;
+    let plugs = 0;
+    for (let seed = 1; seed <= 12; seed++) {
+      const rng = makeRng(seed);
+      const g = new MiniPool([player({ bot: 'normal' }), player({ bot: null, power: power('minipool', 'plug') })], true, rng, 0);
+      const bot = new MiniPoolBot(0, 'normal', rng);
+      while (g.rack === 0 && !g.finished && g.t < 300) {
+        // The person plugs as soon as the bot is half way through lining up.
+        const plug = g.phase === 'aim' && g.shooter === 0 && g.aimT > 0.6 && g.canFire(1);
+        if (plug) g.energy[1].value = 1;
+        const mine = bot.think(g, DT);
+        if (mine.shot && g.phase === 'aim' && g.plugged !== null) {
+          // Where would that shot have sent the balls with the pocket open?
+          const ev: PhysEvent[] = [];
+          const b = g.balls.map((x) => ({ ...x }));
+          strike(b, mine.shot.angle, mine.shot.power);
+          for (let i = 0; i < 600; i++) stepTable(b, DT, { ...g.modsFor(0), closed: null }, ev);
+          plugs++;
+          if (ev.some((e) => e.type === 'pocket' && e.pocket === g.plugged && e.kind === 0)) into++;
+        }
+        g.step(DT, [mine, { shot: null, power: plug }]);
+        if (g.phase === 'aim' && g.shooter === 1) g.step(DT, [NO_INTENT, { shot: { angle: Math.PI, power: 0.1 }, power: false }]);
+      }
+    }
+    expect(plugs).toBeGreaterThan(3);
+    expect(into).toBe(0);
+  }, 60_000);
+
   it('powers can’t be fired in classic mode or without a full bar', () => {
     const g = setUp(0, table(['cue', 180, 420], [0, 180, 300], [1, 300, 200], ['eight', 80, 300]), people(['bigpocket', 'bigpocket']), false);
     g.energy[0].value = 1;

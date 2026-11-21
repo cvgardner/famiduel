@@ -464,6 +464,8 @@ export class MiniPoolBot {
   private tried: { shot: Shot; score: number }[] = [];
   private releaseT = 0;
   private powerAt = Infinity;
+  /** The other player's Freeze or Plug that the lined-up shots were judged with. */
+  private planKey = '';
 
   constructor(
     readonly p: PlayerIndex,
@@ -479,7 +481,9 @@ export class MiniPoolBot {
       return { shot: null, power: true };
     }
     if (game.phase !== 'aim' || game.shooter !== me) return NO_INTENT;
-    if (this.turn !== game.turnId) this.plan(game, dt);
+    const key = (m: ShotMods) => `${m.frozenId}|${m.closed ?? null}`;
+    // A freeze or plug landing mid-aim changes the table: line up again (from a fresh look).
+    if (this.turn !== game.turnId || key(game.modsFor(me)) !== this.planKey) this.plan(game, dt);
     if ((id === 'bigpocket' || id === 'longaim' || id === 'stop') && game.canFire(me) && game.t >= this.powerAt) {
       // Fired before lining up, so the bigger pockets count in its sums. Start over.
       this.turn = -1;
@@ -504,6 +508,7 @@ export class MiniPoolBot {
   private plan(game: MiniPool, dt: number): void {
     const cfg = BOT[this.level];
     this.turn = game.turnId;
+    this.planKey = `${game.modsFor(this.p).frozenId}|${game.modsFor(this.p).closed ?? null}`;
     this.tried = [];
     this.queue = [];
     this.releaseT = game.t + Math.round(cfg.delay / dt) * dt;

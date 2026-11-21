@@ -2593,3 +2593,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       elsewhere). Logic tests for each, powerpic exemption dropped. Normal bots, 30 per cell: Stop
       ~41% avg (40% vs none), Plug ~63% avg. A "Second Shot" (a miss keeps the turn) was tried
       first and read 71-87%, so it was dropped.
+- [x] 2026-11-21 (F367, PR #TBD): Mini Pool bot lines up again (a fresh look, after its usual
+      delay) when the other player's Freeze or Plug a Pocket lands mid-aim; before, a shot judged
+      with the pocket open could still be played into the plug (1 in 12 seeded matches' racks).
+      Vitest: shots that would have dropped one of its balls in the plugged pocket after a mid-aim plug: 0.
