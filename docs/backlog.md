@@ -2014,8 +2014,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       Snake's and Chop Chop's words shrink to fit their box ("Ouch! Next round…" ran past it),
       and Sumo's box moves right when it is too wide to stay centred and clear of the pause
       button (it ran under it on a 320 px phone). tests/banner-fit.test.ts.
-- [ ] Menus at 200% text (the Larger Text label): root font size 2x at 390x844 over home,
-      intro, settings, result and pause; nothing clipped or overlapping.
+- [x] 2026-11-15 (F311, Chris: "larger text is good"): Settings > Look > "Bigger text" is now
+      "Text size" with three steps, Usual / Bigger / Largest (three "A"s drawn at their own
+      sizes, named for screen readers). Largest (`largestText`, `<html data-largesttext>`)
+      sets home and settings words to 2x (`--ts: 2`, the layout F245 holds); the intro, play,
+      result, tournament and every sheet (player card, pause, gate) keep Bigger's 1.2x, and
+      the canvas keeps 1.2x. The "menus at 200% text" playtest now picks Largest in Settings
+      and checks those screens stay 1.2 (1 for an iPhone SE intro). Not checked in a browser
+      here: the cloud env had no Chromium, so `npm run verify` ran typecheck, unit tests and
+      build only; run the e2e and playtest steps before merging.
+- [ ] Larger Text, the rest: the player sheet and the grown-ups sheets at 2x (one-person
+      sheets, likely to fit: segments wrap, the sheet scrolls), then the tournament screen.
+      The split screens (intro, result, pause how-to) stay at Bigger: under half a phone each.
 - [x] 2026-11-14 (F248, PR #281): Chop Chop: pops reaching either seat's round-end card
     ("You win the round!", "They got to 50!") fade as the card comes up (the winning chop's
     "50!" started right on it, late "+2"s rose into it): 1418 readable pops over 9317 card

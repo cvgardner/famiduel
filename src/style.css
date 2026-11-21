@@ -46,6 +46,12 @@
 :root { --ts: 1; }
 /* Settings > Bigger text: menu words up to 20 px grow 1.2x (headlines are big already). */
 :root[data-bigtext] { --ts: 1.2; }
+/* Settings > Text size > Largest (Apple's Larger Text label asks for 200%): home and settings
+   words grow 2x (they hold there, F245). The split game screens, the tournament and the sheets
+   keep Bigger text's 1.2x: each player has under half the phone there, and later rules (short
+   phones) still take the intro down to 1. */
+:root[data-largesttext] { --ts: 2; }
+:root[data-largesttext] :is(#intro, #play, #result, #tourney), :root[data-largesttext] .modal { --ts: 1.2; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
 body { overscroll-behavior: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
@@ -202,6 +208,11 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .theme-row .theme-seg { margin-left: auto; }
 .theme-seg button { min-width: 44px; min-height: 44px; padding: 4px 8px; font-size: calc(14px * var(--ts)); background: transparent; color: var(--dim); border-radius: 10px; }
 .theme-seg button.on { box-shadow: 0 2px 0 #c99a12; }
+/* Text size: each "A" is drawn at its own step's size, whatever the text size is now. */
+.text-seg button { font-weight: 900; line-height: 1; padding-inline: 6px; }
+.text-seg button[data-v="usual"] { font-size: 14px; }
+.text-seg button[data-v="bigger"] { font-size: 18px; }
+.text-seg button[data-v="largest"] { font-size: 26px; }
 .foot { text-align: center; color: var(--dim); font-size: calc(12px * var(--ts)); font-weight: 600; padding: 0 12px; }
 @media (max-width: 360px) {
   .logo { font-size: 32px; padding: 8px 16px 10px; border-radius: 18px; margin-top: 2px; }

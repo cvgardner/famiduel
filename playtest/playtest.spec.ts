@@ -1567,11 +1567,21 @@ test('result: a tap meant for the game right as the match ends does not skip the
 
 test('menus at 200% text: home and settings show every word, nothing overlaps (F245)', async ({ page }) => {
   // Apple's "Larger Text" label asks for text that grows to 200%. Menu words scale with --ts
-  // (Bigger text sets 1.2); at 2 the one-person menus must still show every word, with no word
-  // over another, off the screen or cut to "…", and every button still at least 44 px.
+  // (Text size Bigger sets 1.2, Largest 2); at 2 the one-person menus must still show every word,
+  // with no word over another, off the screen or cut to "…", and every button still at least 44 px.
+  // The setting is picked the way a person would: Settings > Look > Text size > Largest.
   const errors: string[] = [];
   await boot(page, errors);
-  await page.addStyleTag({ content: ':root { --ts: 2 !important; }' });
+  await page.click('#settingsBtn');
+  await page.locator('#textSeg button[data-v="largest"]').click();
+  await expect(page.locator('html')).toHaveAttribute('data-largesttext', '1');
+  await expect(page.locator('#textSeg button[data-v="largest"]')).toHaveAttribute('aria-pressed', 'true');
+  const saved = await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.store.data.settings as { bigText?: boolean; largestText?: boolean });
+  expect(saved, 'Text size Largest is saved (Bigger stays on for the game screens)').toMatchObject({ bigText: true, largestText: true });
+  await page.click('#settingsBack');
+  const ts = (sel: string) => page.evaluate((s) => getComputedStyle(document.querySelector(s)!).getPropertyValue('--ts').trim(), sel);
+  expect(await ts('#home'), 'home words at 2x').toBe('2');
+  expect(await ts('#settings'), 'settings words at 2x').toBe('2');
   const problems = () =>
     page.evaluate(() => {
       const bad: string[] = [];
@@ -3071,7 +3081,7 @@ test('minigolf: the strip\'s status line stays clear of the Hole / Total columns
   expect(usual.map((b) => b.str), 'the usual text size keeps the full line').toContain('Your shot! Pull back, let go');
   expect(overlaps(usual), 'usual text: status lines clear of the score columns').toEqual([]);
   await page.click('#settingsBtn');
-  await page.locator('input[data-k="bigText"]').check();
+  await page.locator('#textSeg button[data-v="bigger"]').click();
   await page.click('#settingsBack');
   const big = await strips('minigolf-strip-bigtext-320.png');
   expect(big.filter(isStatus).length, 'both strips show a status line with Bigger text').toBeGreaterThanOrEqual(2);
@@ -3304,10 +3314,10 @@ test('bigger text: every shown game keeps its words on screen, small and tall ph
   const errors: string[] = [];
   await boot(page, errors);
   await page.click('#settingsBtn');
-  await page.locator('input[data-k="bigText"]').check();
+  await page.locator('#textSeg button[data-v="bigger"]').click();
   await page.click('#settingsBack');
   const on = await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.store.data.settings.bigText);
-  expect(on, 'the Bigger text switch is saved').toBe(true);
+  expect(on, 'Text size Bigger is saved').toBe(true);
   const problems: string[] = [];
   const dim: string[] = [];
   for (const g of games.games.filter((x) => !x.hidden && (built.length === 0 || built.includes(x.id)))) {
