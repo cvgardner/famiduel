@@ -2757,3 +2757,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       first!" / "X goes first" pill's ring on both sides at every match start: F356 guessed half a
       size-110 digit at ~42 units, but a bold "3" reaches 49 above its middle plus half its stroke
       (9). starterPillDy() now clears DIGIT_REACH 59 + 4: a clear gap at 1x and Bigger text.
+      The first-match finger card (default demoAt 0.72) also covered the pill's right end (the
+      "first!" of "Grandpa goes first"); Mini Pool's `demoAt` 0.75 puts it beside the digit,
+      under the pill (it fades with the countdown, before the "Sink your 3" card shows).

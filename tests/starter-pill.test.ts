@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { DIGIT_REACH, PILL_EDGE, PILL_W, STARTER_DY, starterLines, starterPill, starterPillDy } from '../src/app/starter';
 import { COUNT_DY } from '../src/app/demo';
 import { BIG_TEXT, MIN_TEXT, setTextScale, type G } from '../src/engine/draw';
-import { W } from '../src/engine/world';
+import { H, MID, W } from '../src/engine/world';
+import games from '../content/games.json';
+import { besideCountdown } from '../src/app/demo';
 
 // A canvas whose words measure like a bold system font: ~0.62 em a letter, a wide W ~0.95 em.
 function fakeG(): G {
@@ -53,5 +55,17 @@ describe('F400: the digit reach the pill clears is what a canvas draws', () => {
     // "2" 48.9, "3" 48.9 above the middle; text() strokes at size / 6, half of it outside.
     const ascent = 48.9;
     expect(ascent + 110 / 6 / 2).toBeLessThanOrEqual(DIGIT_REACH);
+  });
+});
+
+describe('F400: Mini Pool\'s first-match finger card sits beside the digit, below the pill', () => {
+  it('clears the moved pill and stays beside the digit', () => {
+    const at = (games.games.find((g) => g.id === 'minipool') as { demoAt?: number }).demoAt!;
+    // The card is a fixed CSS size, so in world units it is tallest on a ~390 px phone
+    // (measured 57 units there, 38 at 320 px). Its centre is at * H on seat 0's side.
+    const half = 29;
+    const pillBottom = MID + starterPillDy(190) + 22;
+    expect(at * H - half, 'below "You go first!"').toBeGreaterThanOrEqual(pillBottom);
+    expect(besideCountdown(at), 'beside the digit, not on it').toBe(true);
   });
 });
