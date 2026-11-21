@@ -10,6 +10,7 @@ import path from 'node:path';
 import games from '../content/games.json' with { type: 'json' };
 import holes from '../content/minigolf-holes.json' with { type: 'json' };
 import { PLAYER_COLORS } from '../src/core/colors';
+import { DIGIT_REACH, PILL_W, starterPillDy } from '../src/app/starter';
 import { buildGrid, LAYOUTS } from '../src/games/tanks/mazes';
 import { domContrast, faintLabels } from './domcontrast';
 import { installFingers, monkey, tapWorld, worldBox } from './monkey';
@@ -509,6 +510,70 @@ test('ghost finger: the in-play card never sits on a person\'s "3 2 1" digit, on
   }
   await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
   expect(hits, 'finger cards over a countdown digit').toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('ghost finger: the card clears the game\'s own "3 2 1" digit and its "goes first" pill, at 320 and 390 px', async ({ page }) => {
+  // F402: the test above checks the usual digit spot (MID ± 120) only. A game can move its
+  // digit (countdownDy, Mini Pool and Sumo) or its card (demoAt), and the pill follows the
+  // digit (starterPillDy), so F400 found Mini Pool's card on "You go first!". This reads each
+  // game's real digit spot and who goes first, and checks the card is off both, at the two
+  // phone widths where the fixed-size card is smallest and biggest in world units.
+  const errors: string[] = [];
+  type H = {
+    openGame(id: string): void;
+    startMatch(): void;
+    showHome(): void;
+    store: { data: { history: { game: string }[] } };
+    runner: { game: { countdownDy?(): number }; starterLines(): (string | null)[]; countdownSeats(): number[] };
+  };
+  const shown = games.games.filter((g) => !(g as { hidden?: boolean }).hidden).map((g) => g.id);
+  const hits: string[] = [];
+  let pills = 0;
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: width === 320 ? 568 : 844 });
+    if (width === 320) await boot(page, errors);
+    await setPlayers(page, [null, null]);
+    for (const id of shown) {
+      const info = await page.evaluate((g) => {
+        const a = (window as unknown as { __famiduel: H }).__famiduel;
+        a.store.data.history = [];
+        a.showHome();
+        a.openGame(g);
+        a.startMatch();
+        return { dy: a.runner.game.countdownDy?.() ?? 120, lines: a.runner.starterLines(), seats: a.runner.countdownSeats() };
+      }, id);
+      await page.waitForTimeout(500); // mid countdown, the card fully in
+      const box = await worldBox(page);
+      const s = box.width / 360;
+      const cards = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('#play .play-demo .demo')].map((el) => {
+          const r = el.getBoundingClientRect();
+          return { p: Number(el.closest<HTMLElement>('.play-demo')!.dataset.p), l: r.left, r: r.right, t: r.top, b: r.bottom };
+        }),
+      );
+      const pillDy = starterPillDy(info.dy);
+      for (const c of cards) {
+        const sign = c.p === 0 ? 1 : -1;
+        const keepOff: [string, { l: number; r: number; t: number; b: number }][] = [];
+        if (info.seats.includes(c.p)) {
+          // The biggest digit (size 110): ~72 wide with its stroke, DIGIT_REACH up and down.
+          const cy = box.y + (320 + sign * info.dy) * s;
+          keepOff.push(['digit', { l: box.x + 144 * s, r: box.x + 216 * s, t: cy - DIGIT_REACH * s, b: cy + DIGIT_REACH * s }]);
+        }
+        if (info.lines[c.p]) {
+          pills++;
+          const cy = box.y + (320 + sign * pillDy) * s;
+          keepOff.push(['pill', { l: box.x + (180 - PILL_W / 2) * s, r: box.x + (180 + PILL_W / 2) * s, t: cy - 23.5 * s, b: cy + 23.5 * s }]);
+        }
+        for (const [what, d] of keepOff) if (c.l < d.r && c.r > d.l && c.t < d.b && c.b > d.t) hits.push(`${id} seat ${c.p} on the ${what} at ${width} px (card ${Math.round((c.t - box.y) / s)}-${Math.round((c.b - box.y) / s)}, ${what} ${Math.round((d.t - box.y) / s)}-${Math.round((d.b - box.y) / s)})`);
+      }
+      if (id === 'minipool' || id === 'penalty') await page.screenshot({ path: path.join(OUT, `ghost-finger-pill-${id}-${width}.png`) });
+    }
+  }
+  await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
+  expect(pills, 'some games say who goes first').toBeGreaterThan(0);
+  expect(hits, 'finger cards over a countdown digit or the "goes first" pill').toEqual([]);
   expect(errors).toEqual([]);
 });
 

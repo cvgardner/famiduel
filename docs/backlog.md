@@ -2764,3 +2764,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       text: pops never print over the other seat's (all 12 shown action games), Snack Snatch
       "Miss!" off the frog's head, Penalty's early-dive pop off the shooter lines. All pass; no
       game change needed.
+- [x] 2026-11-21 (F402): first-match ghost finger guard for the "goes first" pill: a playtest
+      reads each shown game's own digit spot (countdownDy) and who goes first, and checks the
+      finger card is off the digit and the pill at 320 and 390 px (the card is a fixed CSS size,
+      so it is biggest in world units on a 390 px phone). It found Penalty's card on the edge of
+      "Player 2 goes first" on both sides at 390 px (card 434-503 vs pill 496-544): Penalty's
+      card now sits a little higher (`"demoAt": 0.67`), clear at both widths.
