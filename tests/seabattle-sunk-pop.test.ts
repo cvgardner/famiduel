@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { H, W } from '../src/engine/world';
@@ -23,8 +24,8 @@ const SMALL_LABEL: [number, number, number, number] = [0, SY - 12 - 7, W / 2, SY
 const box = (f: Floater): [number, number, number, number] => {
   const y = f.player === 1 ? H - f.y : f.y; // back into the viewer's frame
   const x = f.player === 1 ? W - f.x : f.x;
-  const w = Math.min(W - 16, [...f.str].length * f.size * 0.55);
-  return [x - w / 2, y - f.size * 0.45, x + w / 2, y + f.size * 0.45];
+  const w = Math.min(W - 16, [...f.str].length * scaledSize(f.size) * 0.55);
+  return [x - w / 2, y - scaledSize(f.size) * 0.45, x + w / 2, y + scaledSize(f.size) * 0.45];
 };
 const hit = (a: number[], b: number[]) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
 
@@ -32,7 +33,9 @@ const hit = (a: number[], b: number[]) => a[0] < b[2] && b[0] < a[2] && a[1] < b
 // while still bright, printing over the very ship it named being crossed out (and a sink
 // on your own fleet started on the "Your fleet" label). It now starts in the gap between.
 describe('Sea Battle: "<ship> sunk!" stays off the fleet tally and the small grid label', () => {
-  it('in bot matches with every power', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches with every power${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     let sunk = 0;
     let onTally = 0;
     let onLabel = 0;

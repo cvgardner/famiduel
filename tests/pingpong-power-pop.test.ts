@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import powers from '../content/powers.json';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo, PowerDef } from '../src/core/types';
@@ -15,7 +16,9 @@ type Floater = { str: string; x: number; y: number; life: number; size: number; 
 // F197: a power's name popped at MID ± 50 for both seats, and powers are used with the ball
 // near the net, so "🐢 Slow-mo Return!" sat on the slowed ball in 382 of 4,836 readable frames.
 describe('Ping Pong: power names start clear of the ball', () => {
-  it('in bot matches with every power pair, both seats, each copy in its own half', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches with every power pair, both seats, each copy in its own half${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     const list = (powers.games as Record<string, PowerDef[]>).pingpong;
     const names = new Set(list.map((p) => `${p.icon} ${p.name}!`));
     let frames = 0;
@@ -38,8 +41,8 @@ describe('Ping Pong: power names start clear of the ball', () => {
               if (!born.has(f)) born.set(f, f.y);
               seats.add(f.player);
               frames++;
-              const w = ([...f.str].length * f.size * 0.55) / 2;
-              if (Math.abs(g.ball.x - f.x) < w + RULES.ballR && Math.abs(g.ball.y - f.y) < f.size * 0.45 + RULES.ballR) covered++;
+              const w = ([...f.str].length * scaledSize(f.size) * 0.55) / 2;
+              if (Math.abs(g.ball.x - f.x) < w + RULES.ballR && Math.abs(g.ball.y - f.y) < scaledSize(f.size) * 0.45 + RULES.ballR) covered++;
             }
           }
           // Each copy stays in the half its line was in (the seat's own, or the other seat's copy across the net).

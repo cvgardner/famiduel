@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import powers from '../content/powers.json';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo, PowerDef } from '../src/core/types';
@@ -20,7 +21,9 @@ const BASE_Y = H - 124; // the chopper's segment, in each seat's own frame (inde
 // its whole bright half. "+2" now starts past the branch tips, "Shield!" low on the trunk's other
 // side, and the frozen label alone says "frozen".
 describe('Chop Chop: pops stay off the chopper, the next branches and the frozen label', () => {
-  it('in bot matches at every level with powers, both seats', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches at every level with powers, both seats${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     const total: Record<string, number> = {};
     const onBranch: Record<string, number> = {};
     const onChopper: Record<string, number> = {};
@@ -41,8 +44,8 @@ describe('Chop Chop: pops stay off the chopper, the next branches and the frozen
           for (const f of (fx as unknown as { floaters: Floater[] }).floaters) {
             if (f.life < 0.45) continue;
             total[f.str] = (total[f.str] ?? 0) + 1;
-            const w = ([...f.str].length * f.size * 0.55) / 2;
-            const h = f.size * 0.45;
+            const w = ([...f.str].length * scaledSize(f.size) * 0.55) / 2;
+            const h = scaledSize(f.size) * 0.45;
             for (const p of [0, 1] as const) {
               const x = p === 0 ? f.x : W - f.x;
               const y = p === 0 ? f.y : H - f.y;

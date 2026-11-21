@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -14,7 +15,9 @@ type Floater = { str: string; x: number; y: number; life: number; max: number; s
 // F189: the "10!" / "20!" pop started on the chopper's own "N / 50" count (barY + 40, the count
 // sits at barY + 30) and rose over it (seen in a bot match, 320x568).
 describe('Chop Chop: the milestone pop stays off the chop count', () => {
-  it('for both seats, while the pop is bright', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`for both seats, while the pop is bright${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     const clashes: string[] = [];
     const seen = new Set<number>();
     const countY = MID + 22 + 30;
@@ -32,9 +35,9 @@ describe('Chop Chop: the milestone pop stays off the chop count', () => {
           const y = f.player === 0 ? f.y : H - f.y; // the seat's own frame
           const x = f.player === 0 ? f.x : W - f.x;
           // The count: 28-unit digits centred at W / 2 (up to "50", ~2 x 17 wide).
-          const half = ([...f.str].length * f.size * 0.55) / 2;
+          const half = ([...f.str].length * scaledSize(f.size) * 0.55) / 2;
           const inX = x - half < W / 2 + 20 && W / 2 - 20 < x + half;
-          const inY = y - f.size * 0.45 < countY + 14 && countY - 14 < y + f.size * 0.45;
+          const inY = y - scaledSize(f.size) * 0.45 < countY + 14 && countY - 14 < y + scaledSize(f.size) * 0.45;
           if (inX && inY) clashes.push(`seed ${seed} step ${i} seat ${f.player}: ${f.str} at y ${y.toFixed(0)}`);
         }
       }

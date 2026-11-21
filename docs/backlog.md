@@ -2740,3 +2740,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       pops now slide left just enough to end 4 units short of the stars (popX(), sized with
       scaledSize()); the test plays all 5 powers at 1x and Bigger text (0 on the stars, button,
       signal, score or badges).
+- [x] 2026-11-21 (F395+F396+F397): the pops tests that still ran at 1x only now also run at
+      Bigger text, sizing words as text() draws them (scaledSize()): Sumo (power names, HOLD and
+      power buttons, BONK!/KA-BOOM!, round-end banner), Chop Chop (bonk, milestone, banner, tree),
+      Ping Pong power names, Sea Battle sunk and airstrike pops. All passed except Ping Pong, whose
+      clearOfBall() kept power names off the ball by their unscaled size: at Bigger text 1.3% of
+      readable frames sat on the ball (bound 1%); it now uses scaledSize(): 0.7% (1x unchanged, 0.4%).

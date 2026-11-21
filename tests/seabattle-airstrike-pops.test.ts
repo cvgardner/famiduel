@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -15,7 +16,9 @@ const SHELL_WORDS = new Set(['HIT!', 'Splash', 'Hit back!']);
 // "HIT!"/"Splash" beside its cell, so four or five words stacked into a smear over the hit
 // markers. Airstrike shells now pop no word (burst, sound, MINE! and "<ship> sunk!" stay).
 describe('Sea Battle: an Airstrike pops no stack of shell words', () => {
-  it('in bot matches with Airstrike on both sides', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches with Airstrike on both sides${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     let strikes = 0;
     let shellWords = 0;
     let overlaps = 0;
@@ -44,9 +47,9 @@ describe('Sea Battle: an Airstrike pops no stack of shell words', () => {
             for (let b = a + 1; b < words.length; b++) {
               const p = words[a], q = words[b];
               if (p.player !== q.player) continue;
-              const wa = ([...p.str].length * p.size * 0.55) / 2;
-              const wb = ([...q.str].length * q.size * 0.55) / 2;
-              if (Math.abs(p.x - q.x) < wa + wb && Math.abs(p.y - q.y) < (p.size + q.size) * 0.45) overlaps++;
+              const wa = ([...p.str].length * scaledSize(p.size) * 0.55) / 2;
+              const wb = ([...q.str].length * scaledSize(q.size) * 0.55) / 2;
+              if (Math.abs(p.x - q.x) < wa + wb && Math.abs(p.y - q.y) < (scaledSize(p.size) + scaledSize(q.size)) * 0.45) overlaps++;
             }
           }
         }

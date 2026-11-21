@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -15,7 +16,9 @@ type Floater = { str: string; y: number; life: number; max: number; size: number
 // boxed round-end banner ("Bot 1 wins the round!", MID ± BANNER_OFF) appeared, so it printed
 // over the banner. Pops in that band now fade as the banner shows.
 describe('Sumo: no readable pop over the round-end banner', () => {
-  it('in bot matches at every level', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`in bot matches at every level${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     let frames = 0;
     let over = 0;
     for (const level of ['easy', 'normal', 'hard'] as const) {
@@ -32,7 +35,7 @@ describe('Sumo: no readable pop over the round-end banner', () => {
           frames++;
           for (const f of (fx as unknown as { floaters: Floater[] }).floaters) {
             const readable = Math.min(1, (f.life / f.max) * 1.6) >= 0.5;
-            const half = f.size * 0.45;
+            const half = scaledSize(f.size) * 0.45;
             if (readable && f.y + half > MID - BANNER_OFF * 2 && f.y - half < MID + BANNER_OFF * 2) over++;
           }
         }
