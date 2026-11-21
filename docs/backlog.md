@@ -2027,8 +2027,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       per 3 s per seat (ASSIST_POP_GAP); every auto-turn still makes its sound. Easy+3 v normal bot
       matches had 1.45 auto-turns a round (up to 5) and 27% within 3 s of the last, stacking on the
       head. tests/snake-assist-pop.test.ts.
-- [ ] Larger Text, the rest: the player sheet and the grown-ups sheets at 2x (one-person
-      sheets, likely to fit: segments wrap, the sheet scrolls), then the tournament screen.
+- [x] 2026-11-21 (F359, PR #TBD): Larger Text, the one-person sheets: Text size > Largest puts the
+      player sheet and Lock to FamiDuel at 2x (`.modal.one`; field labels, hints and titles now
+      scale with --ts); the "menus at 200% text" playtest checks each sheet a screenful at a time
+      at 390, 360 and 320 px. On a 320 px phone "Player 2" ran 2 px over its home chip at 2x
+      ("Playe…", flaky by font): the card gives back 8 px of side padding there.
+- [ ] Larger Text, the rest: the tournament screen at 2x (F360 checks the grown-ups sheets).
       The split screens (intro, result, pause how-to) stay at Bigger: under half a phone each.
 - [x] 2026-11-14 (F248, PR #281): Chop Chop: pops reaching either seat's round-end card
     ("You win the round!", "They got to 50!") fade as the card comes up (the winning chop's

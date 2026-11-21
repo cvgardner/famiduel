@@ -1579,7 +1579,7 @@ test('result: a tap meant for the game right as the match ends does not skip the
   expect(errors).toEqual([]);
 });
 
-test('menus at 200% text: home and settings show every word, nothing overlaps (F245)', async ({ page }) => {
+test('menus at 200% text: home, settings and the one-person sheets show every word, nothing overlaps (F245, F359)', async ({ page }) => {
   // Apple's "Larger Text" label asks for text that grows to 200%. Menu words scale with --ts
   // (Text size Bigger sets 1.2, Largest 2); at 2 the one-person menus must still show every word,
   // with no word over another, off the screen or cut to "…", and every button still at least 44 px.
@@ -1599,7 +1599,10 @@ test('menus at 200% text: home and settings show every word, nothing overlaps (F
   const problems = () =>
     page.evaluate(() => {
       const bad: string[] = [];
-      const els = [...document.querySelectorAll<HTMLElement>('section:not(.hidden) *')].filter((e) => e.getClientRects().length && !e.closest('.sr-only'));
+      // F359: with a sheet open, check the sheet (it covers the screen behind it).
+      const sheet = document.querySelector('#modal:not(.hidden)');
+      const scope = sheet ? '#modal:not(.hidden)' : 'section:not(.hidden)';
+      const els = [...document.querySelectorAll<HTMLElement>(`${scope} *`)].filter((e) => e.getClientRects().length && !e.closest('.sr-only'));
       const say = (e: Element) => (e.textContent ?? '').trim().slice(0, 24);
       for (const e of els) {
         const r = e.getBoundingClientRect();
@@ -1607,7 +1610,7 @@ test('menus at 200% text: home and settings show every word, nothing overlaps (F
         if (getComputedStyle(e).textOverflow === 'ellipsis' && e.scrollWidth > e.clientWidth + 1) bad.push(`cut: ${say(e)}`);
       }
       // A word poking out of its own card or button (cards clip, so it would be cut).
-      for (const box of document.querySelectorAll<HTMLElement>('section:not(.hidden) .game-card, section:not(.hidden) button')) {
+      for (const box of document.querySelectorAll<HTMLElement>(`${scope} .game-card, ${scope} button`)) {
         if (!box.getClientRects().length) continue;
         const b = box.getBoundingClientRect();
         for (const w of box.querySelectorAll<HTMLElement>('.gname, .gkind, b, small')) {
@@ -1635,7 +1638,29 @@ test('menus at 200% text: home and settings show every word, nothing overlaps (F
     await page.click('#settingsBtn');
     for (const p of await problems()) found.push(`settings ${w}: ${p}`);
     if (w !== 360) await page.screenshot({ path: path.join(OUT, `text200-settings-${w}.png`), fullPage: true });
+    // F359: the one-person sheets (player sheet, Lock to FamiDuel) are at 2x too; they scroll,
+    // so check each screenful from top to bottom.
+    const sheetCheck = async (name: string) => {
+      expect(await ts('#modal'), `${name} words at 2x`).toBe('2');
+      const sh = page.locator('#modal .sheet');
+      const steps = await sh.evaluate((el) => Math.ceil(el.scrollHeight / el.clientHeight));
+      for (let k = 0; k < steps; k++) {
+        await sh.evaluate((el, k) => el.scrollTo(0, k * el.clientHeight), k);
+        for (const p of await problems()) found.push(`${name} ${w}: ${p}`);
+      }
+      await sh.evaluate((el) => el.scrollTo(0, 0));
+      if (w !== 360) await page.screenshot({ path: path.join(OUT, `text200-${name}-${w}.png`) });
+    };
+    await page.click('#stayIn');
+    await sheetCheck('stayin');
+    await page.locator('#guDone').scrollIntoViewIfNeeded();
+    await page.click('#guDone');
     await page.click('#settingsBack');
+    await page.evaluate(() => document.getElementById('home')!.scrollTo(0, 0));
+    await page.click('.player-chip[data-p="1"]');
+    await sheetCheck('player');
+    await page.locator('#pDone').scrollIntoViewIfNeeded();
+    await page.click('#pDone');
   }
   expect(found, 'menus at 200% text').toEqual([]);
   expect(errors).toEqual([]);
