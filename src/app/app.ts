@@ -16,6 +16,7 @@ import { HoldGate } from '../engine/hold';
 import { Stage } from '../engine/stage';
 import { GAMES } from '../games/registry';
 import { dayKey } from '../games/minigolf/daily';
+import { cardPicHtml } from './cardpic';
 import { powerPicHtml, watchPowerPics } from './powerpic';
 import { loserTitle, scoreLabels } from './resulttitle';
 import { demoHelpHtml, demoHtml, firstMatchOf, goalHtml, HelpMemory, howToHalfHtml, howToText, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
@@ -488,8 +489,11 @@ export class App {
     const own = ready ? ownBotLevel(this.store.data.profiles, m.id) : null;
     // Minigolf wears a 📅 until someone on this phone has played today's course.
     const daily = ready && m.id === 'minigolf' && !this.store.dailyBest(dayKey());
-    return `<button class="game-card${ready ? '' : ' soon'}${cardInk(m.color) === DARK_INK ? ' light-card' : ''}" data-id="${m.id}" data-ready="${ready ? 1 : 0}" style="--c:${m.color};--ink:${cardInk(m.color)}" ${ready ? '' : 'aria-disabled="true"'}>
-      <span class="gicon" aria-hidden="true">${m.icon}${own ? `<span class="gbot" data-v="${own}">🤖</span>` : ''}${daily ? '<span class="gday">📅</span>' : ''}</span>
+    // The game's own picture in place of its emoji, the players drawn in their seat colours.
+    const pic = cardPicHtml(m.id);
+    const [y, t] = this.store.data.profiles.map((pr) => pr.color);
+    return `<button class="game-card${ready ? '' : ' soon'}${cardInk(m.color) === DARK_INK ? ' light-card' : ''}" data-id="${m.id}" data-ready="${ready ? 1 : 0}" style="--c:${m.color};--ink:${cardInk(m.color)};--y:${y};--t:${t}" ${ready ? '' : 'aria-disabled="true"'}>
+      <span class="gicon${pic ? ' gpic' : ''}" aria-hidden="true">${pic || m.icon}${own ? `<span class="gbot" data-v="${own}">🤖</span>` : ''}${daily ? '<span class="gday">📅</span>' : ''}</span>
       <span class="gname">${m.name}</span>
       <span class="gkind">${ready ? m.kind : 'Coming soon'}</span>
       ${own ? `<span class="sr-only">Bot level here: ${own}</span>` : ''}${daily ? `<span class="sr-only">Today's course not played yet</span>` : ''}
