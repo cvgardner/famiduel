@@ -44,7 +44,10 @@ family-safe setup below was picked on a decision card in the project thread.
 
 No ads and no purchase rows; the web playable is unchanged (footer still says "no ads").
 `?fakeads` swaps in a grey stand-in ad and a purchase that always works; `?fakeads=now`
-also drops the waits so an ad comes after one match. e2e/ads.spec.ts walks both.
+also drops the waits so an ad comes after one match. `&fakeowned` starts with Remove ads
+already bought on this Apple ID (a reinstall: Restore finds it), and `&fakestore` lets the
+stand-in store answer at launch (owned removes ads with no tap; not owned, after a refund,
+brings them back). e2e/ads.spec.ts walks buying, restoring, nothing to restore and a refund.
 
 ## Testing on a Mac
 
