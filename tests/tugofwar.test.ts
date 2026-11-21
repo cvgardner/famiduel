@@ -179,7 +179,10 @@ describe('tug of war', () => {
     const helped = fresh({ assist: [3, 0] });
     expect(helped.line[0]).toBeCloseTo(RULES.lineAt3);
     expect(helped.line[1]).toBe(RULES.line);
-    expect(helped.gain[0]).toBeCloseTo(RULES.gainAt3);
+    expect(helped.gain[0]).toBeCloseTo(RULES.gainByStar[3]);
+    expect(helped.gain[1]).toBe(1);
+    // In between stars the pull is interpolated (auto handicap can hand out part stars).
+    expect(fresh({ assist: [1.5, 0] }).gain[0]).toBeCloseTo((RULES.gainByStar[1] + RULES.gainByStar[2]) / 2);
     // A kid tapping 5 a second against an adult's 7: plain they lose ground, helped they win it.
     expect(pullFor(plain, 3, [1 / 5, 1 / 7])).toBeLessThan(0);
     expect(pullFor(helped, 3, [1 / 5, 1 / 7])).toBeGreaterThan(0);
