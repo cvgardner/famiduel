@@ -1999,8 +1999,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       other's puck or ball was already moving), and a match pauses itself when the page is
       hidden (a call, a notification, switching apps). Runner.resume(); e2e "Resume counts
       3-2-1...". Seen in a rival 2-player reflex app's v1.4 notes.
-- [ ] Store wrapper: Capacitor's app `pause` event should call the same pause as
+- [x] Store wrapper: Capacitor's app `pause` event should call the same pause as
       visibilitychange (iOS can freeze the web view before the page sees it hidden).
+      Done in the iOS wrapper: src/engine/native.ts listens for the app's `pause` (ticked 2026-11-21, F354b).
 - [x] 2026-11-14 (F244, PR #279): docs/accessibility-labels.md: which App Store
       Accessibility Nutrition Labels we can claim (Dark Interface, Sufficient Contrast,
       Differentiate Without Color Alone, Reduced Motion), which not yet (Larger Text, VoiceOver,
@@ -2585,3 +2586,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       only near either line, where it came too late to matter (F362). sim:powers n=40: heave 63,
       butter 61, yank 54 (was 47), anchor 60, grip 55% avg, none 9%. First tries: a 2.5-5 s
       no-slide anchor read 18-38%, a 2.5 s tie-off 84%, a 2-3 s grip 68-82%.
+- [x] 2026-11-21 (F354b, PR #TBD): Mini Pool has a pool of 5 powers like every shown game: Stop Shot
+      (🛑, your next shot: the cue ball stops dead where it hits a ball, so a cut can't glance it into a
+      pocket) and Plug a Pocket (🚧, on the other player's next shot the pocket nearest their best ball
+      gets a gold lid and balls roll off it; picked when their turn starts, so they see it and aim
+      elsewhere). Logic tests for each, powerpic exemption dropped. Normal bots, 30 per cell: Stop
+      ~41% avg (40% vs none), Plug ~63% avg. A "Second Shot" (a miss keeps the turn) was tried
+      first and read 71-87%, so it was dropped.

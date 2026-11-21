@@ -57,6 +57,18 @@
         "name": "Freeze Ball",
         "icon": "🧊",
         "desc": "On the other player's next shot, the ball of theirs nearest a pocket is frozen still."
+      },
+      {
+        "id": "stop",
+        "name": "Stop Shot",
+        "icon": "🛑",
+        "desc": "Your next shot: the cue ball stops dead where it hits a ball, so it can't follow it in."
+      },
+      {
+        "id": "plug",
+        "name": "Plug a Pocket",
+        "icon": "🚧",
+        "desc": "On the other player's next shot, the pocket nearest their best ball is plugged: balls roll off it."
       }
     ],
     "airhockey": [

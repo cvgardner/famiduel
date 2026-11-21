@@ -145,6 +145,18 @@ const PICS: Record<string, Record<string, string>> = {
       circle(14, 12, 3.5, THEM, anim('fill', [THEM, THEM, '#9fe3ff', '#9fe3ff', THEM], [0, 0.2, 0.25, 0.9, 1]), ' stroke="#fff" stroke-width="0.8"') +
       circle(40, 30, 3.5, '#f7f4ea', anim('cx', [40, 40, 20, 34, 34], [0, 0.35, 0.6, 0.85, 1]) + anim('cy', [30, 30, 16, 32, 32], [0, 0.35, 0.6, 0.85, 1])) +
       circle(48, 36, 3.5, YOU),
+    // The cue ball hits your ball and stops dead (a red ring); your ball rolls on into the pocket.
+    stop:
+      pool +
+      `<circle cx="40" cy="20" r="6" fill="none" stroke="#ff5a4e" stroke-width="1.2">${anim('opacity', [0, 0, 0.9, 0, 0], [0, 0.4, 0.45, 0.8, 1])}</circle>` +
+      circle(46, 16, 3.5, YOU, anim('cx', [46, 46, 58, 58], [0, 0.4, 0.7, 1]) + anim('cy', [16, 16, 6, 6], [0, 0.4, 0.7, 1]) + anim('opacity', [1, 1, 1, 0, 0], [0, 0.4, 0.68, 0.74, 1])) +
+      circle(16, 38, 3.5, '#f7f4ea', anim('cx', [16, 16, 40, 40], [0, 0.05, 0.4, 1]) + anim('cy', [38, 38, 20, 20], [0, 0.05, 0.4, 1])),
+    // A lid slides over the pocket by their ball; their ball bounces off it.
+    plug:
+      pool +
+      `<rect x="1" y="1" width="10" height="10" rx="2" fill="#ffd166" stroke="#7a4b12" stroke-width="1">${anim('opacity', [0, 0, 1, 1, 0], [0, 0.15, 0.25, 0.9, 1])}</rect>` +
+      circle(16, 14, 3.5, THEM, anim('cx', [24, 24, 9, 20, 20], [0, 0.35, 0.55, 0.8, 1]) + anim('cy', [20, 20, 9, 16, 16], [0, 0.35, 0.55, 0.8, 1])) +
+      circle(48, 34, 3.5, YOU),
   },
   pingpong: {
     // Your return flies super fast, leaving a streak.

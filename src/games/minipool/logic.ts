@@ -63,6 +63,7 @@ export type Event =
   | { type: 'retry'; p: PlayerIndex; left: number }
   | { type: 'power'; p: PlayerIndex; id: string }
   | { type: 'frozen'; p: PlayerIndex; id: number }
+  | { type: 'plugged'; p: PlayerIndex; pocket: number }
   | { type: 'rackWon'; p: PlayerIndex; how: RackEnd }
   | { type: 'win'; p: PlayerIndex };
 
@@ -94,6 +95,12 @@ export class MiniPool {
   freezeOn: [boolean, boolean] = [false, false];
   /** The ball frozen for the current shooter's shot, once picked (shown while they aim). */
   frozenId: number | null = null;
+  /** Stop Shot armed for this player's next shot. */
+  stopOn: [boolean, boolean] = [false, false];
+  /** Plug a Pocket armed against this player's next shot (by the other player). */
+  plugOn: [boolean, boolean] = [false, false];
+  /** The pocket plugged for the current shooter's shot, once picked (shown while they aim). */
+  plugged: number | null = null;
   /** Mods of the shot rolling now. */
   shotMods: ShotMods = { pocketBonus: 0, frozenId: null };
   /** Balls that went down on the shot rolling now. */
@@ -144,7 +151,7 @@ export class MiniPool {
   /** The physics mods that apply to this player's shot (what the bot and the guide see too). */
   modsFor(p: PlayerIndex): ShotMods {
     const bonus = lerpAssist(this.players[p].assist, 0, RULES.pocketAssist) + (this.bigPocket[p] ? RULES.bigPocket : 0);
-    return { pocketBonus: bonus, frozenId: this.shooter === p ? this.frozenId : null };
+    return { pocketBonus: bonus, frozenId: this.shooter === p ? this.frozenId : null, closed: this.shooter === p ? this.plugged : null, stop: this.stopOn[p] };
   }
 
   /** Where the cue ball sits for this player (break, and after a scratch). */
@@ -160,6 +167,11 @@ export class MiniPool {
     if (pw.id === 'freeze') {
       const q = other(p);
       return !this.freezeOn[q] && this.targets(q).length > 0;
+    }
+    if (pw.id === 'stop') return !this.stopOn[p];
+    if (pw.id === 'plug') {
+      const q = other(p);
+      return !this.plugOn[q] && this.targets(q).length > 0;
     }
     return false;
   }
@@ -234,6 +246,9 @@ export class MiniPool {
     this.bigPocket = [false, false];
     this.freezeOn = [false, false];
     this.frozenId = null;
+    this.stopOn = [false, false];
+    this.plugOn = [false, false];
+    this.plugged = null;
     this.phase = 'intro';
     this.timer = RULES.introTime;
     this.events.push({ type: 'rack', rack: this.rack, breaker: this.breaker });
@@ -245,6 +260,7 @@ export class MiniPool {
     this.aimT = 0;
     this.turnId++;
     if (this.freezeOn[p] && this.frozenId === null) this.pickFrozen(p);
+    if (this.plugOn[p] && this.plugged === null) this.pickPlug(p);
     this.events.push({ type: 'turn', p, again });
   }
 
@@ -267,6 +283,27 @@ export class MiniPool {
     this.events.push({ type: 'frozen', p, id: best.id });
   }
 
+  /** Plug a Pocket closes the pocket this player's best ball sits nearest (of their targets). */
+  private pickPlug(p: PlayerIndex): void {
+    let best = -1;
+    let bd = Infinity;
+    for (const b of this.targets(p)) {
+      POCKETS.forEach((pk, i) => {
+        const d = Math.hypot(b.x - pk.x, b.y - pk.y);
+        if (d < bd) {
+          bd = d;
+          best = i;
+        }
+      });
+    }
+    if (best < 0) {
+      this.plugOn[p] = false;
+      return;
+    }
+    this.plugged = best;
+    this.events.push({ type: 'plugged', p, pocket: best });
+  }
+
   private firePower(p: PlayerIndex): void {
     if (!this.canFire(p)) return;
     const pw = this.players[p].power!;
@@ -278,6 +315,11 @@ export class MiniPool {
       this.freezeOn[q] = true;
       // If they are lining up right now, the ball freezes (and shows) at once.
       if (this.shooter === q && this.phase === 'aim') this.pickFrozen(q);
+    } else if (pw.id === 'stop') this.stopOn[p] = true;
+    else if (pw.id === 'plug') {
+      const q = other(p);
+      this.plugOn[q] = true;
+      if (this.shooter === q && this.phase === 'aim') this.pickPlug(q);
     }
     this.events.push({ type: 'power', p, id: pw.id });
   }
@@ -288,6 +330,7 @@ export class MiniPool {
     this.shotMods = this.modsFor(p);
     this.longAim[p] = false;
     this.bigPocket[p] = false;
+    this.stopOn[p] = false;
     this.potted = [];
     this.shotsThisRack++;
     this.energy[p].charge(RULES.energyShot, this.trailing(p));
@@ -326,6 +369,10 @@ export class MiniPool {
     if (this.freezeOn[p]) {
       this.freezeOn[p] = false;
       this.frozenId = null;
+    }
+    if (this.plugOn[p]) {
+      this.plugOn[p] = false;
+      this.plugged = null;
     }
     for (let i = 0; i < mine; i++) {
       this.energy[p].charge(RULES.energyPot, this.trailing(p));
@@ -428,12 +475,12 @@ export class MiniPoolBot {
     const me = this.p;
     const id = game.players[me].power?.id;
     // Freeze: once the other player starts lining up (after a person's reaction time).
-    if (id === 'freeze' && game.phase === 'aim' && game.shooter !== me && game.aimT >= HUMAN.reaction + 0.2 && game.canFire(me)) {
+    if ((id === 'freeze' || id === 'plug') && game.phase === 'aim' && game.shooter !== me && game.aimT >= HUMAN.reaction + 0.2 && game.canFire(me)) {
       return { shot: null, power: true };
     }
     if (game.phase !== 'aim' || game.shooter !== me) return NO_INTENT;
     if (this.turn !== game.turnId) this.plan(game, dt);
-    if ((id === 'bigpocket' || id === 'longaim') && game.canFire(me) && game.t >= this.powerAt) {
+    if ((id === 'bigpocket' || id === 'longaim' || id === 'stop') && game.canFire(me) && game.t >= this.powerAt) {
       // Fired before lining up, so the bigger pockets count in its sums. Start over.
       this.turn = -1;
       return { shot: null, power: true };
