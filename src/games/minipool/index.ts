@@ -3,6 +3,7 @@
 // other way, harder the further you pulled (the same slingshot as Minigolf).
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
 import { waitingLine } from '../../core/turnline';
+import { POP_RISE } from '../../engine/fx';
 import { alpha, circle, COLORS, facing, fitFirst, line, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
@@ -26,6 +27,8 @@ const STRIP_CARD = 'rgba(10,12,28,0.85)';
 const CARD = 'rgba(10,12,28,0.88)';
 /** The "3 2 1" digit sits past the cue ball's spot so it never covers the ball or the rack. */
 const COUNT_DY = 190;
+/** F378: room kept between a pop's words and a ball. */
+export const POP_BALL_GAP = 4;
 
 type Aim = { id: number; sx: number; sy: number; x: number; y: number };
 
@@ -137,17 +140,47 @@ class MiniPoolView implements GameInstance {
     return ka.on ? { angle: ka.angle, power: ka.power } : null;
   }
 
+  /**
+   * F378: the y nearest `home` where a pop of `str` (size `size`, for seat p) and the band it
+   * rises through stay POP_BALL_GAP clear of every ball still on the table, inside the table
+   * and on a line fx.pop wouldn't move. Falls back to `home` when no line is clear.
+   */
+  clearOfBalls(str: string, size: number, home: number, p: PlayerIndex): number {
+    const half = Math.min(W - 16, [...str].length * size * 0.55) / 2;
+    const rise = p === 0 ? -POP_RISE : POP_RISE;
+    const r = PHYS.r + POP_BALL_GAP;
+    const balls = this.game.balls.filter((b) => b.on);
+    const free = (y: number) => {
+      const top = Math.min(y, y + rise) - size * 0.45;
+      const bot = Math.max(y, y + rise) + size * 0.45;
+      if (top < TABLE.top || bot > TABLE.bottom) return false;
+      if (!this.ctx.fx.popFits(str, W / 2, y, size, p)) return false;
+      return !balls.some((b) => {
+        const nx = Math.max(W / 2 - half, Math.min(W / 2 + half, b.x));
+        const ny = Math.max(top, Math.min(bot, b.y));
+        return Math.hypot(b.x - nx, b.y - ny) < r;
+      });
+    };
+    const d = p === 0 ? 4 : -4;
+    for (let n = 0; n <= 60; n++) {
+      for (const y of n ? [home + n * d, home - n * d] : [home]) if (free(y)) return y;
+    }
+    return home;
+  }
+
   // ---------- juice ----------
   private juice(): void {
     const g = this.game;
     const { sfx, fx, players } = this.ctx;
     // A pop for each seat, near their own edge, rising toward the middle.
     // Braced, with fx.pop in each, so tests/contrast.test.ts reads their callers' colours.
+    // F378: each pop starts on the nearest line where its words, as they rise, stay off every
+    // ball on the table (a "Go again!" sat on the ball its player was lining up on).
     const pop = (p: PlayerIndex, str: string, color: string, size = 24, dy = 150) => {
-      fx.pop(str, W / 2, p === 0 ? MID + dy : MID - dy, color, p, size);
+      fx.pop(str, W / 2, this.clearOfBalls(str, size, p === 0 ? MID + dy : MID - dy, p), color, p, size);
     };
     const both = (str: string, color: string, size = 24, dy = 150) => {
-      for (const p of PLAYERS) fx.pop(str, W / 2, p === 0 ? MID + dy : MID - dy, color, p, size);
+      for (const p of PLAYERS) fx.pop(str, W / 2, this.clearOfBalls(str, size, p === 0 ? MID + dy : MID - dy, p), color, p, size);
     };
     for (const e of g.events) {
       if (e.type === 'rack') sfx.play('whoosh');
