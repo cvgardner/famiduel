@@ -2496,6 +2496,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-21 (F355, PR #382): Mini Pool is a turn game, so no sim played it. `npm run pool`
+      (scripts/poollib.ts) plays bot matches per level pairing, seats and break swapped: normal v
+      easy 83%, hard v normal 78%, hard v easy 95% (n=40); racks end on the 8 sunk last 93-100%
+      except easy mirrors (30% hit the 40-shot cap, ~107 s a match); head start easy+0..3 v
+      normal 8/15/23/23%, v hard 5/3/0/10%. tests/minipool-levels.test.ts holds normal >= 75%
+      v easy and hard >= 60% v normal.
 - [x] 2026-11-15 (F351, PR #368): Chop Chop's head start after F343 was still all in the third
       star (easy+0..3 v normal 7/10/11/55%, n=100). Measured each knob: the forgiven branches and
       the slower timer barely move it; the count's head start decides the race to 50, and the
