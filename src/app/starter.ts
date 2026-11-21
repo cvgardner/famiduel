@@ -65,3 +65,16 @@ export function starterPill(g: G, line: string, mine: boolean): { size: number; 
   const w = Math.min(max, Math.max(PILL_W, g.measureText(line).width + 2 * PILL_PAD));
   return { size, w };
 }
+
+/** Where a seat's "goes first" pill sits from the middle line, in world units. */
+export const STARTER_DY = 200;
+
+/**
+ * F356: the pill sits at STARTER_DY, past the usual digit (COUNT_DY 120). A game that moves
+ * its digit out toward the pill (Mini Pool's sits at 190, past the cue ball's spot) gets the
+ * pill just past the digit instead, so the solid pill never covers "3 2 1": the digit is at
+ * most ~84 units tall (size 110), the pill 44.
+ */
+export function starterPillDy(digitDy: number): number {
+  return digitDy > STARTER_DY - 70 ? digitDy + 68 : STARTER_DY;
+}
