@@ -2658,3 +2658,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
 - [x] 2026-11-21 (F374): Tug of War's how-to said its goal twice (blurb "Pull the ribbon past
       your line", then "Get the red ribbon past your line!"); it now reads "Tap fast anywhere on
       your side to pull the red ribbon your way."
+- [x] 2026-11-21 (F379): Snack Snatch's FRENZY! / "Faster snacks!" banner was bare text drawn
+      under the pops, so it printed through that seat's "🧲 Magnet!", "Miss!" and the catch pops
+      born at the frogs' heads while it showed (1,265 bright-pop frames inside its rows over 15
+      bot matches). It now pops like the game's other words: pops already in its rows fade as it
+      starts and fx.pop moves later ones off it (0 now, tests/snacksnatch-frenzy-pops.test.ts).
+      It shows ~0.9 s instead of 1.6 s and rises a little, as pops do.
