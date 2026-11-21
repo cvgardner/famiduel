@@ -49,6 +49,18 @@ const SC = 14;
  */
 export const SUNK_Y = GY + N * C + 68;
 const SHOT_T = 0.38; // shell flight time
+/**
+ * F388: a shell drops from 160 units above its cell, but never from above its own sea: from
+ * the top rows it used to start over the header pill (its words) and, on the small sea,
+ * over the big board. Its centre stays at or below `top` (the sea's top edge, 2 units up),
+ * so a top-row shot just drops a shorter way in the same flight time.
+ */
+export const SHELL_DROP = 160;
+export function shellY(ty: number, k: number, top: number): number {
+  return ty - (1 - clamp(k, 0, 1)) * Math.min(SHELL_DROP, Math.max(0, ty - top));
+}
+/** The top edge a shell may fall from on the big and the small sea. */
+export const SHELL_TOP = { big: GY - 2, small: SY - 2 } as const;
 const BADGE = '#ffd54a';
 const BADGE_INK = '#2b2459';
 const DEEP = '#0a1838';
@@ -859,8 +871,9 @@ class SeaBattleView implements GameInstance {
       if (s.t < 0) continue;
       const [tx, ty] = this.cellPos(s.owner, s.cell);
       const k = clamp(s.t / SHOT_T, 0, 1);
-      const sy = ty - (1 - k) * 160;
-      const sz = this.layout().big === s.owner ? 1 : 0.5;
+      const big = this.layout().big === s.owner;
+      const sy = shellY(ty, k, big ? SHELL_TOP.big : SHELL_TOP.small);
+      const sz = big ? 1 : 0.5;
       circle(gx, tx, ty, 4 + 10 * (1 - k) * sz, undefined, 'rgba(255,255,255,0.5)', 2);
       circle(gx, tx, sy, 6 * sz + 2, '#2b2b3a', '#fff', 2);
     }
