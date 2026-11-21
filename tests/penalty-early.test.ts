@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerIndex } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -14,16 +15,19 @@ import { DT, player, power } from './helpers';
 type Floater = { str: string; x: number; y: number; life: number; size: number; player: 0 | 1 };
 const SHOOTER_LINES = ['Shot picked! Swipe again to change', 'Swipe to pick your shot!'];
 const box = (str: string, x: number, y: number, size: number) => {
-  const w = ([...str].length * size * 0.55) / 2;
-  return { l: x - w, r: x + w, t: y - size * 0.45, b: y + size * 0.45 };
+  const s = scaledSize(size);
+  const w = ([...str].length * s * 0.55) / 2;
+  return { l: x - w, r: x + w, t: y - s * 0.45, b: y + s * 0.45 };
 };
 const hits = (a: ReturnType<typeof box>, b: ReturnType<typeof box>) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
 
 // F190: the keeper's early dive popped "Keeper moved early!" at the middle, and it rose into the
 // shooter's "Shot picked! Swipe again to change" and "<power> ready" lines.
 describe('Penalty: the early-dive pop keeps clear of the shooter lines', () => {
+  afterEach(() => setTextScale(1));
   for (const seat of [0, 1] as PlayerIndex[]) {
-    it(`shooter seat ${seat}: beside the ball, off the ball's ring and every line, as it rises`, () => {
+    for (const scale of [1, BIG_TEXT]) it(`shooter seat ${seat}: beside the ball, off the ball's ring and every line, as it rises${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+      setTextScale(scale);
       const fx = new Fx();
       const pw = power('penalty', 'curveshot');
       const view = GAMES.penalty.create({ seed: 3, rng: makeRng(3), players: [player({ power: pw, bot: null }), player({ power: pw, bot: null })], powersOn: true, sfx: { play() {} } as unknown as Sfx, fx, end() {} }) as unknown as {
