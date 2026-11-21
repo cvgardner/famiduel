@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
@@ -13,7 +14,9 @@ type Floater = { str: string; x: number; y: number; life: number; size: number; 
 // F176: the "Miss!" pop started 10 in front of the frog's resting head, so the head pulling
 // back from the missed snap slid over it and the word sat on the frog's eyes.
 describe('Snack Snatch: "Miss!" clears the frog\'s head', () => {
-  it('for both seats, for the whole time the pop shows', () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) it(`for both seats, for the whole time the pop shows${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+    setTextScale(scale);
     const players: [PlayerInfo, PlayerInfo] = [player({ bot: 'easy' }), player({ bot: 'easy' })];
     const sfx = { play() {} } as unknown as Sfx;
     const fx = new Fx();
@@ -31,7 +34,7 @@ describe('Snack Snatch: "Miss!" clears the frog\'s head', () => {
         seats.add(f.player);
         // The frog nearest the pop, in its own seat.
         const c = g.critters[f.player].reduce((a: Critter, b: Critter) => (Math.abs(b.x - f.x) < Math.abs(a.x - f.x) ? b : a));
-        const gap = Math.abs(f.y - g.headY(c)) - RULES.headR - f.size * 0.45;
+        const gap = Math.abs(f.y - g.headY(c)) - RULES.headR - scaledSize(f.size) * 0.45;
         checked++;
         if (gap < 0) clashes.push(`step ${i} seat ${f.player}: pop ${gap.toFixed(1)} into the head`);
       }
