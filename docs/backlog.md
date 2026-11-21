@@ -2032,8 +2032,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       scale with --ts); the "menus at 200% text" playtest checks each sheet a screenful at a time
       at 390, 360 and 320 px. On a 320 px phone "Player 2" ran 2 px over its home chip at 2x
       ("Playe…", flaky by font): the card gives back 8 px of side padding there.
-- [ ] Larger Text, the rest: the tournament screen at 2x (F360 checks the grown-ups sheets).
-      The split screens (intro, result, pause how-to) stay at Bigger: under half a phone each.
+- [x] 2026-11-21 (F360, PR #TBD): Larger Text, the tournament screen at 2x (one upright list): title
+      and tiles grow (tiles 126 px min at Largest, still two across at 320 px), and the "menus at
+      200% text" playtest checks it a screenful at a time (the sticky Play button may float over
+      tiles, F308). The split screens (intro, result, pause how-to) stay at Bigger: under half a
+      phone each.
 - [x] 2026-11-14 (F248, PR #281): Chop Chop: pops reaching either seat's round-end card
     ("You win the round!", "They got to 50!") fade as the card comes up (the winning chop's
     "50!" started right on it, late "+2"s rose into it): 1418 readable pops over 9317 card

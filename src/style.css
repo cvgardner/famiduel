@@ -51,8 +51,9 @@
    keep Bigger text's 1.2x: each player has under half the phone there, and later rules (short
    phones) still take the intro down to 1. */
 :root[data-largesttext] { --ts: 2; }
-:root[data-largesttext] :is(#intro, #play, #result, #tourney), :root[data-largesttext] .modal { --ts: 1.2; }
-/* F359: one-person sheets (player, stay-in) are full-width menus: 2x like home and settings. */
+:root[data-largesttext] :is(#intro, #play, #result), :root[data-largesttext] .modal { --ts: 1.2; }
+/* F359: one-person sheets (player, stay-in) are full-width menus: 2x like home and settings.
+   F360: so is the tournament screen (one upright list, no seat halves). */
 :root[data-largesttext] .modal.one { --ts: 2; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
 body { overscroll-behavior: none; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
@@ -595,9 +596,10 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
    phone the 7 tiles pushed it below the fold); at the end of the list it sits in its place. */
 .tourney > .btn.primary { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 2;
   box-shadow: 0 4px 0 #c99a12, 0 10px 24px rgba(0,0,0,0.35); }
-.tourney-title { font-size: 24px; font-weight: 900; text-align: center; margin: 0; }
+.tourney-title { font-size: calc(24px * var(--ts)); font-weight: 900; text-align: center; margin: 0; }
 .tourney-sub { color: var(--dim); font-size: calc(14px * var(--ts)); font-weight: 700; margin: -6px 0 0; text-align: center; }
-.lineup { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; width: 100%; }
+/* F360: tiles widen with the text (96 px at Usual, 126 at Largest: still two across on a 320 px phone). */
+.lineup { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(66px + 30px * var(--ts)), 1fr)); gap: 8px; width: 100%; }
 .slot { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); text-align: center; }
 .slot .gicon { font-size: 26px; }
 .slot .sname { font-size: calc(13px * var(--ts)); font-weight: 800; }
