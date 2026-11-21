@@ -2656,6 +2656,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       balls on the table, hiding a ball the player was lining up on (71 pops born on a ball over 24
       bot racks). Each pop now starts on the nearest line where its words, as they rise, stay off
       every ball (clearOfBalls()): 0. tests/minipool-pops.test.ts.
+- [x] F375 (2026-11-21, PR #399) Tug of War round stars: an empty star was a dark blot like the grass
+      tufts beside it, so a kid couldn't count rounds won. Every star now has a white outline
+      (3:1 on both grasses) and is a touch bigger; a won star is gold (3:1 against an empty one).
+      tests/tugofwar-stars.test.ts.
+- [x] F376 (2026-11-21, PR #399) Tug of War: the losing seat's round card ("Into the mud!") sat over
+      that seat's own round stars, so the player who just lost couldn't see the tally. The loser's
+      card is now narrower and centred, ending left of the stars (cardBox()); test in
+      tests/tugofwar-stars.test.ts.
 - [x] 2026-11-21 (F373): Tug of War and Mini Pool joined the playtest "how to play" PICTURED
       list, so each half's picked-power picture and its movement are checked there like every
       other shown game (both already passed).
