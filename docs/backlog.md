@@ -2705,4 +2705,6 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the frogs (still drawn at 24 or more). Each game's pops test runs again at BIG_TEXT;
       before: Snake CRASH! on a trail 8, "🧲 Magnet" on a frog 10%, a pop on the seconds
       clock 87%, Tank "🫧 Shield!" on a tank 6%; after: all within the 1x bounds. Chop Chop
-      has no such room helper (F208 covers its names).
+      has no such room helper (F208 covers its names). Not yet at BIG_TEXT: tanks-pops-arena
+      (after #404's wider fx stacking, Bigger-text Bonked! crosses the arena edge in 5.2% of
+      readable frames vs the 5% bound; keeping it inside put it on a tank instead): F387.
