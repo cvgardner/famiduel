@@ -1,7 +1,7 @@
 // Snack Snatch view: taps become snaps; state becomes a picnic blanket with a
 // snack pot in the middle and two round frog-like "Chompers" per player.
 import { other, PLAYERS, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, facing, glow, line, noGlow, rrect, scaledSize, shade, silentSeat, text, type G } from '../../engine/draw';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
 import { POP_OUTLINE_LIGHT } from '../../engine/fx';
@@ -76,11 +76,24 @@ export const GOLD_HALO = alpha(COLORS.gold, 0.9);
  */
 export function powerLines(str: string): [string, string?] {
   const lane = RULES.critterX[1] - RULES.critterX[0] - 2 * RULES.headR - 8;
-  if ([...str].length * 24 * 0.55 <= lane) return [str];
+  // F385: measured as text() draws it (Bigger text draws a 24 at 28).
+  if ([...str].length * scaledSize(24) * 0.55 <= lane) return [str];
   const mid = str.length / 2;
   let cut = -1;
   for (let i = 0; i < str.length; i++) if (str[i] === ' ' && (cut < 0 || Math.abs(i - mid) < Math.abs(cut - mid))) cut = i;
   return cut < 0 ? [str] : [str.slice(0, cut), str.slice(cut + 1)];
+}
+
+/**
+ * F385: the size a power name's lines pop at: 24, or a little less when Bigger text would draw a
+ * line wider than the lane between the frogs (a 28 "🧲 Magnet" reached a head in 10% of frames).
+ * Never below 24 as drawn at the usual text size.
+ */
+export function powerSize(lines: (string | undefined)[]): number {
+  const lane = RULES.critterX[1] - RULES.critterX[0] - 2 * RULES.headR - 8;
+  const long = Math.max(...lines.map((l) => (l ? [...l].length : 0)));
+  for (let size = 24; size > 20; size--) if (long * scaledSize(size) * 0.55 <= lane || scaledSize(size - 1) < 24) return size;
+  return 20;
 }
 
 /**
@@ -243,16 +256,18 @@ class SnackSnatchView implements GameInstance {
         // now starts far enough out that its whole rise ends short of the clock.
         // A catch's "+N" still bright there would push the name a line into the field and back
         // onto the clock, so it takes the first line out from there where both of its lines fit.
-        const py = this.powerPopY(first, second, e.p);
-        fx.pop(first, W / 2, py, COLORS.gold, e.p, 24);
-        if (second) fx.pop(second, W / 2, py, COLORS.gold, e.p, 24);
+        const ps = powerSize([first, second]);
+        const py = this.powerPopY(first, second, e.p, ps);
+        fx.pop(first, W / 2, py, COLORS.gold, e.p, ps);
+        if (second) fx.pop(second, W / 2, py, COLORS.gold, e.p, ps);
         // Sleepy Critters: the other seat reads why their frogs went slow (the frogs show it too).
         const foe = other(e.p);
         if (pw.id === 'sleepy' && !silentSeat(players, foe)) {
           const [a, b] = powerLines('😴 Slow snaps!');
-          const fy = this.powerPopY(a, b, foe);
-          fx.pop(a, W / 2, fy, COLORS.gold, foe, 24);
-          if (b) fx.pop(b, W / 2, fy, COLORS.gold, foe, 24);
+          const ss = powerSize([a, b]);
+          const fy = this.powerPopY(a, b, foe, ss);
+          fx.pop(a, W / 2, fy, COLORS.gold, foe, ss);
+          if (b) fx.pop(b, W / 2, fy, COLORS.gold, foe, ss);
         }
       } else if (e.type === 'win') {
         sfx.play('win');
@@ -434,31 +449,33 @@ class SnackSnatchView implements GameInstance {
    * starts beside the neck instead, on the field's middle side, and rises clear of that lane.
    */
   private besideNeck(cx: number, str: string, size: number): number {
-    const half = ([...str].length * size * 0.55) / 2;
+    const shown = scaledSize(size); // F385: the words as text() draws them (Bigger text: up to 1.2x)
+    const half = ([...str].length * shown * 0.55) / 2;
     const side = cx < W / 2 ? 1 : -1;
     return cx + side * (RULES.headR + half + 4);
   }
 
   /** F272: the first line, at least POWER_POP_DY from the centre line, where both name lines print as placed. */
-  private powerPopY(first: string, second: string | undefined, p: PlayerIndex): number {
+  private powerPopY(first: string, second: string | undefined, p: PlayerIndex, size = 24): number {
     const down = p === 0 ? 1 : -1;
-    const line = 24 + 4;
+    const line = size + 4;
     for (let d = POWER_POP_DY; d <= POWER_POP_MAX; d += 4) {
       const y = MID + down * d;
-      if (!this.ctx.fx.popFits(first, W / 2, y, 24, p)) continue;
-      if (second && !this.ctx.fx.popFits(second, W / 2, y + down * line, 24, p)) continue;
+      if (!this.ctx.fx.popFits(first, W / 2, y, size, p)) continue;
+      if (second && !this.ctx.fx.popFits(second, W / 2, y + down * line, size, p)) continue;
       return y;
     }
     return MID + down * POWER_POP_DY;
   }
 
   private clearOfClock(str: string, x: number, y: number, size: number, p: PlayerIndex): number {
-    const half = ([...str].length * size * 0.55) / 2;
+    const shown = scaledSize(size); // F385: the words as text() draws them (Bigger text: up to 1.2x)
+    const half = ([...str].length * shown * 0.55) / 2;
     const rise = p === 0 ? -36 : 36;
     // One stacked line either way too: fx moves a pop a line off one still bright there (F184).
     const line = size + 4;
-    const top = Math.min(y, y + rise) - size * 0.45 - line;
-    const bot = Math.max(y, y + rise) + size * 0.45 + line;
+    const top = Math.min(y, y + rise) - shown * 0.45 - line;
+    const bot = Math.max(y, y + rise) + shown * 0.45 + line;
     const labels = clockSpots().filter(([q]) => !silentSeat(this.ctx.players, q));
     const blocked = (cx: number) => labels.some(([, lx, ly]) => Math.abs(cx - lx) < half + CLOCK_HALF_W && top < ly + CLOCK_HALF_H && ly - CLOCK_HALF_H < bot);
     if (!blocked(x)) return x;

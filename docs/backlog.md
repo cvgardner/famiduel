@@ -2688,3 +2688,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rise inside the arena: 4% / 2% / 1% left, where no clear line inside exists and fx.pop
       stacks the word off it (tests/tanks-pops-arena.test.ts). BONK!, POOF! and clink! are born
       on a tank, often at the edge, so keeping those inside would put them on a tank; left as is.
+- [x] 2026-11-21 (F385): with Bigger text, Snake (clearOfHeads, crashPopX), Tank Duel
+      (clearOfTanks) and Snack Snatch (besideNeck, clearOfClock, power names) kept pops off
+      the pieces by their unscaled size. They now use scaledSize(); Snack Snatch power names
+      pop a size smaller under Bigger text when a line would be wider than the lane between
+      the frogs (still drawn at 24 or more). Each game's pops test runs again at BIG_TEXT;
+      before: Snake CRASH! on a trail 8, "🧲 Magnet" on a frog 10%, a pop on the seconds
+      clock 87%, Tank "🫧 Shield!" on a tank 6%; after: all within the 1x bounds. Chop Chop
+      has no such room helper (F208 covers its names).

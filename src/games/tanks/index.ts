@@ -1,7 +1,7 @@
 // Tank Duel view: sticks, FIRE buttons and bots become intents; state becomes toy tanks.
 import { popColor } from '../../engine/fx';
 import { PLAYERS, other, type PlayerIndex } from '../../core/types';
-import { alpha, circle, COLORS, controlsAlpha, glow, line, noGlow, seatRing, rrect, shade, silentSeat, text, type G } from '../../engine/draw';
+import { alpha, circle, COLORS, controlsAlpha, glow, line, noGlow, rrect, scaledSize, seatRing, shade, silentSeat, text, type G } from '../../engine/draw';
 import { blink as flashOn } from '../../engine/calm';
 import { KEYS, type GameContext, type GameDef, type GameInstance } from '../../engine/game';
 import type { Input } from '../../engine/input';
@@ -198,11 +198,12 @@ class TankView implements GameInstance {
    * 0.9 s, up for seat 0, down for seat 1) misses both tanks and their rings.
    */
   clearOfTanks(str: string, size: number, x: number, y: number, p: PlayerIndex, allowed: (cy: number) => boolean = () => true, keepInside = false): number {
-    const half = ([...str].length * size * 0.55) / 2;
+    const shown = scaledSize(size); // F385: the words as text() draws them (Bigger text: up to 1.2x)
+    const half = ([...str].length * shown * 0.55) / 2;
     const rise = p === 0 ? -36 : 36;
     const hits = (cy: number) => {
-      const top = Math.min(cy, cy + rise) - size * 0.45;
-      const bot = Math.max(cy, cy + rise) + size * 0.45;
+      const top = Math.min(cy, cy + rise) - shown * 0.45;
+      const bot = Math.max(cy, cy + rise) + shown * 0.45;
       // F205: and where a driving tank will be over the next half second (straight ahead).
       return this.game.tanks.some((tk) =>
         [0, 0.25, 0.5].some((t) => {
@@ -217,8 +218,8 @@ class TankView implements GameInstance {
     // F381: with keepInside, the whole rise stays inside the arena: a hit's words past its edge
     // printed over that seat's hearts and ammo dots. (BONK! and POOF! are born on a tank, often at
     // the edge, where staying inside would put them on a tank instead.)
-    const lo = ARENA.y + 2 + size * 0.45 - Math.min(0, rise);
-    const hi = ARENA.y + ARENA.h - 2 - size * 0.45 - Math.max(0, rise);
+    const lo = ARENA.y + 2 + shown * 0.45 - Math.min(0, rise);
+    const hi = ARENA.y + ARENA.h - 2 - shown * 0.45 - Math.max(0, rise);
     const inside = (cy: number) => !keepInside || (cy >= lo && cy <= hi);
     if (keepInside) y = Math.max(lo, Math.min(hi, y));
     // F205: a line another of this seat's pops holds would be moved off by fx.pop, back onto a tank.
