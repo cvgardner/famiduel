@@ -2682,3 +2682,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       reads 3:1 on the grass), fade when the deciding gulp lands, and the timer ring round the
       pot stays gold for the sudden snack (tests/snacksnatch-sudden-pops.test.ts: 0 readable pops
       over its lines in 8 bot sudden snacks; 74 before the fade).
+- [x] 2026-11-21 (F381): Tank Duel: a hit's "Oops! Own shot", "Bonked!" and "+1" could land past
+      the arena's edge, printed over that seat's hearts and ammo dots (readable frames outside
+      between bots: Bonked! 36%, Oops! 44%, +1 15%). Their lines (popClear) now keep the whole
+      rise inside the arena: 4% / 2% / 1% left, where no clear line inside exists and fx.pop
+      stacks the word off it (tests/tanks-pops-arena.test.ts). BONK!, POOF! and clink! are born
+      on a tank, often at the edge, so keeping those inside would put them on a tank; left as is.
