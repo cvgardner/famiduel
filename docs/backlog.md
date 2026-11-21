@@ -2724,3 +2724,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       past the edge, over the hearts (Bonked! 5.2% of readable frames). Now the still-bright pops
       in its way fade (fx.fadeInWay()) and it keeps its line: 0 of those words cross the edge at
       1x or Bigger text (tests/tanks-pops-arena.test.ts runs at both).
+- [x] 2026-11-21 (F394): Quick Draw with Bigger text: "⚡ they used Head Start" ran into the
+      round stars beside the cowboy (seen at 320 px), because quickdraw-pops.test.ts sized words
+      unscaled, ran at 1x only and played 3 of the 5 powers. Power, "they used" and "Forgiven"
+      pops now slide left just enough to end 4 units short of the stars (popX(), sized with
+      scaledSize()); the test plays all 5 powers at 1x and Bigger text (0 on the stars, button,
+      signal, score or badges).
