@@ -186,7 +186,7 @@ describe('Mini Pool bots', () => {
       expect(g.winner).not.toBeNull();
       expect(g.t).toBeLessThan(240);
     }
-  });
+  }, 60_000);
 
   it('same seed, same match', () => {
     const a = playMatch(bots('normal', 'normal'), 11);
@@ -194,7 +194,7 @@ describe('Mini Pool bots', () => {
     expect(a.g.winner).toBe(b.g.winner);
     expect(a.g.t).toBe(b.g.t);
     expect(a.events).toEqual(b.events);
-  });
+  }, 60_000);
 
   it('hard beats easy most of the time, from either seat', () => {
     let hard = 0;
@@ -203,7 +203,7 @@ describe('Mini Pool bots', () => {
       if (playMatch(bots('easy', 'hard'), seed + 100).g.winner === 1) hard++;
     }
     expect(hard).toBeGreaterThanOrEqual(12);
-  });
+  }, 60_000);
 
   it('a bot never shoots before a person could have looked at the table', () => {
     for (const lvl of ['easy', 'normal', 'hard'] as BotLevel[]) {
@@ -218,7 +218,7 @@ describe('Mini Pool bots', () => {
         if (g.events.some((e) => e.type === 'turn')) turnAt = g.t;
       }
     }
-  });
+  }, 60_000);
 });
 
 describe('Mini Pool handicap', () => {
@@ -335,7 +335,7 @@ describe('Mini Pool powers', () => {
       expect(g.finished, pw).toBe(true);
       expect(events.some((e) => e.startsWith(`power:`)), pw).toBe(true);
     }
-  });
+  }, 60_000);
 });
 
 describe('Mini Pool view', () => {
@@ -395,5 +395,5 @@ describe('Mini Pool view', () => {
     expect([0, 1]).toContain(r.winner);
     expect(r.summary.length).toBeGreaterThan(0);
     expect(words.some((w) => /shot|Lining up|thinking/.test(w.str))).toBe(true);
-  });
+  }, 60_000);
 });

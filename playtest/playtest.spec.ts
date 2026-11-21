@@ -13,7 +13,7 @@ import { PLAYER_COLORS } from '../src/core/colors';
 import { buildGrid, LAYOUTS } from '../src/games/tanks/mazes';
 import { domContrast, faintLabels } from './domcontrast';
 import { installFingers, monkey, tapWorld, worldBox } from './monkey';
-import { checkersPerson, fourInARowPerson, rpsPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
+import { checkersPerson, fourInARowPerson, miniPoolPerson, rpsPerson, seaBattlePerson, ticTacToePerson, type Person } from './person';
 
 const OUT = path.resolve('playtest-report');
 const SECONDS = Number(process.env.PLAYTEST_SECONDS ?? 8);
@@ -339,8 +339,13 @@ async function smallFonts(page: Page, screen: string): Promise<string[]> {
       const el = n.parentElement;
       if (!el || !el.checkVisibility({ visibilityProperty: true, opacityProperty: true })) continue;
       if (el.getBoundingClientRect().width === 0) continue;
-      const px = parseFloat(getComputedStyle(el).fontSize);
-      if (px < min - 0.01) out.push(`${el.className || el.tagName} "${str.slice(0, 20)}" ${px}px`);
+      // SVG text (the home cards' pictures) is sized in the picture's own units: measure what
+      // reaches the screen, its font size times the picture's scale.
+      const svg = el instanceof SVGGraphicsElement ? el.getScreenCTM() : null;
+      const scale = svg ? Math.hypot(svg.a, svg.b) : 1;
+      const px = Math.round(parseFloat(getComputedStyle(el).fontSize) * scale * 10) / 10;
+      const name = typeof el.className === 'string' ? el.className : el.tagName;
+      if (px < min - 0.01) out.push(`${name || el.tagName} "${str.slice(0, 20)}" ${px}px`);
     }
     return out;
   }, MIN_FONT);
@@ -1221,8 +1226,12 @@ test('bot level: picked on the intro, kept per game, fits a small phone', async 
 
 // Solo games whose next point waits for the person's own move: a person plays them (F125).
 const WAITS_FOR_PERSON = ['seabattle', 'rps'];
+/** Solo games that wait on the person's own move before a point can come (they may go first). */
+const SOLO_PERSON_MOVES = [...WAITS_FOR_PERSON, 'minipool'];
 
 test('play the bot: one tap on home makes every game a solo match, with its own tally', async ({ page }) => {
+  // Every shown game, three of them (Sea Battle, RPS, Mini Pool) played in real time by a person.
+  test.setTimeout(240_000);
   const errors: string[] = [];
   await page.setViewportSize({ width: 320, height: 568 });
   await boot(page, errors);
@@ -1328,7 +1337,7 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
     // F125: Sea Battle and RPS wait for the person's move, so a person plays a few turns
     // in real time instead (the probe still on), up to the bot's answer and the next banner.
     let personMoves = -1;
-    if (WAITS_FOR_PERSON.includes(id)) {
+    if (SOLO_PERSON_MOVES.includes(id)) {
       await page.evaluate(() => {
         const r = (window as unknown as { __reader: { on: boolean; turned: Set<string> } }).__reader;
         r.turned.clear();
@@ -1376,9 +1385,14 @@ test('play the bot: one tap on home makes every game a solo match, with its own 
       // on its own, with no "Time's up!" pop rising over the chop count and that banner.
       const end = await page.evaluate(() => {
         const r = (window as unknown as { __famiduel: { runner: { game: { game: { choppers: { outReason: string | null }[] } }; fx: { floaters: { str: string }[] } } } }).__famiduel.runner;
-        return { why: r.game.game.choppers[0].outReason, pops: r.fx.floaters.map((f) => f.str) };
+        const ch = r.game.game.choppers;
+        return { why: ch[0].outReason, botOut: ch[1].outReason, pops: r.fx.floaters.map((f) => f.str) };
       });
-      expect(end.why, 'chopchop: the idle person ran out of time').toBe('time');
+      // The easy bot can bonk itself a few chops in, before the idle person's time runs out
+      // (the bot level and seed depend on the matches played before); then the person won the
+      // round and was never out. Otherwise the person must be out of time, not bonked.
+      if (end.botOut === 'bonk' && end.why === null) expect(end.pops, 'chopchop: the bot went out first').not.toContain("Time's up!");
+      else expect(end.why, 'chopchop: the idle person ran out of time').toBe('time');
       expect(end.pops, 'chopchop: no "Time\'s up!" pop over the round banner').not.toContain("Time's up!");
     }
     await page.screenshot({ path: path.join(OUT, `solo-round-${id}.png`) });
@@ -2997,6 +3011,7 @@ test('rock paper scissors: two people pick behind a look-away cover, one at a ti
 const PEOPLE: Record<string, Person> = {
   seabattle: seaBattlePerson,
   rps: rpsPerson,
+  minipool: miniPoolPerson,
   checkers: checkersPerson,
   fourinarow: fourInARowPerson,
   tictactoe: ticTacToePerson,
@@ -3296,9 +3311,10 @@ test('pause button: its "II" reads 3:1 or better over every shown game, a ring o
     // trail on the left wall at the centre line hid under the dot); every other game keeps the dot.
     // F301: Sumo's ring runs under it as well; there the ring keeps a dark core behind the "II"
     // (the sand is too pale for the bare glyph), which the 3:1 check above measures.
-    expect(await page.locator('#pauseBtn.ring').count(), `${g.id}: pause ring only where the board runs under it`).toBe(g.id === 'snake' || g.id === 'sumo' ? 1 : 0);
+    // Mini Pool (#379): the table's left middle pocket sits under the button, so it rings too.
+    expect(await page.locator('#pauseBtn.ring').count(), `${g.id}: pause ring only where the board runs under it`).toBe(['snake', 'sumo', 'minipool'].includes(g.id) ? 1 : 0);
     expect(await page.locator('#pauseBtn.core').count(), `${g.id}: a dark core only on Sumo's sand`).toBe(g.id === 'sumo' ? 1 : 0);
-    if (g.id === 'snake' || g.id === 'sumo') await page.screenshot({ path: path.join(OUT, `pause-button-${g.id}.png`) });
+    if (['snake', 'sumo', 'minipool'].includes(g.id)) await page.screenshot({ path: path.join(OUT, `pause-button-${g.id}.png`) });
     await leaveMatch(page);
   }
   expect(faint, 'pause glyph below 3:1').toEqual([]);

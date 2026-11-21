@@ -2512,6 +2512,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       except easy mirrors (30% hit the 40-shot cap, ~107 s a match); head start easy+0..3 v
       normal 8/15/23/23%, v hard 5/3/0/10%. tests/minipool-levels.test.ts holds normal >= 75%
       v easy and hard >= 60% v normal.
+- [x] 2026-11-21 (F347, PR #386): every shown game's head-start line checked against its assist
+      code; all match except Snack Snatch, now "Longer reach, back sooner after a miss" (F350's
+      quicker miss recovery). The line is a wrapping HTML paragraph, so no length cap needed.
+- [x] 2026-11-21 (F353, PR #381): Tug of War's head start (stronger pull, nearer line) grew in
+      a straight line to 1.5, but a tap-rate race is a cliff (easy 4.3, normal 5.7, hard 7.2 taps
+      a second): easy+0..3 v normal 0/0/45/100%, v hard 0% at every star. Pull per star is now
+      a table, 1 / 1.3 / 1.45 / 1.75 (RULES.gainByStar, gainFor()): v normal 0/21/99/100%, v hard
+      0/0/0/60% (n=80). tests/sim-ladder.test.ts, tests/tugofwar.test.ts.
 - [x] 2026-11-15 (F351, PR #368): Chop Chop's head start after F343 was still all in the third
       star (easy+0..3 v normal 7/10/11/55%, n=100). Measured each knob: the forgiven branches and
       the slower timer barely move it; the count's head start decides the race to 50, and the
