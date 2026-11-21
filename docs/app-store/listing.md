@@ -12,7 +12,7 @@ serves both. Ads stay child-directed for v1 (docs/ads.md).
 | Field | Value | Limit |
 |---|---|---|
 | Name | FamiDuel: 2 Player Games | 30 |
-| Subtitle | 1v1 duels with super powers | 30 |
+| Subtitle | Offline 1v1 duels & powers | 30 |
 | Primary category | Games, subcategories Family and Casual | |
 | Secondary category | Entertainment | |
 | Content rights | Does not contain, show or access third-party content | |
@@ -36,7 +36,7 @@ Two players, one phone. Lay it flat between you and play Air Hockey, Minigolf, S
 
 Two players. One phone. Super powers.
 
-Settle it right now, across the table. Lay your phone flat between you and your friend, your partner, your roommate or your kid. Each player owns the half nearest them, and every game is played with one finger: tap, drag or flick. No accounts, no second phone, no waiting for anyone online. Pick a game and play.
+Settle it right now, across the table. Lay your phone flat between you and your friend, your partner, your roommate or your kid. Each player owns the half nearest them, and every game is played with one finger: tap, drag or flick. No accounts, no second phone, no waiting for anyone online. It all works offline too, so no Wi-Fi or data is needed: on a plane, on a road trip or anywhere the signal drops. Pick a game and play.
 
 12 GAMES
 Minigolf, Air Hockey, Sumo, Ping Pong, Penalty Shootout, Snack Snatch, Snake Duel, Quick Draw, Tank Duel, Chop Chop, Sea Battle and Rock Paper Scissors.
@@ -61,7 +61,7 @@ Every game is free. A short ad can show between matches now and then, never duri
 
 ### Keywords (100, comma separated, no spaces after commas)
 
-two,versus,friends,couple,family,kids,party,air hockey,minigolf,sumo,ping pong,penalty,offline,duo
+two,versus,friends,couple,family,kids,party,air hockey,minigolf,sumo,ping pong,penalty,duo,minigames
 
 ### Support URL
 

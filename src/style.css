@@ -90,6 +90,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 }
 @media (prefers-reduced-motion: reduce) { .logo .l1 { animation: none; } }
 .tag { margin: 8px 0 0; color: var(--dim); font-weight: 700; font-size: calc(14px * var(--ts)); letter-spacing: 0.01em; }
+/* Every game plays without a network; a quiet second line says so (the listing leads with it). */
+.offline { margin: 2px 0 0; color: var(--dim); font-weight: 600; font-size: calc(12px * var(--ts)); letter-spacing: 0.02em; }
 
 /* Segmented controls: a sunken track with a raised pick. */
 .seg { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -387,7 +389,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   /* CI's Linux fonts sit taller than a phone's: keep ~20px spare so the card stays whole. */
   #home { gap: 8px; }
   .brand { padding-top: 0; }
-  .brand .tag { display: none; }
+  .brand .tag, .brand .offline { display: none; }
   .versus { padding: 8px 10px; gap: 6px; }
   .group { gap: 6px; }
   /* After a match the "New night" link sits beside the score instead of under it; the
