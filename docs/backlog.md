@@ -2001,6 +2001,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       3-2-1...". Seen in a rival 2-player reflex app's v1.4 notes.
 - [x] Store wrapper: Capacitor's app `pause` event should call the same pause as
       visibilitychange (iOS can freeze the web view before the page sees it hidden).
+      2026-11-21 (F369, PR #395): already true: src/main.ts wires `onAppPause()`
+      (src/engine/native.ts, App 'pause') to `app.interrupt()`, the same call the page's
+      visibilitychange listener makes (src/app/app.ts); tests/native.test.ts keeps it off in browsers.
       Done in the iOS wrapper: src/engine/native.ts listens for the app's `pause` (ticked 2026-11-21, F354b).
 - [x] 2026-11-14 (F244, PR #279): docs/accessibility-labels.md: which App Store
       Accessibility Nutrition Labels we can claim (Dark Interface, Sufficient Contrast,
@@ -2604,6 +2607,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       only near either line, where it came too late to matter (F362). sim:powers n=40: heave 63,
       butter 61, yank 54 (was 47), anchor 60, grip 55% avg, none 9%. First tries: a 2.5-5 s
       no-slide anchor read 18-38%, a 2.5 s tie-off 84%, a 2-3 s grip 68-82%.
+- [x] 2026-11-21 (F368, PR #395): Snack Snatch's head start barely helped a mashing kid (kid+3 v easy
+      18%, n=100; Sumo 57%, Snake 47%): random snaps rarely meet a passing snack. A longer neck
+      helped (reach 175 read 42%) but would put the head over the clock digits on the centre
+      line, which must cover no snack a critter can gulp, so a full head start now bites wider to
+      the sides instead (RULES.wideTop 1.15: the gulp circle is 15% wider sideways, never further
+      forward); stars 1-2 unchanged. kid+3 v easy ~40-50%, easy+0..3 v normal 1/16/28/63% ->
+      1/16/29/~80% (n=100-200). Intro line "Longer, wider reach; back sooner after a miss".
+      tests/snacksnatch.test.ts, tests/sim-ladder.test.ts.
 - [x] 2026-11-21 (F354b, PR #392): Mini Pool has a pool of 5 powers like every shown game: Stop Shot
       (🛑, your next shot: the cue ball stops dead where it hits a ball, so a cut can't glance it into a
       pocket) and Plug a Pocket (🚧, on the other player's next shot the pocket nearest their best ball
