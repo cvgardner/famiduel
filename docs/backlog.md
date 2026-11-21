@@ -2760,3 +2760,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       The first-match finger card (default demoAt 0.72) also covered the pill's right end (the
       "first!" of "Grandpa goes first"); Mini Pool's `demoAt` 0.75 puts it beside the digit,
       under the pill (it fades with the countdown, before the "Sink your 3" card shows).
+- [x] 2026-11-21 (F399): the last pops checks that sized words unscaled now also run at Bigger
+      text: pops never print over the other seat's (all 12 shown action games), Snack Snatch
+      "Miss!" off the frog's head, Penalty's early-dive pop off the shooter lines. All pass; no
+      game change needed.

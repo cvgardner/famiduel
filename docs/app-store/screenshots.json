@@ -1,0 +1,45 @@
+{
+  "_note": "Order and captions for the App Store screenshots. scripts/store-shots.ts reads this file; each scene id must match one in its SCENES table. The first three show in search results, so they carry the pitch: two players on one phone, super powers, and 14 free games that work offline. Captions: 2 lines at most, 16 letters a line at most (longer lines shrink), and a sub line of 30 at most.",
+  "shots": [
+    {
+      "scene": "pingpong",
+      "caption": "Two players.\nOne phone.",
+      "sub": "Lay it flat and duel"
+    },
+    {
+      "scene": "powers",
+      "caption": "Pick a\nsuper power",
+      "sub": "A fresh three every week"
+    },
+    {
+      "scene": "home",
+      "caption": "14 free games",
+      "sub": "No Wi-Fi needed"
+    },
+    {
+      "scene": "snake",
+      "caption": "Make them\ncrash first",
+      "sub": "Snake Duel"
+    },
+    {
+      "scene": "minipool",
+      "caption": "New: Mini Pool",
+      "sub": "Sink your 3, then the 8"
+    },
+    {
+      "scene": "tugofwar",
+      "caption": "New: Tug of War",
+      "sub": "Tap faster than your friend"
+    },
+    {
+      "scene": "minigolf",
+      "caption": "Fewest\nstrokes wins",
+      "sub": "Minigolf, 3 holes"
+    },
+    {
+      "scene": "tournament",
+      "caption": "Best of 7,\nacross games",
+      "sub": "First to four wins"
+    }
+  ]
+}

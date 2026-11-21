@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { BIG_TEXT, scaledSize, setTextScale } from '../src/engine/draw';
 import powers from '../content/powers.json';
 import { makeRng } from '../src/core/rng';
 import type { PlayerInfo, PowerDef } from '../src/core/types';
@@ -11,16 +12,19 @@ import { DT, player } from './helpers';
 
 type Floater = { str: string; x: number; y: number; life: number; size: number; player: 0 | 1 };
 const box = (f: Floater) => {
-  const w = Math.min(W - 16, [...f.str].length * f.size * 0.55);
-  return [f.x - w / 2, f.y - f.size * 0.45, f.x + w / 2, f.y + f.size * 0.45];
+  const s = scaledSize(f.size); // as text() draws it (Bigger text: up to 1.2x)
+  const w = Math.min(W - 16, [...f.str].length * s * 0.55);
+  return [f.x - w / 2, f.y - s * 0.45, f.x + w / 2, f.y + s * 0.45];
 };
 
 // F198: pops stacked only against their own seat's, so the two seats' words printed over each
 // other: Tank Duel's "Bonked!" / "Oops! Own shot" on the shooter's BONK! (644 of 7,280 readable
 // BONK! frames), POOF! on BONK!, Sumo's "💥 Ground Pound!" on KA-BOOM!.
 describe('pops never print over a pop of the other seat', () => {
-  for (const id of ['tanks', 'sumo', 'snacksnatch', 'airhockey', 'pingpong', 'snake', 'chopchop', 'penalty', 'quickdraw', 'minigolf', 'tugofwar', 'minipool']) {
-    it(id, () => {
+  afterEach(() => setTextScale(1));
+  for (const scale of [1, BIG_TEXT]) for (const id of ['tanks', 'sumo', 'snacksnatch', 'airhockey', 'pingpong', 'snake', 'chopchop', 'penalty', 'quickdraw', 'minigolf', 'tugofwar', 'minipool']) {
+    it(`${id}${scale === 1 ? '' : ' (Bigger text)'}`, () => {
+      setTextScale(scale);
       const list = (powers.games as Record<string, PowerDef[]>)[id];
       let readable = 0;
       const hits: Record<string, number> = {};

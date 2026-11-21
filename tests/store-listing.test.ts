@@ -27,6 +27,12 @@ describe('App Store listing text', () => {
     expect(desc.length).toBeLessThanOrEqual(4000);
   });
 
+  it("What's New fits in 4000", () => {
+    const news = section("What's New in This Version (4000)");
+    expect(news.length).toBeGreaterThan(50);
+    expect(news.length).toBeLessThanOrEqual(4000);
+  });
+
   it('keywords fit in 100, with no spaces after commas and no repeats of the name', () => {
     const kw = section('Keywords').split('\n').pop()!.trim();
     expect(kw.length).toBeLessThanOrEqual(100);
