@@ -16,7 +16,7 @@ describe('power pictures', () => {
       // Weekly rotation: every shown game keeps a pool of 5 (3 offered a week). Mini Pool and
       // Tug of War were built alongside the rotation with 3, so they offer the same 3 every
       // week until each gets two more powers.
-      expect(table[g]?.length, g).toBe(['minipool', 'tugofwar'].includes(g) ? 3 : 5);
+      expect(table[g]?.length, g).toBe(['minipool'].includes(g) ? 3 : 5);
       for (const p of table[g]) {
         expect(hasPowerPic(g, p.id), `${g}/${p.id}`).toBe(true);
         const svg = powerPicHtml(g, p.id);
