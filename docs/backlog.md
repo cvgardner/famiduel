@@ -2625,3 +2625,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       ends at 20 s (was 30). Even bots' p90 round 27-28 s -> 18-20 s, median ~21 -> ~13 s; mirror
       seat shares 54/56/44% (were 53/53/44, n=160), kid+3 v easy 63%, sim:powers all 55-59%.
       tests/tugofwar.test.ts checks every level's p90 round <= 20 s.
+- [x] 2026-11-21 (F366): Mini Pool's powers are judged like every other game's:
+      `npm run pool -- --powers-table [--n 80] [--level normal]` plays each pool power against every
+      other (and none) and flags outliers with the same 35-65% rule (judge() and OUTLIER moved to
+      scripts/simlib.ts). poolPairing() now plays each seed both ways round, as `npm run sim` does:
+      with one seed per match, normal v normal with no powers read 57.5% for the first-named seat and
+      every cell plus its mirror summed to ~107%. n=80, normal: Long Aim 46%, Big Pockets 49%,
+      Freeze 59%, Stop Shot 46%, Plug a Pocket 53% (avg vs the other powers), none 46%; no outliers,
+      so no power changed. Long Aim's row equals none's: the bot doesn't read the guide (it picks its
+      own line), so the power only helps people.

@@ -176,3 +176,23 @@ export function pairing(spec: Spec, levels: [SimLevel, SimLevel], n: number, pow
 export function ladder(spec: Spec, against: BotLevel, n: number, powersOn = false): number[] {
   return ([0, 1, 2, 3] as const).map((a) => pairing(spec, [a ? (`easy+${a}` as SimLevel) : 'easy', against], n, powersOn).wins);
 }
+
+/** A row power is flagged when its average share against the other POWERS is outside this band. */
+export const OUTLIER = [0.35, 0.65] as const;
+
+/**
+ * F332: the outlier list judges each power on its average against the other powers only.
+ * The "avg" column also counts the match against no power, so in a game where any power
+ * crushes none (Chop Chop: ~90%) every power read 66-67% and was flagged although each
+ * head-to-head pair sat in 33-63%. Losing to none is a separate flag: the bot can't use it.
+ * `vsPowers` = the row power's shares against each other power, `vsNone` = against none.
+ */
+export function judge(game: string, power: string, vsPowers: number[], vsNone: number | undefined): string[] {
+  const out: string[] = [];
+  if (vsPowers.length) {
+    const avg = vsPowers.reduce((s, x) => s + x, 0) / vsPowers.length;
+    if (avg < OUTLIER[0] || avg > OUTLIER[1]) out.push(`${game}/${power}: ${Math.round(avg * 100)}% vs the other powers`);
+  }
+  if (vsNone !== undefined && vsNone < OUTLIER[0]) out.push(`${game}/${power}: loses to no power (${Math.round(vsNone * 100)}%)`);
+  return out;
+}
