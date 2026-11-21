@@ -88,6 +88,17 @@ export function powerLines(str: string): [string, string?] {
  * Bigger text's 28 size) ends clear of the seconds-left clock (MID + 14, 17 tall each way).
  */
 export const POWER_POP_DY = 84;
+/** F379: the FRENZY! pops' ink and outline. */
+const FRENZY_INK = '#ff5c7a';
+const FRENZY_HALO = 'rgba(40,0,10,0.75)';
+/** F379: where seat p's FRENZY! and "Faster snacks!" lines are born (64 and 94 out from the middle). */
+export function frenzyLines(p: PlayerIndex): [number, number] {
+  return p === 0 ? [MID + 64, MID + 94] : [MID - 64, MID - 94];
+}
+/** F379: the rows the FRENZY! lines take as they start, in both halves (pops there fade). */
+export function frenzyBands(): [number, number][] {
+  return [[MID + 46, MID + 104], [MID - 104, MID - 46]];
+}
 /** The farthest out it goes looking for a free line (its second line stays clear of the frogs' bodies). */
 const POWER_POP_MAX = 170;
 /** Room between the frog's head and its "Miss!" pop (F176). */
@@ -116,7 +127,6 @@ class SnackSnatchView implements GameInstance {
   ];
   private potKick = 0;
   private suddenBanner = 0;
-  private frenzyBanner = 0;
   private ended = false;
 
   constructor(private readonly ctx: GameContext) {
@@ -167,7 +177,6 @@ class SnackSnatchView implements GameInstance {
     }
     this.potKick = Math.max(0, this.potKick - dt * 5);
     this.suddenBanner = Math.max(0, this.suddenBanner - dt);
-    this.frenzyBanner = Math.max(0, this.frenzyBanner - dt);
     this.events();
   }
 
@@ -211,7 +220,7 @@ class SnackSnatchView implements GameInstance {
         sfx.play('go');
         fx.flash('#ff5c7a', 0.15);
         fx.shake(5, 0.25);
-        this.frenzyBanner = 1.6;
+        this.frenzyPops();
       } else if (e.type === 'sudden') {
         sfx.play('go');
         fx.flash(COLORS.gold, 0.2);
@@ -254,6 +263,23 @@ class SnackSnatchView implements GameInstance {
     }
   }
 
+  /**
+   * F379: FRENZY! and "Faster snacks!" pop like the game's other words, in each seat's half. As
+   * bare text drawn under the pops, the banner printed through "🧲 Magnet!", "Miss!" and the
+   * catch pops born at the frogs' heads while it showed. Pops already in its rows fade as it
+   * starts, and fx.pop moves later ones off it, as it does for every pop.
+   */
+  private frenzyPops(): void {
+    const fx = this.ctx.fx;
+    for (const [y0, y1] of frenzyBands()) fx.fadeBand(y0, y1);
+    for (const p of PLAYERS) {
+      if (silentSeat(this.ctx.players, p)) continue;
+      const [big, small] = frenzyLines(p);
+      fx.pop('FRENZY!', W / 2, big, FRENZY_INK, p, 30, FRENZY_HALO);
+      fx.pop('Faster snacks!', W / 2, small, '#fff', p, 14);
+    }
+  }
+
   render(gx: G): void {
     const g = this.game;
     this.renderBlanket(gx);
@@ -265,12 +291,6 @@ class SnackSnatchView implements GameInstance {
     for (const p of PLAYERS) for (const c of g.critters[p]) this.renderCritter(gx, c);
     for (const p of PLAYERS) this.renderScore(gx, p);
     for (const p of PLAYERS) this.powerBtns[p]?.render(gx, g.energy[p], this.t);
-    if (this.frenzyBanner > 0 && !g.sudden) {
-      for (const p of PLAYERS) {
-        text(gx, 'FRENZY!', W / 2, p === 0 ? MID + 64 : MID - 64, { size: 30, color: '#ff5c7a', stroke: 'rgba(40,0,10,0.75)', player: p, alpha: Math.min(1, this.frenzyBanner), pair: true });
-        text(gx, 'Faster snacks!', W / 2, p === 0 ? MID + 94 : MID - 94, { size: 14, color: '#fff', stroke: 'rgba(0,0,0,0.5)', player: p, alpha: Math.min(1, this.frenzyBanner), pair: true });
-      }
-    }
     if (this.suddenBanner > 0 || g.sudden) {
       const a = g.sudden ? 1 : this.suddenBanner;
       for (const p of PLAYERS) {
