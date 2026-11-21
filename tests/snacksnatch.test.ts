@@ -100,6 +100,26 @@ describe('snack snatch', () => {
     expect(g.events.some((e) => e.type === 'snap')).toBe(false);
   });
 
+  it('a full head start bites wider to the sides, never further forward (F368)', () => {
+    const side = (RULES.headR + RULES.snackR) * (1 + (RULES.wideTop - 1) / 2);
+    for (const [assist, caught] of [[3, 1], [2, 0], [0, 0]] as const) {
+      const g = game({ assist: [assist, 0] });
+      const c = g.critters[0][0];
+      only(g, { x: c.x + side, y: c.restY - 60 });
+      g.step(DT, [{ snap: [true, false], power: false }, idle]);
+      for (let i = 0; i < 12; i++) g.step(DT, [idle, idle]);
+      expect(g.score[0]).toBe(caught);
+    }
+    expect(game({ assist: [3, 0] }).wide).toEqual([RULES.wideTop, 1]);
+    // Straight ahead, a snack just past full reach stays out of a three-star bite.
+    const g = game({ assist: [3, 0] });
+    const c = g.critters[0][0];
+    only(g, { x: c.x, y: c.restY - g.reach[0] - RULES.headR - RULES.snackR - 4 });
+    g.step(DT, [{ snap: [true, false], power: false }, idle]);
+    for (let i = 0; i < 15; i++) g.step(DT, [idle, idle]);
+    expect(g.score[0]).toBe(0);
+  });
+
   it('the top player snaps downward', () => {
     const g = game();
     const c = g.critters[1][1];

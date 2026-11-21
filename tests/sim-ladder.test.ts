@@ -44,6 +44,12 @@ describe('sim head-start ladder', () => {
     expect(a3).toBeGreaterThan(a2);
   }, 60_000);
 
+  it('a mashing kid with a full head start can beat the easy bot in Snack Snatch (F368)', () => {
+    const spec = SPECS.find((s) => s.id === 'snacksnatch')!;
+    // 2026-11-21 (n=100-200): 18% before the wider bite, ~40-50% with it (wideTop 1.1-1.2 read 36-53%).
+    expect(pairing(spec, ['kid+3', 'easy'], 80).wins).toBeGreaterThan(0.3);
+  }, 60_000);
+
   it('the first head-start star counts in Chop Chop (F351)', () => {
     const spec = SPECS.find((s) => s.id === 'chopchop')!;
     const [a0, a1, , a3] = ladder(spec, 'normal', 60);
