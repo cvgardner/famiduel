@@ -1579,7 +1579,7 @@ test('result: a tap meant for the game right as the match ends does not skip the
   expect(errors).toEqual([]);
 });
 
-test('menus at 200% text: home, settings and the one-person sheets show every word, nothing overlaps (F245, F359)', async ({ page }) => {
+test('menus at 200% text: home, settings, the one-person sheets and the tournament show every word, nothing overlaps (F245, F359, F360)', async ({ page }) => {
   // Apple's "Larger Text" label asks for text that grows to 200%. Menu words scale with --ts
   // (Text size Bigger sets 1.2, Largest 2); at 2 the one-person menus must still show every word,
   // with no word over another, off the screen or cut to "…", and every button still at least 44 px.
@@ -1620,10 +1620,13 @@ test('menus at 200% text: home, settings and the one-person sheets show every wo
         if (b.height < 43 || b.width < 43) bad.push(`small button: ${say(box)} ${Math.round(b.width)}x${Math.round(b.height)}`);
       }
       const words = els.filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent!.trim()));
+      const floats = (e: Element) => { for (let x: Element | null = e; x; x = x.parentElement) if (getComputedStyle(x).position === 'sticky') return true; return false; };
       for (let i = 0; i < words.length; i++)
         for (let j = i + 1; j < words.length; j++) {
           const a = words[i], c = words[j];
           if (a.contains(c) || c.contains(a)) continue;
+          // F360: the tournament's sticky Play button floats over the lineup by design (F308).
+          if (floats(a) || floats(c)) continue;
           const A = a.getBoundingClientRect(), C = c.getBoundingClientRect();
           if (Math.min(A.right, C.right) - Math.max(A.left, C.left) > 4 && Math.min(A.bottom, C.bottom) - Math.max(A.top, C.top) > 4) bad.push(`overlap: ${say(a)} / ${say(c)}`);
         }
@@ -1661,6 +1664,21 @@ test('menus at 200% text: home, settings and the one-person sheets show every wo
     await sheetCheck('player');
     await page.locator('#pDone').scrollIntoViewIfNeeded();
     await page.click('#pDone');
+    // F360: the tournament screen is one upright list, so it is at 2x too; it scrolls under a
+    // sticky Play button, so check each screenful.
+    await page.evaluate(() => document.getElementById('home')!.scrollTo(0, 0));
+    await page.click('#tourneyBtn');
+    expect(await ts('#tourney'), 'tournament words at 2x').toBe('2');
+    const tr = page.locator('#tourney');
+    const pages = await tr.evaluate((el) => Math.ceil(el.scrollHeight / el.clientHeight));
+    for (let k = 0; k < pages; k++) {
+      await tr.evaluate((el, k) => el.scrollTo(0, k * el.clientHeight), k);
+      for (const p of await problems()) found.push(`tournament ${w}: ${p}`);
+    }
+    await tr.evaluate((el) => el.scrollTo(0, 0));
+    if (w !== 360) await page.screenshot({ path: path.join(OUT, `text200-tournament-${w}.png`) });
+    await page.locator('#tourneyHome').scrollIntoViewIfNeeded();
+    await page.click('#tourneyHome');
   }
   expect(found, 'menus at 200% text').toEqual([]);
   expect(errors).toEqual([]);
