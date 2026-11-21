@@ -15,12 +15,15 @@ describe('Mini Pool bot levels feel different', () => {
     expect(hn.wins, 'hard v normal').toBeGreaterThanOrEqual(0.6);
   }, 120_000);
 
-  it('a full head start helps the easy bot against normal', () => {
-    const a0 = poolPairing('easy', 'normal', 20, 0).wins;
-    const a3 = poolPairing('easy', 'normal', 20, 3).wins;
-    // 2026-11-21 (n=40): easy+0..3 v normal 8 / 15 / 23 / 23%.
-    expect(a3).toBeGreaterThan(a0);
-  }, 120_000);
+  it('each head-start star helps the easy bot against normal (F358)', () => {
+    const [a0, a1, a2, a3] = [0, 1, 2, 3].map((a) => poolPairing('easy', 'normal', 30, a).wins);
+    // 2026-11-21 (n=30): easy+0..3 v normal 7 / 17 / 27 / 50%, v hard 7 / 20 / 27 / 27% with a
+    // forgiven miss per star (was 8 / 15 / 23 / 23% and 5 / 3 / 0 / 10% with pockets alone).
+    expect(a1).toBeGreaterThan(a0);
+    expect(a2).toBeGreaterThan(a1);
+    expect(a3).toBeGreaterThan(a2);
+    expect(a3).toBeGreaterThanOrEqual(0.4);
+  }, 180_000);
 
   it('two easy players finish the rack on the 8, not at the shot cap (F357)', () => {
     const r = poolPairing('easy', 'easy', 20);
