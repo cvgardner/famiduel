@@ -3311,9 +3311,10 @@ test('pause button: its "II" reads 3:1 or better over every shown game, a ring o
     // trail on the left wall at the centre line hid under the dot); every other game keeps the dot.
     // F301: Sumo's ring runs under it as well; there the ring keeps a dark core behind the "II"
     // (the sand is too pale for the bare glyph), which the 3:1 check above measures.
-    expect(await page.locator('#pauseBtn.ring').count(), `${g.id}: pause ring only where the board runs under it`).toBe(g.id === 'snake' || g.id === 'sumo' ? 1 : 0);
+    // Mini Pool (#379): the table's left middle pocket sits under the button, so it rings too.
+    expect(await page.locator('#pauseBtn.ring').count(), `${g.id}: pause ring only where the board runs under it`).toBe(['snake', 'sumo', 'minipool'].includes(g.id) ? 1 : 0);
     expect(await page.locator('#pauseBtn.core').count(), `${g.id}: a dark core only on Sumo's sand`).toBe(g.id === 'sumo' ? 1 : 0);
-    if (g.id === 'snake' || g.id === 'sumo') await page.screenshot({ path: path.join(OUT, `pause-button-${g.id}.png`) });
+    if (['snake', 'sumo', 'minipool'].includes(g.id)) await page.screenshot({ path: path.join(OUT, `pause-button-${g.id}.png`) });
     await leaveMatch(page);
   }
   expect(faint, 'pause glyph below 3:1').toEqual([]);
