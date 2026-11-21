@@ -2496,6 +2496,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       rally median 11 hits, p90 21 (normal 6 / 11), so a point takes ~12 s (normal 9 s). Two
       hard bots returning well is good ping pong, and nobody plays bot vs bot: a person against
       hard plays ~75 s (hard v normal). Left as is.
+- [x] 2026-11-21 (F347, PR #386): every shown game's head-start line checked against its assist
+      code; all match except Snack Snatch, now "Longer reach, back sooner after a miss" (F350's
+      quicker miss recovery). The line is a wrapping HTML paragraph, so no length cap needed.
 - [x] 2026-11-21 (F353, PR #381): Tug of War's head start (stronger pull, nearer line) grew in
       a straight line to 1.5, but a tap-rate race is a cliff (easy 4.3, normal 5.7, hard 7.2 taps
       a second): easy+0..3 v normal 0/0/45/100%, v hard 0% at every star. Pull per star is now
