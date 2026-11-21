@@ -128,6 +128,7 @@ class TugOfWarView implements GameInstance {
         const o = other(e.p);
         if (e.id === 'yank') this.popFor(o, 'Brace! Tap tap tap!', seatPop(players[o].color), 17);
         else if (e.id === 'butter') this.popFor(o, '🧈 Slippery rope!', seatPop(players[e.p].color), 17);
+        else if (e.id === 'anchor') this.popFor(o, '⚓ Anchored! Hold on!', seatPop(players[e.p].color), 17);
         else this.popFor(o, `${pw.icon} they used ${pw.name}`, seatPop(players[e.p].color), 15);
       } else if (e.type === 'yank') {
         this.snap = 0.35;
@@ -331,6 +332,13 @@ class TugOfWarView implements GameInstance {
       circle(gx, rx, ry, 20 + 6 * pulse(this.t, 3), undefined, c, 4);
       noGlow(gx);
     }
+    // Anchor: an anchor on the ribbon in the anchoring seat's colour, so both can see it.
+    const anchored = PLAYERS.find((p) => g.active(p, 'anchor'));
+    if (anchored !== undefined) {
+      const c = this.ctx.players[anchored].color;
+      circle(gx, rx, ry, 24, undefined, c, 3);
+      text(gx, '⚓', rx + 34, ry, { size: 20 });
+    }
     gx.save();
     gx.translate(rx, ry);
     gx.rotate(Math.sin(this.t * 6) * 0.15 * (1 - strain) + bend * 0.02);
@@ -365,6 +373,8 @@ class TugOfWarView implements GameInstance {
     } else if (g.phase === 'result' && g.last && g.phaseT > CARD_AT) this.drawCard(gx, p, g.last);
     const badges: string[] = [];
     if (g.active(p, 'heave')) badges.push('💪 strong');
+    if (g.active(p, 'anchor')) badges.push('⚓ anchor');
+    if (g.active(p, 'grip')) badges.push('🧤 steady');
     if (g.active(other(p), 'butter')) badges.push('🧈 slippery');
     if (badges.length) text(gx, badges.join('  '), W / 2 - 104, L.starY + 8, { size: 13, color: '#ffffff', stroke: 'rgba(0,0,0,0.5)' });
   }
@@ -437,6 +447,7 @@ class TugOfWarView implements GameInstance {
     gx.restore();
     if (silentSeat(this.ctx.players, p)) return;
     if (heave) text(gx, '💪', x - 22, y + lean, { size: 20 });
+    if (g.active(p, 'grip')) text(gx, '🧤', x - 22, y + lean, { size: 20 });
   }
 
   private drawPad(gx: G, p: PlayerIndex, c: string): void {

@@ -411,6 +411,20 @@ const PICS: Record<string, Record<string, string>> = {
       circle(32, 6, 4, THEM) +
       circle(32, 39, 4, YOU, anim('cy', [39, 39, 37, 41, 39, 39], [0, 0.4, 0.48, 0.55, 0.65, 1])) +
       ribbon([22, 22, 34, 34, 22], [0, 0.48, 0.56, 0.9, 1]),
+    // An anchor drops on the ribbon in your colour: they pull, but it won't slide their way.
+    anchor:
+      tug +
+      `<circle cx="32" cy="22" r="7" fill="none" style="stroke:${YOU}" stroke-width="2">${anim('opacity', [0, 0, 1, 1, 0, 0], [0, 0.15, 0.2, 0.8, 0.85, 1])}</circle>` +
+      circle(32, 6, 4, THEM, anim('cy', [6, 6, 4, 6, 4, 6, 6], [0, 0.2, 0.35, 0.5, 0.65, 0.8, 1])) +
+      circle(32, 39, 4, YOU) +
+      ribbon([22, 18, 18, 18, 18, 22], [0, 0.15, 0.2, 0.8, 0.9, 1]),
+    // Your grip glows and stays on: slow taps, yet the ribbon keeps coming your way.
+    grip:
+      tug +
+      circle(32, 6, 4, THEM) +
+      circle(32, 39, 4, YOU, anim('r', [4, 5, 4, 4, 5, 4, 4], [0, 0.1, 0.2, 0.5, 0.6, 0.7, 1])) +
+      `<circle cx="32" cy="39" r="7" fill="none" stroke="#ffd166" stroke-width="2">${anim('opacity', [0, 1, 1, 1, 0], [0, 0.1, 0.5, 0.85, 1])}</circle>` +
+      ribbon([22, 25, 28, 31, 34, 22], [0, 0.2, 0.4, 0.6, 0.85, 1]),
   },
   seabattle: {
     // Scan a 3x3 patch: a hidden ship shows up.
