@@ -67,7 +67,11 @@ export type Kind = 'cue' | 'eight' | 0 | 1;
 export type Ball = { id: number; kind: Kind; x: number; y: number; vx: number; vy: number; on: boolean };
 
 /** What changes physics for one shot: extra pocket size (handicap, Big Pockets) and a frozen ball. */
-export type ShotMods = { pocketBonus: number; frozenId: number | null };
+/**
+ * closed: a pocket plugged for this shot (Plug a Pocket): balls roll off it like a cushion.
+ * stop: Stop Shot, the cue ball stops dead each time it hits a ball.
+ */
+export type ShotMods = { pocketBonus: number; frozenId: number | null; closed?: number | null; stop?: boolean };
 export const NO_MODS: ShotMods = { pocketBonus: 0, frozenId: null };
 
 export type PhysEvent =
@@ -123,6 +127,7 @@ export function stepTable(balls: Ball[], dt: number, mods: ShotMods, out: PhysEv
       if (!b.on) continue;
       for (let i = 0; i < POCKETS.length; i++) {
         const pk = POCKETS[i];
+        if (i === mods.closed) continue;
         if (Math.hypot(b.x - pk.x, b.y - pk.y) < pocketR(pk, mods)) {
           b.on = false;
           b.vx = b.vy = 0;
@@ -200,6 +205,10 @@ function collide(a: Ball, b: Ball, mods: ShotMods, out: PhysEvent[]): void {
     a.vy -= j * ny;
     b.vx += j * nx;
     b.vy += j * ny;
+  }
+  if (mods.stop) {
+    const cue = a.id === 0 ? a : b.id === 0 ? b : null;
+    if (cue) cue.vx = cue.vy = 0;
   }
   out.push({ type: 'hit', a: a.id, b: b.id, x: a.x + nx * PHYS.r, y: a.y + ny * PHYS.r, speed: vrel });
 }

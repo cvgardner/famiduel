@@ -36,6 +36,12 @@ export const RULES = {
    *  4.3, normal 5.7, hard 7.2): a straight line to 1.5 did nothing at one star, and three
    *  stars never caught hard (F353). */
   gainByStar: [1, 1.3, 1.45, 1.75],
+  /** Extra grip per head-start star while that player keeps tapping (a tap in the last
+   *  assistHold seconds). A slow, uneven tapper (a small kid) gets most from it: a gain only
+   *  multiplies a grip they barely have, so kid+3 never beat easy. 0.2 at three stars: kid+3 v
+   *  easy 0% -> 54% (n=160; 0.17 read 20%, 0.22 78%), the easy bot's ladder unchanged (F363). */
+  assistGrip: [0, 0, 0.05, 0.2],
+  assistHold: 0.8,
   /** Grip added per counted tap, and how fast it fades (seconds). Steady grip ≈ taps/s × tau. */
   tapPull: 1,
   tau: 0.35,
@@ -46,12 +52,14 @@ export const RULES = {
   /** Rope response: acceleration per unit of grip difference, and drag. */
   accel: 0.7,
   drag: 4,
-  /** From this long into a round the lines slide in, over closeLen seconds, to closeTo of the way. */
-  closeAt: 8,
-  closeLen: 14,
+  /** From this long into a round the lines slide in, over closeLen seconds, to closeTo of the way.
+   *  Tap-war reviews complain of sore fingers in long pulls: even bots' rounds ran p90 27-28 s at
+   *  8 / 14 / 30 s; now every level's p90 round is under 20 s of tapping (F364). */
+  closeAt: 5,
+  closeLen: 8,
   closeTo: 0.1,
   /** A round ends here: the ribbon's side wins it. */
-  roundTime: 30,
+  roundTime: 20,
   /** Energy per counted tap, for winning and for losing a round. A full bar: ~20 s of pulling. */
   energyTap: 0.007,
   energyWin: 0.12,
@@ -109,6 +117,8 @@ export class TugOfWar {
   readonly line: [number, number];
   /** Pull strength from the handicap. */
   readonly gain: [number, number];
+  /** Extra grip from the handicap while tapping (RULES.assistGrip). */
+  readonly bonus: [number, number];
   /** Counted taps this round (the result card's "taps" line, and the bot sim's rate check). */
   taps: [number, number] = [0, 0];
   /** Seconds since each player's last counted tap. */
@@ -133,6 +143,7 @@ export class TugOfWar {
     this.energy = [new Energy(players[0].assist), new Energy(players[1].assist)];
     this.line = [lerpAssist(players[0].assist, RULES.line, RULES.lineAt3), lerpAssist(players[1].assist, RULES.line, RULES.lineAt3)];
     this.gain = [gainFor(players[0].assist), gainFor(players[1].assist)];
+    this.bonus = [lerpTable(RULES.assistGrip, players[0].assist), lerpTable(RULES.assistGrip, players[1].assist)];
   }
 
   /** Power p's effect is running (Heave, Anchor, Steady Grip, or the Butter it put on the other player). */
@@ -148,6 +159,11 @@ export class TugOfWar {
     // Anchor: the rope is tied off at the other end, so p's pulls hold nothing for a moment.
     if (this.active(other(p), 'anchor')) g = 0;
     return g;
+  }
+
+  /** p's grip on the rope: their tapping grip, plus the head start's while they keep tapping. */
+  grip(p: PlayerIndex): number {
+    return this.force[p] + (this.since[p] < RULES.assistHold ? this.bonus[p] : 0);
   }
 
   /** How far in the lines have closed, 1 (where they start) down to RULES.closeTo. */
@@ -214,7 +230,7 @@ export class TugOfWar {
       const y = this.yank[other(p)];
       if (y) y.left = Math.max(RULES.yankMin, y.left - RULES.yankResist);
     }
-    const net = this.force[0] * this.pullGain(0) - this.force[1] * this.pullGain(1);
+    const net = this.grip(0) * this.pullGain(0) - this.grip(1) * this.pullGain(1);
     this.vel += (net * RULES.accel - this.vel * RULES.drag) * dt;
     // Anchor: the ribbon can't slide toward the other player's line (a Big Yank still jolts it).
     for (const p of [0, 1] as PlayerIndex[]) if (this.active(p, 'anchor') && this.vel * toward(p) < 0) this.vel = 0;
@@ -299,10 +315,7 @@ export class TugOfWar {
 
 /** Pull strength for a head start of `assist` stars (0..3), from RULES.gainByStar. */
 export function gainFor(assist: number): number {
-  const t = RULES.gainByStar;
-  const a = Math.max(0, Math.min(t.length - 1, assist));
-  const i = Math.min(t.length - 2, Math.floor(a));
-  return t[i] + (t[i + 1] - t[i]) * (a - i);
+  return lerpTable(RULES.gainByStar, assist);
 }
 
 // ---------- Honest bot ----------
@@ -369,4 +382,11 @@ export class TugOfWarBot {
     // Heave, Butter and Steady Grip: once the round has got going.
     return game.phaseT > 1 && this.rng.chance(0.03);
   }
+}
+
+/** A per-star table read at `assist` stars (0..3), in between interpolated. */
+function lerpTable(t: readonly number[], assist: number): number {
+  const a = Math.max(0, Math.min(t.length - 1, assist));
+  const i = Math.min(t.length - 2, Math.floor(a));
+  return t[i] + (t[i + 1] - t[i]) * (a - i);
 }

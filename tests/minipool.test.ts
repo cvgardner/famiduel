@@ -6,7 +6,7 @@ import { Input } from '../src/engine/input';
 import type { Sfx } from '../src/engine/sfx';
 import { MID } from '../src/engine/world';
 import { MiniPool, MiniPoolBot, NO_INTENT, retriesFor, RULES, type Intent } from '../src/games/minipool/logic';
-import { castAim, ghostBall, NO_MODS, PHYS, POCKETS, simulateShot, stepTable, TABLE, type Ball, type PhysEvent } from '../src/games/minipool/physics';
+import { castAim, ghostBall, NO_MODS, PHYS, POCKETS, simulateShot, stepTable, strike, TABLE, type Ball, type PhysEvent } from '../src/games/minipool/physics';
 import { GAMES } from '../src/games/registry';
 import { recorder } from './canvasRecorder';
 import { DT, player, power } from './helpers';
@@ -320,6 +320,81 @@ describe('Mini Pool powers', () => {
     expect(g.freezeOn[1]).toBe(false);
   });
 
+  it('Stop Shot: the cue ball stops dead where it hits a ball, on the next shot only', () => {
+    const g = setUp(0, table(['cue', 180, 480], [0, 180, 300], [1, 300, 200], ['eight', 80, 300]), people(['stop', 'stop']), true);
+    g.energy[0].value = 1;
+    g.step(DT, [{ shot: null, power: true }, NO_INTENT]);
+    expect(g.stopOn[0]).toBe(true);
+    expect(g.modsFor(0).stop).toBe(true);
+    expect(g.canFire(0)).toBe(false);
+    // A thin cut up into seat 0's ball: the cue stays where it touched instead of glancing off.
+    shootAndWait(g, -Math.PI / 2 + 0.04, 0.5);
+    expect(g.stopOn[0]).toBe(false);
+    expect(g.cue.x).toBeLessThan(190);
+    // The same shot without it: the cue glances away to the side.
+    const h = setUp(0, table(['cue', 180, 480], [0, 180, 300], [1, 300, 200], ['eight', 80, 300]), people(['stop', 'stop']), true);
+    shootAndWait(h, -Math.PI / 2 + 0.04, 0.5);
+    expect(h.cue.x).toBeGreaterThan(200);
+  });
+
+  it('Plug a Pocket: the pocket by their best ball is plugged on their next shot only', () => {
+    // Seat 1's ball sits right by the top-left corner (pocket 0).
+    const g = setUp(0, table(['cue', 180, 480], [1, 70, 140], [1, 180, 250], [0, 250, 450], ['eight', 120, 400]), people(['plug', 'plug']), true);
+    g.shotsThisRack = 3;
+    g.energy[0].value = 1;
+    g.step(DT, [{ shot: null, power: true }, NO_INTENT]);
+    expect(g.plugOn[1]).toBe(true);
+    expect(g.plugged).toBeNull(); // picked when their turn starts, so they see it
+    shootAndWait(g, 0, 0.15); // seat 0 misses: seat 1 is up
+    expect(g.shooter).toBe(1);
+    expect(g.plugged).toBe(0);
+    expect(g.modsFor(1).closed).toBe(0);
+    // A ball rolled straight into the plugged pocket stays on the table; the same roll drops otherwise.
+    const roll = (closed: number | null) => {
+      const b: Ball[] = [{ id: 0, kind: 'cue', x: 120, y: 190, vx: 0, vy: 0, on: true }];
+      const ev: PhysEvent[] = [];
+      strike(b, Math.atan2(TABLE.top - 190, TABLE.left - 120), 0.5);
+      for (let i = 0; i < 240; i++) stepTable(b, DT, { pocketBonus: 0, frozenId: null, closed }, ev);
+      return b[0].on;
+    };
+    expect(roll(null)).toBe(false);
+    expect(roll(0)).toBe(true);
+    // Their shot ends: the plug comes off.
+    shootAndWait(g, Math.PI, 0.1);
+    expect(g.plugged).toBeNull();
+    expect(g.plugOn[1]).toBe(false);
+    expect(g.modsFor(0).closed ?? null).toBeNull();
+  });
+
+  it('a bot lines up again when a plug lands mid-aim, so it never plays into the plugged pocket', () => {
+    let into = 0;
+    let plugs = 0;
+    for (let seed = 1; seed <= 12; seed++) {
+      const rng = makeRng(seed);
+      const g = new MiniPool([player({ bot: 'normal' }), player({ bot: null, power: power('minipool', 'plug') })], true, rng, 0);
+      const bot = new MiniPoolBot(0, 'normal', rng);
+      while (g.rack === 0 && !g.finished && g.t < 300) {
+        // The person plugs as soon as the bot is half way through lining up.
+        const plug = g.phase === 'aim' && g.shooter === 0 && g.aimT > 0.6 && g.canFire(1);
+        if (plug) g.energy[1].value = 1;
+        const mine = bot.think(g, DT);
+        if (mine.shot && g.phase === 'aim' && g.plugged !== null) {
+          // Where would that shot have sent the balls with the pocket open?
+          const ev: PhysEvent[] = [];
+          const b = g.balls.map((x) => ({ ...x }));
+          strike(b, mine.shot.angle, mine.shot.power);
+          for (let i = 0; i < 600; i++) stepTable(b, DT, { ...g.modsFor(0), closed: null }, ev);
+          plugs++;
+          if (ev.some((e) => e.type === 'pocket' && e.pocket === g.plugged && e.kind === 0)) into++;
+        }
+        g.step(DT, [mine, { shot: null, power: plug }]);
+        if (g.phase === 'aim' && g.shooter === 1) g.step(DT, [NO_INTENT, { shot: { angle: Math.PI, power: 0.1 }, power: false }]);
+      }
+    }
+    expect(plugs).toBeGreaterThan(3);
+    expect(into).toBe(0);
+  }, 60_000);
+
   it('powers can’t be fired in classic mode or without a full bar', () => {
     const g = setUp(0, table(['cue', 180, 420], [0, 180, 300], [1, 300, 200], ['eight', 80, 300]), people(['bigpocket', 'bigpocket']), false);
     g.energy[0].value = 1;
@@ -330,7 +405,7 @@ describe('Mini Pool powers', () => {
   });
 
   it('bots with powers use them and the match still ends', () => {
-    for (const pw of ['longaim', 'bigpocket', 'freeze']) {
+    for (const pw of ['longaim', 'bigpocket', 'freeze', 'stop', 'plug']) {
       const { g, events } = playMatch(bots('normal', 'normal', [0, 0], [pw, pw]), 21, true);
       expect(g.finished, pw).toBe(true);
       expect(events.some((e) => e.startsWith(`power:`)), pw).toBe(true);

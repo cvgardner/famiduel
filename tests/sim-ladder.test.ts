@@ -70,4 +70,11 @@ describe('sim head-start ladder', () => {
     const [, , , h3] = ladder(spec, 'hard', 40);
     expect(h3).toBeGreaterThan(0.3);
   }, 60_000);
+
+  it('a mashing kid with a full head start can beat the easy bot in Tug of War (F363)', () => {
+    const spec = SPECS.find((s) => s.id === 'tugofwar')!;
+    // 2026-11-21 (n=160): kid+3 v easy 0% -> 54% with RULES.assistGrip (kid alone stays 0%).
+    expect(pairing(spec, ['kid+3', 'easy'], 80).wins).toBeGreaterThanOrEqual(0.4);
+    expect(pairing(spec, ['kid', 'easy'], 40).wins).toBeLessThan(0.1);
+  }, 60_000);
 });

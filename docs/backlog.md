@@ -2004,6 +2004,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2026-11-21 (F369, PR #395): already true: src/main.ts wires `onAppPause()`
       (src/engine/native.ts, App 'pause') to `app.interrupt()`, the same call the page's
       visibilitychange listener makes (src/app/app.ts); tests/native.test.ts keeps it off in browsers.
+      Done in the iOS wrapper: src/engine/native.ts listens for the app's `pause` (ticked 2026-11-21, F354b).
 - [x] 2026-11-14 (F244, PR #279): docs/accessibility-labels.md: which App Store
       Accessibility Nutrition Labels we can claim (Dark Interface, Sufficient Contrast,
       Differentiate Without Color Alone, Reduced Motion), which not yet (Larger Text, VoiceOver,
@@ -2026,21 +2027,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       and checks those screens stay 1.2 (1 for an iPhone SE intro). Not checked in a browser
       here: the cloud env had no Chromium, so `npm run verify` ran typecheck, unit tests and
       build only; run the e2e and playtest steps before merging.
-- [x] 2026-11-21 (F352, PR #TBD): Snake: the "assist!" word over a three-star snake shows at most once
+- [x] 2026-11-21 (F352, PR #387): Snake: the "assist!" word over a three-star snake shows at most once
       per 3 s per seat (ASSIST_POP_GAP); every auto-turn still makes its sound. Easy+3 v normal bot
       matches had 1.45 auto-turns a round (up to 5) and 27% within 3 s of the last, stacking on the
       head. tests/snake-assist-pop.test.ts.
-- [x] 2026-11-21 (F359, PR #TBD): Larger Text, the one-person sheets: Text size > Largest puts the
+- [x] 2026-11-21 (F359, PR #388): Larger Text, the one-person sheets: Text size > Largest puts the
       player sheet and Lock to FamiDuel at 2x (`.modal.one`; field labels, hints and titles now
       scale with --ts); the "menus at 200% text" playtest checks each sheet a screenful at a time
       at 390, 360 and 320 px. On a 320 px phone "Player 2" ran 2 px over its home chip at 2x
       ("Playe…", flaky by font): the card gives back 8 px of side padding there.
-- [x] 2026-11-21 (F360, PR #TBD): Larger Text, the tournament screen at 2x (one upright list): title
+- [x] 2026-11-21 (F360, PR #389): Larger Text, the tournament screen at 2x (one upright list): title
       and tiles grow (tiles 126 px min at Largest, still two across at 320 px), and the "menus at
       200% text" playtest checks it a screenful at a time (the sticky Play button may float over
       tiles, F308). The split screens (intro, result, pause how-to) stay at Bigger: under half a
       phone each.
-- [x] 2026-11-21 (F361, PR #TBD): Tank Duel: a bonk's (and a mine's) word for each seat no longer
+- [x] 2026-11-21 (F361, PR #390): Tank Duel: a bonk's (and a mine's) word for each seat no longer
       lands on one line: each seat's "BONK!" was moved off the tanks on its own, and 680 of 4888
       readable pair frames (14%) printed the two words on each other. The top seat's word now stays
       a line below the bottom seat's, so they rise apart: 0. tests/tanks-bonk-pair.test.ts.
@@ -2614,3 +2615,24 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       forward); stars 1-2 unchanged. kid+3 v easy ~40-50%, easy+0..3 v normal 1/16/28/63% ->
       1/16/29/~80% (n=100-200). Intro line "Longer, wider reach; back sooner after a miss".
       tests/snacksnatch.test.ts, tests/sim-ladder.test.ts.
+- [x] 2026-11-21 (F354b, PR #392): Mini Pool has a pool of 5 powers like every shown game: Stop Shot
+      (🛑, your next shot: the cue ball stops dead where it hits a ball, so a cut can't glance it into a
+      pocket) and Plug a Pocket (🚧, on the other player's next shot the pocket nearest their best ball
+      gets a gold lid and balls roll off it; picked when their turn starts, so they see it and aim
+      elsewhere). Logic tests for each, powerpic exemption dropped. Normal bots, 30 per cell: Stop
+      ~41% avg (40% vs none), Plug ~63% avg. A "Second Shot" (a miss keeps the turn) was tried
+      first and read 71-87%, so it was dropped.
+- [x] 2026-11-21 (F367, PR #392): Mini Pool bot lines up again (a fresh look, after its usual
+      delay) when the other player's Freeze or Plug a Pocket lands mid-aim; before, a shot judged
+      with the pocket open could still be played into the plug (1 in 12 seeded matches' racks).
+      Vitest: shots that would have dropped one of its balls in the plugged pocket after a mid-aim plug: 0.
+- [x] 2026-11-21 (F363, PR #393): Tug of War head start for a mashing kid: tap-war reviews say little
+      kids lose every round to a parent's drumming, and `npm run sim` had kid+3 v easy at 0% (a gain
+      only multiplies the little grip a slow, uneven tapper has). Now a head start also adds a little
+      grip while you keep tapping (RULES.assistGrip, 0.2 at three stars): kid+3 v easy 54% (n=160),
+      kid alone still 0%, the easy bot's ladder unchanged. tests/sim-ladder.test.ts.
+- [x] 2026-11-21 (F364, PR #394): Tug of War rounds end sooner (sore fingers in long pulls, from
+      tap-war reviews): the lines start closing in at 5 s (was 8), close over 8 s (was 14) and a round
+      ends at 20 s (was 30). Even bots' p90 round 27-28 s -> 18-20 s, median ~21 -> ~13 s; mirror
+      seat shares 54/56/44% (were 53/53/44, n=160), kid+3 v easy 63%, sim:powers all 55-59%.
+      tests/tugofwar.test.ts checks every level's p90 round <= 20 s.
