@@ -2876,7 +2876,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       n=80: easy mirror avg 52 s, normal 62 s, hard 74 s, no draws; hard v normal 90%, normal
       v easy 93%; sim:powers normal 46-61%, no outliers. Normal mirror seat 0 read 53% (main
       35-41%): recheck F426 at n=320 (F430). tests/bot-limits.test.ts two-arena check moves
-      the other tank 30 units (the old bot fails it: easy answered in 0.05 s). PR #PRNUM.
+      the other tank 30 units (the old bot fails it: easy answered in 0.05 s). PR #438.
 - [x] 2026-11-22 (F418a): Ping Pong's bots saw the ball 0.18 s (normal) and 0.1 s (hard)
       late, under HUMAN.reaction (0.2), and their power picks and aim side read the live
       ball and the other paddle. Every level now sees the ball at least 0.2 s late (the
