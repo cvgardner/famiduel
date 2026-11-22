@@ -34,7 +34,8 @@ export type GameResult = {
   /** null is a draw. */
   winner: PlayerIndex | null;
   score: [number, number];
-  /** Short line for the result screen, e.g. "5 – 3". */
+  /** How the match ended, shown under the score on the result screen when the score doesn't
+   *  say it ("Dad sank the 8 too soon", "Won in sudden death"); leave it out otherwise. */
   summary?: string;
   /**
    * What the score counts, shown under it on the result screen ("goals", "rounds"). Say how

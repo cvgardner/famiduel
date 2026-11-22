@@ -273,7 +273,9 @@ class PenaltyView implements GameInstance {
         fx.pop(`${pw.icon} ${pw.name}!`, W / 2, e.p === 0 ? MID - 30 : MID + 30, COLORS.gold, other(e.p), 22);
       } else if (e.type === 'win') {
         sfx.play('win');
-        const summary = e.p === null ? `Draw ${g.score[0]} – ${g.score[1]}` : `${g.score[0]} – ${g.score[1]}${g.kicks.length > RULES.kicks * 2 ? ' (sudden death)' : ''}`;
+        // F445: the result screen shows the summary under the score, so it only says what the
+        // score doesn't (a shootout that went to sudden death).
+        const summary = e.p !== null && g.kicks.length > RULES.kicks * 2 ? 'Won in sudden death' : undefined;
         this.ctx.end({ winner: e.p, score: [...g.score] as [number, number], summary, unit: 'goals' });
       }
     }
