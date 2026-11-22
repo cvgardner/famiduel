@@ -2867,3 +2867,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       has been down MINE_SEEN = HUMAN.reaction (0.2 s); its own mines it knows at once.
       tests/bot-limits.test.ts two-arena check drops a mine two cells ahead on the bot's
       route (the old bot fails it: normal answered in 0.15 s). PR #437.
+- [x] 2026-11-22 (F418a): Ping Pong's bots saw the ball 0.18 s (normal) and 0.1 s (hard)
+      late, under HUMAN.reaction (0.2), and their power picks and aim side read the live
+      ball and the other paddle. Every level now sees the ball at least 0.2 s late (the
+      forecast already reads the whole line from what it saw, so no read-ahead is needed);
+      power picks use the seen ball and the aim side the paddle as seen then. n=80: hard v
+      normal 100% (unchanged), normal v easy 98% -> 93%, other rows unchanged; sim:powers
+      in band at normal and hard. tests/bot-limits.test.ts: two tables, the ball knocked onto
+      a new line on one; both bots move the same for a person's reaction time (the old
+      0.1 s hard bot fails it). Sumo stays in F418.
+- [x] 2026-11-22 (F418): Sumo's hard bot pressed 0.12 s after it saw the ring, under
+      HUMAN.reaction (0.2), and every level's power pick read the live other wrestler.
+      Hard now presses 0.2 s after the look (a steadier aim, noise 0.07 -> 0.05, keeps it
+      ahead of normal); power picks read the other wrestler as seen a reaction time ago
+      (its own wrestler it feels). n=160: hard v normal 78% -> 73% (66% with the lag
+      alone), other rows unchanged; sim:powers in band at normal and hard.
+      tests/bot-limits.test.ts: two rings, the top wrestler moved into the bottom bot's line
+      on one; the bot presses the same on both for a person's reaction time (the old 0.12 s
+      bot fails it).
