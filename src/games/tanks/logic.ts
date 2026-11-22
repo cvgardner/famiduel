@@ -692,6 +692,8 @@ export class TankBot {
   private lostShot = 0;
   /** The other tank's mines by id: whether this bot noticed it go down (decided once). */
   private spotted = new Map<number, boolean>();
+  /** Seconds since two shells clashed mid-air (Infinity once answered). */
+  private sinceClash = Infinity;
 
   constructor(
     readonly p: PlayerIndex,
@@ -707,6 +709,8 @@ export class TankBot {
       return IDLE;
     }
     this.sinceTap += dt;
+    this.sinceClash += dt;
+    if (game.events.some((e) => e.type === 'clash')) this.sinceClash = 0;
     this.readyFor = game.canFire(this.p) ? this.readyFor + dt : 0;
     this.timer -= dt;
     if (this.timer <= 0) {
@@ -778,6 +782,23 @@ export class TankBot {
       this.mode = 'dodge';
       this.dodge = { x: opts[0].n.x, y: opts[0].n.y, t: 0.45 };
       return;
+    }
+    // 1b. Our shots just met head-on and cancelled out (F425). A person who sees that
+    // (a reaction time later) steps off the line instead of trading the same shot
+    // again; bots kept doing that and matches between equals ran into time-up.
+    if (this.sinceClash >= HUMAN.reaction && this.sinceClash < 1.5) {
+      this.sinceClash = Infinity;
+      const a = Math.atan2(foe.y - me.y, foe.x - me.x);
+      const side = [a + Math.PI / 2, a - Math.PI / 2]
+        .map((b) => ({ x: Math.cos(b), y: Math.sin(b) }))
+        .filter((n) => !game.arena.solidAt(me.x + n.x * 30, me.y + n.y * 30));
+      if (side.length) {
+        const n = side[this.rng.int(0, side.length - 1)];
+        this.mode = 'dodge';
+        this.aimShot = null;
+        this.dodge = { x: n.x, y: n.y, t: 0.45 };
+        return;
+      }
     }
     // 2. Is there a shot (straight or banked) from here?
     if (game.shellsOf(this.p) < RULES.maxShells) {
