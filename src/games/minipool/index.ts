@@ -150,8 +150,10 @@ class MiniPoolView implements GameInstance {
   }
 
   /** A line for these words clear of every ball (and of other pops if it can), or null.
-   *  `strict`: only a line clear of balls all the way up and of other pops (no fading). */
-  lineClearOfBalls(str: string, size: number, home: number, p: PlayerIndex, strict = false): number | null {
+   *  `strict`: only a line clear of balls all the way up and of other pops (no fading).
+   *  `keep`: a line test that replaces the other-pops check (for a pop born with another
+   *  that rises beside it at the same speed). */
+  lineClearOfBalls(str: string, size: number, home: number, p: PlayerIndex, strict = false, keep?: (y: number) => boolean): number | null {
     // F384: room for the words as text() draws them (Bigger text draws them up to 1.2x).
     const shown = scaledSize(size);
     const half = Math.min(W - 16, [...str].length * shown * 0.55) / 2;
@@ -166,7 +168,8 @@ class MiniPoolView implements GameInstance {
       // F438: born on the seat's own half (a bottom player's "Another go! (2 left)" was pushed
       // up into the other player's half, past the centre line, on a crowded table).
       if (p === 0 ? y - shown * 0.45 < MID : y + shown * 0.45 > MID) return false;
-      if (pops && !this.ctx.fx.popFits(str, W / 2, y, size, p)) return false;
+      if (keep && !keep(y)) return false;
+      if (pops && !keep && !this.ctx.fx.popFits(str, W / 2, y, size, p)) return false;
       return !balls.some((b) => {
         const nx = Math.max(W / 2 - half, Math.min(W / 2 + half, b.x));
         const ny = Math.max(top, Math.min(bot, b.y));
@@ -279,19 +282,42 @@ class MiniPoolView implements GameInstance {
         sfx.play('win');
         fx.flash(COLORS.gold, 0.25);
         const name = players[e.p].name;
+        // F443: a rack that hits the shot cap says why it ended, then who won it (fewer balls
+        // left, or level and the one who didn't break).
+        const level = g.left(0) === g.left(1);
         const lines: Record<string, string> = {
           eight: `${name} sank the 8!`,
           early8: 'The 8 went down too soon!',
           scratch8: 'Scratch on the 8!',
-          cap: `${name} has fewer left`,
+          cap: 'Out of shots!',
         };
-        both(lines[e.how], e.how === 'eight' ? COLORS.gold : '#ffffff', 24, 60);
+        const color = e.how === 'eight' ? COLORS.gold : '#ffffff';
+        if (e.how !== 'cap') both(lines[e.how], color, 24, 60);
+        else {
+          // The reason, then the winner a line further from the middle (or nearer it, when the
+          // balls leave no room). Both rise together, so the second only needs to be born a line
+          // apart (and clear of balls); with no such line it's left out (the result card names
+          // the winner anyway).
+          const who = level ? `Level! ${name} wins` : `${name} has fewer left`;
+          const gap = (scaledSize(24) + scaledSize(20)) * 0.5;
+          for (const p of PLAYERS) {
+            const y0 = this.clearOfBalls(lines.cap, 24, homeY(p, 60), p);
+            fx.pop(lines.cap, W / 2, y0, color, p, 24);
+            for (const str of [who, `${name} wins`]) {
+              const y = this.lineClearOfBalls(str, 20, y0 + (p === 0 ? gap : -gap), p, true, (y) => Math.abs(y - y0) >= gap);
+              if (y === null) continue;
+              fx.pop(str, W / 2, y, players[e.p].color, p, 20);
+              break;
+            }
+          }
+        }
       } else if (e.type === 'win' && !this.ended) {
         this.ended = true;
         const score = this.resultScore();
         const how = g.lastRack?.how;
         const loser = this.ctx.players[other(e.p)].name;
-        const summary = how === 'eight' ? 'Sank the 8' : how === 'cap' ? 'Fewer balls left' : `${loser} sank the 8 too soon`;
+        const capLine = g.left(0) === g.left(1) ? `Out of shots, level: ${loser} broke` : 'Out of shots: fewer balls left';
+        const summary = how === 'eight' ? 'Sank the 8' : how === 'cap' ? capLine : `${loser} sank the 8 too soon`;
         this.ctx.end({ winner: e.p, score, summary: how === 'scratch8' ? `${loser} scratched on the 8` : summary, unit: 'balls sunk' });
       }
     }
