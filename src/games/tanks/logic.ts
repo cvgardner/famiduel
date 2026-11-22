@@ -660,6 +660,9 @@ export function traceShot(game: TankDuel, p: PlayerIndex, a: number, maxT = 2.4)
 // HUMAN.reaction after the ring fills, and never taps faster than HUMAN.tapGap.
 // Like a kid, it doesn't always see the other tank's mine go down (spot = the chance
 // it notices each one and drives round it); it always knows its own.
+/** Seconds a shell has flown before a bot can see it: a person's reaction time (F421). */
+export const SHELL_SEEN = HUMAN.reaction;
+
 export const BOT = {
   easy: { react: 0.6, noise: 0.16, depth: 0, angles: 48, trigger: 0.32, spot: 0.5 },
   normal: { react: 0.35, noise: 0.085, depth: 1, angles: 72, trigger: 0.26, spot: 0.75 },
@@ -821,6 +824,11 @@ export class TankBot {
     if (me.shield > 0) return null;
     const danger = RULES.tankR + RULES.shellR + 6;
     for (const s0 of game.shells) {
+      // A person sees the other tank's new shell a reaction time after it leaves the gun
+      // (F421): one fired just before a look isn't dodged on that look. (Where it is now
+      // stands in for where it was seen plus its flight since, read off its line.) Your
+      // own shot you know about from the moment you fire it.
+      if (s0.owner !== this.p && s0.age < SHELL_SEEN) continue;
       const s = { ...s0 };
       const reach = s0.owner === this.p ? 0 : game.reach(s0.owner);
       for (let t = 0; t < 0.9 && s.alive; t += 1 / 60) {
