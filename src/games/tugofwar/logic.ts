@@ -47,6 +47,9 @@ export const RULES = {
   tau: 0.35,
   /** Grip cap: a steady 10 taps a second. */
   maxForce: 3.5,
+  /** Steady Grip's cap while it runs: a grip that doesn't tire holds more than a steady 10 taps,
+   *  so a fast tapper (already near maxForce) gains from it too (F431: hard bots read 26%). */
+  gripForce: 4.0,
   /** Shortest gap between two counted taps of one player (spam and multi-touch guard). */
   minTapGap: 0.06,
   /** Rope response: acceleration per unit of grip difference, and drag. */
@@ -222,7 +225,7 @@ export class TugOfWar {
       if (!intents[p].tap || this.since[p] < RULES.minTapGap) continue;
       this.since[p] = 0;
       this.taps[p]++;
-      this.force[p] = Math.min(RULES.maxForce, this.force[p] + RULES.tapPull);
+      this.force[p] = Math.min(this.active(p, 'grip') ? RULES.gripForce : RULES.maxForce, this.force[p] + RULES.tapPull);
       this.events.push({ type: 'pull', p });
       const losing = this.pos * toward(p) < 0 || this.score[p] < this.score[other(p)];
       this.energy[p].charge(RULES.energyTap, losing);

@@ -2910,3 +2910,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       punish of an early dive (200 kicks a level, keeper dives 0.5-2 s into the aim vs waits
       for the kick): goals easy 68% v 50%, normal 90% v 58%, hard 100% v 60%. A planted bot
       that ignores the dive fails it (same goals both ways). Test only.
+- [x] 2026-11-22 (F431): Tug of War's Steady Grip was weak for fast tappers: it only stops the
+      grip fading, and a 7-taps-a-second grip already sits near the usual cap (10 taps a
+      second), so hard bots gained ~1.4x and Grip read 26% v the other powers at hard
+      (normal 57%). While it runs the cap is now RULES.gripForce 4.0 (maxForce 3.5).
+      sim:powers n=160 hard: Grip 26% -> 39%, Heave 70% -> 64%, Yank 37%, no outliers;
+      n=80 easy and normal in band (Grip 53% / 57%). Test in tests/tugofwar.test.ts.

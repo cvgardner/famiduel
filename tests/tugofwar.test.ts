@@ -265,8 +265,16 @@ describe('tug of war', () => {
     pullFor(h, 1.4, [1 / 3, 1 / 3]);
     expect(power('tugofwar', 'grip').duration).toBe(1.5);
     expect(g.pos).toBeGreaterThan(h.pos + 0.1);
-    expect(g.force[0]).toBeLessThanOrEqual(RULES.maxForce);
+    expect(g.force[0]).toBeLessThanOrEqual(RULES.gripForce);
     expect(g.force[0]).toBeGreaterThan(g.force[1] * 1.5);
+    // F431: a fast tapper (7 a second, already near the usual cap) gains from it too: while it
+    // runs the grip can climb past the usual cap, up to RULES.gripForce.
+    expect(RULES.gripForce).toBeGreaterThan(RULES.maxForce * 1.1);
+    const fast = fresh({ powers: ['grip', null] });
+    fast.energy[0].value = 1;
+    pullFor(fast, 1.4, [1 / 7, 1 / 7], [true, false]);
+    expect(fast.force[0]).toBeGreaterThan(RULES.maxForce + 0.3);
+    expect(fast.force[0]).toBeLessThanOrEqual(RULES.gripForce + 1e-9);
     // One tap's grip holds while it runs, then fades as usual.
     const k = fresh({ powers: ['grip', null] });
     k.energy[0].value = 1;
