@@ -2788,3 +2788,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (its flags and label only when the words are wide enough to reach them), allowing for the
       line sliding in while it closes. tests/tugofwar-pops-lines.test.ts: readable pops across
       the full line band 2767 (1x) / 4379 (Bigger text) of ~12,100 frames before, 0 now.
+- [x] 2026-11-21 (F407): Sea Battle power names ("🚀 Torpedo!", "✈️ Airstrike!") popped on a
+      fixed line across the big board, usually right over the squares that power had just
+      shot (91% of readable frames over a marked square in bot matches). They now take a board
+      line that crosses no marks, nearest the old one, or the gap under the board (where
+      "<ship> sunk!" starts) once every line does; a sink there fades the power name: 0.9%.
+      tests/seabattle-power-pop.test.ts at 1x and Bigger text.
