@@ -38,4 +38,13 @@ describe('Mini Pool bot levels feel different', () => {
     // 2026-11-21 (n=40): cap 40 -> 30% of easy racks ended at the cap; cap 80 -> 3%.
     expect(r.ends.cap / racks).toBeLessThanOrEqual(0.1);
   }, 120_000);
+
+  it('a hard player rarely loses a rack by sinking the 8 early (F435)', () => {
+    const r = poolPairing('hard', 'hard', 40);
+    const racks = r.ends.eight + r.ends.early8 + r.ends.scratch8 + r.ends.cap;
+    // 2026-11-22 (n=80): hard v hard lost 5% of racks to an early 8 (10% at n=40), every one a
+    // safe plan that the hand-shake turned into a loss; shake-testing its best lines: 0%.
+    expect(r.unfinished).toBe(0);
+    expect((r.ends.early8 + r.ends.scratch8) / racks).toBeLessThan(0.03);
+  }, 180_000);
 });

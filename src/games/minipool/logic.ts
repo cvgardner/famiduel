@@ -460,10 +460,19 @@ export class MiniPool {
 // takes, never the physics or the rules. It sees only what a person sees (a frozen ball is
 // shown on the table).
 const BOT = {
-  easy: { aim: 0.055, pow: 0.22, ring: 8, powers: [0.45, 0.8], pick: 4, delay: 1.7 },
-  normal: { aim: 0.022, pow: 0.1, ring: 16, powers: [0.35, 0.55, 0.85], pick: 2, delay: 1.3 },
-  hard: { aim: 0.007, pow: 0.04, ring: 24, powers: [0.3, 0.45, 0.65, 0.9], pick: 1, delay: 1.05 },
-} satisfies Record<BotLevel, { aim: number; pow: number; ring: number; powers: number[]; pick: number; delay: number }>;
+  easy: { aim: 0.055, pow: 0.22, ring: 8, powers: [0.45, 0.8], pick: 4, delay: 1.7, careful: 0 },
+  normal: { aim: 0.022, pow: 0.1, ring: 16, powers: [0.35, 0.55, 0.85], pick: 2, delay: 1.3, careful: 0 },
+  hard: { aim: 0.007, pow: 0.04, ring: 24, powers: [0.3, 0.45, 0.65, 0.9], pick: 1, delay: 1.05, careful: 5 },
+} satisfies Record<BotLevel, { aim: number; pow: number; ring: number; powers: number[]; pick: number; delay: number; careful: number }>;
+
+/**
+ * F435: a strong player looks at what a slightly-off hit would do to the 8. `careful` lines
+ * (hard only) are tried again on a 4 x 4 grid across the bot's own hand-shake (aim and power
+ * at -0.9, -0.3, 0.3, 0.9 of it); each of these near misses that sinks the 8 for a loss costs the line a share of
+ * a lost rack. Before this, hard v hard lost 10% of racks to an early 8, all of them a safe
+ * plan that the shake turned into a loss (`npm run pool`).
+ */
+const SHAKES: readonly [number, number][] = [-0.9, -0.3, 0.3, 0.9].flatMap((a) => [-0.9, -0.3, 0.3, 0.9].map((p): [number, number] => [a, p]));
 
 /** Shots tried per frame while lining up, so a turn never hitches. */
 const SIMS_PER_FRAME = 6;
@@ -471,7 +480,9 @@ const SIMS_PER_FRAME = 6;
 export class MiniPoolBot {
   private turn = -1;
   private queue: Shot[] = [];
-  private tried: { shot: Shot; score: number }[] = [];
+  private tried: { shot: Shot; score: number; shaken?: number }[] = [];
+  /** Careful lines still to shake-test this turn (F435). */
+  private checks = 0;
   private releaseT = 0;
   private powerAt = Infinity;
   /** The other player's Freeze or Plug that the lined-up shots were judged with. */
@@ -501,12 +512,30 @@ export class MiniPoolBot {
     }
     const mods = game.modsFor(me);
     let budget = SIMS_PER_FRAME;
-    while (budget-- > 0 && this.queue.length) {
+    while (budget > 0 && this.queue.length) {
+      budget--;
       const s = this.queue.pop()!;
       this.tried.push({ shot: s, score: this.judge(game, s, mods, dt) });
     }
-    if (this.queue.length || game.t + dt < this.releaseT) return NO_INTENT;
     const cfg = BOT[this.level];
+    // Shake-test the best lines, a few sims a frame, until the best one is clean (F435).
+    while (!this.queue.length && this.checks > 0 && budget > 0) {
+      this.tried.sort((a, b) => b.score - a.score);
+      const top = this.tried[0];
+      if (top.shaken === SHAKES.length) {
+        this.checks = 0;
+        break;
+      }
+      top.shaken ??= 0;
+      while (budget > 0 && top.shaken < SHAKES.length) {
+        budget--;
+        const [da, dp] = SHAKES[top.shaken++];
+        const s = { angle: top.shot.angle + da * cfg.aim, power: clamp(top.shot.power * (1 + dp * cfg.pow)) };
+        if (this.judge(game, s, mods, dt) <= -2000) top.score -= 2000 / SHAKES.length;
+      }
+      if (top.shaken === SHAKES.length) this.checks--;
+    }
+    if (this.queue.length || this.checks > 0 || game.t + dt < this.releaseT) return NO_INTENT;
     this.tried.sort((a, b) => b.score - a.score);
     // Never settle for a lesser line when the best one wins the rack.
     const pool = this.tried[0].score >= 1000 ? 1 : Math.min(cfg.pick, this.tried.length);
@@ -521,6 +550,7 @@ export class MiniPoolBot {
     this.planKey = `${game.modsFor(this.p).frozenId}|${game.modsFor(this.p).closed ?? null}`;
     this.tried = [];
     this.queue = [];
+    this.checks = cfg.careful;
     this.releaseT = game.t + Math.round(cfg.delay / dt) * dt;
     this.powerAt = game.t + HUMAN.reaction + 0.15;
     const cue = game.cue;

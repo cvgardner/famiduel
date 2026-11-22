@@ -2921,6 +2921,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       whole-match tests filled the runner; here it takes ~1 s (render 0.8 s, PNG 0.1 s,
       font load 0.03 s). It is one blocking native render, so it now gets the slow tests'
       room (120 s) instead of a smaller frame that would no longer check the store size.
+- [x] 2026-11-22 (F435): Mini Pool's hard bot lost racks on an early 8 (hard v hard 5% at
+      n=80, 10% at n=40), and every one was a safe plan that its own hand-shake turned into
+      a loss (the planned line never touched the 8). Hard now shake-tests its best lines on
+      a 4 x 4 grid across its own aim and power noise (up to 5 lines, 6 sims a frame so a
+      turn never hitches) and docks each line a share of a lost rack per near miss that
+      sinks the 8. `npm run pool -- --n 80`: hard v hard early 8 5% -> 0%, hard v normal
+      74 -> 71% (noise), hard v easy 95 -> 96%, easy+N v hard 5/13/23/26 -> 4/10/21/26%.
+      Test in tests/minipool-levels.test.ts. Easy and normal don't look (a kid's slip is fine).
 - [x] 2026-11-22 (F436): Mini Pool head start against the hard bot topped out at easy+3 v hard
   28%. Three stars now widen your pockets by 8 (was 5; one and two stars unchanged, a per-star
   table `RULES.pocketAssist`) and forgive five plain misses a rack (was 3). n=80, two seed sets:
