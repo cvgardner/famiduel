@@ -2951,12 +2951,17 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       80`: hard v hard cap 3% -> 0%, easy v easy cap 3% -> 0%, hard v normal 71 -> 79%,
       normal v easy 88 -> 88%, easy+N v normal 13/29/36/65 -> 13/25/34/69%, v hard 4/10/21/49 ->
       3/11/18/44% (noise). Test in tests/minipool.test.ts (main fails it at every level).
-- [x] F438 (2026-11-22, PR #TBD): Mini Pool head-start pops at 320 px with Bigger text (easy+3
+- [x] F438 (2026-11-22, PR #445): Mini Pool head-start pops at 320 px with Bigger text (easy+3
   v hard frames at each forgiven miss). A forgiven miss popped "Another go!" and "Go again!"
   together (the same news twice, pushing one of them up past the centre line into the other
   player's half). Now the forgiven miss pops "Another go!" alone, and every Mini Pool pop is
   born on its own seat's half. Checked in tests/minipool-pops.test.ts (101 doubled pops on main),
   which now also plays a three-star bottom player against the hard bot.
+- [x] 2026-11-22 (F442, PR #450): Mini Pool's full shot needed 130 units of pull from where the
+  touch started, so a player whose cue sat by their own cushion and who started the pull on the
+  ball ran out of screen at ~0.8 power (both seats). Full power now takes 130 units or the room
+  left behind the touch (less 8, never under 70), so a pull from the ball to the screen edge is
+  a full shot; with room to spare the feel is unchanged. tests/minipool-pull.test.ts.
 - [x] 2026-11-22 (F443, PR #449): a Mini Pool rack that hits the shot cap ended with only
   "<name> has fewer left" (wrong when both had the same left: the one who didn't break wins)
   and a result line "Fewer balls left", never saying why it stopped. It now pops "Out of
@@ -2972,3 +2977,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   bot's half that faces the person), and only says what the score doesn't: Mini Pool names
   who sank the 8 ("Bot 2 sank the 8"), Penalty says "Won in sudden death" only when it went
   there. Checked at 320 px with Bigger text; e2e bot-v-bot Mini Pool reads it on both halves.
+- [x] 2026-11-22 (F441, PR #448): Mini Pool's seat panel showed a head start's forgiven misses
+  as "↺4", which a small kid can't read. It now says them in words when they fit
+  ("Your shot! · 4 extra goes", "1 extra go"), falling back to ↺4 only when the line is too
+  long; the 320 px Bigger text frame fits the whole "Your shot! Pull back, let go · 5 extra
+  goes". Checked in tests/minipool-extra-goes.test.ts.
