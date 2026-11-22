@@ -122,6 +122,8 @@ class SeaBattleView implements GameInstance {
   private turnHits: number[][] = [[], []];
   /** Hits in a row this turn (each one earned another shot). Shown once the shell lands. */
   private again = 0;
+  /** F407: the power name last popped in the gap under the board (a sink there fades it). */
+  private gapPower: string | null = null;
   /** The header line last drawn (read by the playtest). */
   header = '';
   /** "You go first!" / "<name> goes first" once popped over the sea (read by the playtest). */
@@ -559,7 +561,16 @@ class SeaBattleView implements GameInstance {
         const pw = this.ctx.players[e.p].power!;
         sfx.play('power');
         fx.flash(COLORS.gold, 0.12);
-        this.pop(`${pw.icon} ${pw.name}!`, W / 2, GY + 150, COLORS.gold, 28);
+        const name = `${pw.icon} ${pw.name}!`;
+        const py = this.powerLineY(name, 28);
+        if (py === SUNK_Y) {
+          // The gap's last "<ship> sunk!" (from the turn before) makes way rather than pushing
+          // the power's name back up onto the board.
+          const w = this.world(W / 2, py);
+          fx.fadeInWay(name, w.x, w.y, 28, this.viewer);
+        }
+        this.pop(name, W / 2, py, COLORS.gold, 28);
+        this.gapPower = py === SUNK_Y ? name : null;
         // The other player reads what came at them on their next turn (they were looking away).
         if (e.id === 'torpedo') this.notice[d] = [`${pw.icon} ${this.ctx.players[a].name} fired a torpedo at your sea.`, `${pw.icon} They fired a torpedo at your sea.`];
         if (e.id === 'double') this.notice[d] = [`${pw.icon} ${this.ctx.players[a].name} took a Double Shot.`, `${pw.icon} They took a Double Shot.`];
@@ -628,6 +639,43 @@ class SeaBattleView implements GameInstance {
     this.pop(str, best[0], best[1], color, size);
   }
 
+  /**
+   * F407: a power's name used to pop on a fixed line across the big board (GY + 150), often
+   * right over the squares that power had just shot (a torpedo's column, an airstrike's row).
+   * It now takes the board line whose words, over their bright rise, cross the fewest marked
+   * squares (and shown ships), nearest the old line on a tie; when every line on the board
+   * crosses a mark it pops in the gap under the board, where "<ship> sunk!" also starts.
+   */
+  private powerLineY(str: string, size: number): number {
+    const lay = this.layout();
+    const sea = this.game.seas[lay.big];
+    const shown = scaledSize(size);
+    const half = Math.min(W - 16, [...str].length * shown * 0.55) / 2;
+    const h = shown * 0.45;
+    const cost = (py: number): number => {
+      let n = 0;
+      const x0 = W / 2 - half, x1 = W / 2 + half, y0 = py - h - 18, y1 = py + h;
+      for (let c = 0; c < N * N; c++) {
+        const cx = GX + (c % N) * C;
+        const cy = GY + Math.floor(c / N) * C;
+        if (!(x0 < cx + C - 6 && cx + 6 < x1 && y0 < cy + C - 6 && cy + 6 < y1)) continue;
+        if (sea.marks[c]) n += 1;
+        else if (lay.bigShips && sea.occ[c] >= 0) n += 1;
+      }
+      return n;
+    };
+    let best = SUNK_Y;
+    let bestCost = Infinity;
+    for (let py = GY + h + 18 + 2; py <= GY + N * C - h - 2; py += C / 3) {
+      const k = cost(py) * 1000 + Math.abs(py - (GY + 150));
+      if (k < bestCost) {
+        bestCost = k;
+        best = py;
+      }
+    }
+    return bestCost >= 1000 ? SUNK_Y : best;
+  }
+
   private cellXY(cell: number): [number, number] {
     return [GX + (cell % N) * C + C / 2, GY + Math.floor(cell / N) * C + C / 2];
   }
@@ -666,6 +714,8 @@ class SeaBattleView implements GameInstance {
           const [cx, cy] = this.cellPos(s.owner, c);
           this.burst(cx, cy, '#ffd54a', 8, 160, 3);
         }
+        // F407: a power's name in the gap (the power that sank it) makes way for the news.
+        if (this.gapPower) fx.fadeWords(new RegExp(this.gapPower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), this.viewer);
         this.pop(`${SHIP_NAMES[sea.occ[s.cell]]} sunk!`, W / 2, SUNK_Y, COLORS.gold, 26);
       }
     } else if (s.result === 'mine') {

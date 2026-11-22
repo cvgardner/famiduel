@@ -2782,3 +2782,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       so it is biggest in world units on a 390 px phone). It found Penalty's card on the edge of
       "Player 2 goes first" on both sides at 390 px (card 434-503 vs pill 496-544): Penalty's
       card now sits a little higher (`"demoAt": 0.67`), clear at both widths.
+- [x] 2026-11-21 (F407): Sea Battle power names ("🚀 Torpedo!", "✈️ Airstrike!") popped on a
+      fixed line across the big board, usually right over the squares that power had just
+      shot (91% of readable frames over a marked square in bot matches). They now take a board
+      line that crosses no marks, nearest the old one, or the gap under the board (where
+      "<ship> sunk!" starts) once every line does; a sink there fades the power name: 0.9%.
+      tests/seabattle-power-pop.test.ts at 1x and Bigger text.
