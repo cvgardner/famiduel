@@ -2753,10 +2753,23 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       2.5% of readable frames, bound 2%): when a crowd of "+N" pops left no free line out to the
       frogs, fx.pop stacked the name back onto the clock. Now the pops in its way fade and it keeps
       its line (fx.fadeInWay(), as Tank Duel's hits do): 0 at 1x and Bigger text.
+- [x] 2026-11-21 (F400): Mini Pool's "3 2 1" digit (at 190 from the middle) touched the "You go
+      first!" / "X goes first" pill's ring on both sides at every match start: F356 guessed half a
+      size-110 digit at ~42 units, but a bold "3" reaches 49 above its middle plus half its stroke
+      (9). starterPillDy() now clears DIGIT_REACH 59 + 4: a clear gap at 1x and Bigger text.
+      The first-match finger card (default demoAt 0.72) also covered the pill's right end (the
+      "first!" of "Grandpa goes first"); Mini Pool's `demoAt` 0.75 puts it beside the digit,
+      under the pill (it fades with the countdown, before the "Sink your 3" card shows).
 - [x] 2026-11-21 (F399): the last pops checks that sized words unscaled now also run at Bigger
       text: pops never print over the other seat's (all 12 shown action games), Snack Snatch
       "Miss!" off the frog's head, Penalty's early-dive pop off the shooter lines. All pass; no
       game change needed.
+- [x] 2026-11-21 (F403): Penalty's keeper bot never peeks, now tested: the same kick played with
+      opposite hidden picks gives identical keeper dives at every level through the countdown and
+      the ball's first reaction time (tests/penalty-no-peek.test.ts; a planted peek fails it), and
+      the keeper still reads the ball after that (opposite shots get different dives in 25-37 of
+      40 kicks). Rival reviews: a hard bot "just literally CHEATED". Noted: an easy keeper can't
+      react to a hard shot at all (0.35 s flight < 0.36 s reaction), it only guesses.
 - [x] 2026-11-21 (F404): Mini Pool physics checked beyond the break (a rival pool game's
       reviews: "physics a bit wacky"): 300 seeded 85-100% power shots from random layouts, with
       each power's table mods (Big Pockets, Freeze, Plug, Stop Shot): no ball ever past a cushion
