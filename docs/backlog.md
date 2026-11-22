@@ -2944,3 +2944,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       80`: hard v hard cap 3% -> 0%, easy v easy cap 3% -> 0%, hard v normal 71 -> 79%,
       normal v easy 88 -> 88%, easy+N v normal 13/29/36/65 -> 13/25/34/69%, v hard 4/10/21/49 ->
       3/11/18/44% (noise). Test in tests/minipool.test.ts (main fails it at every level).
+- [x] F438 (2026-11-22, PR #TBD): Mini Pool head-start pops at 320 px with Bigger text (easy+3
+  v hard frames at each forgiven miss). A forgiven miss popped "Another go!" and "Go again!"
+  together (the same news twice, pushing one of them up past the centre line into the other
+  player's half). Now the forgiven miss pops "Another go!" alone, and every Mini Pool pop is
+  born on its own seat's half. Checked in tests/minipool-pops.test.ts (101 doubled pops on main),
+  which now also plays a three-star bottom player against the hard bot.

@@ -163,6 +163,9 @@ class MiniPoolView implements GameInstance {
       const top = Math.min(y, y + dy) - shown * 0.45;
       const bot = Math.max(y, y + dy) + shown * 0.45;
       if (top < TABLE.top || bot > TABLE.bottom) return false;
+      // F438: born on the seat's own half (a bottom player's "Another go! (2 left)" was pushed
+      // up into the other player's half, past the centre line, on a crowded table).
+      if (p === 0 ? y - shown * 0.45 < MID : y + shown * 0.45 > MID) return false;
       if (pops && !this.ctx.fx.popFits(str, W / 2, y, size, p)) return false;
       return !balls.some((b) => {
         const nx = Math.max(W / 2 - half, Math.min(W / 2 + half, b.x));
@@ -203,11 +206,13 @@ class MiniPoolView implements GameInstance {
     const both = (str: string, color: string, size = 24, dy = 150) => {
       for (const p of PLAYERS) fx.pop(str, W / 2, this.clearOfBalls(str, size, homeY(p, dy), p), color, p, size);
     };
+    // F438: a forgiven miss already says "Another go!"; its turn doesn't add "Go again!" too.
+    const forgiven = new Set<PlayerIndex>();
     for (const e of g.events) {
       if (e.type === 'rack') sfx.play('whoosh');
       else if (e.type === 'turn') {
         sfx.play('pop');
-        if (e.again && !silentSeat(players, e.p)) pop(e.p, 'Go again!', players[e.p].color, 22, 190);
+        if (e.again && !forgiven.has(e.p) && !silentSeat(players, e.p)) pop(e.p, 'Go again!', players[e.p].color, 22, 190);
       } else if (e.type === 'shot') {
         sfx.play('hit');
         fx.burst(e.x, e.y, '#ffffff', Math.round(4 + e.power * 10), 80 + e.power * 160, 2.5);
@@ -247,6 +252,7 @@ class MiniPoolView implements GameInstance {
         }
       } else if (e.type === 'retry') {
         // Head start: a plain miss forgiven, so the helped player shoots again.
+        forgiven.add(e.p);
         if (!silentSeat(players, e.p)) {
           // F436: the long line spans most balls; on a crowded table, the short one.
           const long = `Another go! (${e.left} left)`;
