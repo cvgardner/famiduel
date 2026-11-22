@@ -9,7 +9,7 @@ import type { BotLevel, PlayerIndex, PlayerInfo } from '../src/core/types';
 import { AIRHOCKEY_REACT, AirHockey, AirHockeyBot, type Intent as AirIntent } from '../src/games/airhockey/logic';
 import { ChopBot, ChopChop } from '../src/games/chopchop/logic';
 import { MIN_REACTION as QD_MIN, QuickDraw, QuickDrawBot } from '../src/games/quickdraw/logic';
-import { SnackSnatch, SnackSnatchBot } from '../src/games/snacksnatch/logic';
+import { SNACK_REACT, SnackSnatch, SnackSnatchBot } from '../src/games/snacksnatch/logic';
 import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
 import { Sumo, SumoBot } from '../src/games/sumo/logic';
 import { TugOfWar, TugOfWarBot } from '../src/games/tugofwar/logic';
@@ -177,6 +177,54 @@ describe('honest bots respect a person\'s limits', () => {
       }
       expect(checked).toBeGreaterThan(60);
       expect(reacted, `${level}: never reacted to the new line`).toBeGreaterThan(3);
+    }
+  }, SLOW);
+
+  it('the Snack Snatch bot sees the snacks no sooner than a person would, at any level', () => {
+    // F419: same check as Air Hockey's. Two identical picnics; on one every snack is knocked
+    // onto another line. Until a reaction time has passed both bots tap exactly the same
+    // (snaps and the power button), and soon after they answer the new lines.
+    for (const level of LEVELS) {
+      expect(SNACK_REACT[level]).toBeGreaterThanOrEqual(HUMAN.reaction);
+      let checked = 0;
+      let reacted = 0;
+      for (let seed = 1; seed <= 16; seed++) {
+        const world = () => {
+          const g = new SnackSnatch([player({ bot: level, power: power('snacksnatch', 'magnet') }), player({ bot: level, power: power('snacksnatch', 'sticky') })], true, makeRng(seed));
+          const brng = makeRng(seed + 99);
+          return { g, bots: [new SnackSnatchBot(0, level, brng), new SnackSnatchBot(1, level, brng)] };
+        };
+        const a = world();
+        const b = world();
+        const think = (w: ReturnType<typeof world>) => [w.bots[0].think(w.g, DT), w.bots[1].think(w.g, DT)] as const;
+        for (let t = 0; t < 3 + seed * 0.61; t += DT) {
+          a.g.step(DT, think(a) as never);
+          b.g.step(DT, think(b) as never);
+        }
+        for (const sn of b.g.snacks) {
+          sn.vx = -sn.vx + 40;
+          sn.vy = -sn.vy;
+        }
+        const lagFrames = Math.floor(HUMAN.reaction / DT) - 1;
+        let differed = -1;
+        for (let f = 0; f < 120 && differed < 0; f++) {
+          const ia = think(a);
+          const ib = think(b);
+          const same = JSON.stringify(ia) === JSON.stringify(ib);
+          if (f < lagFrames) {
+            expect(same, `${level} seed ${seed}: tapped on the new lines ${(f * DT).toFixed(2)} s after them`).toBe(true);
+            checked++;
+          } else if (!same) differed = f;
+          a.g.step(DT, ia as never);
+          b.g.step(DT, ib as never);
+          // A snap that gulps on one picnic and misses on the other is felt, not seen: stop
+          // comparing there (after the reaction time any difference shows the bot still looks).
+          if (f < lagFrames && JSON.stringify(a.g.events) !== JSON.stringify(b.g.events)) break;
+        }
+        if (differed >= 0) reacted++;
+      }
+      expect(checked).toBeGreaterThan(60);
+      expect(reacted, `${level}: never reacted to the new lines`).toBeGreaterThan(1);
     }
   }, SLOW);
 

@@ -2836,3 +2836,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       digit covering that seat's round stars at 320 and 390 px; Quick Draw's card now sits
       over the SQUIRT! button (demoAt 0.9), the finger tapping what the person taps, like
       Tug of War's. Other games' cards were already clear of their marks (checked frames).
+- [x] 2026-11-21 (F419): Snack Snatch's hard bot snapped 0.13 s after it saw a snack,
+      under HUMAN.reaction (0.2), and every level's Sticky / Sleepy pick read the live
+      snacks. Hard now waits 0.2 s (allowing for it a bit better, anticip 0.6) and a Sticky or
+      Sleepy tap is decided on what was seen, judged where the snacks will be, and lands a
+      reaction time later; Magnet, Double and Rain (they wait for enough snacks) press at
+      once. n=80: hard v normal 85% -> 76%, other pace rows unchanged; sim:powers normal in
+      band, hard's Rain outlier (78%) gone (Sticky 34%, was 38%), easy as before (Sleepy
+      ~33%, already low). tests/bot-limits.test.ts: two picnics, every snack knocked onto a
+      new line on one; both bots tap the same for a person's reaction time (the old 0.13 s
+      bot fails it). Snake and Tank Duel's checks are split off (F420, F421).
