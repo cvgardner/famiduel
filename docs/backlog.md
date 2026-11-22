@@ -2867,6 +2867,16 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       has been down MINE_SEEN = HUMAN.reaction (0.2 s); its own mines it knows at once.
       tests/bot-limits.test.ts two-arena check drops a mine two cells ahead on the bot's
       route (the old bot fails it: normal answered in 0.15 s). PR #437.
+- [x] 2026-11-22 (F423): Tank Duel's bot aimed and drove at the other tank's live spot, so a
+      tank that slipped out from behind a block was lined up on the very next look. It now
+      sees the other tank where it was FOE_SEEN = HUMAN.reaction (0.2 s) ago (traceShot takes
+      that spot; its own tank it feels live). Easy and normal lead it along the heading it
+      had then (without a lead, easy mirrors dragged: avg 50 -> 86 s, 3% time-up draws);
+      hard aims at what it saw (leading made it wag, tanks-motion 0.50 / s v limit 0.45).
+      n=80: easy mirror avg 52 s, normal 62 s, hard 74 s, no draws; hard v normal 90%, normal
+      v easy 93%; sim:powers normal 46-61%, no outliers. Normal mirror seat 0 read 53% (main
+      35-41%): recheck F426 at n=320 (F430). tests/bot-limits.test.ts two-arena check moves
+      the other tank 30 units (the old bot fails it: easy answered in 0.05 s). PR #PRNUM.
 - [x] 2026-11-22 (F418a): Ping Pong's bots saw the ball 0.18 s (normal) and 0.1 s (hard)
       late, under HUMAN.reaction (0.2), and their power picks and aim side read the live
       ball and the other paddle. Every level now sees the ball at least 0.2 s late (the
