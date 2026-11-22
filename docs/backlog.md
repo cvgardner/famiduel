@@ -2961,6 +2961,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   "<name> has fewer left" (wrong when both had the same left: the one who didn't break wins)
   and a result line "Fewer balls left", never saying why it stopped. It now pops "Out of
   shots!" and, a line apart, "<name> has fewer left" or "Level! <name> wins" (or "<name>
-  wins" when the balls leave no room), and the result line reads "Out of shots: fewer balls
-  left" / "Out of shots, level: <name> broke". Checked at 320 px with Bigger text and in
+  wins" when the balls leave no room), and its GameResult summary reads "Out of shots: fewer
+  balls left" / "Out of shots, level: <name> broke" (the result screen doesn't show summaries
+  yet, F445). Checked at 320 px with Bigger text and in
   tests/minipool-cap-end.test.ts (forced cap racks, both endings, 1x and Bigger text).
