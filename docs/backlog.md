@@ -2890,3 +2890,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       two-world tests in tests/bot-limits.test.ts (main fails all three). Tug of War n=80
       pace rows unchanged (bots 100% v the level below), sim:powers normal in band; hard has
       Grip 28% as on main (26%, with Heave 70%): F431.
+- [x] 2026-11-22 (F432): tests/penalty-early-dive.test.ts guards the Penalty shooter bot's
+      punish of an early dive (200 kicks a level, keeper dives 0.5-2 s into the aim vs waits
+      for the kick): goals easy 68% v 50%, normal 90% v 58%, hard 100% v 60%. A planted bot
+      that ignores the dive fails it (same goals both ways). Test only.
