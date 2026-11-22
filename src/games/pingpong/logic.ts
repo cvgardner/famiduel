@@ -525,13 +525,19 @@ export function bounceKick(b: { vx: number; vy: number; ax: number; top: number 
 // the ball is, where it's going, how it's curving), and misjudges it by an amount that
 // grows quickly with speed and curve. Skill changes only delay, noise, how boldly it aims
 // for the edges of its paddle, and how often it tries drives, curves and smashes.
+// `react` never goes under a person's (HUMAN.reaction, tests/bot-limits.test.ts): the
+// forecast already reads the whole line from what it saw, as a good player does by eye.
 const BOT = {
   easy: { react: 0.3, noise: 36, aim: 0.3, drive: 0.15, curve: 0.05, smash: 0 },
-  normal: { react: 0.18, noise: 28, aim: 0.5, drive: 0.4, curve: 0.2, smash: 0.25 },
-  hard: { react: 0.1, noise: 12, aim: 0.65, drive: 0.6, curve: 0.3, smash: 0.6 },
+  normal: { react: 0.2, noise: 28, aim: 0.5, drive: 0.4, curve: 0.2, smash: 0.25 },
+  hard: { react: 0.2, noise: 12, aim: 0.65, drive: 0.6, curve: 0.3, smash: 0.6 },
 } satisfies Record<BotLevel, { react: number; noise: number; aim: number; drive: number; curve: number; smash: number }>;
 
-type Seen = Ball & { serving: boolean; factor: number };
+/** How far behind the ball each bot level sees it, in seconds (for tests/bot-limits.test.ts). */
+export const PINGPONG_REACT: Record<BotLevel, number> = { easy: BOT.easy.react, normal: BOT.normal.react, hard: BOT.hard.react };
+
+/** The ball (and the other paddle) as the bot saw them a reaction time ago. */
+type Seen = Ball & { serving: boolean; factor: number; foeX: number };
 
 /**
  * The bot's finger. A person's paddle follows a finger that speeds up and slows down;
@@ -618,7 +624,7 @@ export class PingPongBot {
   private decide(game: PingPong, dt: number): Intent {
     const cfg = BOT[this.level];
     const b = game.ball;
-    this.seen.push({ ...b, serving: game.serving || game.pointT > 0, factor: game.speedFactor() });
+    this.seen.push({ ...b, serving: game.serving || game.pointT > 0, factor: game.speedFactor(), foeX: game.paddles[other(this.p)].x });
     const lag = Math.round(cfg.react / dt);
     while (this.seen.length > lag + 1) this.seen.shift();
     const s = this.seen[0];
@@ -634,8 +640,8 @@ export class PingPongBot {
       const speed = Math.hypot(s.vx, s.vy) * s.factor;
       // A wobbling ball is harder to read too.
       this.err = this.rng.range(-1, 1) * cfg.noise * (speed / 450) ** 2 * (1 + Math.abs(s.ax) / 300 + s.wob / 40);
-      const foe = game.paddles[other(p)];
-      const away = foe.x < W / 2 ? 1 : -1;
+      // Aim away from where it saw the other paddle (its view lags like a person's).
+      const away = s.foeX < W / 2 ? 1 : -1;
       this.aimOff = away * cfg.aim * this.rng.range(0.5, 1.2);
       const r = this.rng.next();
       const slow = speed < 560;
@@ -672,10 +678,12 @@ export class PingPongBot {
   private wantsPower(game: PingPong, comingAtMe: boolean): boolean {
     const id = game.players[this.p].power?.id;
     if (!comingAtMe) return false;
-    const myHalf = this.p === 0 ? game.ball.y > MID : game.ball.y < MID;
-    if (id === 'slowmo') return Math.hypot(game.ball.vx, game.ball.vy) > 520 && !myHalf;
+    // The ball as it last saw it, never the live one.
+    const b = this.seen[0];
+    const myHalf = this.p === 0 ? b.y > MID : b.y < MID;
+    if (id === 'slowmo') return Math.hypot(b.vx, b.vy) > 520 && !myHalf;
     // Widen for a hard ball on its way, or one that wobbles or bends, while there's time to see it.
-    if (id === 'wide') return !myHalf && (Math.hypot(game.ball.vx, game.ball.vy) > 480 || Math.abs(game.ball.ax) > 60 || game.ball.wob > 0);
+    if (id === 'wide') return !myHalf && (Math.hypot(b.vx, b.vy) > 480 || Math.abs(b.ax) > 60 || b.wob > 0);
     return myHalf; // smash / curve / wobble arm for the return we are about to hit
   }
 }
