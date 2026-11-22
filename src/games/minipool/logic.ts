@@ -450,10 +450,13 @@ export class MiniPool {
 // takes, never the physics or the rules. It sees only what a person sees (a frozen ball is
 // shown on the table).
 const BOT = {
-  easy: { aim: 0.055, pow: 0.22, ring: 8, powers: [0.45, 0.8], pick: 4, delay: 1.7 },
-  normal: { aim: 0.022, pow: 0.1, ring: 16, powers: [0.35, 0.55, 0.85], pick: 2, delay: 1.3 },
-  hard: { aim: 0.007, pow: 0.04, ring: 24, powers: [0.3, 0.45, 0.65, 0.9], pick: 1, delay: 1.05 },
-} satisfies Record<BotLevel, { aim: number; pow: number; ring: number; powers: number[]; pick: number; delay: number }>;
+  easy: { aim: 0.075, pow: 0.22, ring: 8, powers: [0.45, 0.8], pick: 4, delay: 1.7, keen: true },
+  normal: { aim: 0.022, pow: 0.1, ring: 16, powers: [0.35, 0.55, 0.85], pick: 2, delay: 1.3, keen: false },
+  hard: { aim: 0.007, pow: 0.04, ring: 24, powers: [0.3, 0.45, 0.65, 0.9], pick: 1, delay: 1.05, keen: false },
+} satisfies Record<BotLevel, { aim: number; pow: number; ring: number; powers: number[]; pick: number; delay: number; keen: boolean }>;
+
+/** A line the bot judges to pot one of its balls (a pot scores 120, less a poor leave). */
+export const POT_LINE = 60;
 
 /** Shots tried per frame while lining up, so a turn never hitches. */
 const SIMS_PER_FRAME = 6;
@@ -500,7 +503,10 @@ export class MiniPoolBot {
     this.tried.sort((a, b) => b.score - a.score);
     // Never settle for a lesser line when the best one wins the rack.
     const pool = this.tried[0].score >= 1000 ? 1 : Math.min(cfg.pick, this.tried.length);
-    const pick = this.tried[Math.floor(this.rng.next() * pool)].shot;
+    // F434: an easy bot goes for a pot whenever it sees one, like a beginner does (it just
+    // misses more): its lesser lines are other pots, never a safety while a pot is on.
+    const keen = cfg.keen && this.tried[0].score >= POT_LINE ? this.tried.filter((t) => t.score >= POT_LINE).length : pool;
+    const pick = this.tried[Math.floor(this.rng.next() * Math.min(pool, keen))].shot;
     const tri = () => this.rng.next() + this.rng.next() - 1;
     return { shot: { angle: pick.angle + tri() * cfg.aim, power: clamp(pick.power * (1 + tri() * cfg.pow)) }, power: false };
   }
