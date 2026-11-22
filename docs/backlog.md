@@ -2764,3 +2764,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       text: pops never print over the other seat's (all 12 shown action games), Snack Snatch
       "Miss!" off the frog's head, Penalty's early-dive pop off the shooter lines. All pass; no
       game change needed.
+- [x] 2026-11-21 (F403): Penalty's keeper bot never peeks, now tested: the same kick played with
+      opposite hidden picks gives identical keeper dives at every level through the countdown and
+      the ball's first reaction time (tests/penalty-no-peek.test.ts; a planted peek fails it), and
+      the keeper still reads the ball after that (opposite shots get different dives in 25-37 of
+      40 kicks). Rival reviews: a hard bot "just literally CHEATED". Noted: an easy keeper can't
+      react to a hard shot at all (0.35 s flight < 0.36 s reaction), it only guesses.
