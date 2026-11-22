@@ -2965,3 +2965,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   balls left" / "Out of shots, level: <name> broke" (the result screen doesn't show summaries
   yet, F445). Checked at 320 px with Bigger text and in
   tests/minipool-cap-end.test.ts (forced cap racks, both endings, 1x and Bigger text).
+- [x] 2026-11-22 (F445, PR #TBD): the result screen never said how a match ended:
+  GameResult.summary was set (Mini Pool "Sank the 8", "<name> sank the 8 too soon", Penalty
+  "3 – 2 (sudden death)") but never shown, so a kid who lost to an early 8 just saw "2 – 4
+  balls sunk". The summary now shows under the score on both halves (`.res-how`, not on a
+  bot's half that faces the person), and only says what the score doesn't: Mini Pool names
+  who sank the 8 ("Bot 2 sank the 8"), Penalty says "Won in sudden death" only when it went
+  there. Checked at 320 px with Bigger text; e2e bot-v-bot Mini Pool reads it on both halves.

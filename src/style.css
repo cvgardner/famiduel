@@ -330,6 +330,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .rs-dash { line-height: 1.1; }
 /* What the score counts (F218): "strokes · fewest wins" keeps a Minigolf 9 – 10 win from reading as a loss. */
 .res-unit { color: var(--dim); font-size: 15px; font-weight: 700; margin-top: -4px; }
+/* F445: how the match ended ("Dad sank the 8 too soon"), when the score doesn't say it. */
+.res-how { font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
 .res-night { color: var(--dim); font-weight: 700; }
 .res-daily { color: var(--gold); font-weight: 800; }
 /* Minigolf's today's course switch, beside the blurb in the intro's middle strip. */

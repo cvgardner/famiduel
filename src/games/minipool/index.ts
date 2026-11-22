@@ -317,7 +317,7 @@ class MiniPoolView implements GameInstance {
         const how = g.lastRack?.how;
         const loser = this.ctx.players[other(e.p)].name;
         const capLine = g.left(0) === g.left(1) ? `Out of shots, level: ${loser} broke` : 'Out of shots: fewer balls left';
-        const summary = how === 'eight' ? 'Sank the 8' : how === 'cap' ? capLine : `${loser} sank the 8 too soon`;
+        const summary = how === 'eight' ? `${this.ctx.players[e.p].name} sank the 8` : how === 'cap' ? capLine : `${loser} sank the 8 too soon`;
         this.ctx.end({ winner: e.p, score, summary: how === 'scratch8' ? `${loser} scratched on the 8` : summary, unit: 'balls sunk' });
       }
     }

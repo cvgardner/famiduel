@@ -973,6 +973,7 @@ export class App {
         <div class="res-title">${title}</div>
         ${faces ? '' : scoreHtml(r.score[p], r.score[p === 0 ? 1 : 0], scoreLabels([seatName(profiles, 0), seatName(profiles, 1)], [!!seats?.[0].bot, !!seats?.[1].bot], p))}
         ${r.unit && !faces ? `<div class="res-unit">${esc(r.unit)}</div>` : ''}
+        ${r.summary && !faces ? `<div class="res-how">${esc(r.summary)}</div>` : ''}
         <div class="who">${esc(seatName(profiles, p))}${seats?.[p].bot ? ` 🤖${botFace(seats[p].bot!)}` : ''}${won ? ' 🏆' : ''}</div>
         ${dailyLine(p)}
         ${faces ? '' : `<div class="res-night">${tw ? `🏆 ${champ === p ? 'Tournament champion!' : 'Tournament:'} ${tw[p]} – ${tw[p === 0 ? 1 : 0]}` : `${solo ? (botHalf ? 'Bot' : 'You vs the bot') : 'Match night'}: ${night.wins[p]} – ${night.wins[p === 0 ? 1 : 0]}`}</div>`}

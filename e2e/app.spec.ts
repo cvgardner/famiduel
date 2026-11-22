@@ -211,6 +211,11 @@ for (const g of games.games) {
     // F218: both halves say what the score counts, and Minigolf says fewer strokes win.
     await expect(page.locator('#result .res-unit')).toHaveCount(2);
     if (g.id === 'minigolf') await expect(page.locator('#result .res-unit').first()).toContainText('fewest wins');
+    // F445: Mini Pool says how the rack ended ("Bot 1 sank the 8", "... too soon"), on both halves.
+    if (g.id === 'minipool') {
+      await expect(page.locator('#result .res-how')).toHaveCount(2);
+      await expect(page.locator('#result .res-how').first()).toContainText(/the 8|Out of shots/);
+    }
     await page.click('#rematchBtn');
     await expect(page.locator('#intro')).toBeVisible();
     expect(errors).toEqual([]);
