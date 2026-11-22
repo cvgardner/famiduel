@@ -331,10 +331,16 @@ export const BOT = {
   hard: { rate: 7.2, jitter: 0.08, breath: 0.015, react: 0.24 },
 } satisfies Record<BotLevel, { rate: number; jitter: number; breath: number; react: number }>;
 
+/** F422: how late the bot sees the ribbon (where it is, which way it slides), like a person. */
+export const TUG_REACT = HUMAN.reaction;
+
 export class TugOfWarBot {
   private next = Infinity;
   private phase: Phase | null = null;
   private round = -1;
+  private clock = 0;
+  /** What it saw each frame this round: the ribbon toward its own side, and its slide. */
+  private seen: { t: number; progress: number; vel: number }[] = [];
 
   constructor(
     readonly p: PlayerIndex,
@@ -345,7 +351,7 @@ export class TugOfWarBot {
   private gap(game: TugOfWar): number {
     const cfg = BOT[this.level];
     // Digging in: up to 10% faster as the ribbon nears its own losing line.
-    const danger = Math.max(0, Math.min(1, -game.progress(this.p) - 0.4) / 0.6);
+    const danger = Math.max(0, Math.min(1, -this.view(game).progress - 0.4) / 0.6);
     const rate = cfg.rate * (1 + 0.1 * danger);
     let gap = (1 / rate) * (1 + (this.rng.next() * 2 - 1) * cfg.jitter);
     if (this.rng.chance(cfg.breath)) gap += this.rng.range(0.25, 0.55);
@@ -358,7 +364,11 @@ export class TugOfWarBot {
       this.phase = game.phase;
       this.round = game.round;
       this.next = game.phase === 'pull' ? Math.max(HUMAN.reaction, cfg.react + this.rng.range(0, 0.1)) : Infinity;
+      this.seen = [];
     }
+    this.clock += dt;
+    this.seen.push({ t: this.clock, progress: game.progress(this.p), vel: game.vel * toward(this.p) });
+    while (this.seen.length > 1 && this.seen[1].t <= this.clock - TUG_REACT + 1e-9) this.seen.shift();
     let tap = false;
     this.next -= dt;
     if (this.next <= 0) {
@@ -366,6 +376,13 @@ export class TugOfWarBot {
       this.next = this.gap(game);
     }
     return { tap, power: game.powersOn && game.phase === 'pull' && game.energy[this.p].ready && this.wantsPower(game) };
+  }
+
+  /** The ribbon as it looked a reaction time ago (as it was at PULL! before then). */
+  private view(game: TugOfWar): { progress: number; vel: number } {
+    const old = this.seen[0];
+    if (old && old.t <= this.clock - TUG_REACT + 1e-9) return old;
+    return { progress: old?.progress ?? game.progress(this.p), vel: 0 };
   }
 
   private wantsPower(game: TugOfWar): boolean {
@@ -377,7 +394,7 @@ export class TugOfWarBot {
     }
     if (id === 'anchor') {
       // Tie off while the ribbon is sliding the wrong way.
-      return game.phaseT > 1 && game.vel * toward(this.p) < 0 && this.rng.chance(0.05);
+      return game.phaseT > 1 && this.view(game).vel < 0 && this.rng.chance(0.05);
     }
     // Heave, Butter and Steady Grip: once the round has got going.
     return game.phaseT > 1 && this.rng.chance(0.03);

@@ -346,8 +346,8 @@ export class ChopBot {
     const shielded = c.shield > 0;
     const rate = shielded ? Math.min(cfg.rate * BOT_MASH, 1 / HUMAN.tapGap) : cfg.rate;
     this.wait = Math.max(HUMAN.tapGap, (1 / rate) * (1 + this.rng.range(-cfg.jitter, cfg.jitter)));
-    // A frozen tree takes taps to crack, so it taps on, the way a person does.
-    if (c.frozen > 0) return { chop: c.side, power };
+    // A frozen tree takes taps to crack: it just taps on as it would (any side cracks the ice),
+    // so the other side's Freeze changes nothing it does before it could have seen it (F422).
     // A hot axe burns through whatever hangs there, so there's nothing to read: stay put.
     if (c.hot > 0) return { chop: c.side, power };
     const safe = (s: -1 | 1) => game.branch(this.p, c.idx) !== s && game.branch(this.p, c.idx + 1) !== s;

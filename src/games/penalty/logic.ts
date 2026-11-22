@@ -7,6 +7,7 @@
 // struck exactly when the clock hits zero, after a run-up both players can
 // see. The keeper always knows when the kick comes; only where is a secret.
 import { Energy } from '../../core/energy';
+import { HUMAN } from '../../core/human';
 import { lerpAssist } from '../../core/handicap';
 import type { Rng } from '../../core/rng';
 import type { BotLevel, PlayerIndex, PlayerInfo } from '../../core/types';
@@ -506,6 +507,8 @@ export class PenaltyBot {
   private shootAt = 0;
   private rethinkAt = -1;
   private sawDive = false;
+  /** Aim-clock time the keeper's dive first showed this kick (-1 = not yet). */
+  private diveAt = -1;
   private guessAt = -1;
   private track: 'real' | 'decoy' = 'real';
   private seen: { t: number; x: number; y: number }[] = [];
@@ -524,6 +527,7 @@ export class PenaltyBot {
       this.shootAt = this.rng.range(0.6, T - 0.9);
       this.rethinkAt = this.rng.chance(cfg.rethink) ? this.rng.range(this.shootAt + 0.3, T - 0.25) : -1;
       this.sawDive = false;
+      this.diveAt = -1;
       // A guess lands right on the kick; an easy keeper sometimes jumps the gun during the run-up or before.
       this.guessAt = this.rng.chance(cfg.guess) ? (this.rng.chance(cfg.early) ? this.rng.range(T - 1.4, T - 0.1) : T + this.rng.range(0, 0.06)) : -1;
       this.track = this.rng.chance(0.5) ? 'real' : 'decoy';
@@ -533,15 +537,18 @@ export class PenaltyBot {
     if (game.shooter === this.p) {
       if (game.phase !== 'aim') return { shot: null, dive: null, power };
       const t = game.phaseT;
+      // F422: like a person, it sees the keeper's dive a reaction time after it starts.
+      if (game.dive !== null && this.diveAt < 0) this.diveAt = t;
+      const seenDive = this.diveAt >= 0 && t - this.diveAt >= HUMAN.reaction - 1e-9 ? game.dive : null;
       let pick = false;
       if (game.picks === 0 && t >= this.shootAt) pick = true;
       else if (game.picks === 1 && this.rethinkAt >= 0 && t >= this.rethinkAt) pick = true;
       // A keeper who commits while there is still time to switch gets punished.
-      if (game.dive !== null && !this.sawDive && game.kickIn() > 0.15) {
+      if (seenDive !== null && !this.sawDive && game.kickIn() > 0.15) {
         this.sawDive = true;
         pick = true;
       }
-      return { shot: pick ? this.pickShot(game) : null, dive: null, power };
+      return { shot: pick ? this.pickShot(game, seenDive) : null, dive: null, power };
     }
     return { shot: null, dive: this.keep(game, dt), power };
   }
@@ -550,12 +557,12 @@ export class PenaltyBot {
     return game.canFire(this.p) && game.phase === 'aim';
   }
 
-  private pickShot(game: Penalty): Shot {
+  private pickShot(game: Penalty, dive: Dive | null): Shot {
     const cfg = BOT[this.level];
     const half = game.goalW() / 2;
     let side = this.rng.pick([-0.82, -0.6, -0.3, 0, 0.3, 0.6, 0.82]);
     // A keeper who already dived is in plain sight: go the other way.
-    if (game.dive !== null) side = game.dive === 0 ? this.rng.pick([-0.75, 0.75]) : -game.dive * 0.75;
+    if (dive !== null) side = dive === 0 ? this.rng.pick([-0.75, 0.75]) : -dive * 0.75;
     const aimX = W / 2 + side * half + this.rng.range(-cfg.aimNoise, cfg.aimNoise);
     const power = clamp(cfg.power + this.rng.range(-cfg.powerVar, cfg.powerVar), 0.15, 1);
     let bow = 0;

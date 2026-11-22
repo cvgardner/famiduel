@@ -7,13 +7,14 @@ import { HUMAN } from '../src/core/human';
 import { makeRng, type Rng } from '../src/core/rng';
 import type { BotLevel, PlayerIndex, PlayerInfo } from '../src/core/types';
 import { AIRHOCKEY_REACT, AirHockey, AirHockeyBot, type Intent as AirIntent } from '../src/games/airhockey/logic';
-import { ChopBot, ChopChop } from '../src/games/chopchop/logic';
+import { ChopBot, ChopChop, type Intent as ChopIntent } from '../src/games/chopchop/logic';
+import { IDLE as PEN_IDLE, Penalty, PenaltyBot, type Intent as PenIntent } from '../src/games/penalty/logic';
 import { PINGPONG_REACT, PingPong, PingPongBot, type Intent as PongIntent } from '../src/games/pingpong/logic';
 import { MIN_REACTION as QD_MIN, QuickDraw, QuickDrawBot } from '../src/games/quickdraw/logic';
 import { SNACK_REACT, SnackSnatch, SnackSnatchBot } from '../src/games/snacksnatch/logic';
 import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
 import { RULES as SUMO, SUMO_REACT, Sumo, SumoBot, type Intent as SumoIntent } from '../src/games/sumo/logic';
-import { TugOfWar, TugOfWarBot } from '../src/games/tugofwar/logic';
+import { TUG_REACT, TugOfWar, TugOfWarBot, type Intent as TugIntent } from '../src/games/tugofwar/logic';
 import { BOT as TANK_BOT, RULES as TANK, SHELL_SEEN, TankBot, TankDuel, type Intent as TankIntent } from '../src/games/tanks/logic';
 import { DT, player, power } from './helpers';
 
@@ -404,6 +405,133 @@ describe('honest bots respect a person\'s limits', () => {
       expect(reacted, `${level}: never dodged the new shell`).toBeGreaterThan(3);
     }
   }, SLOW);
+
+  it('the Penalty shooter bot sees the keeper dive no sooner than a person would, at any level', () => {
+    // F422: two identical kicks; on one a person in goal dives early during the aim. Until a
+    // reaction time has passed the shooting bot does exactly the same on both (no instant
+    // re-pick, no instant "go the other way"), and soon after it answers the dive.
+    for (const level of LEVELS) {
+      let checked = 0;
+      let reacted = 0;
+      for (let trial = 0; trial < 40; trial++) {
+        const world = () => {
+          const g = new Penalty([player({ bot: level }), player({})], false, makeRng(700 + trial), 0);
+          return { g, bot: new PenaltyBot(0, level, makeRng(900 + trial)) };
+        };
+        const a = world();
+        const b = world();
+        const diveT = 0.4 + (trial % 10) * 0.2;
+        while (a.g.phase !== 'aim' || a.g.phaseT < diveT) {
+          a.g.step(DT, [a.bot.think(a.g, DT), { ...PEN_IDLE }]);
+          b.g.step(DT, [b.bot.think(b.g, DT), { ...PEN_IDLE }]);
+        }
+        if (a.g.shooter !== 0 || a.g.kickIn() < 0.5) continue;
+        const dive = ([-1, 0, 1] as const)[trial % 3];
+        const lagFrames = Math.floor(HUMAN.reaction / DT) - 1;
+        let differed = -1;
+        for (let f = 0; a.g.phase === 'aim' && differed < 0; f++) {
+          const ia: PenIntent = a.bot.think(a.g, DT);
+          const ib: PenIntent = b.bot.think(b.g, DT);
+          const same = JSON.stringify(ia) === JSON.stringify(ib);
+          if (f < lagFrames) {
+            expect(same, `${level} trial ${trial}: answered the dive ${(f * DT).toFixed(2)} s after it`).toBe(true);
+            checked++;
+          } else if (!same) differed = f;
+          a.g.step(DT, [ia, { ...PEN_IDLE }]);
+          b.g.step(DT, [ib, { ...PEN_IDLE, dive: f === 0 ? dive : null }]);
+        }
+        if (differed >= 0) reacted++;
+      }
+      expect(checked).toBeGreaterThan(100);
+      expect(reacted, `${level}: never answered the dive`).toBeGreaterThan(5);
+    }
+  });
+
+  it('the Chop Chop bot answers a Freeze no sooner than a person would, at any level', () => {
+    // F422: two identical trees; on one the other side's Freeze lands mid-round. Until a
+    // reaction time has passed (or its first tap lands on the ice, which it feels), the bot
+    // chops exactly the same on both.
+    for (const level of LEVELS) {
+      let checked = 0;
+      for (let trial = 0; trial < 30; trial++) {
+        const world = () => {
+          const g = new ChopChop([player({ bot: level }), player({ bot: level })], false, makeRng(300 + trial));
+          const brng = makeRng(500 + trial);
+          return { g, bots: [new ChopBot(0, level, brng), new ChopBot(1, level, brng)] };
+        };
+        const a = world();
+        const b = world();
+        const think = (w: ReturnType<typeof world>) => [w.bots[0].think(w.g, DT), w.bots[1].think(w.g, DT)] as [ChopIntent, ChopIntent];
+        for (let t = 0; t < 1.5 + (trial % 10) * 0.13 || a.g.phase !== 'play'; t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+          if (t > 30) break;
+        }
+        if (a.g.phase !== 'play' || a.g.choppers[0].out) continue;
+        b.g.choppers[0].frozen = 3;
+        const lagFrames = Math.floor(HUMAN.reaction / DT) - 1;
+        for (let f = 0; f < lagFrames; f++) {
+          const ia = think(a);
+          const ib = think(b);
+          expect(JSON.stringify(ia[0]), `${level} trial ${trial}: chopped differently ${(f * DT).toFixed(2)} s after the Freeze`).toBe(JSON.stringify(ib[0]));
+          checked++;
+          if (ib[0].chop !== 0) break;
+          a.g.step(DT, ia);
+          b.g.step(DT, ib);
+        }
+      }
+      expect(checked).toBeGreaterThan(30);
+    }
+  });
+
+  it('the Tug of War bot sees the ribbon no sooner than a person would, at any level', () => {
+    // F422: two identical ropes; on one the ribbon is jerked toward the bot's losing line and
+    // set sliding that way. Until a reaction time has passed the bot taps (and ties off with
+    // Anchor) exactly the same on both, and soon after it answers the slide.
+    expect(TUG_REACT).toBeGreaterThanOrEqual(HUMAN.reaction);
+    for (const level of LEVELS) {
+      let checked = 0;
+      let reacted = 0;
+      for (let trial = 0; trial < 30; trial++) {
+        const world = () => {
+          const g = new TugOfWar([player({ bot: level, power: power('tugofwar', 'anchor') }), player({ bot: level, power: power('tugofwar', 'heave') })], true, makeRng(40 + trial));
+          const brng = makeRng(60 + trial);
+          return { g, bots: [new TugOfWarBot(0, level, brng), new TugOfWarBot(1, level, brng)] };
+        };
+        const a = world();
+        const b = world();
+        const think = (w: ReturnType<typeof world>) => [w.bots[0].think(w.g, DT), w.bots[1].think(w.g, DT)] as [TugIntent, TugIntent];
+        for (let t = 0; t < 1.6 + (trial % 10) * 0.2 || a.g.phase !== 'pull' || a.g.phaseT < 1.2; t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+          if (t > 40) break;
+        }
+        if (a.g.phase !== 'pull') continue;
+        for (const w of [a, b]) w.g.energy[0].charge(10);
+        // The top seat (1) pulls toward -1 for seat 0: on b the ribbon is near seat 0's losing line, sliding there.
+        b.g.pos = -0.65 * b.g.lineNow(0);
+        b.g.vel = -Math.abs(b.g.vel) - 0.5;
+        a.g.vel = Math.abs(a.g.vel) + 0.5;
+        const lagFrames = Math.floor(TUG_REACT / DT) - 1;
+        let differed = -1;
+        for (let f = 0; f < 240 && differed < 0; f++) {
+          const ia = think(a);
+          const ib = think(b);
+          const same = JSON.stringify(ia[0]) === JSON.stringify(ib[0]);
+          if (f < lagFrames) {
+            expect(same, `${level} trial ${trial}: answered the slide ${(f * DT).toFixed(2)} s after it`).toBe(true);
+            checked++;
+          } else if (!same) differed = f;
+          a.g.step(DT, ia);
+          b.g.step(DT, ib);
+          if ([...a.g.events, ...b.g.events].some((e) => e.type === 'round' || e.type === 'win')) break;
+        }
+        if (differed >= 0) reacted++;
+      }
+      expect(checked).toBeGreaterThan(60);
+      expect(reacted, `${level}: never answered the slide`).toBeGreaterThan(5);
+    }
+  });
 
   it('the Quick Draw bot never draws faster than a quick person on a phone, at any level', () => {
     expect(QD_MIN).toBeGreaterThanOrEqual(HUMAN.reaction + HUMAN.touchLag);
