@@ -2817,3 +2817,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the puller and the stars; besideCountdown() takes each game's own digit distance. The
       ghost-finger playtest also keeps Tug of War's card off the stars and puller (failed
       before at 320 and 390 px).
+- [x] 2026-11-21 (F414): the ghost-finger playtest also keeps each seat's first-match card
+      off its own score marks (SCORE_MARKS: Tug of War's stars and puller, Quick Draw's round
+      stars and score line, Air Hockey's goal count). It caught Quick Draw's card beside the
+      digit covering that seat's round stars at 320 and 390 px; Quick Draw's card now sits
+      over the SQUIRT! button (demoAt 0.9), the finger tapping what the person taps, like
+      Tug of War's. Other games' cards were already clear of their marks (checked frames).
