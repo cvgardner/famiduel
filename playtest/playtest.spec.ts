@@ -3471,12 +3471,19 @@ test('bigger text: every shown game keeps its words on screen, small and tall ph
     await expect(page.locator('#play')).toBeVisible();
     await page.waitForTimeout(2600);
     await page.screenshot({ path: path.join(OUT, `bigtext-${g.id}-390.png`) });
+    // Air Hockey draws words in play only for a GOAL! or a power (its scores are digits), so a
+    // short window could see none: the bots play on in real time until one is drawn (~16 s).
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { __contrast: { seen: Map<string, unknown> } }).__contrast.seen.size), {
+        message: `${g.id}: the contrast probe saw words with Bigger text on`,
+        timeout: 25_000,
+      })
+      .toBeGreaterThan(0);
     await page.evaluate(() => (window as unknown as { __famiduel: Hook }).__famiduel.runner!.fastForward(900));
     const over = await page.evaluate(() => [...(window as unknown as { __edges: { over: Map<string, number> } }).__edges.over]);
     for (const [str, by] of over) problems.push(`${g.id}: "${str}" runs ${by.toFixed(0)} units off the screen`);
     await settleFades(page);
     const seen = await page.evaluate(() => [...(window as unknown as { __contrast: { seen: Map<string, { best: number; need: number; size: number; rest: boolean }> } }).__contrast.seen]);
-    expect(seen.length, `${g.id}: the contrast probe saw words with Bigger text on`).toBeGreaterThan(0);
     for (const [str, c] of seen) if (c.rest && c.best < c.need) dim.push(`${g.id}: "${str}" ${c.best.toFixed(1)}:1 (needs ${c.need}:1 at ${c.size})`);
     if (await page.locator('#result').isVisible()) await page.click('#homeBtn');
     else await leaveMatch(page);
