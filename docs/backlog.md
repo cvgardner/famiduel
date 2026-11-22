@@ -2957,6 +2957,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   player's half). Now the forgiven miss pops "Another go!" alone, and every Mini Pool pop is
   born on its own seat's half. Checked in tests/minipool-pops.test.ts (101 doubled pops on main),
   which now also plays a three-star bottom player against the hard bot.
+- [x] 2026-11-22 (F443, PR #449): a Mini Pool rack that hits the shot cap ended with only
+  "<name> has fewer left" (wrong when both had the same left: the one who didn't break wins)
+  and a result line "Fewer balls left", never saying why it stopped. It now pops "Out of
+  shots!" and, a line apart, "<name> has fewer left" or "Level! <name> wins" (or "<name>
+  wins" when the balls leave no room), and its GameResult summary reads "Out of shots: fewer
+  balls left" / "Out of shots, level: <name> broke" (the result screen doesn't show summaries
+  yet, F445). Checked at 320 px with Bigger text and in
+  tests/minipool-cap-end.test.ts (forced cap racks, both endings, 1x and Bigger text).
 - [x] 2026-11-22 (F441, PR #448): Mini Pool's seat panel showed a head start's forgiven misses
   as "↺4", which a small kid can't read. It now says them in words when they fit
   ("Your shot! · 4 extra goes", "1 extra go"), falling back to ↺4 only when the line is too
