@@ -2846,3 +2846,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       ~33%, already low). tests/bot-limits.test.ts: two picnics, every snack knocked onto a
       new line on one; both bots tap the same for a person's reaction time (the old 0.13 s
       bot fails it). Snake and Tank Duel's checks are split off (F420, F421).
+- [x] 2026-11-21 (F421): Tank Duel's bot read every live shell on each look, so a shell
+      fired just before a look was dodged at once (0 s reaction; hard looks every
+      0.16-0.24 s). The other tank's shells now count as threats only once they have flown
+      HUMAN.reaction (0.2 s, `SHELL_SEEN`); the bot's own shots it knows at once.
+      tests/bot-limits.test.ts: two arenas, a shell flying at the bot appears on one; the
+      bot drives the same on both for a reaction time and dodges soon after (main fails it).
+      n=80/160: hard v normal 95% -> 93-95%, normal v easy 99% -> 98-99%, hard v easy 100%;
+      sim:powers normal all in band (45-56%). Mirror matches run longer (normal avg 66 ->
+      93 s, 5% reach time-up): bots keep shooting instead of sidestepping every new shell,
+      and shells clash mid-air (42 vs 17 clashes a minute, hits 7 -> 4 a minute). Follow-up
+      F425. Aim and mines seen late: F423, F424.
