@@ -2861,3 +2861,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       hard v easy 100%; sim:powers normal 43-58%, no outliers. Left: normal mirror leans to
       the top seat (seat 0 wins 41% at n=320, main 53%): F426. Aim and mines seen late:
       F423, F424.
+- [x] 2026-11-22 (F418): Sumo's hard bot pressed 0.12 s after it saw the ring, under
+      HUMAN.reaction (0.2), and every level's power pick read the live other wrestler.
+      Hard now presses 0.2 s after the look (a steadier aim, noise 0.07 -> 0.05, keeps it
+      ahead of normal); power picks read the other wrestler as seen a reaction time ago
+      (its own wrestler it feels). n=160: hard v normal 78% -> 73% (66% with the lag
+      alone), other rows unchanged; sim:powers in band at normal and hard.
+      tests/bot-limits.test.ts: two rings, the top wrestler moved into the bottom bot's line
+      on one; the bot presses the same on both for a person's reaction time (the old 0.12 s
+      bot fails it).

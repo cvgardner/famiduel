@@ -502,11 +502,16 @@ export function angleDiff(a: number, b: number): number {
 // and presses when the arrow is about to line up with where it wants to go.
 // Skill changes only reaction delay (presses land late), aim noise and how well
 // it allows for its own delay; never physics.
+// `react` never goes under a person's (HUMAN.reaction, tests/bot-limits.test.ts): a press
+// (the dash button or the power) lands that long after it saw the other wrestler there.
 const BOT = {
   easy: { react: 0.38, anticip: 0.25, noise: 0.42, care: 0.3 },
   normal: { react: 0.22, anticip: 0.7, noise: 0.2, care: 0.75 },
-  hard: { react: 0.12, anticip: 1.0, noise: 0.07, care: 1 },
+  hard: { react: 0.2, anticip: 1.0, noise: 0.05, care: 1 },
 } satisfies Record<BotLevel, { react: number; anticip: number; noise: number; care: number }>;
+
+/** How long after it sees the ring each bot level's press lands, in seconds (for tests/bot-limits.test.ts). */
+export const SUMO_REACT: Record<BotLevel, number> = { easy: BOT.easy.react, normal: BOT.normal.react, hard: BOT.hard.react };
 
 /** A foe who hasn't pressed for this long (walked away, or a kid just watching) is a still mark. */
 const BOT_STILL_T = 2;
@@ -523,6 +528,8 @@ export class SumoBot {
   private aimTarget: 'foe' | 'center' = 'foe';
   /** Seconds since the foe last pressed their button. */
   private foeStill = 0;
+  /** The other wrestler, one copy per frame: its power picks read the oldest (a reaction time ago). */
+  private seenFoe: Wrestler[] = [];
 
   constructor(
     readonly p: PlayerIndex,
@@ -534,7 +541,11 @@ export class SumoBot {
     const cfg = BOT[this.level];
     const me = game.wrestlers[this.p];
     const foe = game.wrestlers[other(this.p)];
-    const power = game.powersOn && game.energy[this.p].ready && this.wantsPower(game);
+    // The other wrestler as it saw them a reaction time ago (its own wrestler it feels).
+    this.seenFoe.push({ ...game.wrestlers[other(this.p)] });
+    const lag = Math.round(cfg.react / dt);
+    while (this.seenFoe.length > lag + 1) this.seenFoe.shift();
+    const power = game.powersOn && game.phase === 'fight' && this.seenFoe.length > lag && game.energy[this.p].ready && this.wantsPower(game, this.seenFoe[0]);
     // How long since the foe last pressed (their arrow stops while they charge).
     this.foeStill = foe.charging ? 0 : this.foeStill + dt;
     if (game.phase !== 'fight') {
@@ -606,10 +617,9 @@ export class SumoBot {
     return { hold: false, power };
   }
 
-  private wantsPower(game: Sumo): boolean {
+  private wantsPower(game: Sumo, foe: Wrestler): boolean {
     const id = game.players[this.p].power?.id;
     const me = game.wrestlers[this.p];
-    const foe = game.wrestlers[other(this.p)];
     const foeD = Math.hypot(foe.x - RULES.cx, foe.y - RULES.cy);
     const gap = Math.hypot(foe.x - me.x, foe.y - me.y);
     // Pound when they are close and further out than us, so the push sends them toward the rope.
