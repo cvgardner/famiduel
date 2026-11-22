@@ -2936,6 +2936,13 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   crowded rack had no line for "Another go! (1 left)": it falls back to "Another go!", then to a
   line clear of balls with the older pop faded, then to one born clear of balls. New check in
   tests/minipool-levels.test.ts.
+- [x] 2026-11-22 (F440): pops born past the centre line, every game (2 seeds x every power
+      pair, normal bots, 1x and Bigger text). Air Hockey, Ping Pong, Chop Chop, Penalty, Quick
+      Draw, Tug of War and Mini Pool (each player owns the half nearest them): none, so
+      tests/pops-cross-seat.test.ts now fails if one is. Tank Duel (~1,770 of 3,361: clink! and
+      BONK! by the hit tank), Sumo (~230 of 608), Snake (~290 of 556), Snack Snatch (48-65 of
+      4,965) and Minigolf (18 of 831) share the whole board, so their pops sit by the event and
+      face their player; that is as meant, not a fix.
 - [x] 2026-11-22 (F439): Mini Pool racks could stall on the 8. With the 8 frozen on a cushion
       and no ghost-ball line to sink it, a bot's best shot was a ring shot that never touched
       it (no worse than any miss), so two hard bots rolled the cue around it for 70 shots and
