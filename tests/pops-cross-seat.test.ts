@@ -6,7 +6,7 @@ import type { PlayerInfo, PowerDef } from '../src/core/types';
 import { Fx } from '../src/engine/fx';
 import type { Input } from '../src/engine/input';
 import type { Sfx } from '../src/engine/sfx';
-import { W } from '../src/engine/world';
+import { MID, W } from '../src/engine/world';
 import { GAMES } from '../src/games/registry';
 import { DT, player } from './helpers';
 
@@ -20,6 +20,16 @@ const box = (f: Floater) => {
 // F198: pops stacked only against their own seat's, so the two seats' words printed over each
 // other: Tank Duel's "Bonked!" / "Oops! Own shot" on the shooter's BONK! (644 of 7,280 readable
 // BONK! frames), POOF! on BONK!, Sumo's "💥 Ground Pound!" on KA-BOOM!.
+/**
+ * F440: games where each player owns the half nearest them, so every pop is born on its own
+ * seat's half (Mini Pool pushed one past the centre line before F438). Tank Duel, Sumo,
+ * Snake, Snack Snatch and Minigolf share the whole board, so their pops sit by the event.
+ * 2026-11-22: born past the centre line, 2 seeds x every power pair, 1x and Bigger text:
+ * these 0; Tank Duel ~1,770 of 3,361 (clink! / BONK! by the hit tank), Sumo ~230 of 608,
+ * Snake ~290 of 556, Snack Snatch 48-65 of 4,965, Minigolf 18 of 831.
+ */
+const OWN_HALF = new Set(['airhockey', 'pingpong', 'chopchop', 'penalty', 'quickdraw', 'tugofwar', 'minipool']);
+
 describe('pops never print over a pop of the other seat', () => {
   afterEach(() => setTextScale(1));
   for (const scale of [1, BIG_TEXT]) for (const id of ['tanks', 'sumo', 'snacksnatch', 'airhockey', 'pingpong', 'snake', 'chopchop', 'penalty', 'quickdraw', 'minigolf', 'tugofwar', 'minipool']) {
@@ -28,18 +38,27 @@ describe('pops never print over a pop of the other seat', () => {
       const list = (powers.games as Record<string, PowerDef[]>)[id];
       let readable = 0;
       const hits: Record<string, number> = {};
+      const crossed: Record<string, number> = {};
       for (const seed of [1, 2]) {
         for (const a of list) {
           for (const b of list) {
             const players: [PlayerInfo, PlayerInfo] = [player({ bot: 'normal', power: a }), player({ bot: 'normal', power: b })];
             const fx = new Fx();
+            const born = new WeakSet<Floater>();
             let ended = false;
             const view = GAMES[id].create({ seed, rng: makeRng(seed), players, powersOn: true, sfx: { play() {} } as unknown as Sfx, fx, end() { ended = true; } }) as unknown as { game: { winner?: number | null }; update(dt: number, i: Input): void };
             const input = { of: () => [], all: () => [], key: () => false, keyPressed: () => false, tapped: () => undefined, holding: () => false, lead: () => 0 } as unknown as Input;
             for (let i = 0; i < 60 * 240 && !ended && (view.game.winner ?? null) === null; i++) {
               view.update(DT, input);
               fx.update(DT);
-              const bright = (fx as unknown as { floaters: Floater[] }).floaters.filter((f) => f.life >= 0.45);
+              const all = (fx as unknown as { floaters: Floater[] }).floaters;
+              for (const f of all) {
+                if (born.has(f)) continue;
+                born.add(f);
+                const fb = box(f);
+                if (OWN_HALF.has(id) && (f.player === 0 ? fb[1] < MID : fb[3] > MID)) crossed[`${f.player}:${f.str}`] = (crossed[`${f.player}:${f.str}`] ?? 0) + 1;
+              }
+              const bright = all.filter((f) => f.life >= 0.45);
               for (const f of bright) {
                 readable++;
                 const fb = box(f);
@@ -53,6 +72,7 @@ describe('pops never print over a pop of the other seat', () => {
       const n = Object.values(hits).reduce((s, v) => s + v, 0);
       expect(readable).toBeGreaterThan(500);
       expect(n, JSON.stringify(hits)).toBe(0);
+      expect(crossed, 'pops born past the centre line').toEqual({});
     }, 120_000);
   }
 });
