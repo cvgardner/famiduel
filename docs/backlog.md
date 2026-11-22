@@ -2951,7 +2951,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       80`: hard v hard cap 3% -> 0%, easy v easy cap 3% -> 0%, hard v normal 71 -> 79%,
       normal v easy 88 -> 88%, easy+N v normal 13/29/36/65 -> 13/25/34/69%, v hard 4/10/21/49 ->
       3/11/18/44% (noise). Test in tests/minipool.test.ts (main fails it at every level).
-- [x] F438 (2026-11-22, PR #TBD): Mini Pool head-start pops at 320 px with Bigger text (easy+3
+- [x] F438 (2026-11-22, PR #445): Mini Pool head-start pops at 320 px with Bigger text (easy+3
   v hard frames at each forgiven miss). A forgiven miss popped "Another go!" and "Go again!"
   together (the same news twice, pushing one of them up past the centre line into the other
   player's half). Now the forgiven miss pops "Another go!" alone, and every Mini Pool pop is
@@ -2965,3 +2965,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   balls left" / "Out of shots, level: <name> broke" (the result screen doesn't show summaries
   yet, F445). Checked at 320 px with Bigger text and in
   tests/minipool-cap-end.test.ts (forced cap racks, both endings, 1x and Bigger text).
+- [x] 2026-11-22 (F441, PR #448): Mini Pool's seat panel showed a head start's forgiven misses
+  as "↺4", which a small kid can't read. It now says them in words when they fit
+  ("Your shot! · 4 extra goes", "1 extra go"), falling back to ↺4 only when the line is too
+  long; the 320 px Bigger text frame fits the whole "Your shot! Pull back, let go · 5 extra
+  goes". Checked in tests/minipool-extra-goes.test.ts.

@@ -552,7 +552,17 @@ class MiniPoolView implements GameInstance {
     // The longest wording that fits before the far edge (or a left-handed power button).
     const room = (lefty ? W - 74 : W - 16) - x0;
     const tail = badges.length ? ` ${badges.join(' ')}` : '';
-    const lines = [status + tail, ...shorter.map((l) => l + tail), (shorter[shorter.length - 1] ?? status) + (badges.length ? ` ${badges[badges.length - 1]}` : '')];
+    // A head start's forgiven misses in words while they fit ("Your shot! · 4 extra goes"),
+    // else the short ↺4 a grown-up can explain.
+    const n = g.retries[p];
+    const worded = n > 0 ? badges.slice(0, -1).concat(`· ${n} extra go${n === 1 ? '' : 'es'}`) : [];
+    const wordTail = worded.length ? ` ${worded.join(' ')}` : '';
+    const lines = [
+      ...(n > 0 ? [status + wordTail, ...shorter.map((l) => l + wordTail)] : []),
+      status + tail,
+      ...shorter.map((l) => l + tail),
+      (shorter[shorter.length - 1] ?? status) + (badges.length ? ` ${badges[badges.length - 1]}` : ''),
+    ];
     const fit = fitFirst(gx, lines, room, 14);
     text(gx, fit.str, x0, y0 + 44, { size: fit.size, color: sc, align: 'left' });
   }
