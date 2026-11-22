@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { HUMAN } from '../src/core/human';
 import { makeRng, type Rng } from '../src/core/rng';
 import type { BotLevel, PlayerIndex, PlayerInfo } from '../src/core/types';
+import { AIRHOCKEY_REACT, AirHockey, AirHockeyBot, type Intent as AirIntent } from '../src/games/airhockey/logic';
 import { ChopBot, ChopChop } from '../src/games/chopchop/logic';
 import { MIN_REACTION as QD_MIN, QuickDraw, QuickDrawBot } from '../src/games/quickdraw/logic';
 import { SnackSnatch, SnackSnatchBot } from '../src/games/snacksnatch/logic';
@@ -131,6 +132,53 @@ describe('honest bots respect a person\'s limits', () => {
       expect(total).toBeGreaterThan(0);
     }, SLOW);
   }
+
+  it('the Air Hockey bot sees the puck no sooner than a person would, at any level', () => {
+    // F417: a person's eyes and thumb lag the puck by their reaction time. Two identical
+    // tables; on one the puck is knocked onto another line mid-rally. Until that much time
+    // has passed the bots must move exactly the same on both (no peeking at the live puck),
+    // and soon after it they must react.
+    for (const level of LEVELS) {
+      expect(AIRHOCKEY_REACT[level]).toBeGreaterThanOrEqual(HUMAN.reaction);
+      let checked = 0;
+      let reacted = 0;
+      for (let seed = 1; seed <= 8; seed++) {
+        const world = () => {
+          const g = new AirHockey([player({ bot: level }), player({ bot: level })], false, makeRng(seed));
+          const brng = makeRng(seed + 99);
+          return { g, bots: [new AirHockeyBot(0, level, brng), new AirHockeyBot(1, level, brng)] };
+        };
+        const a = world();
+        const b = world();
+        const think = (w: ReturnType<typeof world>) => [w.bots[0].think(w.g, DT), w.bots[1].think(w.g, DT)] as [AirIntent, AirIntent];
+        for (let t = 0; t < 2 + seed * 0.37; t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+        }
+        const pk = b.g.pucks[0];
+        pk.vx = -pk.vx + 150;
+        pk.vy = -pk.vy;
+        const lagFrames = Math.floor(HUMAN.reaction / DT) - 1;
+        let differed = -1;
+        for (let f = 0; f < 120 && differed < 0; f++) {
+          const ia = think(a);
+          const ib = think(b);
+          const same = JSON.stringify(ia) === JSON.stringify(ib);
+          if (f < lagFrames) {
+            expect(same, `${level} seed ${seed}: moved on the new line ${(f * DT).toFixed(2)} s after it`).toBe(true);
+            checked++;
+          } else if (!same) differed = f;
+          a.g.step(DT, ia);
+          b.g.step(DT, ib);
+          // A paddle touching the puck is felt, not seen: stop comparing there.
+          if ([...a.g.events, ...b.g.events].some((e) => e.type === 'hit' || e.type === 'goal')) break;
+        }
+        if (differed >= 0) reacted++;
+      }
+      expect(checked).toBeGreaterThan(60);
+      expect(reacted, `${level}: never reacted to the new line`).toBeGreaterThan(3);
+    }
+  }, SLOW);
 
   it('the Quick Draw bot never draws faster than a quick person on a phone, at any level', () => {
     expect(QD_MIN).toBeGreaterThanOrEqual(HUMAN.reaction + HUMAN.touchLag);

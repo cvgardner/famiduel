@@ -344,11 +344,24 @@ export class AirHockey {
 // ---------- Honest bot ----------
 // Same paddle speed cap as a person. Skill only changes how stale its view of
 // the puck is (reaction time) and how much it misjudges where to hit.
+// `react` never goes under a person's (HUMAN.reaction, tests/bot-limits.test.ts). A good
+// player beats their own reaction time by reading the puck's line: `read` is how far
+// ahead (seconds) the bot carries what it saw along that line, side-wall bounces
+// included, as a person does by eye. It can't foresee a paddle hit any more than they can.
 const BOT = {
-  easy: { react: 0.45, noise: 50, strikeSpeed: 180, windup: 6, setShot: false },
-  normal: { react: 0.22, noise: 16, strikeSpeed: 260, windup: 16, setShot: true },
-  hard: { react: 0.12, noise: 6, strikeSpeed: 320, windup: 24, setShot: true },
-} satisfies Record<BotLevel, { react: number; noise: number; strikeSpeed: number; windup: number; setShot: boolean }>;
+  easy: { react: 0.45, read: 0, noise: 50, strikeSpeed: 180, windup: 6, setShot: false },
+  normal: { react: 0.22, read: 0, noise: 16, strikeSpeed: 260, windup: 16, setShot: true },
+  hard: { react: 0.2, read: 0.1, noise: 6, strikeSpeed: 320, windup: 24, setShot: true },
+} satisfies Record<BotLevel, { react: number; read: number; noise: number; strikeSpeed: number; windup: number; setShot: boolean }>;
+
+/** Giant Paddle: the bot grows only with its paddle at least this far back from the centre line. */
+const GIANT_BACK = 170;
+
+/** Below this puck speed (units/s) the bot plays it where it saw it, with no reading ahead. */
+const READ_MIN_SPEED = 150;
+
+/** How far behind the puck each bot level sees it, in seconds (for tests/bot-limits.test.ts). */
+export const AIRHOCKEY_REACT: Record<BotLevel, number> = { easy: BOT.easy.react, normal: BOT.normal.react, hard: BOT.hard.react };
 
 /**
  * The bot's hand. A person's finger has mass: it speeds up and slows down, it can't
@@ -470,7 +483,7 @@ export class AirHockeyBot {
     this.seen.push({ x: pk.x, y: pk.y, vx: pk.vx, vy: pk.vy });
     const lag = Math.round(cfg.react / dt);
     while (this.seen.length > lag + 1) this.seen.shift();
-    const s = this.seen[0];
+    const s = this.readAhead(this.seen[0], cfg.read);
     this.retarget -= dt;
     if (this.retarget <= 0) {
       this.retarget = 0.4;
@@ -674,7 +687,8 @@ export class AirHockeyBot {
   private pickAim(game: AirHockey): void {
     const cfg = BOT[this.level];
     const half = game.goalAt(this.p === 0 ? 'top' : 'bottom') / 2 - 12;
-    const pk = game.pucks[0];
+    // The puck as it last saw it (its view lags like a person's), never the live one.
+    const pk = this.seen[0];
     if (pk && this.foeStill >= BOT_PARKED) {
       // Look for the lines into the goal mouth with the most room past the parked paddle and inside the posts.
       const lines: { x: number; gap: number }[] = [];
@@ -717,6 +731,19 @@ export class AirHockeyBot {
     return gap;
   }
 
+  /** A puck seen at `s`, carried `t` seconds along its line (side-wall bounces folded in, stopped at the end walls). */
+  private readAhead(s: { x: number; y: number; vx: number; vy: number }, t: number): { x: number; y: number; vx: number; vy: number } {
+    // A slow puck needs no reading ahead (and near its own goal a guess past it misleads).
+    if (t <= 0 || Math.hypot(s.vx, s.vy) < READ_MIN_SPEED) return s;
+    const lo = RULES.wall + RULES.puckR;
+    const span = W - RULES.wall - RULES.puckR - lo;
+    let u = (s.x - lo + s.vx * t) % (2 * span);
+    if (u < 0) u += 2 * span;
+    const back = u > span;
+    const y = Math.max(lo, Math.min(H - lo, s.y + s.vy * t));
+    return { x: lo + (back ? 2 * span - u : u), y, vx: back ? -s.vx : s.vx, vy: s.vy };
+  }
+
   /** Where a puck seen at `s` will cross the line y = `y`, bouncing off the side walls. */
   private crossX(s: { x: number; y: number; vx: number; vy: number }, y: number): number {
     const t = (y - s.y) / s.vy;
@@ -731,11 +758,13 @@ export class AirHockeyBot {
 
   private wantsPower(game: AirHockey): boolean {
     const id = game.players[this.p].power?.id;
-    const pk = game.pucks[0];
+    // What it last saw (its view lags like a person's), never the live puck.
+    const pk = game.pucks[0] ? this.seen[0] : undefined;
     if (!pk) return false;
     const inMyHalf = this.p === 0 ? pk.y > MID : pk.y < MID;
     if (id === 'freeze') return inMyHalf; // freeze them right before we strike
-    if (id === 'giant') return !inMyHalf;
+    // Grow once its own paddle is back from the centre line (not mid-swing), puck in their half.
+    if (id === 'giant') return !inMyHalf && Math.abs(game.paddles[this.p].y - MID) > GIANT_BACK;
     const slow = Math.hypot(pk.vx, pk.vy) < 300;
     // Shrink their paddle as we line up a shot: a small paddle blocks less of the goal.
     if (id === 'tiny') return inMyHalf;
