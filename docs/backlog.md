@@ -2794,3 +2794,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       line that crosses no marks, nearest the old one, or the gap under the board (where
       "<ship> sunk!" starts) once every line does; a sink there fades the power name: 0.9%.
       tests/seabattle-power-pop.test.ts at 1x and Bigger text.
+- [x] 2026-11-21 (F409): Sea Battle radar words ("Ship nearby!", "All clear") popped on the top
+      row of the 3×3 box the scan was about (61% of readable frames over a scanned square, 71%
+      with Bigger text). shotWord() takes a reach and squares to avoid: the words start just
+      outside the box, on the nearest line crossing the fewest scanned squares, then marks:
+      4.5% (7.2%). tests/seabattle-radar-words.test.ts.
