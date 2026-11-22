@@ -29,6 +29,10 @@ export function seatPop(color: string): string {
 
 /** World units from the middle to a player's line (at line 1). */
 export const LINE_PX = 130;
+/** F405: how far a seat's chalk line reaches above (its flags) and below (the "your line" label) its y. */
+export const LINE_BAND = { above: 20, below: 23 } as const;
+/** F405: seconds a pop stays bright, for how far a closing line can move toward it. */
+const LINE_DRIFT_T = 1.5;
 /** Local (bottom-player) layout of one half. */
 export const L = {
   /** Where the puller's hands grip the rope, before the rope's slide moves them. */
@@ -178,6 +182,10 @@ class TugOfWarView implements GameInstance {
   clearOfRibbon(str: string, size: number, home: number, p: PlayerIndex): number {
     const shown = scaledSize(size);
     const ry = p === 0 ? this.ribbon() : H - this.ribbon();
+    const g = this.game;
+    const line = MID + g.lineNow(p) * LINE_PX;
+    // How far the line can slide toward the middle while the pop is still bright.
+    const drift = g.phase === 'pull' && g.phaseT < RULES.closeAt + RULES.closeLen ? (g.line[p] * (1 - RULES.closeTo) * LINE_PX * LINE_DRIFT_T) / RULES.closeLen : 0;
     const free = (y: number) => {
       // The pop rises POP_BRIGHT_RISE toward the middle (up, in the seat's own view) while bright.
       const top = y - POP_BRIGHT_RISE - shown * 0.45;
@@ -185,6 +193,10 @@ class TugOfWarView implements GameInstance {
       if (top < MID + 4 || bot > L.padY - L.padR - 8) return false;
       // The words are centred on the rope, so they always share the ribbon's x (half >= RIBBON_HALF_W).
       if (top < ry + RIBBON_CLEAR && ry - RIBBON_CLEAR < bot) return false;
+      // F405: nor across the seat's own chalk line (its flags and "your line" label only
+      // where the words are wide enough to reach them), which slides in while closing.
+      const [above, below] = this.lineReach(str, shown);
+      if (top < line + below && line - above - drift < bot) return false;
       const sc = toScreen(p, W / 2, y);
       return this.ctx.fx.popFits(str, sc.x, sc.y, size, p);
     };
@@ -192,6 +204,15 @@ class TugOfWarView implements GameInstance {
       for (const y of d ? [home - d, home + d] : [home]) if (free(y)) return y;
     }
     return home;
+  }
+
+  /** F405: how far seat p's chalk line reaches above and below its y for a centred pop of `str`. */
+  lineReach(str: string, shown: number): [number, number] {
+    const half = Math.min(W - 16, [...str].length * shown * 0.55) / 2;
+    // The flags stand 18 tall at x 14..26 and W-26..W-14; the label spans about 22..92.
+    const flags = W / 2 - half < 30;
+    const label = W / 2 - half < 96;
+    return [flags ? LINE_BAND.above : 6, label ? LINE_BAND.below : 6];
   }
 
   private onRound(r: RoundResult): void {
