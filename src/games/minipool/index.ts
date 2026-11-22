@@ -146,17 +146,24 @@ class MiniPoolView implements GameInstance {
    * and on a line fx.pop wouldn't move. Falls back to `home` when no line is clear.
    */
   clearOfBalls(str: string, size: number, home: number, p: PlayerIndex): number {
+    return this.lineClearOfBalls(str, size, home, p) ?? home;
+  }
+
+  /** A line for these words clear of every ball (and of other pops if it can), or null.
+   *  `strict`: only a line clear of balls all the way up and of other pops (no fading). */
+  lineClearOfBalls(str: string, size: number, home: number, p: PlayerIndex, strict = false): number | null {
     // F384: room for the words as text() draws them (Bigger text draws them up to 1.2x).
     const shown = scaledSize(size);
     const half = Math.min(W - 16, [...str].length * shown * 0.55) / 2;
     const rise = p === 0 ? -POP_RISE : POP_RISE;
     const r = PHYS.r + POP_BALL_GAP;
     const balls = this.game.balls.filter((b) => b.on);
-    const free = (y: number) => {
-      const top = Math.min(y, y + rise) - shown * 0.45;
-      const bot = Math.max(y, y + rise) + shown * 0.45;
+    const free = (y: number, pops: boolean, rising: boolean) => {
+      const dy = rising ? rise : 0;
+      const top = Math.min(y, y + dy) - shown * 0.45;
+      const bot = Math.max(y, y + dy) + shown * 0.45;
       if (top < TABLE.top || bot > TABLE.bottom) return false;
-      if (!this.ctx.fx.popFits(str, W / 2, y, size, p)) return false;
+      if (pops && !this.ctx.fx.popFits(str, W / 2, y, size, p)) return false;
       return !balls.some((b) => {
         const nx = Math.max(W / 2 - half, Math.min(W / 2 + half, b.x));
         const ny = Math.max(top, Math.min(bot, b.y));
@@ -164,10 +171,21 @@ class MiniPoolView implements GameInstance {
       });
     };
     const d = p === 0 ? 4 : -4;
-    for (let n = 0; n <= 60; n++) {
-      for (const y of n ? [home + n * d, home - n * d] : [home]) if (free(y)) return y;
+    // F436: clear of balls (all the way up) and other pops first; if no line is, clear of balls
+    // alone, fading the older pop in the way (a ball hidden under words is worse than a pop cut
+    // short); last, born clear of balls and rising past them (five forgiven misses in a crowded
+    // rack found no line for "Another go!" with Bigger text).
+    const passes = strict ? [[true, true]] : [[true, true], [false, true], [false, false]];
+    for (const [pops, rising] of passes) {
+      for (let n = 0; n <= 60; n++) {
+        for (const y of n ? [home + n * d, home - n * d] : [home]) {
+          if (!free(y, pops, rising)) continue;
+          if (!pops) this.ctx.fx.fadeInWay(str, W / 2, y, size, p);
+          return y;
+        }
+      }
     }
-    return home;
+    return null;
   }
 
   // ---------- juice ----------
@@ -178,11 +196,12 @@ class MiniPoolView implements GameInstance {
     // Braced, with fx.pop in each, so tests/contrast.test.ts reads their callers' colours.
     // F378: each pop starts on the nearest line where its words, as they rise, stay off every
     // ball on the table (a "Go again!" sat on the ball its player was lining up on).
+    const homeY = (p: PlayerIndex, dy = 150) => (p === 0 ? MID + dy : MID - dy);
     const pop = (p: PlayerIndex, str: string, color: string, size = 24, dy = 150) => {
-      fx.pop(str, W / 2, this.clearOfBalls(str, size, p === 0 ? MID + dy : MID - dy, p), color, p, size);
+      fx.pop(str, W / 2, this.clearOfBalls(str, size, homeY(p, dy), p), color, p, size);
     };
     const both = (str: string, color: string, size = 24, dy = 150) => {
-      for (const p of PLAYERS) fx.pop(str, W / 2, this.clearOfBalls(str, size, p === 0 ? MID + dy : MID - dy, p), color, p, size);
+      for (const p of PLAYERS) fx.pop(str, W / 2, this.clearOfBalls(str, size, homeY(p, dy), p), color, p, size);
     };
     for (const e of g.events) {
       if (e.type === 'rack') sfx.play('whoosh');
@@ -228,7 +247,12 @@ class MiniPoolView implements GameInstance {
         }
       } else if (e.type === 'retry') {
         // Head start: a plain miss forgiven, so the helped player shoots again.
-        if (!silentSeat(players, e.p)) pop(e.p, e.left ? `Another go! (${e.left} left)` : 'Another go!', players[e.p].color, 22);
+        if (!silentSeat(players, e.p)) {
+          // F436: the long line spans most balls; on a crowded table, the short one.
+          const long = `Another go! (${e.left} left)`;
+          const fits = e.left && this.lineClearOfBalls(long, 22, homeY(e.p), e.p, true) !== null;
+          pop(e.p, fits ? long : 'Another go!', players[e.p].color, 22);
+        }
       } else if (e.type === 'scratch') {
         both('Scratch! Turn over', '#ffffff', 22);
         fx.shake(4, 0.2);
