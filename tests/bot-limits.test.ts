@@ -13,7 +13,8 @@ import { SNACK_REACT, SnackSnatch, SnackSnatchBot } from '../src/games/snacksnat
 import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
 import { Sumo, SumoBot } from '../src/games/sumo/logic';
 import { TugOfWar, TugOfWarBot } from '../src/games/tugofwar/logic';
-import { BOT as TANK_BOT, RULES as TANK, SHELL_SEEN, TankBot, TankDuel, type Intent as TankIntent } from '../src/games/tanks/logic';
+import { COLS as TANK_COLS } from '../src/games/tanks/mazes';
+import { ARENA as TANK_ARENA, BOT as TANK_BOT, CELL as TANK_CELL, MINE_SEEN, RULES as TANK, SHELL_SEEN, TankBot, TankDuel, type Intent as TankIntent } from '../src/games/tanks/logic';
 import { DT, player, power } from './helpers';
 
 const LEVELS: BotLevel[] = ['easy', 'normal', 'hard'];
@@ -299,6 +300,62 @@ describe('honest bots respect a person\'s limits', () => {
       }
       expect(checked).toBeGreaterThan(60);
       expect(reacted, `${level}: never dodged the new shell`).toBeGreaterThan(3);
+    }
+  }, SLOW);
+
+  it('the Tank Duel bot spots a new mine no sooner than a person would, at any level', () => {
+    // F424: two identical arenas; on one the other tank drops a mine on this bot's route,
+    // two cells ahead. Until a reaction time has passed both bots drive exactly the same
+    // (no new route, no spot roll), and soon after it some steer round it.
+    expect(MINE_SEEN).toBeGreaterThanOrEqual(HUMAN.reaction);
+    type Peek = { mode: string; path: number[]; pathI: number };
+    for (const level of LEVELS) {
+      let checked = 0;
+      let reacted = 0;
+      for (let seed = 1; seed <= 40; seed++) {
+        const world = () => {
+          const g = new TankDuel([player({ bot: level }), player({ bot: level, power: power('tanks', 'mine') })], true, makeRng(seed));
+          return { g, bots: [new TankBot(0, level, makeRng(seed + 99)), new TankBot(1, level, makeRng(seed + 199))] };
+        };
+        const a = world();
+        const b = world();
+        const think = (w: ReturnType<typeof world>) => [w.bots[0].think(w.g, DT), w.bots[1].think(w.g, DT)] as [TankIntent, TankIntent];
+        const peek = () => b.bots[0] as unknown as Peek;
+        let t = 0;
+        for (; t < 2 + seed * 0.21; t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+        }
+        // Wait for tank 0 to be driving a route with two more cells to go.
+        for (; t < 12 && !(peek().mode === 'move' && peek().path.length > peek().pathI + 2); t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+        }
+        if (a.g.phase !== 'play' || peek().mode !== 'move' || peek().path.length <= peek().pathI + 2) continue;
+        const cell = peek().path[peek().pathI + 1];
+        const x = TANK_ARENA.x + (cell % TANK_COLS) * TANK_CELL + TANK_CELL / 2;
+        const y = TANK_ARENA.y + Math.floor(cell / TANK_COLS) * TANK_CELL + TANK_CELL / 2;
+        b.g.mines.push({ id: 9999, owner: 1, x, y, arm: TANK.mineArm, alive: true });
+        const lagFrames = Math.floor(HUMAN.reaction / DT) - 1;
+        let differed = -1;
+        for (let f = 0; f < 90 && differed < 0; f++) {
+          const ia = think(a);
+          // Tank 1 dropped the mine, so drive it as on the other arena and judge tank 0 alone.
+          const ib: [TankIntent, TankIntent] = [think(b)[0], ia[1]];
+          const same = JSON.stringify(ia[0]) === JSON.stringify(ib[0]);
+          if (f < lagFrames) {
+            expect(same, `${level} seed ${seed}: answered the new mine ${(f * DT).toFixed(2)} s after it`).toBe(true);
+            checked++;
+          } else if (!same) differed = f;
+          a.g.step(DT, ia);
+          b.g.step(DT, ib);
+          // Rolling onto it is felt, not seen: stop comparing once it is gone.
+          if (!b.g.mines.some((m) => m.id === 9999) || a.g.phase !== 'play') break;
+        }
+        if (differed >= 0) reacted++;
+      }
+      expect(checked).toBeGreaterThan(60);
+      expect(reacted, `${level}: never steered round the new mine`).toBeGreaterThan(3);
     }
   }, SLOW);
 

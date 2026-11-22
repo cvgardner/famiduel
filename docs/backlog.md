@@ -2861,3 +2861,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       hard v easy 100%; sim:powers normal 43-58%, no outliers. Left: normal mirror leans to
       the top seat (seat 0 wins 41% at n=320, main 53%): F426. Aim and mines seen late:
       F423, F424.
+- [x] 2026-11-22 (F424): Tank Duel's bot steered round the other tank's new mine on its
+      very next look (as soon as 0.16 s at hard), because route() blocked a mine's cell the
+      moment it dropped. A mine now counts for the bot (and gets its spot roll) only once it
+      has been down MINE_SEEN = HUMAN.reaction (0.2 s); its own mines it knows at once.
+      tests/bot-limits.test.ts two-arena check drops a mine two cells ahead on the bot's
+      route (the old bot fails it: normal answered in 0.15 s). PR #PRNUM.
