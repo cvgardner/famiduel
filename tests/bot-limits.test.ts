@@ -12,7 +12,7 @@ import { PINGPONG_REACT, PingPong, PingPongBot, type Intent as PongIntent } from
 import { MIN_REACTION as QD_MIN, QuickDraw, QuickDrawBot } from '../src/games/quickdraw/logic';
 import { SNACK_REACT, SnackSnatch, SnackSnatchBot } from '../src/games/snacksnatch/logic';
 import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
-import { Sumo, SumoBot } from '../src/games/sumo/logic';
+import { RULES as SUMO, SUMO_REACT, Sumo, SumoBot, type Intent as SumoIntent } from '../src/games/sumo/logic';
 import { TugOfWar, TugOfWarBot } from '../src/games/tugofwar/logic';
 import { BOT as TANK_BOT, RULES as TANK, SHELL_SEEN, TankBot, TankDuel, type Intent as TankIntent } from '../src/games/tanks/logic';
 import { DT, player, power } from './helpers';
@@ -225,6 +225,61 @@ describe('honest bots respect a person\'s limits', () => {
       }
       expect(checked).toBeGreaterThan(60);
       expect(reacted, `${level}: never reacted to the new line`).toBeGreaterThan(3);
+    }
+  }, SLOW);
+
+  it('the Sumo bot sees the other wrestler no sooner than a person would, at any level', () => {
+    // F418: same check as Air Hockey's. Two identical rings; on one the top wrestler is moved
+    // into the bottom bot's line mid-round. Until a reaction time has passed the bottom bot presses exactly the
+    // same on both (its dash button and its power), and soon after it answers the new spot.
+    for (const level of LEVELS) {
+      expect(SUMO_REACT[level]).toBeGreaterThanOrEqual(HUMAN.reaction);
+      let checked = 0;
+      let reacted = 0;
+      for (let trial = 0; trial < 80; trial++) {
+        const seed = 1 + (trial % 20);
+        const id = (['pound', 'grow', 'slip', 'iron', 'dash'] as const)[trial % 5];
+        const world = () => {
+          const g = new Sumo([player({ bot: level, power: power('sumo', id) }), player({ bot: level, power: power('sumo', 'grow') })], true, makeRng(seed));
+          const brng = makeRng(seed + 99);
+          return { g, bots: [new SumoBot(0, level, brng), new SumoBot(1, level, brng)] };
+        };
+        const a = world();
+        const b = world();
+        const think = (w: ReturnType<typeof world>) => [w.bots[0].think(w.g, DT), w.bots[1].think(w.g, DT)] as [SumoIntent, SumoIntent];
+        for (let t = 0; t < 2 + trial * 0.11 || a.g.phase !== 'fight'; t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+          if (t > 60) break;
+        }
+        if (a.g.phase !== 'fight') continue;
+        // Move the top wrestler (same distance away) to just ahead of the bottom one's sweeping
+        // arrow, where a bot that reads the live ring dashes at once.
+        const me = b.g.wrestlers[0];
+        const w1 = b.g.wrestlers[1];
+        const gap = Math.hypot(w1.x - me.x, w1.y - me.y);
+        const ang = me.angle + me.spin * SUMO.turnSpeed * 0.3;
+        w1.x = me.x + Math.cos(ang) * gap;
+        w1.y = me.y + Math.sin(ang) * gap;
+        const lagFrames = Math.floor(HUMAN.reaction / DT) - 1;
+        let differed = -1;
+        for (let f = 0; f < 240 && differed < 0; f++) {
+          const ia = think(a);
+          const ib = think(b);
+          const same = JSON.stringify(ia[0]) === JSON.stringify(ib[0]);
+          if (f < lagFrames) {
+            expect(same, `${level} seed ${seed} trial ${trial}: pressed on the new spot ${(f * DT).toFixed(2)} s after it`).toBe(true);
+            checked++;
+          } else if (!same) differed = f;
+          a.g.step(DT, ia);
+          b.g.step(DT, ib);
+          // A bump is felt, not seen, and a new round starts over: stop comparing there.
+          if ([...a.g.events, ...b.g.events].some((e) => e.type === 'bump' || e.type === 'round' || e.type === 'out')) break;
+        }
+        if (differed >= 0) reacted++;
+      }
+      expect(checked).toBeGreaterThan(60);
+      expect(reacted, `${level}: never reacted to the new spot`).toBeGreaterThan(3);
     }
   }, SLOW);
 
