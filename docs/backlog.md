@@ -656,8 +656,21 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       easy bot's paddle reaction rather than bringing the own goals back.
       2026-11-07: no change needed. `npm run sim -- --game airhockey --n 100`: a mashing kid
       wins 10% vs easy with no head start and 49% with the full head start (kid+3).
-- [ ] The air hockey bot still concedes some goals off fast rebounds (it reacts to where
+- [x] The air hockey bot still concedes some goals off fast rebounds (it reacts to where
       the puck was 0.1-0.45 s ago). Fine and human-like; recheck if hard looks clumsy.
+      2026-11-21 (F416, measured): goals conceded within 0.6 s of a wall bounce (after the
+      last paddle touch), 40 matches a row: hard 38-41%, normal 36-38%, easy 35%. Hard isn't
+      caught by rebounds more than the others; no change for that.
+      2026-11-21 (F417): but hard saw the puck 0.12 s late, under HUMAN.reaction (0.2).
+      Now every level's view lag is >= 0.2 s and hard instead reads a moving puck's line 0.1 s
+      ahead (side-wall bounces folded; not under 150 units/s, which put a resting puck in its
+      own goal), as a good player does by eye. Its aim and power choices use the lagged view
+      too (they read the live puck); Giant Paddle waits until its paddle is back from the
+      centre line (GIANT_BACK), else the grown paddle covered its own pop. n=80: hard v normal
+      78% -> 70% (51% with the lag alone), hard v easy 95% -> 90%, normal and kid rows
+      unchanged; sim:powers in band at every level. tests/bot-limits.test.ts: two tables, the
+      puck knocked onto a new line on one; the bots move identically on both for a person's
+      reaction time, then react (the old 0.12 s bot fails it).
 - [x] An idle-seat sim for every real-time game (this run's scratch script) could become a
       `npm run sim` table with the bot pace table idea above.
       2026-11-07 (F32): `npm run sim -- --idle` plays every action game with one seat that never
