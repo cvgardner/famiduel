@@ -2846,3 +2846,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       ~33%, already low). tests/bot-limits.test.ts: two picnics, every snack knocked onto a
       new line on one; both bots tap the same for a person's reaction time (the old 0.13 s
       bot fails it). Snake and Tank Duel's checks are split off (F420, F421).
+- [x] 2026-11-22 (F418a): Ping Pong's bots saw the ball 0.18 s (normal) and 0.1 s (hard)
+      late, under HUMAN.reaction (0.2), and their power picks and aim side read the live
+      ball and the other paddle. Every level now sees the ball at least 0.2 s late (the
+      forecast already reads the whole line from what it saw, so no read-ahead is needed);
+      power picks use the seen ball and the aim side the paddle as seen then. n=80: hard v
+      normal 100% (unchanged), normal v easy 98% -> 93%, other rows unchanged; sim:powers
+      in band at normal and hard. tests/bot-limits.test.ts: two tables, the ball knocked onto
+      a new line on one; both bots move the same for a person's reaction time (the old
+      0.1 s hard bot fails it). Sumo stays in F418.

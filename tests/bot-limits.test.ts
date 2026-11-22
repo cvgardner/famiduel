@@ -8,6 +8,7 @@ import { makeRng, type Rng } from '../src/core/rng';
 import type { BotLevel, PlayerIndex, PlayerInfo } from '../src/core/types';
 import { AIRHOCKEY_REACT, AirHockey, AirHockeyBot, type Intent as AirIntent } from '../src/games/airhockey/logic';
 import { ChopBot, ChopChop } from '../src/games/chopchop/logic';
+import { PINGPONG_REACT, PingPong, PingPongBot, type Intent as PongIntent } from '../src/games/pingpong/logic';
 import { MIN_REACTION as QD_MIN, QuickDraw, QuickDrawBot } from '../src/games/quickdraw/logic';
 import { SNACK_REACT, SnackSnatch, SnackSnatchBot } from '../src/games/snacksnatch/logic';
 import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
@@ -172,6 +173,53 @@ describe('honest bots respect a person\'s limits', () => {
           b.g.step(DT, ib);
           // A paddle touching the puck is felt, not seen: stop comparing there.
           if ([...a.g.events, ...b.g.events].some((e) => e.type === 'hit' || e.type === 'goal')) break;
+        }
+        if (differed >= 0) reacted++;
+      }
+      expect(checked).toBeGreaterThan(60);
+      expect(reacted, `${level}: never reacted to the new line`).toBeGreaterThan(3);
+    }
+  }, SLOW);
+
+  it('the Ping Pong bot sees the ball no sooner than a person would, at any level', () => {
+    // F418a: same check as Air Hockey's. Two identical tables; on one the ball is knocked
+    // onto another line mid-rally. Until a reaction time has passed both bots move (and
+    // press their power) exactly the same, and soon after they answer the new line.
+    for (const level of LEVELS) {
+      expect(PINGPONG_REACT[level]).toBeGreaterThanOrEqual(HUMAN.reaction);
+      let checked = 0;
+      let reacted = 0;
+      for (let seed = 1; seed <= 12; seed++) {
+        const world = () => {
+          const g = new PingPong([player({ bot: level, power: power('pingpong', 'wide') }), player({ bot: level, power: power('pingpong', 'slowmo') })], true, makeRng(seed));
+          const brng = makeRng(seed + 99);
+          return { g, bots: [new PingPongBot(0, level, brng), new PingPongBot(1, level, brng)] };
+        };
+        const a = world();
+        const b = world();
+        const think = (w: ReturnType<typeof world>) => [w.bots[0].think(w.g, DT), w.bots[1].think(w.g, DT)] as [PongIntent, PongIntent];
+        for (let t = 0; t < 2 + seed * 0.29 || a.g.serving || a.g.pointT > 0; t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+          if (t > 60) break;
+        }
+        if (a.g.winner !== null || a.g.serving) continue;
+        const ball = b.g.ball;
+        ball.vx = -ball.vx + (ball.x < 180 ? 160 : -160);
+        const lagFrames = Math.floor(HUMAN.reaction / DT) - 1;
+        let differed = -1;
+        for (let f = 0; f < 90 && differed < 0; f++) {
+          const ia = think(a);
+          const ib = think(b);
+          const same = JSON.stringify(ia) === JSON.stringify(ib);
+          if (f < lagFrames) {
+            expect(same, `${level} seed ${seed}: moved on the new line ${(f * DT).toFixed(2)} s after it`).toBe(true);
+            checked++;
+          } else if (!same) differed = f;
+          a.g.step(DT, ia);
+          b.g.step(DT, ib);
+          // A paddle touching the ball is felt, not seen: stop comparing there.
+          if ([...a.g.events, ...b.g.events].some((e) => e.type === 'hit' || e.type === 'point')) break;
         }
         if (differed >= 0) reacted++;
       }
