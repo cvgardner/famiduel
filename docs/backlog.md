@@ -2861,3 +2861,37 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       hard v easy 100%; sim:powers normal 43-58%, no outliers. Left: normal mirror leans to
       the top seat (seat 0 wins 41% at n=320, main 53%): F426. Aim and mines seen late:
       F423, F424.
+- [x] 2026-11-22 (F424): Tank Duel's bot steered round the other tank's new mine on its
+      very next look (as soon as 0.16 s at hard), because route() blocked a mine's cell the
+      moment it dropped. A mine now counts for the bot (and gets its spot roll) only once it
+      has been down MINE_SEEN = HUMAN.reaction (0.2 s); its own mines it knows at once.
+      tests/bot-limits.test.ts two-arena check drops a mine two cells ahead on the bot's
+      route (the old bot fails it: normal answered in 0.15 s). PR #437.
+- [x] 2026-11-22 (F423): Tank Duel's bot aimed and drove at the other tank's live spot, so a
+      tank that slipped out from behind a block was lined up on the very next look. It now
+      sees the other tank where it was FOE_SEEN = HUMAN.reaction (0.2 s) ago (traceShot takes
+      that spot; its own tank it feels live). Easy and normal lead it along the heading it
+      had then (without a lead, easy mirrors dragged: avg 50 -> 86 s, 3% time-up draws);
+      hard aims at what it saw (leading made it wag, tanks-motion 0.50 / s v limit 0.45).
+      n=80: easy mirror avg 52 s, normal 62 s, hard 74 s, no draws; hard v normal 90%, normal
+      v easy 93%; sim:powers normal 46-61%, no outliers. Normal mirror seat 0 read 53% (main
+      35-41%): recheck F426 at n=320 (F430). tests/bot-limits.test.ts two-arena check moves
+      the other tank 30 units (the old bot fails it: easy answered in 0.05 s). PR #438.
+- [x] 2026-11-22 (F418a): Ping Pong's bots saw the ball 0.18 s (normal) and 0.1 s (hard)
+      late, under HUMAN.reaction (0.2), and their power picks and aim side read the live
+      ball and the other paddle. Every level now sees the ball at least 0.2 s late (the
+      forecast already reads the whole line from what it saw, so no read-ahead is needed);
+      power picks use the seen ball and the aim side the paddle as seen then. n=80: hard v
+      normal 100% (unchanged), normal v easy 98% -> 93%, other rows unchanged; sim:powers
+      in band at normal and hard. tests/bot-limits.test.ts: two tables, the ball knocked onto
+      a new line on one; both bots move the same for a person's reaction time (the old
+      0.1 s hard bot fails it). Sumo stays in F418.
+- [x] 2026-11-22 (F418): Sumo's hard bot pressed 0.12 s after it saw the ring, under
+      HUMAN.reaction (0.2), and every level's power pick read the live other wrestler.
+      Hard now presses 0.2 s after the look (a steadier aim, noise 0.07 -> 0.05, keeps it
+      ahead of normal); power picks read the other wrestler as seen a reaction time ago
+      (its own wrestler it feels). n=160: hard v normal 78% -> 73% (66% with the lag
+      alone), other rows unchanged; sim:powers in band at normal and hard.
+      tests/bot-limits.test.ts: two rings, the top wrestler moved into the bottom bot's line
+      on one; the bot presses the same on both for a person's reaction time (the old 0.12 s
+      bot fails it).

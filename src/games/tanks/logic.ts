@@ -621,7 +621,8 @@ export class TankDuel {
  * Follow a would-be shell fired by p at angle a, with the tanks frozen where
  * they are now. Returns which tank it would bonk first and after how many bounces.
  */
-export function traceShot(game: TankDuel, p: PlayerIndex, a: number, maxT = 2.4): { hit: PlayerIndex | null; bounces: number; t: number } {
+/** Where shot a from tank p's gun goes. `seen` puts the other tank where p's player last saw it (a bot's lagged view, F423). */
+export function traceShot(game: TankDuel, p: PlayerIndex, a: number, maxT = 2.4, seen?: { x: number; y: number }): { hit: PlayerIndex | null; bounces: number; t: number } {
   const m = game.muzzle(p, a);
   if (game.arena.solidAt(m.x, m.y)) return { hit: null, bounces: 0, t: 0 };
   const s: Shell = {
@@ -644,7 +645,7 @@ export function traceShot(game: TankDuel, p: PlayerIndex, a: number, maxT = 2.4)
     if (!s.alive) break;
     for (const q of PLAYERS) {
       if (!TankDuel.armedFor(s, q)) continue;
-      const tk = game.tanks[q];
+      const tk = q !== p && seen ? seen : game.tanks[q];
       if (Math.hypot(s.x - tk.x, s.y - tk.y) < hitR - (q === p ? -4 : 3 - game.reach(p))) return { hit: q, bounces: s.bounces, t };
     }
   }
@@ -662,12 +663,18 @@ export function traceShot(game: TankDuel, p: PlayerIndex, a: number, maxT = 2.4)
 // it notices each one and drives round it); it always knows its own.
 /** Seconds a shell has flown before a bot can see it: a person's reaction time (F421). */
 export const SHELL_SEEN = HUMAN.reaction;
+/** Seconds behind the other tank's real spot the bot sees it: a person's reaction time (F423). */
+export const FOE_SEEN = HUMAN.reaction;
+/** Seconds of the other tank's drive before that look the bot reads its heading from. */
+const FOE_TREND = 0.1;
+/** Seconds a mine has been down before a bot can spot it: a person's reaction time (F424). */
+export const MINE_SEEN = HUMAN.reaction;
 
 export const BOT = {
-  easy: { react: 0.6, noise: 0.16, depth: 0, angles: 48, trigger: 0.32, spot: 0.5 },
-  normal: { react: 0.35, noise: 0.085, depth: 1, angles: 72, trigger: 0.26, spot: 0.75 },
-  hard: { react: 0.2, noise: 0.045, depth: 2, angles: 96, trigger: HUMAN.reaction, spot: 0.95 },
-} satisfies Record<BotLevel, { react: number; noise: number; depth: number; angles: number; trigger: number; spot: number }>;
+  easy: { react: 0.6, noise: 0.16, depth: 0, angles: 48, trigger: 0.32, spot: 0.5, lead: 1 },
+  normal: { react: 0.35, noise: 0.085, depth: 1, angles: 72, trigger: 0.26, spot: 0.75, lead: 1 },
+  hard: { react: 0.2, noise: 0.045, depth: 2, angles: 96, trigger: HUMAN.reaction, spot: 0.95, lead: 0 },
+} satisfies Record<BotLevel, { react: number; noise: number; depth: number; angles: number; trigger: number; spot: number; lead: number }>;
 
 type Mode = 'aim' | 'move' | 'dodge';
 const ROUTE_STEPS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]] as const;
@@ -694,6 +701,9 @@ export class TankBot {
   private spotted = new Map<number, boolean>();
   /** Seconds since two shells clashed mid-air (Infinity once answered). */
   private sinceClash = Infinity;
+  /** Where the other tank was on each frame of play (bot clock), for the lagged view (F423). */
+  private clock = 0;
+  private foeSeen: { t: number; x: number; y: number }[] = [];
 
   constructor(
     readonly p: PlayerIndex,
@@ -706,10 +716,15 @@ export class TankBot {
       this.timer = Math.min(this.timer, BOT[this.level].react * 0.5);
       this.path = [];
       this.readyFor = 0;
+      this.foeSeen = []; // tanks go back to their spawns: start the view afresh
       return IDLE;
     }
     this.sinceTap += dt;
     this.sinceClash += dt;
+    this.clock += dt;
+    const live = game.tanks[other(this.p)];
+    this.foeSeen.push({ t: this.clock, x: live.x, y: live.y });
+    while (this.foeSeen.length > 2 && this.foeSeen[1].t <= this.clock - FOE_SEEN - FOE_TREND) this.foeSeen.shift();
     if (game.events.some((e) => e.type === 'clash')) this.sinceClash = 0;
     this.readyFor = game.canFire(this.p) ? this.readyFor + dt : 0;
     this.timer -= dt;
@@ -751,7 +766,7 @@ export class TankBot {
       }
       return { mx: dx / d, my: dy / d, fire: false, power };
     }
-    const foe = game.tanks[other(this.p)];
+    const foe = this.seenFoe(game);
     const a = Math.atan2(foe.y - tk.y, foe.x - tk.x);
     const close = Math.hypot(foe.x - tk.x, foe.y - tk.y) < RULES.tankR * 3;
     return { mx: Math.cos(a) * (close ? 0.22 : 0.9), my: Math.sin(a) * (close ? 0.22 : 0.9), fire: false, power };
@@ -760,7 +775,7 @@ export class TankBot {
   private replan(game: TankDuel): void {
     const cfg = BOT[this.level];
     const me = game.tanks[this.p];
-    const foe = game.tanks[other(this.p)];
+    const foe = this.seenFoe(game);
     const powerId = game.powersOn ? game.players[this.p].power?.id : undefined;
     const ready = game.powersOn && game.energy[this.p].ready;
     // 1. Is a shell about to bonk me? Get out of its way (if I noticed in time).
@@ -860,13 +875,42 @@ export class TankBot {
     return null;
   }
 
+  /**
+   * The other tank as this bot's player sees it: where it was FOE_SEEN ago (F423). A
+   * person lines up on what they saw a reaction time back, so a tank that slips out
+   * from behind a block isn't shot at on the very next look. Its own tank it feels live.
+   */
+  private seenFoe(game: TankDuel): Tank {
+    const live = game.tanks[other(this.p)];
+    const cut = this.clock - FOE_SEEN;
+    let at = this.foeSeen[0];
+    for (const h of this.foeSeen) if (h.t <= cut) at = h;
+    if (!at) return live;
+    // Like a person, it reads which way the tank was going and leads it to where it is
+    // likely to be by now (straight on, stopping at walls), from the same old look.
+    // BOT.lead scales that guess. Hard looks often enough to aim at what it saw: leading
+    // made it turn one way and back between looks (tanks-motion wags 0.39 -> 0.50 / s).
+    const was = this.foeSeen[0];
+    const span = at.t - was.t;
+    if (span < FOE_TREND * 0.5 || BOT[this.level].lead <= 0) return { ...live, x: at.x, y: at.y };
+    const k = (FOE_SEEN * BOT[this.level].lead) / span;
+    let x = at.x + (at.x - was.x) * k;
+    let y = at.y + (at.y - was.y) * k;
+    if (game.arena.solidAt(x, y)) {
+      x = at.x;
+      y = at.y;
+    }
+    return { ...live, x, y };
+  }
+
   private findShot(game: TankDuel, depth: number, n: number): number | null {
     const me = game.tanks[this.p];
+    const foe = this.seenFoe(game);
     let best: number | null = null;
     let bestScore = Infinity;
     for (let k = 0; k < n; k++) {
       const a = (k / n) * Math.PI * 2 - Math.PI;
-      const r = traceShot(game, this.p, a);
+      const r = traceShot(game, this.p, a, undefined, foe);
       if (r.hit !== other(this.p) || r.bounces > depth) continue;
       const score = r.t + r.bounces * 0.4 + Math.abs(wrapAngle(a - me.a)) * 0.15;
       if (score < bestScore) {
@@ -885,9 +929,12 @@ export class TankBot {
    * routes the bot keeps the one it is already driving, then the one that needs
    * the least turning from where it's facing.
    */
-  /** Does this bot know about mine m? Its own always (and drives over it: it is harmless to it); the other's with BOT.spot odds. */
+  /** Does this bot know about mine m? Its own always (and drives over it: it is harmless to it); the other's with BOT.spot odds, once it has been down MINE_SEEN. */
   private sees(m: Mine): boolean {
     if (m.owner === this.p) return true;
+    // A person sees the other tank's mine a reaction time after it drops (F424); until
+    // then it isn't there for the route, and the spot roll waits for that first look.
+    if (RULES.mineArm - m.arm < MINE_SEEN) return false;
     let seen = this.spotted.get(m.id);
     if (seen === undefined) {
       seen = this.rng.chance(BOT[this.level].spot);
