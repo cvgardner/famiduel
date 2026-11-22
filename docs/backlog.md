@@ -2957,7 +2957,7 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   player's half). Now the forgiven miss pops "Another go!" alone, and every Mini Pool pop is
   born on its own seat's half. Checked in tests/minipool-pops.test.ts (101 doubled pops on main),
   which now also plays a three-star bottom player against the hard bot.
-- [x] 2026-11-22 (F441, PR #TBD): Mini Pool's seat panel showed a head start's forgiven misses
+- [x] 2026-11-22 (F441, PR #448): Mini Pool's seat panel showed a head start's forgiven misses
   as "↺4", which a small kid can't read. It now says them in words when they fit
   ("Your shot! · 4 extra goes", "1 extra go"), falling back to ↺4 only when the line is too
   long; the 320 px Bigger text frame fits the whole "Your shot! Pull back, let go · 5 extra
