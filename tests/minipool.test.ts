@@ -5,7 +5,7 @@ import { Fx } from '../src/engine/fx';
 import { Input } from '../src/engine/input';
 import type { Sfx } from '../src/engine/sfx';
 import { MID } from '../src/engine/world';
-import { MiniPool, MiniPoolBot, NO_INTENT, retriesFor, RULES, type Intent } from '../src/games/minipool/logic';
+import { MiniPool, MiniPoolBot, NO_INTENT, pocketAssistFor, retriesFor, RULES, type Intent } from '../src/games/minipool/logic';
 import { castAim, ghostBall, NO_MODS, PHYS, POCKETS, simulateShot, stepTable, strike, TABLE, type Ball, type PhysEvent } from '../src/games/minipool/physics';
 import { GAMES } from '../src/games/registry';
 import { recorder } from './canvasRecorder';
@@ -226,7 +226,7 @@ describe('Mini Pool handicap', () => {
     const g = new MiniPool([player({ bot: null, assist: 3 }), player({ bot: null, assist: 0 })], false, makeRng(1), 0);
     expect(g.guideLen(0)).toBe(RULES.guideMax);
     expect(g.guideLen(1)).toBe(RULES.guideMin);
-    expect(g.modsFor(0).pocketBonus).toBe(RULES.pocketAssist);
+    expect(g.modsFor(0).pocketBonus).toBe(RULES.pocketAssist[3]);
     expect(g.modsFor(1).pocketBonus).toBe(0);
   });
 
@@ -240,14 +240,17 @@ describe('Mini Pool handicap', () => {
       return ev.some((e) => e.type === 'pocket');
     };
     expect(drops(0)).toBe(false);
-    expect(drops(RULES.pocketAssist)).toBe(true);
+    expect(drops(RULES.pocketAssist[3])).toBe(true);
   });
-  it('head start: plain misses a rack are forgiven, one per star (F358)', () => {
-    expect([0, 1, 2, 3].map((a) => retriesFor(a))).toEqual([0, 1, 2, 3]);
+  it('head start: plain misses a rack are forgiven, more per star (F358, F436)', () => {
+    // F436: three stars forgive five misses (and widen pockets more), so easy+3 catches hard.
+    expect([0, 1, 2, 3].map((a) => retriesFor(a))).toEqual([0, 1, 2, 5]);
+    expect([0, 1, 2, 3].map((a) => pocketAssistFor(a))).toEqual(RULES.pocketAssist);
+    expect(pocketAssistFor(2.5)).toBeCloseTo((RULES.pocketAssist[2] + RULES.pocketAssist[3]) / 2);
     const helped: [PlayerInfo, PlayerInfo] = [player({ bot: null, assist: 3 }), player({ bot: null, assist: 0 })];
     const g = setUp(0, table(['cue', 180, 420], [0, 60, 300], [1, 300, 300], ['eight', 180, 200]), helped);
-    expect(g.retries).toEqual([3, 0]);
-    for (const left of [2, 1, 0]) {
+    expect(g.retries).toEqual([5, 0]);
+    for (const left of [4, 3, 2, 1, 0]) {
       shootAndWait(g, 0, 0.1); // a soft roll at nothing: a plain miss
       expect(g.shooter, `forgiven, ${left} left`).toBe(0);
       expect(g.retries[0]).toBe(left);
@@ -264,11 +267,11 @@ describe('Mini Pool handicap', () => {
     while (g.phase !== 'aim') g.step(DT, [NO_INTENT, NO_INTENT]);
     shootAndWait(g, -Math.PI / 2, 0.06); // a soft break that pots nothing
     expect(g.shooter).toBe(1);
-    expect(g.retries[0]).toBe(3);
+    expect(g.retries[0]).toBe(5);
     const s = setUp(0, table(['cue', 300, 400], [0, 60, 300], [1, 300, 200], ['eight', 180, 200]), helped);
     shootAndWait(s, at(s.cue, POCKETS[3]), 0.5);
     expect(s.shooter, 'a scratch passes the turn').toBe(1);
-    expect(s.retries[0]).toBe(3);
+    expect(s.retries[0]).toBe(5);
   });
 });
 

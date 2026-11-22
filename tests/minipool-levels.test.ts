@@ -25,6 +25,13 @@ describe('Mini Pool bot levels feel different', () => {
     expect(a3).toBeGreaterThanOrEqual(0.4);
   }, 180_000);
 
+  it('three head-start stars catch the hard bot (F436)', () => {
+    // 2026-11-22 (n=80, two seed sets): easy+0..3 v hard 5 / 13 / 23 / 50% and 6 / 8 / 16 / 56%
+    // with 8 extra pocket at three stars and five forgiven misses (was 5 and 3: +3 read 28%);
+    // v normal +3 65-69% (was 53%), +0..2 unchanged. n=30 here reads 53%.
+    expect(poolPairing('easy', 'hard', 30, 3).wins).toBeGreaterThanOrEqual(0.4);
+  }, 120_000);
+
   it('two easy players finish the rack on the 8, not at the shot cap (F357)', () => {
     const r = poolPairing('easy', 'easy', 20);
     const racks = r.ends.eight + r.ends.early8 + r.ends.scratch8 + r.ends.cap;

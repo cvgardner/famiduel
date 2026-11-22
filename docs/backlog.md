@@ -2929,3 +2929,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       sinks the 8. `npm run pool -- --n 80`: hard v hard early 8 5% -> 0%, hard v normal
       74 -> 71% (noise), hard v easy 95 -> 96%, easy+N v hard 5/13/23/26 -> 4/10/21/26%.
       Test in tests/minipool-levels.test.ts. Easy and normal don't look (a kid's slip is fine).
+- [x] 2026-11-22 (F436): Mini Pool head start against the hard bot topped out at easy+3 v hard
+  28%. Three stars now widen your pockets by 8 (was 5; one and two stars unchanged, a per-star
+  table `RULES.pocketAssist`) and forgive five plain misses a rack (was 3). n=80, two seed sets:
+  easy+3 v hard 50-56%, v normal 65-69% (was 53%); +0..2 unchanged. With five forgiven misses a
+  crowded rack had no line for "Another go! (1 left)": it falls back to "Another go!", then to a
+  line clear of balls with the older pop faded, then to one born clear of balls. New check in
+  tests/minipool-levels.test.ts.
