@@ -513,6 +513,20 @@ test('ghost finger: the in-play card never sits on a person\'s "3 2 1" digit, on
   expect(errors).toEqual([]);
 });
 
+/**
+ * F413/F414: score marks beside each seat's play, as local world boxes [x0, x1, y0, y1] in
+ * seat 0's view, that a first-match finger card must not cover.
+ */
+const SCORE_MARKS: Record<string, [string, [number, number, number, number]][]> = {
+  // Round stars at L.starX W/2+118, L.starY MID+150 and +176, r 11 + outline; the puller
+  // (hands at most MID+152, feet 30 lower, ~30 each side of the rope).
+  tugofwar: [['round stars', [284, 312, 456, 510]], ['puller', [150, 210, 430, 512]]],
+  // Round stars at W/2+116, cowboyY-34 + 26 i (r 10), the "0 – 0" line at cowboyY+52.
+  quickdraw: [['round stars', [284, 308, 438, 510]], ['score line', [276, 316, 526, 542]]],
+  // The goal count, size 34, at W-60, MID+28.
+  airhockey: [['score', [282, 318, 330, 366]]],
+};
+
 test('ghost finger: the card clears the game\'s own "3 2 1" digit and its "goes first" pill, at 320 and 390 px', async ({ page }) => {
   // F402: the test above checks the usual digit spot (MID ± 120) only. A game can move its
   // digit (countdownDy, Mini Pool and Sumo) or its card (demoAt), and the pill follows the
@@ -566,9 +580,16 @@ test('ghost finger: the card clears the game\'s own "3 2 1" digit and its "goes 
           const cy = box.y + (320 + sign * pillDy) * s;
           keepOff.push(['pill', { l: box.x + (180 - PILL_W / 2) * s, r: box.x + (180 + PILL_W / 2) * s, t: cy - 23.5 * s, b: cy + 23.5 * s }]);
         }
+        // F413/F414: each seat's own score marks near its card (local world boxes, seat 0's
+        // view; seat 1's are turned). The card beside the digit covered Tug of War's and Quick
+        // Draw's first round star.
+        for (const [what, [x0, x1, y0, y1]] of SCORE_MARKS[id] ?? []) {
+          const [lx0, lx1, ly0, ly1] = c.p === 0 ? [x0, x1, y0, y1] : [360 - x1, 360 - x0, 640 - y1, 640 - y0];
+          keepOff.push([what, { l: box.x + lx0 * s, r: box.x + lx1 * s, t: box.y + ly0 * s, b: box.y + ly1 * s }]);
+        }
         for (const [what, d] of keepOff) if (c.l < d.r && c.r > d.l && c.t < d.b && c.b > d.t) hits.push(`${id} seat ${c.p} on the ${what} at ${width} px (card ${Math.round((c.t - box.y) / s)}-${Math.round((c.b - box.y) / s)}, ${what} ${Math.round((d.t - box.y) / s)}-${Math.round((d.b - box.y) / s)})`);
       }
-      if (id === 'minipool' || id === 'penalty') await page.screenshot({ path: path.join(OUT, `ghost-finger-pill-${id}-${width}.png`) });
+      if (['minipool', 'penalty', 'tugofwar', 'quickdraw'].includes(id)) await page.screenshot({ path: path.join(OUT, `ghost-finger-pill-${id}-${width}.png`) });
     }
   }
   await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());

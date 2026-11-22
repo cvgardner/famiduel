@@ -18,7 +18,7 @@ import { dayKey } from '../games/minigolf/daily';
 import { cardPicHtml } from './cardpic';
 import { powerPicHtml, watchPowerPics } from './powerpic';
 import { loserTitle, scoreLabels } from './resulttitle';
-import { demoHelpHtml, demoHtml, firstMatchOf, goalHtml, HelpMemory, howToHalfHtml, howToText, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
+import { countdownDy, demoHelpHtml, demoHtml, firstMatchOf, goalHtml, HelpMemory, howToHalfHtml, howToText, isGesture, PLAY_DEMO_MS, playDemoHtml, seatCueHtml, showsDemo } from './demo';
 import { shownGames } from './catalog';
 import { Runner } from './runner';
 import { StarterLog } from './starter';
@@ -741,7 +741,7 @@ export class App {
     if (!/turns|Extra/.test(String(meta.kind))) this.runner.onIdle = () => this.pause(true);
     const g = this.runner.game;
     const gesture = g.opensOnCover?.() || g.opensOnSetup?.() ? null : meta.gesture;
-    this.playDemo(meta.id, gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined, this.runner.game.firstMover?.() ?? null);
+    this.playDemo(meta.id, gesture, 'demoAt' in meta ? Number(meta.demoAt) : undefined, this.runner.game.firstMover?.() ?? null, countdownDy(g));
     this.stage.start();
   }
 
@@ -750,7 +750,7 @@ export class App {
    * own half through the countdown and the first moments of play, then fades. A
    * seat's own first touch clears its copy at once. Bots get none.
    */
-  private playDemo(id: string, gesture: unknown, at?: number, first: PlayerIndex | null = null): void {
+  private playDemo(id: string, gesture: unknown, at?: number, first: PlayerIndex | null = null, dy?: number): void {
     const play = $('#play', this.root);
     for (const el of play.querySelectorAll('.play-demo')) el.remove();
     clearTimeout(this.playDemoTimer);
@@ -760,7 +760,7 @@ export class App {
       if (botFor(pr, id)) continue;
       // F138: Penalty's loop shows two roles; the seat that keeps goal first starts on the dive.
       const keeper = gesture === 'kick' && first !== null && first !== p;
-      play.insertAdjacentHTML('beforeend', playDemoHtml(gesture, p, !!pr.lefty, at, keeper));
+      play.insertAdjacentHTML('beforeend', playDemoHtml(gesture, p, !!pr.lefty, at, keeper, dy));
     }
     this.playDemoTimer = window.setTimeout(() => {
       for (const el of play.querySelectorAll('.play-demo')) el.remove();
