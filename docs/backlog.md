@@ -2799,6 +2799,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       with Bigger text). shotWord() takes a reach and squares to avoid: the words start just
       outside the box, on the nearest line crossing the fewest scanned squares, then marks:
       4.5% (7.2%). tests/seabattle-radar-words.test.ts.
+- [x] 2026-11-21 (F412): Tug of War's "3 2 1" digit sat at MID ± 120, on that seat's chalk
+      line and the puller's hands, so the first look at where to pull was hidden. It now sits
+      just past the middle, over the mud (countdownDy() 66, down to 61 when a head start brings
+      a line in): clear of the puller, the line and "your line" at every head start but a
+      3-star one, whose line only the biggest frame of each step grazes (< 6 units).
+      tests/tugofwar-countdown.test.ts (1x and Bigger text).
 - [x] 2026-11-21 (F410): a rival 2-player app's reviews say "a tournament game got stuck on
       bot's turn". tests/bots-never-stall.test.ts plays every shown game bot v bot through its
       real view (turn cards, waits, bot delays) at easy, normal and hard, powers off and each
