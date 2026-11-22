@@ -2782,3 +2782,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       so it is biggest in world units on a 390 px phone). It found Penalty's card on the edge of
       "Player 2 goes first" on both sides at 390 px (card 434-503 vs pill 496-544): Penalty's
       card now sits a little higher (`"demoAt": 0.67`), clear at both widths.
+- [x] 2026-11-21 (F409): Sea Battle radar words ("Ship nearby!", "All clear") popped on the top
+      row of the 3×3 box the scan was about (61% of readable frames over a scanned square, 71%
+      with Bigger text). shotWord() takes a reach and squares to avoid: the words start just
+      outside the box, on the nearest line crossing the fewest scanned squares, then marks:
+      4.5% (7.2%). tests/seabattle-radar-words.test.ts.

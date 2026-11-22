@@ -566,7 +566,10 @@ class SeaBattleView implements GameInstance {
       } else if (e.type === 'radar') {
         sfx.play(e.found ? 'coin' : 'pop');
         const [x, y] = this.cellXY(e.cell);
-        this.pop(e.found ? 'Ship nearby!' : 'All clear', x, y - 30, e.found ? COLORS.gold : '#bfe9ff', 22);
+        // F409: the words go just outside the scanned 3×3 box (they sat on its top row, over
+        // the very squares the scan was about), on the line nearest it with the fewest marks.
+        const [bx, by] = this.cellXY(radarCells(e.cell)[4]);
+        this.shotWord(e.found ? 'Ship nearby!' : 'All clear', d, bx, by, e.found ? COLORS.gold : '#bfe9ff', 22, 1.5 * C, radarCells(e.cell));
         this.burst(x, y, e.found ? COLORS.gold : '#7fd3ff', 20, 160, 3);
         this.notice[d] = noticeLines('scan', this.ctx.players[a].name);
       } else if (e.type === 'mine') {
@@ -588,14 +591,15 @@ class SeaBattleView implements GameInstance {
    * square whose words, over their bright rise, cover the fewest shown ships, then the fewest
    * shot marks: a line above or below, nudged up to two squares sideways.
    */
-  private shotWord(str: string, owner: PlayerIndex, x: number, y: number, color: string, size: number): void {
+  private shotWord(str: string, owner: PlayerIndex, x: number, y: number, color: string, size: number, reach = C / 2, avoid: readonly number[] = []): void {
     const lay = this.layout();
     const sea = this.game.seas[owner];
     // F382: room for the words as text() draws them (Bigger text draws an 18 at 21.6).
     const shown = scaledSize(size);
     const half = ([...str].length * shown * 0.55) / 2;
     const h = shown * 0.45;
-    const near = shown / 2 + C / 2 + 2;
+    // `reach`: how far from (x, y) the words must start (half a square, or a radar box's half).
+    const near = shown / 2 + reach + 2;
     const first = y < GY + 70 ? 1 : -1;
     const cost = (px: number, py: number): number => {
       let n = 0;
@@ -605,7 +609,8 @@ class SeaBattleView implements GameInstance {
         const cx = GX + (c % N) * C;
         const cy = GY + Math.floor(c / N) * C;
         if (!(x0 < cx + C - 3 && cx + 3 < x1 && y0 < cy + C - 3 && cy + 3 < y1)) continue;
-        if (lay.bigShips && sea.occ[c] >= 0) n += 4;
+        if (avoid.includes(c)) n += 8;
+        else if (lay.bigShips && sea.occ[c] >= 0) n += 4;
         else if (sea.marks[c]) n += 1;
       }
       return n;
