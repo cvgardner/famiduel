@@ -71,6 +71,20 @@ export function cardBox(lost: boolean): { x: number; w: number } {
   return { x: W - right, w: 2 * right - W };
 }
 
+/**
+ * F412: the "3 2 1" digit (size 110 at its biggest, runner.ts) sat at MID ± 120, on that
+ * seat's chalk line and the puller's hands, so the first look at where to pull was hidden.
+ * Chromium measures a bold digit 49 above and 35 below its middle, plus half its size/6
+ * stroke (9.2); the field has no row that tall between the mud and the line, so the digit
+ * sits just past the middle, over the mud, its top clear of the ribbon's knot (r 5).
+ */
+export const DIGIT = { up: 59, down: 45, halfW: 42 } as const;
+/** Digit centre's distance from the middle: knot clear (59 + 7), and no closer than the
+ *  other seat's digit allows (59 + 2). */
+export const COUNT_DY_TUG = { most: 66, least: 61 } as const;
+/** Half the drawn chalk line's stroke (a 7-wide white line under the colour). */
+export const LINE_HALF = 3.5;
+
 /** Local point in player p's frame to a screen point. */
 const toScreen = (p: PlayerIndex, x: number, y: number) => (p === 0 ? { x, y } : { x: W - x, y: H - y });
 
@@ -99,6 +113,15 @@ class TugOfWarView implements GameInstance {
       const [x, y] = powerSpot(p, 40, 42, !!ctx.players[p].lefty);
       return new PowerButton(x, y, p, pw, ctx.players[p].color, silentSeat(ctx.players, p));
     });
+  }
+
+  /** F412: just past the mud, and nearer still when a head start brings a line in, so the
+   *  digit's foot stays off the nearest chalk line (a 3-star head start's line at 104 is the
+   *  one the biggest digit still grazes, by its first frames of each step). */
+  countdownDy(): number {
+    const nearest = Math.min(...this.game.line) * LINE_PX;
+    const fit = nearest - LINE_HALF - DIGIT.down - 2;
+    return Math.max(COUNT_DY_TUG.least, Math.min(COUNT_DY_TUG.most, fit));
   }
 
   update(dt: number, input: Input): void {
