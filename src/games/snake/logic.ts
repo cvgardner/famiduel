@@ -450,6 +450,11 @@ const NEARHEAD_HARD = 1000;
  * room) only breaks a tie between two equally open turns; kid rows didn't move.
  */
 const HEADON_EASY = 10;
+/**
+ * F420: how long after the board changes the bot sees it, every level (a person's
+ * reaction time, tests/bot-limits.test.ts). Its own snake it feels at once.
+ */
+export const SNAKE_SEE = HUMAN.reaction;
 
 const BOT = {
   easy: { depth: 14, react: 0.3, slip: 0.07, noise: 0.5, headOn: HEADON_EASY, nearHead: 0, lockAhead: false, territory: false },
@@ -457,9 +462,16 @@ const BOT = {
   hard: { depth: 600, react: HUMAN.tapGap, slip: 0, noise: 0.5, headOn: HEADON_HARD, nearHead: NEARHEAD_HARD, lockAhead: true, territory: true },
 } satisfies Record<BotLevel, { depth: number; react: number; slip: number; noise: number; headOn: number; nearHead: number; lockAhead: boolean; territory: boolean }>;
 
+/** What the bot saw one frame: the board and the other snake (its own snake it feels). */
+type Look = { grid: Uint8Array; soon: Uint8Array; o: Snake };
+
 export class SnakeBot {
   private plannedFor = -1;
   private sinceTurn = 1;
+  /** One look per frame, oldest first: it plans from the one a reaction time old. */
+  private looks: Look[] = [];
+  /** Where the other head may be by now (see view()). */
+  private heads: { x: number; y: number; dir: number }[] = [];
 
   constructor(
     readonly p: PlayerIndex,
@@ -467,17 +479,21 @@ export class SnakeBot {
     private readonly rng: Rng,
   ) {}
 
-  think(game: SnakeDuel, dt: number): Intent {
+  think(live: SnakeDuel, dt: number): Intent {
     const cfg = BOT[this.level];
     this.sinceTurn += dt;
-    const s = game.snakes[this.p];
-    if (game.phase !== 'play' || !s.alive) {
+    const s = live.snakes[this.p];
+    this.looks.push({ grid: live.grid.slice(), soon: live.soon.slice(), o: { ...live.snakes[other(this.p)], queue: [] } });
+    const lag = Math.round(SNAKE_SEE / dt);
+    while (this.looks.length > lag + 1) this.looks.shift();
+    if (live.phase !== 'play' || !s.alive) {
       this.plannedFor = -1;
       return { turn: 0, power: false };
     }
     // One decision per cell, made right after the snake moves.
     if (s.moves === this.plannedFor) return { turn: 0, power: false };
     this.plannedFor = s.moves;
+    const game = this.view(live);
     const options = ([0, -1, 1] as const).map((turn) => ({ turn, score: this.evaluate(game, turn) }));
     let best = options[0];
     for (const o of options) if (o.score > best.score) best = o;
@@ -505,6 +521,75 @@ export class SnakeBot {
     return { turn, power };
   }
 
+  /**
+   * The board as the bot saw it a reaction time ago (the other snake, its trail, blinking
+   * bricks), with its own snake and trail as they are now: it feels where it is.
+   */
+  private view(live: SnakeDuel): SnakeDuel {
+    const look = this.looks[0];
+    const mine = this.p + 1;
+    const grid = look.grid.slice();
+    for (let i = 0; i < grid.length; i++) if (live.grid[i] === mine) grid[i] = mine;
+    // A snake keeps going the way it was going: read its line on by the cells it covers in
+    // that time, as a person does by eye (a turn made since, it can't know).
+    const o = { ...look.o };
+    this.heads = [];
+    if (o.alive) {
+      // Every place the other head could have got to since (straight on, or turning).
+      const walk = (h: { x: number; y: number; dir: number }, left: number): void => {
+        if (left === 0) {
+          this.heads.push(h);
+          return;
+        }
+        let moved = false;
+        for (const t of [0, 1, 3]) {
+          const d = (h.dir + t) % 4;
+          const nx = h.x + DX[d];
+          const ny = h.y + DY[d];
+          if (!live.inside(nx, ny) || look.grid[live.idx(nx, ny)] !== 0) continue;
+          moved = true;
+          walk({ x: nx, y: ny, dir: d }, left - 1);
+        }
+        if (!moved) this.heads.push(h);
+      };
+      walk({ x: o.x, y: o.y, dir: o.dir }, Math.ceil(live.speed(other(this.p)) * SNAKE_SEE));
+    }
+    if (o.alive) {
+      const ahead = Math.round(live.speed(other(this.p)) * SNAKE_SEE);
+      const theirs = other(this.p) + 1;
+      for (let k = 0; k < ahead; k++) {
+        const nx = o.x + DX[o.dir];
+        const ny = o.y + DY[o.dir];
+        if (!live.inside(nx, ny) || grid[live.idx(nx, ny)] !== 0) break;
+        o.x = nx;
+        o.y = ny;
+        grid[live.idx(nx, ny)] = theirs;
+      }
+    }
+    const snakes = [...live.snakes] as SnakeDuel['snakes'];
+    snakes[other(this.p)] = o;
+    const v = Object.create(live) as SnakeDuel;
+    Object.assign(v, { grid, soon: look.soon, snakes });
+    return v;
+  }
+
+  /** How much a step to (x, y) going `dir` risks meeting the other head `o` (at its cell, facing its way). */
+  private headPenalty(o: { x: number; y: number; dir: number }, x: number, y: number, dir: number, turn: -1 | 0 | 1): number {
+    const cfg = BOT[this.level];
+    if (Math.abs(o.x + DX[o.dir] - x) + Math.abs(o.y + DY[o.dir] - y) === 0) return cfg.headOn;
+    if (Math.abs(o.x - x) + Math.abs(o.y - y) === 1) return cfg.nearHead;
+    // A turn locks the next cell straight (no second tap that soon), so the hard bot also
+    // checks that cell: one the other head reaches in two steps is a likely head-on.
+    if (cfg.lockAhead && turn !== 0) {
+      const d2 = Math.abs(o.x - x - DX[dir]) + Math.abs(o.y - y - DY[dir]);
+      if (d2 === 2) return o.x + 2 * DX[o.dir] === x + DX[dir] && o.y + 2 * DY[o.dir] === y + DY[dir] ? cfg.headOn : cfg.nearHead;
+      // ...or the other head is two cells past it, straight on: if it turns into the cell
+      // between (as a mirror-image bot does), both heads are locked facing, a swap head-on.
+      if (o.x === x + 2 * DX[dir] && o.y === y + 2 * DY[dir]) return cfg.headOn;
+    }
+    return 0;
+  }
+
   /** How good a turn is: room reachable after it. `wrap`: as if Wall Wrap were on. */
   private evaluate(game: SnakeDuel, turn: -1 | 0 | 1, wrap = false): number {
     const cfg = BOT[this.level];
@@ -516,16 +601,12 @@ export class SnakeBot {
     // A blinking brick is about to be solid: a careful player steers clear of it.
     if ((game.grid[game.idx(x, y)] !== 0 || game.soon[game.idx(x, y)]) && !canPhase(s)) return -1e9;
     let score = flood(game, x, y, cfg.depth);
-    if (o.alive && Math.abs(o.x + DX[o.dir] - x) + Math.abs(o.y + DY[o.dir] - y) === 0) score -= cfg.headOn;
-    else if (o.alive && Math.abs(o.x - x) + Math.abs(o.y - y) === 1) score -= cfg.nearHead;
-    // A turn locks the next cell straight (no second tap that soon), so the hard bot also
-    // checks that cell: one the other head reaches in two steps is a likely head-on.
-    else if (cfg.lockAhead && turn !== 0 && o.alive) {
-      const d2 = Math.abs(o.x - x - DX[dir]) + Math.abs(o.y - y - DY[dir]);
-      if (d2 === 2) score -= o.x + 2 * DX[o.dir] === x + DX[dir] && o.y + 2 * DY[o.dir] === y + DY[dir] ? cfg.headOn : cfg.nearHead;
-      // ...or the other head is two cells past it, straight on: if it turns into the cell
-      // between (as a mirror-image bot does), both heads are locked facing, a swap head-on.
-      else if (o.x === x + 2 * DX[dir] && o.y === y + 2 * DY[dir]) score -= cfg.headOn;
+    // Where the other head may be now: it saw it a reaction time ago, so any turn since is
+    // possible. The worst of them counts.
+    if (o.alive) {
+      let worst = 0;
+      for (const h of this.heads.length ? this.heads : [o]) worst += this.headPenalty(h, x, y, dir, turn);
+      score -= worst;
     }
     if (cfg.territory && o.alive) score += 0.5 * territory(game, x, y, o.x, o.y);
     if (turn === 0) score += 0.6; // mild preference for going straight; noise only breaks left/right ties
