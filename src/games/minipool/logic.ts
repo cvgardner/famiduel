@@ -474,6 +474,9 @@ const BOT = {
  */
 const SHAKES: readonly [number, number][] = [-0.9, -0.3, 0.3, 0.9].flatMap((a) => [-0.9, -0.3, 0.3, 0.9].map((p): [number, number] => [a, p]));
 
+/** What a bot on the 8 marks down a shot that misses the 8 entirely (F439). */
+const NO_TOUCH = 60;
+
 /** Shots tried per frame while lining up, so a turn never hitches. */
 const SIMS_PER_FRAME = 6;
 
@@ -561,6 +564,7 @@ export class MiniPoolBot {
       for (const d of [-0.03, 0, 0.03]) this.queue.push({ angle: a + d, power: 1 });
       return;
     }
+    let lines = 0;
     for (const t of game.targets(this.p)) {
       for (const pk of POCKETS) {
         const gb = ghostBall(t, pk);
@@ -568,11 +572,18 @@ export class MiniPoolBot {
         // Skip cuts too thin to make (the cue would have to come from behind).
         const cut = Math.cos(a - Math.atan2(gb.uy, gb.ux));
         if (cut < 0.15) continue;
+        lines++;
         for (const pw of cfg.powers) this.queue.push({ angle: a, power: pw });
       }
     }
     const aim0 = game.targets(this.p)[0];
     const base = aim0 ? Math.atan2(aim0.y - cue.y, aim0.x - cue.x) : 0;
+    // F439: on the 8 with no line to sink it, hit it thick and thin both sides instead, so the
+    // bot still has shots that move it (the ring alone can miss it).
+    if (aim0 && !lines && game.left(this.p) === 0) {
+      const edge = Math.asin(Math.min(1, (PHYS.r * 2) / Math.max(PHYS.r * 2, Math.hypot(aim0.x - cue.x, aim0.y - cue.y))));
+      for (const f of [-0.5, -0.25, 0, 0.25, 0.5]) for (const pw of cfg.powers) this.queue.push({ angle: base + f * edge, power: pw });
+    }
     for (let i = 0; i < cfg.ring; i++) this.queue.push({ angle: base + (i * Math.PI * 2) / cfg.ring, power: 0.5 });
   }
 
@@ -588,6 +599,10 @@ export class MiniPoolBot {
     const leftAfter = res.balls.filter((b) => b.on && b.kind === me).length;
     if (eight) return !scratch && leftAfter === 0 ? 2000 : -2000;
     let score = mine * 120 - theirs * 50 - (scratch ? 160 : 0);
+    // F439: on the 8 with no line to sink it, still play the 8 (as a pool player must). A
+    // shot that never touches it was as good as any miss, so two hard bots with the 8 on a
+    // cushion both rolled the cue around it for 70 shots and the rack hit the shot cap.
+    if (game.left(me) === 0 && res.firstHit !== game.balls.find((b) => b.kind === 'eight')?.id) score -= NO_TOUCH;
     // Leave: my balls near pockets, theirs far, and (if I shoot again) the cue near one of mine.
     const near = (b: Ball) => Math.min(...POCKETS.map((pk) => Math.hypot(b.x - pk.x, b.y - pk.y)));
     for (const b of res.balls) {

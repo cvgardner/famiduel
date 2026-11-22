@@ -219,6 +219,24 @@ describe('Mini Pool bots', () => {
       }
     }
   }, 60_000);
+
+  it('a bot on the 8 with no line to sink it still plays the 8 (F439: hard mirrors hit the shot cap)', () => {
+    // From a hard v hard rack that stalled: the 8 on the right cushion below the side pocket,
+    // no ghost-ball line sinks it, and both bots rolled the cue around it for 70 shots.
+    for (const lvl of ['easy', 'normal', 'hard'] as BotLevel[]) {
+      for (let seed = 1; seed <= 4; seed++) {
+        const g = setUp(0, table(['cue', 187, 350], ['eight', 307, 385]), bots(lvl, lvl));
+        const bot = new MiniPoolBot(0, lvl, makeRng(seed));
+        let shot: Intent = NO_INTENT;
+        for (let i = 0; i < 600 && !shot.shot; i++) {
+          shot = bot.think(g, DT);
+          if (!shot.shot) g.step(DT, [shot, NO_INTENT]);
+        }
+        expect(shot.shot, lvl).not.toBeNull();
+        expect(simulateShot(g.balls, shot.shot!.angle, shot.shot!.power, NO_MODS, DT).firstHit, `${lvl} seed ${seed}`).toBe(1);
+      }
+    }
+  });
 });
 
 describe('Mini Pool handicap', () => {

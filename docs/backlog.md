@@ -2943,6 +2943,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       BONK! by the hit tank), Sumo (~230 of 608), Snake (~290 of 556), Snack Snatch (48-65 of
       4,965) and Minigolf (18 of 831) share the whole board, so their pops sit by the event and
       face their player; that is as meant, not a fix.
+- [x] 2026-11-22 (F439): Mini Pool racks could stall on the 8. With the 8 frozen on a cushion
+      and no ghost-ball line to sink it, a bot's best shot was a ring shot that never touched
+      it (no worse than any miss), so two hard bots rolled the cue around it for 70 shots and
+      the rack hit the shot cap. A bot on the 8 now docks shots that miss the 8 entirely, and
+      with no line to sink it, it also lines up thick and thin hits on it. `npm run pool -- --n
+      80`: hard v hard cap 3% -> 0%, easy v easy cap 3% -> 0%, hard v normal 71 -> 79%,
+      normal v easy 88 -> 88%, easy+N v normal 13/29/36/65 -> 13/25/34/69%, v hard 4/10/21/49 ->
+      3/11/18/44% (noise). Test in tests/minipool.test.ts (main fails it at every level).
 - [x] F438 (2026-11-22, PR #TBD): Mini Pool head-start pops at 320 px with Bigger text (easy+3
   v hard frames at each forgiven miss). A forgiven miss popped "Another go!" and "Go again!"
   together (the same news twice, pushing one of them up past the centre line into the other
