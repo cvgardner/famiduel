@@ -2916,3 +2916,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       (normal 57%). While it runs the cap is now RULES.gripForce 4.0 (maxForce 3.5).
       sim:powers n=160 hard: Grip 26% -> 39%, Heave 70% -> 64%, Yank 37%, no outliers;
       n=80 easy and normal in band (Grip 53% / 57%). Test in tests/tugofwar.test.ts.
+- [x] 2026-11-22 (F433): tests/store-frame.test.ts's full-size store frame (1206 x 2622)
+      timed out on GitHub CI (61 s against the 5 s default, run 45015461833) while the
+      whole-match tests filled the runner; here it takes ~1 s (render 0.8 s, PNG 0.1 s,
+      font load 0.03 s). It is one blocking native render, so it now gets the slow tests'
+      room (120 s) instead of a smaller frame that would no longer check the store size.

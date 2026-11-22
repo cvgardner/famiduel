@@ -35,10 +35,16 @@ describe('store screenshot plan', () => {
   });
 });
 
+// F433: one full-size render (1206 x 2622, system fonts) takes ~1 s here (render 0.8 s,
+// PNG 0.1 s), but it is a blocking native call, and on a GitHub runner busy with the
+// whole-match tests it once took 61 s and failed the 5 s default. Give it the same room as
+// the slow whole-match tests rather than shrinking the frame it checks.
+const RENDER = 120_000;
+
 describe('store frame', () => {
   it('makes an RGB PNG at the exact store size', () => {
     const out = frame(fakeShot(), 1206, 2622, { caption: 'Two players.\nOne phone.', sub: 'Lay it flat and duel' });
     expect(pngSize(out)).toEqual({ w: 1206, h: 2622 });
     expect(out[25]).toBe(2); // colour type RGB: no alpha channel
-  });
+  }, RENDER);
 });
