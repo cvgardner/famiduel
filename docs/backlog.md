@@ -2870,3 +2870,12 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       in band at normal and hard. tests/bot-limits.test.ts: two tables, the ball knocked onto
       a new line on one; both bots move the same for a person's reaction time (the old
       0.1 s hard bot fails it). Sumo stays in F418.
+- [x] 2026-11-22 (F418): Sumo's hard bot pressed 0.12 s after it saw the ring, under
+      HUMAN.reaction (0.2), and every level's power pick read the live other wrestler.
+      Hard now presses 0.2 s after the look (a steadier aim, noise 0.07 -> 0.05, keeps it
+      ahead of normal); power picks read the other wrestler as seen a reaction time ago
+      (its own wrestler it feels). n=160: hard v normal 78% -> 73% (66% with the lag
+      alone), other rows unchanged; sim:powers in band at normal and hard.
+      tests/bot-limits.test.ts: two rings, the top wrestler moved into the bottom bot's line
+      on one; the bot presses the same on both for a person's reaction time (the old 0.12 s
+      bot fails it).
