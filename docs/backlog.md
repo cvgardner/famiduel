@@ -2782,6 +2782,18 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       so it is biggest in world units on a 390 px phone). It found Penalty's card on the edge of
       "Player 2 goes first" on both sides at 390 px (card 434-503 vs pill 496-544): Penalty's
       card now sits a little higher (`"demoAt": 0.67`), clear at both widths.
+- [x] 2026-11-21 (F405): Tug of War pops keep off their own seat's chalk line too, not just the
+      red ribbon: with Bigger text, "The lines are closing in!" sat on the top seat's line and
+      its "your line" label. clearOfRibbon() now also keeps a pop's bright rise off the line
+      (its flags and label only when the words are wide enough to reach them), allowing for the
+      line sliding in while it closes. tests/tugofwar-pops-lines.test.ts: readable pops across
+      the full line band 2767 (1x) / 4379 (Bigger text) of ~12,100 frames before, 0 now.
+- [x] 2026-11-21 (F407): Sea Battle power names ("🚀 Torpedo!", "✈️ Airstrike!") popped on a
+      fixed line across the big board, usually right over the squares that power had just
+      shot (91% of readable frames over a marked square in bot matches). They now take a board
+      line that crosses no marks, nearest the old one, or the gap under the board (where
+      "<ship> sunk!" starts) once every line does; a sink there fades the power name: 0.9%.
+      tests/seabattle-power-pop.test.ts at 1x and Bigger text.
 - [x] 2026-11-21 (F409): Sea Battle radar words ("Ship nearby!", "All clear") popped on the top
       row of the 3×3 box the scan was about (61% of readable frames over a scanned square, 71%
       with Bigger text). shotWord() takes a reach and squares to avoid: the words start just
