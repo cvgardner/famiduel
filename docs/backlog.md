@@ -2957,3 +2957,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   player's half). Now the forgiven miss pops "Another go!" alone, and every Mini Pool pop is
   born on its own seat's half. Checked in tests/minipool-pops.test.ts (101 doubled pops on main),
   which now also plays a three-star bottom player against the hard bot.
+- [x] 2026-11-22 (F442, PR #TBD): Mini Pool's full shot needed 130 units of pull from where the
+  touch started, so a player whose cue sat by their own cushion and who started the pull on the
+  ball ran out of screen at ~0.8 power (both seats). Full power now takes 130 units or the room
+  left behind the touch (less 8, never under 70), so a pull from the ball to the screen edge is
+  a full shot; with room to spare the feel is unchanged. tests/minipool-pull.test.ts.
