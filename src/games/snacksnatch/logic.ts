@@ -7,6 +7,7 @@
 // Fairness: the pot always shoots mirrored pairs, one identical snack at each
 // player (same angle, speed and gold), so both get exactly the same supply.
 import { Energy } from '../../core/energy';
+import { HUMAN } from '../../core/human';
 import { lerpAssist } from '../../core/handicap';
 import type { Rng } from '../../core/rng';
 import type { BotLevel, PlayerIndex, PlayerInfo } from '../../core/types';
@@ -527,14 +528,19 @@ function easeOut(k: number): number {
 // The bot taps the same buttons. It sees a snack, guesses where it will be,
 // and taps after its reaction delay. Skill changes only the delay, how well it
 // allows for that delay, timing noise and stray taps; never the rules.
+// Every delay is at least HUMAN.reaction (F419): a tap answers what was on the blanket that
+// long ago, never the live snack. Hard makes up for it by allowing for the delay better.
 const BOT = {
   easy: { react: 0.42, anticip: 0, noise: 0.2, stray: 0.6, slack: 0 },
   normal: { react: 0.24, anticip: 0.6, noise: 0.08, stray: 0.15, slack: -6 },
-  hard: { react: 0.13, anticip: 0.5, noise: 0.02, stray: 0, slack: -4 },
+  hard: { react: HUMAN.reaction, anticip: 0.6, noise: 0.02, stray: 0, slack: -4 },
 } satisfies Record<BotLevel, { react: number; anticip: number; noise: number; stray: number; slack: number }>;
+export const SNACK_REACT: Record<BotLevel, number> = { easy: BOT.easy.react, normal: BOT.normal.react, hard: BOT.hard.react };
 
 export class SnackSnatchBot {
   private pending: [number, number] = [-1, -1];
+  /** A power tap decided on what was seen, pressed a reaction time later (-1: none). */
+  private powerIn = -1;
 
   constructor(
     readonly p: PlayerIndex,
@@ -570,13 +576,31 @@ export class SnackSnatchBot {
       });
       if (hit || this.rng.next() < cfg.stray * dt) this.pending[c.i] = cfg.react;
     }
-    const power = game.powersOn && game.energy[this.p].ready && this.wantsPower(game);
+    // The power button is a tap too. One timed to where snacks are (Sticky, Sleepy) is decided
+    // on what was seen and pressed a reaction time later; one that waits for enough snacks on the
+    // blanket (Magnet, Double, Rain) is pressed at once, as a person who watches the pot's
+    // steady rhythm would (the count doesn't jump the way a snack's line does).
+    let power = false;
+    if (!game.powersOn || !game.energy[this.p].ready) this.powerIn = -1;
+    else if (this.powerIn >= 0) {
+      this.powerIn -= dt;
+      if (this.powerIn <= 0) {
+        this.powerIn = -1;
+        power = true;
+      }
+    } else if (this.wantsPower(game, cfg.react)) {
+      const id = game.players[this.p].power?.id;
+      if (id === 'sticky' || id === 'sleepy') this.powerIn = cfg.react;
+      else power = true;
+    }
     return { snap, power };
   }
 
-  private wantsPower(game: SnackSnatch): boolean {
+  /** `ahead`: seconds until the tap lands; snacks are judged where they'll be by then. */
+  private wantsPower(game: SnackSnatch, ahead: number): boolean {
     const id = game.players[this.p].power?.id;
-    const near = game.snacks.filter((s) => Math.abs(s.y - RULES.gum[this.p]) < RULES.stickyRange).length;
+    const at = (s: { y: number; vy: number }) => s.y + s.vy * ahead;
+    const near = game.snacks.filter((s) => Math.abs(at(s) - RULES.gum[this.p]) < RULES.stickyRange).length;
     if (id === 'magnet') return game.snacks.length >= 3;
     // F294: honey under the other side's Magnet only steers the slowed snacks straight to them
     // (Magnet beat Sticky 87% at normal), so normal and hard bots wait the Magnet out, as a
@@ -587,7 +611,7 @@ export class SnackSnatchBot {
     if (id === 'rain') return !game.sudden && game.snacks.length <= 6;
     // Make them sleepy just as snacks reach their critters.
     const foe = other(this.p);
-    if (id === 'sleepy') return game.snacks.filter((s) => Math.abs(s.y - RULES.gum[foe]) < RULES.stickyRange).length >= 2;
+    if (id === 'sleepy') return game.snacks.filter((s) => Math.abs(at(s) - RULES.gum[foe]) < RULES.stickyRange).length >= 2;
     return false;
   }
 }
