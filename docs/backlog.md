@@ -2936,3 +2936,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   crowded rack had no line for "Another go! (1 left)": it falls back to "Another go!", then to a
   line clear of balls with the older pop faded, then to one born clear of balls. New check in
   tests/minipool-levels.test.ts.
+- [x] 2026-11-22 (F439): Mini Pool racks could stall on the 8. With the 8 frozen on a cushion
+      and no ghost-ball line to sink it, a bot's best shot was a ring shot that never touched
+      it (no worse than any miss), so two hard bots rolled the cue around it for 70 shots and
+      the rack hit the shot cap. A bot on the 8 now docks shots that miss the 8 entirely, and
+      with no line to sink it, it also lines up thick and thin hits on it. `npm run pool -- --n
+      80`: hard v hard cap 3% -> 0%, easy v easy cap 3% -> 0%, hard v normal 71 -> 79%,
+      normal v easy 88 -> 88%, easy+N v normal 13/29/36/65 -> 13/25/34/69%, v hard 4/10/21/49 ->
+      3/11/18/44% (noise). Test in tests/minipool.test.ts (main fails it at every level).
