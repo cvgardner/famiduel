@@ -2770,3 +2770,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       the keeper still reads the ball after that (opposite shots get different dives in 25-37 of
       40 kicks). Rival reviews: a hard bot "just literally CHEATED". Noted: an easy keeper can't
       react to a hard shot at all (0.35 s flight < 0.36 s reaction), it only guesses.
+- [x] 2026-11-21 (F404): Mini Pool physics checked beyond the break (a rival pool game's
+      reviews: "physics a bit wacky"): 300 seeded 85-100% power shots from random layouts, with
+      each power's table mods (Big Pockets, Freeze, Plug, Stop Shot): no ball ever past a cushion
+      or off the cloth, none left inside another, the table never gains speed between frames,
+      and every shot stops before the roll limit (tests/minipool-physics-sane.test.ts; a planted
+      bouncy hit with one substep fails it). No physics change needed.
