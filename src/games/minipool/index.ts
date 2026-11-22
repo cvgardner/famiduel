@@ -579,13 +579,26 @@ class MiniPoolView implements GameInstance {
   }
 }
 
-/** Pull back from where the finger landed: the shot goes the other way. */
-function pullShot(a: Aim): Shot | null {
+/** Least pull for full power, however close to the screen edge the pull starts. */
+const MIN_FULL_PULL = 70;
+
+/** Pull back from where the finger landed: the shot goes the other way. Full power takes
+ *  MAX_PULL, or less when the screen edge is nearer than that behind the touch (F442: a cue by
+ *  your own cushion, pulled from the ball, ran out of screen at 0.8 power). */
+export function pullShot(a: Pick<Aim, 'sx' | 'sy' | 'x' | 'y'>): Shot | null {
   const dx = a.x - a.sx;
   const dy = a.y - a.sy;
   const d = Math.hypot(dx, dy);
   if (d < MIN_PULL) return null;
-  return { angle: Math.atan2(-dy, -dx), power: Math.min(1, d / MAX_PULL) };
+  const full = Math.max(MIN_FULL_PULL, Math.min(MAX_PULL, roomBehind(a.sx, a.sy, dx / d, dy / d) - 8));
+  return { angle: Math.atan2(-dy, -dx), power: Math.min(1, d / full) };
+}
+
+/** How far a finger can go from (x, y) along (ux, uy) before the screen edge. */
+function roomBehind(x: number, y: number, ux: number, uy: number): number {
+  const tx = ux > 0 ? (W - x) / ux : ux < 0 ? -x / ux : Infinity;
+  const ty = uy > 0 ? (H - y) / uy : uy < 0 ? -y / uy : Infinity;
+  return Math.max(0, Math.min(tx, ty));
 }
 
 const def: GameDef = {
