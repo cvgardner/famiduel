@@ -2890,3 +2890,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       two-world tests in tests/bot-limits.test.ts (main fails all three). Tug of War n=80
       pace rows unchanged (bots 100% v the level below), sim:powers normal in band; hard has
       Grip 28% as on main (26%, with Heave 70%): F431.
+- [x] 2026-11-22 (F431): Tug of War's Steady Grip was weak for fast tappers: it only stops the
+      grip fading, and a 7-taps-a-second grip already sits near the usual cap (10 taps a
+      second), so hard bots gained ~1.4x and Grip read 26% v the other powers at hard
+      (normal 57%). While it runs the cap is now RULES.gripForce 4.0 (maxForce 3.5).
+      sim:powers n=160 hard: Grip 26% -> 39%, Heave 70% -> 64%, Yank 37%, no outliers;
+      n=80 easy and normal in band (Grip 53% / 57%). Test in tests/tugofwar.test.ts.
