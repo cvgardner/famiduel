@@ -37,6 +37,10 @@ describe('ghost finger demo', () => {
   it('F152: a finger card at the countdown digit\'s height moves beside it', () => {
     expect(besideCountdown(0.72)).toBe(true);
     expect(besideCountdown(0.9)).toBe(false);
+    // F413: a game that moves its digit is judged by its own distance (countdownDy()).
+    expect(besideCountdown(0.9, 190)).toBe(true);
+    expect(besideCountdown(0.9, 66)).toBe(false);
+    expect(playDemoHtml('tap', 0, false, 0.9, false, 190)).toContain('--dx:28%');
     expect(playDemoHtml('hold', 0)).toContain('--dx:28%');
     expect(playDemoHtml('slide', 1, false, 0.9)).not.toContain('--dx');
   });

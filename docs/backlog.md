@@ -2810,3 +2810,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       real view (turn cards, waits, bot delays) at easy, normal and hard, powers off and each
       power, 2 seeds: every match ends (none stuck today). A planted Mini Pool bot that never
       shoots its turn fails it. Test only.
+- [x] 2026-11-21 (F413): Tug of War's first-match finger card sat beside where the digit
+      used to be (besideCountdown() read COUNT_DY 120, not the game's own countdownDy()), so
+      its dark tile covered that seat's first round star. Tug of War's card now sits over the
+      PULL! pad (demoAt 0.9), the finger tapping where the person taps, clear of the digit,
+      the puller and the stars; besideCountdown() takes each game's own digit distance. The
+      ghost-finger playtest also keeps Tug of War's card off the stars and puller (failed
+      before at 320 and 390 px).

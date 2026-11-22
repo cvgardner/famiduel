@@ -566,9 +566,20 @@ test('ghost finger: the card clears the game\'s own "3 2 1" digit and its "goes 
           const cy = box.y + (320 + sign * pillDy) * s;
           keepOff.push(['pill', { l: box.x + (180 - PILL_W / 2) * s, r: box.x + (180 + PILL_W / 2) * s, t: cy - 23.5 * s, b: cy + 23.5 * s }]);
         }
+        if (id === 'tugofwar') {
+          // F413: Tug of War's round stars (L.starX W/2+118, L.starY MID+150 and +176, r 11 with
+          // their outline) and the puller (hands at most MID+152, feet 30 lower, ~30 each side of
+          // the rope); the card beside the digit covered the first star.
+          const local = (x0: number, x1: number, y0: number, y1: number) => {
+            const [lx0, lx1, ly0, ly1] = c.p === 0 ? [x0, x1, y0, y1] : [360 - x1, 360 - x0, 640 - y1, 640 - y0];
+            return { l: box.x + lx0 * s, r: box.x + lx1 * s, t: box.y + ly0 * s, b: box.y + ly1 * s };
+          };
+          keepOff.push(['round stars', local(298 - 14, 298 + 14, 470 - 14, 496 + 14)]);
+          keepOff.push(['puller', local(150, 210, 430, 512)]);
+        }
         for (const [what, d] of keepOff) if (c.l < d.r && c.r > d.l && c.t < d.b && c.b > d.t) hits.push(`${id} seat ${c.p} on the ${what} at ${width} px (card ${Math.round((c.t - box.y) / s)}-${Math.round((c.b - box.y) / s)}, ${what} ${Math.round((d.t - box.y) / s)}-${Math.round((d.b - box.y) / s)})`);
       }
-      if (id === 'minipool' || id === 'penalty') await page.screenshot({ path: path.join(OUT, `ghost-finger-pill-${id}-${width}.png`) });
+      if (id === 'minipool' || id === 'penalty' || id === 'tugofwar') await page.screenshot({ path: path.join(OUT, `ghost-finger-pill-${id}-${width}.png`) });
     }
   }
   await page.evaluate(() => (window as unknown as { __famiduel: H }).__famiduel.showHome());
