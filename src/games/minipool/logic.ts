@@ -27,8 +27,10 @@ export const RULES = {
   guideMin: 90,
   guideMax: 230,
   guideLong: 900,
-  /** Extra pocket capture radius on your own shots at assist 3 (handicap). */
-  pocketAssist: 5,
+  /** Extra pocket capture radius on your own shots, per head-start star. Three stars jump to 8
+   *  (was 5, a straight line) with five forgiven misses, so easy+3 catches the hard bot
+   *  (F436, `npm run pool`, n=80: easy+3 v hard 28% -> ~50%, v normal 53% -> ~65%). */
+  pocketAssist: [0, 5 / 3, 10 / 3, 8],
   /** Extra pocket capture radius from Big Pockets. */
   bigPocket: 11,
   /** A rack with this many shots ends: fewer balls left wins it (so a rack can't go on for
@@ -37,7 +39,7 @@ export const RULES = {
    *  at 80 it's 3% for ~13 s more a match (F357, `npm run pool`). */
   rackShotCap: 80,
   /** Head start: plain misses a rack forgiven (the helped player shoots again), per star. */
-  assistRetries: [0, 1, 2, 3],
+  assistRetries: [0, 1, 2, 5],
   /** Where the cue ball starts (and comes back after a scratch): this far into the shooter's half. */
   spotDy: 115,
   energyShot: 0.14,
@@ -66,6 +68,14 @@ export type Event =
   | { type: 'plugged'; p: PlayerIndex; pocket: number }
   | { type: 'rackWon'; p: PlayerIndex; how: RackEnd }
   | { type: 'win'; p: PlayerIndex };
+
+/** Extra pocket capture radius for a head start of `assist` stars (between stars, in step). */
+export function pocketAssistFor(assist: number): number {
+  const a = Math.max(0, Math.min(3, assist));
+  const i = Math.min(2, Math.floor(a));
+  const t = RULES.pocketAssist;
+  return t[i] + (t[i + 1] - t[i]) * (a - i);
+}
 
 /** Forgiven misses a rack for a head start of `assist` stars. */
 export function retriesFor(assist: number): number {
@@ -150,7 +160,7 @@ export class MiniPool {
 
   /** The physics mods that apply to this player's shot (what the bot and the guide see too). */
   modsFor(p: PlayerIndex): ShotMods {
-    const bonus = lerpAssist(this.players[p].assist, 0, RULES.pocketAssist) + (this.bigPocket[p] ? RULES.bigPocket : 0);
+    const bonus = pocketAssistFor(this.players[p].assist) + (this.bigPocket[p] ? RULES.bigPocket : 0);
     return { pocketBonus: bonus, frozenId: this.shooter === p ? this.frozenId : null, closed: this.shooter === p ? this.plugged : null, stop: this.stopOn[p] };
   }
 

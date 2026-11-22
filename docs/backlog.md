@@ -2921,3 +2921,10 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       whole-match tests filled the runner; here it takes ~1 s (render 0.8 s, PNG 0.1 s,
       font load 0.03 s). It is one blocking native render, so it now gets the slow tests'
       room (120 s) instead of a smaller frame that would no longer check the store size.
+- [x] 2026-11-22 (F436): Mini Pool head start against the hard bot topped out at easy+3 v hard
+  28%. Three stars now widen your pockets by 8 (was 5; one and two stars unchanged, a per-star
+  table `RULES.pocketAssist`) and forgive five plain misses a rack (was 3). n=80, two seed sets:
+  easy+3 v hard 50-56%, v normal 65-69% (was 53%); +0..2 unchanged. With five forgiven misses a
+  crowded rack had no line for "Another go! (1 left)": it falls back to "Another go!", then to a
+  line clear of balls with the older pop faded, then to one born clear of balls. New check in
+  tests/minipool-levels.test.ts.
