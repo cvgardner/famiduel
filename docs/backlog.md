@@ -2853,7 +2853,11 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tests/bot-limits.test.ts: two arenas, a shell flying at the bot appears on one; the
       bot drives the same on both for a reaction time and dodges soon after (main fails it).
       n=80/160: hard v normal 95% -> 93-95%, normal v easy 99% -> 98-99%, hard v easy 100%;
-      sim:powers normal all in band (45-56%). Mirror matches run longer (normal avg 66 ->
-      93 s, 5% reach time-up): bots keep shooting instead of sidestepping every new shell,
-      and shells clash mid-air (42 vs 17 clashes a minute, hits 7 -> 4 a minute). Follow-up
-      F425. Aim and mines seen late: F423, F424.
+      That alone made mirror matches drag (normal avg 66 -> 93 s, 5-8% time-up draws, one
+      caught by tests/tanks.test.ts in CI): bots traded shots down the same line and the
+      shells clashed (42 vs 17 clashes a minute). F425 (same PR): a reaction time after its
+      shot clashes, the bot steps off the line; a tank driving into a pop fades it. n=80:
+      normal mirror avg 59 s, hard 71 s, no draws; hard v normal 89%, normal v easy 96%,
+      hard v easy 100%; sim:powers normal 43-58%, no outliers. Left: normal mirror leans to
+      the top seat (seat 0 wins 41% at n=320, main 53%): F426. Aim and mines seen late:
+      F423, F424.
