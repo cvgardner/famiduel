@@ -146,6 +146,9 @@ class TankView implements GameInstance {
       return it;
     }) as [Intent, Intent];
     g.step(dt, g.over ? [IDLE, IDLE] : intents);
+    // F425: a pop starts clear of the tanks, but a tank stepping aside can drive into it
+    // (most often "Oops! Own shot" by the arena's edge): fade a pop a tank runs into.
+    for (const tk of g.tanks) this.ctx.fx.fadeNear(tk.x, tk.y, RULES.tankR + 8);
     for (const p of PLAYERS) this.fireHeld[p] = Math.max(0, this.fireHeld[p] - dt);
     this.banner.t = Math.max(0, this.banner.t - dt);
     this.booms = this.booms.filter((b) => (b.t += dt) < 0.6);

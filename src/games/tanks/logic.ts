@@ -660,6 +660,9 @@ export function traceShot(game: TankDuel, p: PlayerIndex, a: number, maxT = 2.4)
 // HUMAN.reaction after the ring fills, and never taps faster than HUMAN.tapGap.
 // Like a kid, it doesn't always see the other tank's mine go down (spot = the chance
 // it notices each one and drives round it); it always knows its own.
+/** Seconds a shell has flown before a bot can see it: a person's reaction time (F421). */
+export const SHELL_SEEN = HUMAN.reaction;
+
 export const BOT = {
   easy: { react: 0.6, noise: 0.16, depth: 0, angles: 48, trigger: 0.32, spot: 0.5 },
   normal: { react: 0.35, noise: 0.085, depth: 1, angles: 72, trigger: 0.26, spot: 0.75 },
@@ -689,6 +692,8 @@ export class TankBot {
   private lostShot = 0;
   /** The other tank's mines by id: whether this bot noticed it go down (decided once). */
   private spotted = new Map<number, boolean>();
+  /** Seconds since two shells clashed mid-air (Infinity once answered). */
+  private sinceClash = Infinity;
 
   constructor(
     readonly p: PlayerIndex,
@@ -704,6 +709,8 @@ export class TankBot {
       return IDLE;
     }
     this.sinceTap += dt;
+    this.sinceClash += dt;
+    if (game.events.some((e) => e.type === 'clash')) this.sinceClash = 0;
     this.readyFor = game.canFire(this.p) ? this.readyFor + dt : 0;
     this.timer -= dt;
     if (this.timer <= 0) {
@@ -776,6 +783,23 @@ export class TankBot {
       this.dodge = { x: opts[0].n.x, y: opts[0].n.y, t: 0.45 };
       return;
     }
+    // 1b. Our shots just met head-on and cancelled out (F425). A person who sees that
+    // (a reaction time later) steps off the line instead of trading the same shot
+    // again; bots kept doing that and matches between equals ran into time-up.
+    if (this.sinceClash >= HUMAN.reaction && this.sinceClash < 1.5) {
+      this.sinceClash = Infinity;
+      const a = Math.atan2(foe.y - me.y, foe.x - me.x);
+      const side = [a + Math.PI / 2, a - Math.PI / 2]
+        .map((b) => ({ x: Math.cos(b), y: Math.sin(b) }))
+        .filter((n) => !game.arena.solidAt(me.x + n.x * 30, me.y + n.y * 30));
+      if (side.length) {
+        const n = side[this.rng.int(0, side.length - 1)];
+        this.mode = 'dodge';
+        this.aimShot = null;
+        this.dodge = { x: n.x, y: n.y, t: 0.45 };
+        return;
+      }
+    }
     // 2. Is there a shot (straight or banked) from here?
     if (game.shellsOf(this.p) < RULES.maxShells) {
       const shot = this.findShot(game, cfg.depth, cfg.angles);
@@ -821,6 +845,11 @@ export class TankBot {
     if (me.shield > 0) return null;
     const danger = RULES.tankR + RULES.shellR + 6;
     for (const s0 of game.shells) {
+      // A person sees the other tank's new shell a reaction time after it leaves the gun
+      // (F421): one fired just before a look isn't dodged on that look. (Where it is now
+      // stands in for where it was seen plus its flight since, read off its line.) Your
+      // own shot you know about from the moment you fire it.
+      if (s0.owner !== this.p && s0.age < SHELL_SEEN) continue;
       const s = { ...s0 };
       const reach = s0.owner === this.p ? 0 : game.reach(s0.owner);
       for (let t = 0; t < 0.9 && s.alive; t += 1 / 60) {

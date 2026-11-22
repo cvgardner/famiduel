@@ -13,7 +13,7 @@ import { SNACK_REACT, SnackSnatch, SnackSnatchBot } from '../src/games/snacksnat
 import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
 import { Sumo, SumoBot } from '../src/games/sumo/logic';
 import { TugOfWar, TugOfWarBot } from '../src/games/tugofwar/logic';
-import { BOT as TANK_BOT, RULES as TANK, TankBot, TankDuel, type Intent as TankIntent } from '../src/games/tanks/logic';
+import { BOT as TANK_BOT, RULES as TANK, SHELL_SEEN, TankBot, TankDuel, type Intent as TankIntent } from '../src/games/tanks/logic';
 import { DT, player, power } from './helpers';
 
 const LEVELS: BotLevel[] = ['easy', 'normal', 'hard'];
@@ -225,6 +225,80 @@ describe('honest bots respect a person\'s limits', () => {
       }
       expect(checked).toBeGreaterThan(60);
       expect(reacted, `${level}: never reacted to the new lines`).toBeGreaterThan(1);
+    }
+  }, SLOW);
+
+  it('the Tank Duel bot sees a new shell no sooner than a person would, at any level', () => {
+    // F421: same check as Air Hockey's. Two identical arenas; on one the other tank's shell
+    // appears flying at this bot. Until a reaction time has passed both bots drive exactly
+    // the same (no dodge, no Shield tap), and soon after it they dodge.
+    expect(SHELL_SEEN).toBeGreaterThanOrEqual(HUMAN.reaction);
+    const D = 150;
+    for (const level of LEVELS) {
+      let checked = 0;
+      let reacted = 0;
+      for (let seed = 1; seed <= 24; seed++) {
+        const world = () => {
+          const g = new TankDuel([player({ bot: level, power: power('tanks', 'shield') }), player({ bot: level })], true, makeRng(seed));
+          // One dice each: tank 1's bot knows its shell at once, and a shared roll would
+          // carry that into tank 0's aim.
+          return { g, bots: [new TankBot(0, level, makeRng(seed + 99)), new TankBot(1, level, makeRng(seed + 199))] };
+        };
+        const a = world();
+        const b = world();
+        const think = (w: ReturnType<typeof world>) => [w.bots[0].think(w.g, DT), w.bots[1].think(w.g, DT)] as [TankIntent, TankIntent];
+        for (let t = 0; t < 3 + seed * 0.53; t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+        }
+        if (a.g.phase !== 'play') continue;
+        // A shell D units out on a clear line, flying straight at tank 0.
+        const me = b.g.tanks[0];
+        let at: { x: number; y: number; a: number } | null = null;
+        for (let k = 0; k < 32 && !at; k++) {
+          const ang = (k / 32) * Math.PI * 2 + seed;
+          let clear = true;
+          for (let d = 16; d <= D && clear; d += 6) clear = !b.g.arena.solidAt(me.x + Math.cos(ang) * d, me.y + Math.sin(ang) * d);
+          if (clear) at = { x: me.x + Math.cos(ang) * D, y: me.y + Math.sin(ang) * D, a: ang + Math.PI };
+        }
+        if (!at) continue;
+        b.g.shells.push({
+          id: 9999,
+          owner: 1,
+          x: at.x,
+          y: at.y,
+          vx: Math.cos(at.a) * TANK.shellSpeed,
+          vy: Math.sin(at.a) * TANK.shellSpeed,
+          bounces: 0,
+          maxBounces: TANK.bounces,
+          age: 0,
+          bouncy: false,
+          alive: true,
+          extra: true, // not counted against tank 1's own shells
+        });
+        const lagFrames = Math.floor(HUMAN.reaction / DT) - 1;
+        let differed = -1;
+        for (let f = 0; f < 90 && differed < 0; f++) {
+          const ia = think(a);
+          // Tank 1 "fired" the shell, so its bot knows about it at once: drive it as on
+          // the other arena and judge tank 0's bot alone.
+          const ib: [TankIntent, TankIntent] = [think(b)[0], ia[1]];
+          const same = JSON.stringify(ia[0]) === JSON.stringify(ib[0]);
+          if (f < lagFrames) {
+            expect(same, `${level} seed ${seed}: answered the new shell ${(f * DT).toFixed(2)} s after it`).toBe(true);
+            checked++;
+          } else if (!same) differed = f;
+          a.g.step(DT, ia);
+          b.g.step(DT, ib);
+          // A hit is felt, not seen, and the new shell knocking out one of tank 0's own
+          // (which that bot does see) is a fair difference: stop comparing there.
+          const others = (w: ReturnType<typeof world>) => JSON.stringify(w.g.shells.filter((s) => s.alive && s.id !== 9999));
+          if (!b.g.shells.some((s) => s.id === 9999 && s.alive) || others(a) !== others(b)) break;
+        }
+        if (differed >= 0) reacted++;
+      }
+      expect(checked).toBeGreaterThan(60);
+      expect(reacted, `${level}: never dodged the new shell`).toBeGreaterThan(3);
     }
   }, SLOW);
 
