@@ -408,6 +408,9 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
    keeps its usual size there (still bigger in play and on the other menus). */
 @media (max-height: 600px) {
   :root[data-bigtext] #intro { --ts: 1; }
+  /* iPhone fonts wrap "Turbo Treads" to two lines: with Little hands Tank Duel's picked
+     half ran 3px past its edge at 6px gaps. */
+  :root[data-bigtext] .half-inner { gap: 4px; }
 }
 
 /* F307: an iPhone SE (1st gen) home after a match: the match-night score adds a "New night"
