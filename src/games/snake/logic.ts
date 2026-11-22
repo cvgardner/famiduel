@@ -455,6 +455,9 @@ const HEADON_EASY = 10;
  * reaction time, tests/bot-limits.test.ts). Its own snake it feels at once.
  */
 export const SNAKE_SEE = HUMAN.reaction;
+/** F420 WIP: near the other head (cells) the hard bot's choice is noisier, to break mirror games. */
+const NEAR_CELLS = 6;
+const NEAR_NOISE = 3;
 
 const BOT = {
   easy: { depth: 14, react: 0.3, slip: 0.07, noise: 0.5, headOn: HEADON_EASY, nearHead: 0, lockAhead: false, territory: false },
@@ -587,6 +590,8 @@ export class SnakeBot {
       // between (as a mirror-image bot does), both heads are locked facing, a swap head-on.
       if (o.x === x + 2 * DX[dir] && o.y === y + 2 * DY[dir]) return cfg.headOn;
     }
+    // F420: it sees the other head a reaction time late, so the hard bot keeps a spare cell.
+    if (cfg.lockAhead && Math.abs(o.x - x) + Math.abs(o.y - y) <= 2) return cfg.nearHead;
     return 0;
   }
 
@@ -610,7 +615,10 @@ export class SnakeBot {
     }
     if (cfg.territory && o.alive) score += 0.5 * territory(game, x, y, o.x, o.y);
     if (turn === 0) score += 0.6; // mild preference for going straight; noise only breaks left/right ties
-    return score + this.rng.range(0, cfg.noise);
+    // F420: two snakes that see each other late can mirror each other turn for turn and
+    // fill equal halves to a draw; near the other head the hard bot's hand is less exact.
+    const near = cfg.lockAhead && o.alive && Math.abs(o.x - x) + Math.abs(o.y - y) < NEAR_CELLS;
+    return score + this.rng.range(0, near ? NEAR_NOISE : cfg.noise);
   }
 
   private wantsPower(game: SnakeDuel, bestScore: number): boolean {
