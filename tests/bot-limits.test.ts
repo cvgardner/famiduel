@@ -15,7 +15,8 @@ import { SNACK_REACT, SnackSnatch, SnackSnatchBot } from '../src/games/snacksnat
 import { SnakeBot, SnakeDuel } from '../src/games/snake/logic';
 import { RULES as SUMO, SUMO_REACT, Sumo, SumoBot, type Intent as SumoIntent } from '../src/games/sumo/logic';
 import { TUG_REACT, TugOfWar, TugOfWarBot, type Intent as TugIntent } from '../src/games/tugofwar/logic';
-import { BOT as TANK_BOT, RULES as TANK, SHELL_SEEN, TankBot, TankDuel, type Intent as TankIntent } from '../src/games/tanks/logic';
+import { COLS as TANK_COLS } from '../src/games/tanks/mazes';
+import { ARENA as TANK_ARENA, BOT as TANK_BOT, CELL as TANK_CELL, FOE_SEEN, MINE_SEEN, RULES as TANK, SHELL_SEEN, TankBot, TankDuel, type Intent as TankIntent } from '../src/games/tanks/logic';
 import { DT, player, power } from './helpers';
 
 const LEVELS: BotLevel[] = ['easy', 'normal', 'hard'];
@@ -403,6 +404,124 @@ describe('honest bots respect a person\'s limits', () => {
       }
       expect(checked).toBeGreaterThan(60);
       expect(reacted, `${level}: never dodged the new shell`).toBeGreaterThan(3);
+    }
+  }, SLOW);
+
+  it('the Tank Duel bot spots a new mine no sooner than a person would, at any level', () => {
+    // F424: two identical arenas; on one the other tank drops a mine on this bot's route,
+    // two cells ahead. Until a reaction time has passed both bots drive exactly the same
+    // (no new route, no spot roll), and soon after it some steer round it.
+    expect(MINE_SEEN).toBeGreaterThanOrEqual(HUMAN.reaction);
+    type Peek = { mode: string; path: number[]; pathI: number };
+    for (const level of LEVELS) {
+      let checked = 0;
+      let reacted = 0;
+      for (let seed = 1; seed <= 40; seed++) {
+        const world = () => {
+          const g = new TankDuel([player({ bot: level }), player({ bot: level, power: power('tanks', 'mine') })], true, makeRng(seed));
+          return { g, bots: [new TankBot(0, level, makeRng(seed + 99)), new TankBot(1, level, makeRng(seed + 199))] };
+        };
+        const a = world();
+        const b = world();
+        const think = (w: ReturnType<typeof world>) => [w.bots[0].think(w.g, DT), w.bots[1].think(w.g, DT)] as [TankIntent, TankIntent];
+        const peek = () => b.bots[0] as unknown as Peek;
+        let t = 0;
+        for (; t < 2 + seed * 0.21; t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+        }
+        // Wait for tank 0 to be driving a route with two more cells to go.
+        for (; t < 12 && !(peek().mode === 'move' && peek().path.length > peek().pathI + 2); t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+        }
+        if (a.g.phase !== 'play' || peek().mode !== 'move' || peek().path.length <= peek().pathI + 2) continue;
+        const cell = peek().path[peek().pathI + 1];
+        const x = TANK_ARENA.x + (cell % TANK_COLS) * TANK_CELL + TANK_CELL / 2;
+        const y = TANK_ARENA.y + Math.floor(cell / TANK_COLS) * TANK_CELL + TANK_CELL / 2;
+        b.g.mines.push({ id: 9999, owner: 1, x, y, arm: TANK.mineArm, alive: true });
+        const lagFrames = Math.floor(HUMAN.reaction / DT) - 1;
+        let differed = -1;
+        for (let f = 0; f < 90 && differed < 0; f++) {
+          const ia = think(a);
+          // Tank 1 dropped the mine, so drive it as on the other arena and judge tank 0 alone.
+          const ib: [TankIntent, TankIntent] = [think(b)[0], ia[1]];
+          const same = JSON.stringify(ia[0]) === JSON.stringify(ib[0]);
+          if (f < lagFrames) {
+            expect(same, `${level} seed ${seed}: answered the new mine ${(f * DT).toFixed(2)} s after it`).toBe(true);
+            checked++;
+          } else if (!same) differed = f;
+          a.g.step(DT, ia);
+          b.g.step(DT, ib);
+          // Rolling onto it is felt, not seen: stop comparing once it is gone.
+          if (!b.g.mines.some((m) => m.id === 9999) || a.g.phase !== 'play') break;
+        }
+        if (differed >= 0) reacted++;
+      }
+      expect(checked).toBeGreaterThan(60);
+      expect(reacted, `${level}: never steered round the new mine`).toBeGreaterThan(3);
+    }
+  }, SLOW);
+
+  it('the Tank Duel bot sees the other tank where it was a reaction time ago, at any level', () => {
+    // F423: two identical arenas; on one the other tank is moved 30 units to an open spot
+    // (out from behind a block, onto a new line). Until a reaction time has passed this
+    // bot aims and drives exactly the same on both, and soon after it answers.
+    expect(FOE_SEEN).toBeGreaterThanOrEqual(HUMAN.reaction);
+    for (const level of LEVELS) {
+      let checked = 0;
+      let reacted = 0;
+      for (let seed = 1; seed <= 30; seed++) {
+        const world = () => {
+          const g = new TankDuel([player({ bot: level }), player({ bot: level })], true, makeRng(seed));
+          return { g, bots: [new TankBot(0, level, makeRng(seed + 99)), new TankBot(1, level, makeRng(seed + 199))] };
+        };
+        const a = world();
+        const b = world();
+        const think = (w: ReturnType<typeof world>) => [w.bots[0].think(w.g, DT), w.bots[1].think(w.g, DT)] as [TankIntent, TankIntent];
+        for (let t = 0; t < 2.5 + seed * 0.37; t += DT) {
+          a.g.step(DT, think(a));
+          b.g.step(DT, think(b));
+        }
+        if (a.g.phase !== 'play') continue;
+        const foe = b.g.tanks[1];
+        let spot: { x: number; y: number } | null = null;
+        for (let k = 0; k < 16 && !spot; k++) {
+          const ang = (k / 16) * Math.PI * 2 + seed;
+          const x = foe.x + Math.cos(ang) * 30;
+          const y = foe.y + Math.sin(ang) * 30;
+          let clear = true;
+          for (let j = 0; j < 12 && clear; j++) {
+            const r = TANK.tankR + 3;
+            clear = !b.g.arena.solidAt(x + Math.cos((j / 12) * Math.PI * 2) * r, y + Math.sin((j / 12) * Math.PI * 2) * r);
+          }
+          if (clear) spot = { x, y };
+        }
+        if (!spot) continue;
+        foe.x = spot.x;
+        foe.y = spot.y;
+        const lagFrames = Math.floor(HUMAN.reaction / DT) - 1;
+        let differed = -1;
+        const shells = (w: ReturnType<typeof world>) => JSON.stringify(w.g.shells.filter((s) => s.alive).map((s) => s.id));
+        for (let f = 0; f < 90 && differed < 0; f++) {
+          const ia = think(a);
+          // Tank 1 knows where it is: steer it the same as on the other arena and judge
+          // tank 0's bot alone.
+          const ib: [TankIntent, TankIntent] = [think(b)[0], ia[1]];
+          const same = JSON.stringify(ia[0]) === JSON.stringify(ib[0]);
+          if (f < lagFrames) {
+            expect(same, `${level} seed ${seed}: answered the moved tank ${(f * DT).toFixed(2)} s after it`).toBe(true);
+            checked++;
+          } else if (!same) differed = f;
+          a.g.step(DT, ia);
+          b.g.step(DT, ib);
+          // A hit (or a shell meeting the moved tank) is felt, not seen: stop there.
+          if (a.g.phase !== 'play' || b.g.phase !== 'play' || shells(a) !== shells(b)) break;
+        }
+        if (differed >= 0) reacted++;
+      }
+      expect(checked).toBeGreaterThan(60);
+      expect(reacted, `${level}: never answered the moved tank`).toBeGreaterThan(3);
     }
   }, SLOW);
 
