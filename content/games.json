@@ -21,7 +21,7 @@
     { "id": "snake", "seatRing": true, "pauseRing": true, "gesture": "sides", "name": "Snake Duel", "icon": "🐍", "kind": "Action", "free": false, "color": "#26d0ce",
       "blurb": "Don't crash. Best of 5.", "howTo": "Tap your left or right button to turn your snake. Walls and trails crash you. Make the other snake crash first!",
       "handicap": "Slower snake, auto-turn at walls (and trails)" },
-    { "id": "penalty", "gesture": "kick", "name": "Penalty Shootout", "icon": "⚽", "kind": "Aim · turns", "free": false, "color": "#2ecc71",
+    { "id": "penalty", "gesture": "kick", "demoAt": 0.67, "name": "Penalty Shootout", "icon": "⚽", "kind": "Aim · turns", "free": false, "color": "#2ecc71",
       "blurb": "Five kicks each, then sudden death.", "howTo": "Shooter: swipe at the goal. Keeper: tap a dive button; dive too soon and the shooter can switch.",
       "handicap": "Bigger goal and keeper, longer clock" },
     { "id": "minipool", "pauseRing": true, "gesture": "pull", "demoAt": 0.75, "name": "Mini Pool", "icon": "🎱", "kind": "Aim · turns", "free": false, "color": "#1f8f6a",
