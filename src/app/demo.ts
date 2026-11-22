@@ -45,10 +45,10 @@ export function firstMatchOf(history: readonly { game: string }[], game: string)
  * down seat 0's screen it sits (0.72 by default, between the middle and their edge; a
  * game whose own hints sit there, like Ping Pong's, sets `demoAt` in content/games.json).
  */
-export function playDemoHtml(g: Gesture, p: number, lefty = false, at = 0.72, keeper = false): string {
+export function playDemoHtml(g: Gesture, p: number, lefty = false, at = 0.72, keeper = false, dy = COUNT_DY): string {
   // keeper: Penalty's two-role loop starts on its second half (the keeper's dive), for the
   // seat that keeps goal first (F138); the ~2.8 s in play only fits one role.
-  const side = besideCountdown(at) ? `;--dx:${DEMO_BESIDE_DX}%;--s:${DEMO_BESIDE_SCALE}` : '';
+  const side = besideCountdown(at, dy) ? `;--dx:${DEMO_BESIDE_DX}%;--s:${DEMO_BESIDE_SCALE}` : '';
   const [out, gone] = playDemoOut(g, keeper);
   const fade = `;--out:${out}s;--fade:${round2(gone - out)}s`;
   // F215: the shooter's copy loops the swipe alone (SHOOTER_LOOP), so it is still on at GO.
@@ -108,9 +108,10 @@ export function countdownDy(inst: { countdownDy?(): number }): number {
 export const DEMO_BESIDE_DX = 28;
 export const DEMO_BESIDE_SCALE = 1.7;
 
-/** Would a finger card `at` this far down seat 0's screen meet the countdown digit? */
-export function besideCountdown(at: number): boolean {
-  return Math.abs(at - (MID + COUNT_DY) / H) < 0.12;
+/** Would a finger card `at` this far down seat 0's screen meet the countdown digit? F413:
+ *  `dy` is the game's own digit distance (countdownDy()), not always COUNT_DY. */
+export function besideCountdown(at: number, dy = COUNT_DY): boolean {
+  return Math.abs(at - (MID + dy) / H) < 0.12;
 }
 
 // Props drawn next to the finger, per gesture: the thing the finger moves.
