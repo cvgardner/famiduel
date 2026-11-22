@@ -662,6 +662,8 @@ export function traceShot(game: TankDuel, p: PlayerIndex, a: number, maxT = 2.4)
 // it notices each one and drives round it); it always knows its own.
 /** Seconds a shell has flown before a bot can see it: a person's reaction time (F421). */
 export const SHELL_SEEN = HUMAN.reaction;
+/** Seconds a mine has been down before a bot can spot it: a person's reaction time (F424). */
+export const MINE_SEEN = HUMAN.reaction;
 
 export const BOT = {
   easy: { react: 0.6, noise: 0.16, depth: 0, angles: 48, trigger: 0.32, spot: 0.5 },
@@ -885,9 +887,12 @@ export class TankBot {
    * routes the bot keeps the one it is already driving, then the one that needs
    * the least turning from where it's facing.
    */
-  /** Does this bot know about mine m? Its own always (and drives over it: it is harmless to it); the other's with BOT.spot odds. */
+  /** Does this bot know about mine m? Its own always (and drives over it: it is harmless to it); the other's with BOT.spot odds, once it has been down MINE_SEEN. */
   private sees(m: Mine): boolean {
     if (m.owner === this.p) return true;
+    // A person sees the other tank's mine a reaction time after it drops (F424); until
+    // then it isn't there for the route, and the spot roll waits for that first look.
+    if (RULES.mineArm - m.arm < MINE_SEEN) return false;
     let seen = this.spotted.get(m.id);
     if (seen === undefined) {
       seen = this.rng.chance(BOT[this.level].spot);
