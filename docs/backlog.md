@@ -2805,3 +2805,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       a line in): clear of the puller, the line and "your line" at every head start but a
       3-star one, whose line only the biggest frame of each step grazes (< 6 units).
       tests/tugofwar-countdown.test.ts (1x and Bigger text).
+- [x] 2026-11-21 (F410): a rival 2-player app's reviews say "a tournament game got stuck on
+      bot's turn". tests/bots-never-stall.test.ts plays every shown game bot v bot through its
+      real view (turn cards, waits, bot delays) at easy, normal and hard, powers off and each
+      power, 2 seeds: every match ends (none stuck today). A planted Mini Pool bot that never
+      shoots its turn fails it. Test only.
