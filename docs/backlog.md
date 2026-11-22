@@ -2799,3 +2799,8 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       with Bigger text). shotWord() takes a reach and squares to avoid: the words start just
       outside the box, on the nearest line crossing the fewest scanned squares, then marks:
       4.5% (7.2%). tests/seabattle-radar-words.test.ts.
+- [x] 2026-11-21 (F410): a rival 2-player app's reviews say "a tournament game got stuck on
+      bot's turn". tests/bots-never-stall.test.ts plays every shown game bot v bot through its
+      real view (turn cards, waits, bot delays) at easy, normal and hard, powers off and each
+      power, 2 seeds: every match ends (none stuck today). A planted Mini Pool bot that never
+      shoots its turn fails it. Test only.
