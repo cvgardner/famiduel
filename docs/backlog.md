@@ -2866,4 +2866,4 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       moment it dropped. A mine now counts for the bot (and gets its spot roll) only once it
       has been down MINE_SEEN = HUMAN.reaction (0.2 s); its own mines it knows at once.
       tests/bot-limits.test.ts two-arena check drops a mine two cells ahead on the bot's
-      route (the old bot fails it: normal answered in 0.15 s). PR #PRNUM.
+      route (the old bot fails it: normal answered in 0.15 s). PR #437.
