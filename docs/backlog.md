@@ -2936,3 +2936,9 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
   crowded rack had no line for "Another go! (1 left)": it falls back to "Another go!", then to a
   line clear of balls with the older pop faded, then to one born clear of balls. New check in
   tests/minipool-levels.test.ts.
+- [x] F438 (2026-11-22, PR #TBD): Mini Pool head-start pops at 320 px with Bigger text (easy+3
+  v hard frames at each forgiven miss). A forgiven miss popped "Another go!" and "Go again!"
+  together (the same news twice, pushing one of them up past the centre line into the other
+  player's half). Now the forgiven miss pops "Another go!" alone, and every Mini Pool pop is
+  born on its own seat's half. Checked in tests/minipool-pops.test.ts (101 doubled pops on main),
+  which now also plays a three-star bottom player against the hard bot.
