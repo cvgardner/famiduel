@@ -2895,3 +2895,14 @@ Add new ideas at the bottom of the right section. Chris's decisions in CLAUDE.md
       tests/bot-limits.test.ts: two rings, the top wrestler moved into the bottom bot's line
       on one; the bot presses the same on both for a person's reaction time (the old 0.12 s
       bot fails it).
+- [x] 2026-11-22 (F422): no-peek audit of the other real-time bots. Penalty's shooter saw a
+      keeper's early dive the frame it started and re-picked (or aimed away) at once; it now
+      sees the dive a reaction time (0.2 s) after it starts. Tug of War's bot read the live
+      ribbon for digging in and for Anchor (tie off while it slides the wrong way); it now
+      reads the ribbon as it was a reaction time ago (TUG_REACT). Chop Chop's bot switched
+      sides the frame the other side's Freeze landed; it now taps on as it would (any side
+      cracks the ice). Quick Draw (fly, fake-out, Slow Time: taps land >= 0.2 s after what it
+      saw) and the Penalty keeper (F403) were already fine; Mini Pool is turn-based. Three
+      two-world tests in tests/bot-limits.test.ts (main fails all three). Tug of War n=80
+      pace rows unchanged (bots 100% v the level below), sim:powers normal in band; hard has
+      Grip 28% as on main (26%, with Heave 70%): F431.
