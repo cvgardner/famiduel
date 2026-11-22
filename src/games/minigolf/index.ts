@@ -23,7 +23,7 @@ const MIN_PULL = 14;
 const TURN_ANIM = 0.6;
 const STRIP = 62;
 /** Room kept between a strip's status line and the nearer score column (F300). */
-export const STATUS_GAP = 8;
+export const STATUS_GAP = 6;
 
 /** The first wording that fits `room` (longest first); the last one if none does. */
 export function fitLine(lines: string[], room: number, width: (str: string) => number): string {
@@ -864,8 +864,12 @@ class MinigolfView implements GameInstance {
       gx.font = `${weight} ${scaledSize(size)}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
       return gx.measureText(str).width;
     };
+    // Only the nearer column's own words count: reserving half of "Total" before the Hole
+    // column cut "Your shot! Pull back, let go" to its short form on iPhone fonts.
     const near = Math.min(colHole, colTotal);
-    const colHalf = Math.max(wide('Hole', 13), wide(hs, 24), wide('Total', 13), wide(String(g.total(p)), 24)) / 2;
+    const colHalf = (near === colHole
+      ? Math.max(wide('Hole', 13), wide(hs, 24))
+      : Math.max(wide('Total', 13), wide(String(g.total(p)), 24))) / 2;
     status = fitLine([status, ...shorter], near - colHalf - STATUS_GAP - x0, (str) => wide(str, 13, 700));
     // Lifted for the dark strip: Purple was 4.3:1 there. F315: a long name shrinks to end
     // before the score columns too (a 12-letter name ran under "Hole" with Bigger text).
