@@ -39,7 +39,9 @@ Two new games and a fresh home screen.
 • Super powers rotate: each game offers a fresh three every week.
 • Largest text: menus can now go up to twice the size.
 • Simpler Settings, with Remove Ads and Lock to FamiDuel under More.
-• Fairer head starts in Snack Snatch and Tug of War, so a younger player can really win, plus lots of small fixes.
+• Fairer bots: they react no faster than a person would.
+• Mini Pool and Penalty results say how the match ended, like who sank the 8.
+• Fairer head starts in Snack Snatch, Tug of War and Mini Pool, so a younger player can really win, plus lots of small fixes.
 
 Still free, still offline. No Wi-Fi needed.
 
