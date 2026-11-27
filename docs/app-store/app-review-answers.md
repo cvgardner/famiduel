@@ -107,6 +107,13 @@ so App Store Connect won't ask on each upload.
   swipe from the top or bottom edge needs a second swipe because both edges are players'
   play areas.
 
+  New in 1.1: two games, Mini Pool and Tug of War (both on the home screen); a picture on
+  every game button; super powers that rotate weekly, so each game offers 3 of its 5 powers
+  each week, chosen on the phone from the date with no server; a Largest text size (Settings >
+  Look > Text size); and Settings without the old grown-ups question. Super powers are off for
+  new players: turn them on in Settings > Game rules > Super powers to see the power pick
+  before a match. Nothing changed in ads, the Remove Ads purchase or the data the app collects.
+
 ## In-App Purchase (Monetization > In-App Purchases > +)
 
 - Type **Non-Consumable**. Reference name "Remove Ads". Product ID **`famiduel.removeads`**
